@@ -1,296 +1,193 @@
-# T1: workflow:plan Implementation - 5-Phase Orchestration
+# T1: /workflow:plan Implementation Patterns (5-Phase Orchestrator)
 
 ## Overview
 
-`/workflow:plan` is a pure orchestrator command that executes a 5-phase planning workflow autonomously. It transforms user task descriptions into executable implementation plans (IMPL_PLAN.md) and task JSON files through sequential phase execution with automatic continuation.
+`/workflow:plan` is a **pure orchestrator** command: it starts immediately, drives a deterministic multi-phase planning pipeline via `SlashCommand(...)`, and uses **TodoWrite task attachment/collapse** plus **auto-continue** to run to completion without stopping. It ultimately delegates plan artifact generation to `action-planning-agent` via `/workflow:tools:task-generate-agent`.
 
-**Core Principle**: No preliminary analysis—execute phases immediately and parse outputs to drive next phase.
+## High-Level Architecture
 
-## Architecture
-
-### Phase Execution Model
+### Phase Flow (Data + Control)
 
 ```
-User Input → Phase 1 (Session) → Phase 2 (Context) → Phase 3 (Conflicts) → Phase 4 (Tasks) → Output
-                                                            ↓
-                                                      [conditional]
+User input (text or file)
+  -> Phase 0: Input normalization (GOAL/SCOPE/CONTEXT)
+  -> Phase 1: Session discovery  (/workflow:session:start)
+       output: sessionId (WFS-*)
+  -> Phase 2: Context gather     (/workflow:tools:context-gather)
+       output: contextPath + conflict_risk
+  -> Phase 3: Conflict resolution (conditional)
+       if conflict_risk >= medium -> /workflow:tools:conflict-resolution
+       else -> auto-skip
+  -> Phase 4: Task generation    (/workflow:tools:task-generate-agent)
+       output: IMPL_PLAN.md + TODO_LIST.md + task JSONs
+  -> Phase 5: Quality gate (recommended)
+       /workflow:action-plan-verify
+
+Artifacts live under .workflow/active/{sessionId}/
 ```
 
-**Key Characteristics**:
-- **Fully autonomous**: No user interaction between phases
-- **Output-driven**: Each phase output determines next phase input
-- **Task attachment/collapse**: TodoWrite dynamically expands/collapses for visibility
-- **Conditional Phase 3**: Only executes if conflict_risk ≥ medium
+### Coordinator Contract
 
-### Data Flow
+The orchestrator must:
 
-```javascript
-Input: "Build JWT authentication"
-  ↓
-[Structured Format]: GOAL/SCOPE/CONTEXT
-  ↓
-Phase 1: /workflow:session:start --auto "structured"
-  Output: sessionId (WFS-xxx)
-  ↓
-Phase 2: /workflow:tools:context-gather --session WFS-xxx "structured"
-  Output: contextPath + conflict_risk
-  ↓
-[Decision]: conflict_risk ≥ medium?
-  ├─ YES → Phase 3: /workflow:tools:conflict-resolution
-  │         Output: Modified artifacts
-  └─ NO → Skip to Phase 4
-  ↓
-Phase 4: /workflow:tools:task-generate-agent --session WFS-xxx
-  Output: IMPL_PLAN.md, IMPL-*.json, TODO_LIST.md
-  ↓
-Return: Summary + next steps
-```
+- Initialize a TodoWrite plan *before* doing any analysis.
+- Execute each phase command.
+- Parse each phase output to build the next phase input.
+- Attach sub-tasks from sub-commands into its TodoWrite, then collapse back to phase-level view.
+- Continue automatically until all phases complete.
 
-## Phase Details
+## Slash Command Registration (Declarative)
+
+Slash commands are declared as markdown files with YAML frontmatter under `.claude/commands/**`. The file path defines the slash command name (e.g. `.claude/commands/workflow/plan.md` -> `/workflow:plan`) while frontmatter provides routing metadata (`name`, `description`, `argument-hint`, `allowed-tools`).
+
+This repository also packages `.claude/commands/` as distributable content (so commands ship with the toolchain).
+
+## TodoWrite Task Attachment / Collapse Pattern
+
+Key idea: a `SlashCommand` invocation *expands the orchestrator's TodoWrite* by attaching the called command's internal tasks. After completion, the orchestrator collapses these detailed tasks into a single completed phase summary.
+
+This makes the workflow observable (detailed tasks during execution) while keeping the final checklist high-level.
+
+## Phase-by-Phase Implementation Notes
+
+### Phase 0: Input Normalization
+
+Input is normalized into a structured multi-line prompt (GOAL / SCOPE / CONTEXT) before invoking phase commands.
 
 ### Phase 1: Session Discovery
 
-**Command**: `/workflow:session:start --auto "GOAL: ...\nSCOPE: ...\nCONTEXT: ..."`
+Command:
 
-**Execution**:
-1. Parse user input into structured format (GOAL/SCOPE/CONTEXT)
-2. Execute SlashCommand with structured description
-3. Extract sessionId from output (pattern: `SESSION_ID: WFS-[id]`)
-4. Validate session directory exists: `.workflow/active/[sessionId]/`
+- `/workflow:session:start --auto "[structured-task-description]"`
 
-**Output**: `sessionId` (stored in memory for Phase 2)
+Output:
 
-**File References**:
-- `.claude/commands/workflow/session/start.md` (lines 1-150): Session discovery logic
-- `.workflow/active/[sessionId]/workflow-session.json`: Session metadata
+- `sessionId` (e.g. `WFS-123`)
 
 ### Phase 2: Context Gathering
 
-**Command**: `/workflow:tools:context-gather --session [sessionId] "structured-description"`
+Command:
 
-**Execution**:
-1. Pass sessionId and same structured description from Phase 1
-2. Execute SlashCommand
-3. Extract context-package.json path from output
-4. Read context-package.json to extract `conflict_risk` field
-5. Store contextPath and conflict_risk in memory
+- `/workflow:tools:context-gather --session [sessionId] "[structured-task-description]"`
 
-**Output**: `contextPath`, `conflict_risk`
+Output:
 
-**Task Attachment Pattern**:
-- SlashCommand attaches 3 sub-tasks to TodoWrite:
-  - Analyze codebase structure
-  - Identify integration points
-  - Generate context package
-- Orchestrator executes these sequentially
-- After completion, tasks collapse to single "Phase 2: Context Gathering" entry
-
-**File References**:
-- `.claude/commands/workflow/tools/context-gather.md` (lines 1-210): Context gathering orchestration
-- `.workflow/active/[sessionId]/.process/context-package.json`: Generated context package
-- `.workflow/active/[sessionId]/.process/explorations-manifest.json`: Exploration index
+- A context artifact path (often used as `contextPath`)
+- A `conflict_risk` signal used to decide whether to run Phase 3.
 
 ### Phase 3: Conflict Resolution (Conditional)
 
-**Trigger**: Only if `conflict_risk >= "medium"`
+Decision:
 
-**Command**: `/workflow:tools:conflict-resolution --session [sessionId] --context [contextPath]`
+- If `conflict_risk >= medium`: run `/workflow:tools:conflict-resolution --session [sessionId] --context [contextPath]`.
+- Otherwise: auto-skip and continue.
 
-**Execution**:
-1. Check conflict_risk from Phase 2 context-package.json
-2. If conflict_risk < "medium": Skip to Phase 4
-3. If conflict_risk >= "medium":
-   - Execute SlashCommand with sessionId and contextPath
-   - Wait for conflict-resolution.json generation
-   - Verify file exists: `.workflow/active/[sessionId]/.process/conflict-resolution.json`
+Optional memory pressure guard:
 
-**Task Attachment Pattern**:
-- SlashCommand attaches 3 sub-tasks:
-  - Detect conflicts with CLI analysis
-  - Present conflicts to user
-  - Apply resolution strategies
-- Orchestrator executes sequentially
-- After completion, tasks collapse to single "Phase 3: Conflict Resolution" entry
+- `/compact` may be used when the context approaches token limits.
 
-**Memory Optimization**:
-- After Phase 3, evaluate context window usage
-- If approaching limits (>120K tokens), execute `/compact` before Phase 4
+### Phase 4: Task Generation (Agent-Driven)
 
-**File References**:
-- `.claude/commands/workflow/tools/conflict-resolution.md`: Conflict detection and resolution
-- `.workflow/active/[sessionId]/.process/conflict-resolution.json`: Conflict analysis output
+Command:
 
-### Phase 4: Task Generation
+- `/workflow:tools:task-generate-agent --session [sessionId]`
 
-**Command**: `/workflow:tools:task-generate-agent --session [sessionId]`
+Responsibilities of `/workflow:tools:task-generate-agent`:
 
-**Execution**:
-1. Pass sessionId to task-generate-agent
-2. Agent autonomously:
-   - Loads session metadata and context package
-   - Reads brainstorm artifacts (if exist)
-   - Generates implementation plan
-   - Creates task JSON files
-3. Verify outputs exist:
-   - `.workflow/active/[sessionId]/IMPL_PLAN.md`
-   - `.workflow/active/[sessionId]/.task/IMPL-*.json` (at least one)
-   - `.workflow/active/[sessionId]/TODO_LIST.md`
+- Collect user configuration (`executionMethod`, `preferredCliTool`, supplementary materials).
+- Spawn one or more `action-planning-agent` runs (often parallel by module).
+- Produce planning artifacts only (no code execution):
+  - `.workflow/active/{sessionId}/IMPL_PLAN.md`
+  - `.workflow/active/{sessionId}/TODO_LIST.md`
+  - One or more task JSON files
 
-**Output**: IMPL_PLAN.md, task JSONs, TODO_LIST.md
+### Phase 5: Quality Gate (Recommended)
 
-**File References**:
-- `.claude/commands/workflow/tools/task-generate-agent.md` (lines 1-550): Task generation orchestration
-- `.claude/agents/action-planning-agent.md`: Agent implementation details
+Although `/workflow:plan` can complete after Phase 4, a quality gate command is recommended:
 
-## TodoWrite Pattern
+- `/workflow:action-plan-verify --session [sessionId]`
 
-### Task Attachment/Collapse Lifecycle
+## JSON Schema Contract: plan-json-schema.json
 
-**Initial State**:
+`/workflow:plan` and `/workflow:lite-plan` both rely on schema-driven planning artifacts. The canonical contract for plan tasks is `plan-json-schema.json`.
+
+Highlights:
+
+- Root required fields include: `summary`, `approach`, `tasks`, `estimated_time`, `recommended_execution`, `complexity`, `_metadata`.
+- Each task requires: `id`, `title`, `scope`, `action`, `description`, `implementation`, `acceptance`.
+- `modification_points[]` is required (minItems=1); each item requires `file`, `target`, `change`.
+
+### modification_points Example
+
 ```json
-[
-  {"content": "Phase 1: Session Discovery", "status": "pending"},
-  {"content": "Phase 2: Context Gathering", "status": "pending"},
-  {"content": "Phase 4: Task Generation", "status": "pending"}
-]
+{
+  "id": "T2",
+  "title": "Add validation to login endpoint",
+  "scope": "src/auth",
+  "action": "Update",
+  "description": "Validate inputs and return consistent errors",
+  "modification_points": [
+    { "file": "src/auth/login.ts", "target": "validateLogin:45-90", "change": "Add schema validation + error mapping" },
+    { "file": "src/auth/routes.ts", "target": "POST /login handler", "change": "Call validateLogin and handle failures" }
+  ],
+  "implementation": [
+    "Add validation schema",
+    "Wire into handler",
+    "Update tests"
+  ],
+  "acceptance": [
+    "Invalid payload returns 400 with structured error",
+    "Existing valid login still succeeds"
+  ]
+}
 ```
 
-**Phase 1 Execution**:
-```json
-[
-  {"content": "Phase 1: Session Discovery", "status": "in_progress"},
-  {"content": "Phase 2: Context Gathering", "status": "pending"},
-  {"content": "Phase 4: Task Generation", "status": "pending"}
-]
-```
+## CCW Server / CLI Interaction (Execution Substrate)
 
-**Phase 2 Attached** (tasks expanded):
-```json
-[
-  {"content": "Phase 1: Session Discovery", "status": "completed"},
-  {"content": "Phase 2: Context Gathering", "status": "in_progress"},
-  {"content": "  → Analyze codebase structure", "status": "in_progress"},
-  {"content": "  → Identify integration points", "status": "pending"},
-  {"content": "  → Generate context package", "status": "pending"},
-  {"content": "Phase 4: Task Generation", "status": "pending"}
-]
-```
+Although slash commands run inside the Claude environment, **agents and workflows frequently call external CLIs** (Gemini/Qwen/Codex/npm/etc.). CCW provides server routes that execute these tools, track executions, and optionally stream output.
 
-**Phase 2 Collapsed** (tasks completed):
-```json
-[
-  {"content": "Phase 1: Session Discovery", "status": "completed"},
-  {"content": "Phase 2: Context Gathering", "status": "completed"},
-  {"content": "Phase 4: Task Generation", "status": "pending"}
-]
-```
+Key pieces:
 
-**Phase 3 Attached** (if conflict_risk >= medium):
-```json
-[
-  {"content": "Phase 1: Session Discovery", "status": "completed"},
-  {"content": "Phase 2: Context Gathering", "status": "completed"},
-  {"content": "Phase 3: Conflict Resolution", "status": "in_progress"},
-  {"content": "  → Detect conflicts with CLI analysis", "status": "in_progress"},
-  {"content": "  → Present conflicts to user", "status": "pending"},
-  {"content": "  → Apply resolution strategies", "status": "pending"},
-  {"content": "Phase 4: Task Generation", "status": "pending"}
-]
-```
+- `handleCliRoutes(...)` exposes endpoints such as `/api/cli/execute`.
+- `executeCliTool(...)` (backed by `cli-executor-core.ts`) manages spawn, streaming, resume/merge, and conversation persistence.
 
-## Input Processing
+## Testing / Verification Checklist (Doc-Level)
 
-### Structured Format Conversion
+- All referenced files exist.
+- All schema field names and constraints match the actual JSON schema files.
+- Phase order and conditional branching match the command definition.
+- Code snippets are syntactically valid and reflect actual tool/agent invocation patterns.
 
-**Simple Input**:
-```
-User: "Build authentication system"
-↓
-GOAL: Build authentication system
-SCOPE: Core authentication features
-CONTEXT: New implementation
-```
+## Code References (Implementation Evidence)
 
-**Detailed Input**:
-```
-User: "Add JWT with email/password login and token refresh"
-↓
-GOAL: Implement JWT-based authentication
-SCOPE: Email/password login, token generation, token refresh
-CONTEXT: JWT token-based security, refresh token rotation
-```
+- `.claude/commands/workflow/plan.md:1` - `/workflow:plan` frontmatter (name/allowed-tools).
+- `.claude/commands/workflow/plan.md:14` - Auto-continue execution model description.
+- `.claude/commands/workflow/plan.md:25` - Task attachment model (TodoWrite expand/collapse).
+- `.claude/commands/workflow/plan.md:32` - Auto-continue mechanism rules.
+- `.claude/commands/workflow/plan.md:56` - Phase 1 command invocation.
+- `.claude/commands/workflow/plan.md:60` - Phase 2 command invocation.
+- `.claude/commands/workflow/plan.md:66` - Phase 3 conditional decision by `conflict_risk`.
+- `.claude/commands/workflow/plan.md:72` - Phase 4 task generation command.
+- `.claude/commands/workflow/plan.md:86` - `SlashCommand(...)` for phase 1.
+- `.claude/commands/workflow/plan.md:140` - TodoWrite update example for phase 2 attachment.
+- `.claude/commands/workflow/plan.md:199` - TodoWrite update example for phase 3 attachment.
+- `.claude/commands/workflow/plan.md:290` - TodoWrite update example for phase 4 agent task attachment.
+- `.claude/commands/workflow/plan.md:328` - TodoWrite pattern section (attach/collapse behavior).
+- `.claude/commands/workflow/plan.md:542` - Explicit list of called sub-commands (phase mapping).
+- `.claude/commands/workflow/tools/task-generate-agent.md:3` - Task generation command purpose (planning artifacts, not execution).
+- `.claude/commands/workflow/tools/task-generate-agent.md:52` - Parallel spawning of `action-planning-agent` by module.
+- `.claude/commands/workflow/tools/task-generate-agent.md:220` - `Task(subagent_type=\"action-planning-agent\", ...)` invocation pattern.
+- `.claude/agents/action-planning-agent.md:26` - IMPL_PLAN.md and TODO_LIST.md generation responsibilities.
+- `.claude/agents/action-planning-agent.md:860` - IMPL_PLAN template loading requirement.
+- `.claude/workflows/cli-templates/schemas/plan-json-schema.json:6` - Root required fields for plan object.
+- `.claude/workflows/cli-templates/schemas/plan-json-schema.json:30` - Task required fields (`id`, `title`, `scope`, `action`, `description`, `implementation`, `acceptance`).
+- `.claude/workflows/cli-templates/schemas/plan-json-schema.json:58` - `modification_points` structure and required fields.
+- `ccw/src/core/routes/cli-routes.ts:156` - `handleCliRoutes(...)` entry point.
+- `ccw/src/core/routes/cli-routes.ts:604` - `/api/cli/execute` route.
+- `ccw/src/core/routes/cli-routes.ts:657` - `executeCliTool(...)` call site.
+- `ccw/src/tools/cli-executor-core.ts:392` - `executeCliTool(...)` core implementation.
+- `ccw/src/tools/cli-executor-core.ts:217` - Process spawning via `spawn(...)`.
+- `ccw/src/commands/workflow.ts:326` - `workflowCommand(...)` CLI entry for workflow management.
+- `ccw/src/commands/workflow.ts:241` - `workflow-version.json` marker written after install.
+- `package.json:55` - `.claude/commands/` included in package files list.
 
-**File Reference Input**:
-```
-User: "requirements.md"
-↓
-Read file → Extract goal/scope/requirements → Format as structured
-```
-
-## Error Handling
-
-| Error | Resolution |
-|-------|-----------|
-| Phase 1 fails | Retry once, report error, abort |
-| Phase 2 fails | Retry once, report error, abort |
-| Phase 3 fails | Log error, skip to Phase 4 |
-| Phase 4 fails | Report error, suggest manual planning |
-| Output parsing fails | Retry command, then report error |
-| Validation fails | Report missing file/data, abort |
-
-## Integration Points
-
-**Called Commands**:
-- `/workflow:session:start` (Phase 1)
-- `/workflow:tools:context-gather` (Phase 2)
-- `/workflow:tools:conflict-resolution` (Phase 3, conditional)
-- `/compact` (Phase 3, optional memory optimization)
-- `/workflow:tools:task-generate-agent` (Phase 4)
-
-**Input Sources**:
-- User task description
-- Session metadata (`.workflow/active/[sessionId]/workflow-session.json`)
-- Context package (`.workflow/active/[sessionId]/.process/context-package.json`)
-- Brainstorm artifacts (if exist in session)
-
-**Output Consumers**:
-- `/workflow:action-plan-verify` (verify plan quality)
-- `/workflow:status` (review task breakdown)
-- `/workflow:execute` (begin implementation)
-
-## Code References
-
-**Key Files**:
-- `.claude/commands/workflow/plan.md` (lines 1-552): Full command specification
-- `.claude/commands/workflow/session/start.md` (lines 1-150): Session discovery
-- `.claude/commands/workflow/tools/context-gather.md` (lines 1-210): Context gathering
-- `.claude/commands/workflow/tools/task-generate-agent.md` (lines 1-550): Task generation
-- `.claude/agents/action-planning-agent.md`: Agent implementation
-
-**Key Patterns**:
-- SlashCommand execution with output parsing (lines 85-87, 123-124, 178-179, 276-277)
-- Task attachment/collapse pattern (lines 140-163)
-- Conditional Phase 3 execution (lines 173-194)
-- Memory optimization check (lines 230-241)
-
-## Execution Checklist
-
-- [ ] Convert user input to structured format (GOAL/SCOPE/CONTEXT)
-- [ ] Initialize TodoWrite with 3 orchestrator-level tasks
-- [ ] Execute Phase 1, extract sessionId
-- [ ] Execute Phase 2, extract contextPath and conflict_risk
-- [ ] Check conflict_risk: if >= medium, execute Phase 3
-- [ ] Evaluate memory usage after Phase 3
-- [ ] Execute Phase 4, verify all outputs
-- [ ] Update TodoWrite after each phase
-- [ ] Return summary with next steps
-
-## Quality Criteria
-
-✓ All 4 phases execute in sequence
-✓ Output from each phase drives next phase input
-✓ TodoWrite reflects task attachment/collapse pattern
-✓ Phase 3 only executes when conflict_risk >= medium
-✓ All output files verified before proceeding
-✓ Error handling with retry logic
-✓ Memory optimization before Phase 4 (if needed)
