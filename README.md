@@ -147,10 +147,10 @@ Users can **semantically specify CLI tools** in prompts - the system automatical
 
 <div align="center">
 
-| User Prompt | System Action |
-|-------------|---------------|
-| "Use Gemini to analyze the auth module" | Auto-invoke `gemini` CLI for analysis |
-| "Let Codex review this code" | Auto-invoke `codex` CLI for review |
+| User Prompt                               | System Action                           |
+| ----------------------------------------- | --------------------------------------- |
+| "Use Gemini to analyze the auth module"   | Auto-invoke `gemini` CLI for analysis   |
+| "Let Codex review this code"              | Auto-invoke `codex` CLI for review      |
 | "Ask Qwen about performance optimization" | Auto-invoke `qwen` CLI for consultation |
 
 </div>
@@ -159,12 +159,12 @@ Users can **semantically specify CLI tools** in prompts - the system automatical
 
 <div align="center">
 
-| Pattern | User Prompt Example |
-|---------|---------------------|
+| Pattern           | User Prompt Example                                                        |
+| ----------------- | -------------------------------------------------------------------------- |
 | **Collaborative** | "Use Gemini and Codex to collaboratively analyze security vulnerabilities" |
-| **Parallel** | "Have Gemini, Codex, and Qwen analyze the architecture in parallel" |
-| **Iterative** | "Use Gemini to diagnose, then Codex to fix, iterate until resolved" |
-| **Pipeline** | "Gemini designs the solution, Codex implements, Claude reviews" |
+| **Parallel**      | "Have Gemini, Codex, and Qwen analyze the architecture in parallel"        |
+| **Iterative**     | "Use Gemini to diagnose, then Codex to fix, iterate until resolved"        |
+| **Pipeline**      | "Gemini designs the solution, Codex implements, Claude reviews"            |
 
 </div>
 
@@ -201,11 +201,11 @@ ccw view  # Open Dashboard → Status → API Settings → Add Custom CLI
 
 <div align="center">
 
-| Field | Example |
-|-------|---------|
-| **Name** | `deepseek` |
+| Field        | Example                            |
+| ------------ | ---------------------------------- |
+| **Name**     | `deepseek`                         |
 | **Endpoint** | `https://api.deepseek.com/v1/chat` |
-| **API Key** | `your-api-key` |
+| **API Key**  | `your-api-key`                     |
 
 </div>
 
@@ -219,10 +219,10 @@ ACE (Augment Context Engine) provides powerful semantic code search.
 
 <div align="center">
 
-| Method | Link |
-|--------|------|
+| Method       | Link                                                                                    |
+| ------------ | --------------------------------------------------------------------------------------- |
 | **Official** | [Augment MCP Documentation](https://docs.augmentcode.com/context-services/mcp/overview) |
-| **Proxy** | [ace-tool (GitHub)](https://github.com/eastxiaodong/ace-tool) |
+| **Proxy**    | [ace-tool (GitHub)](https://github.com/eastxiaodong/ace-tool)                           |
 
 </div>
 
@@ -288,13 +288,13 @@ ccw upgrade -a        # Upgrade all installations
 
 <div align="center">
 
-| Document | Description |
-|----------|-------------|
-| [**Workflow Guide**](WORKFLOW_GUIDE.md) | 4-level workflow system (recommended) |
-| [**Getting Started**](GETTING_STARTED.md) | 5-minute quick start |
-| [**Dashboard Guide**](DASHBOARD_GUIDE.md) | Dashboard user guide |
-| [**FAQ**](FAQ.md) | Common questions |
-| [**Changelog**](CHANGELOG.md) | Version history |
+| Document                                  | Description                           |
+| ----------------------------------------- | ------------------------------------- |
+| [**Workflow Guide**](WORKFLOW_GUIDE.md)   | 4-level workflow system (recommended) |
+| [**Getting Started**](GETTING_STARTED.md) | 5-minute quick start                  |
+| [**Dashboard Guide**](DASHBOARD_GUIDE.md) | Dashboard user guide                  |
+| [**FAQ**](FAQ.md)                         | Common questions                      |
+| [**Changelog**](CHANGELOG.md)             | Version history                       |
 
 </div>
 

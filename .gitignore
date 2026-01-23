@@ -18,7 +18,6 @@ Thumbs.db
 
 .env
 settings.local.json
-.workflow
 version.json
 ref
 COMMAND_FLOW_STANDARD.md
