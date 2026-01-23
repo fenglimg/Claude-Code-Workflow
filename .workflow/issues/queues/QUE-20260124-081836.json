@@ -1,13 +1,13 @@
 {
   "id": "QUE-20260124-081836",
-  "status": "active",
+  "status": "completed",
   "created_at": "2026-01-24T08:18:36.000Z",
   "solutions": [
     {
       "item_id": "S-1",
       "issue_id": "ISS-20260123-001",
       "solution_id": "SOL-ISS-20260123-001-a7x9",
-      "status": "pending",
+      "status": "completed",
       "execution_order": 1,
       "execution_group": "P1",
       "depends_on": [],
@@ -28,7 +28,22 @@
         "ccw/src/tools/cli-executor-core.ts",
         ".workflow/.scratchpad/"
       ],
-      "task_count": 4
+      "task_count": 4,
+      "completed_at": "2026-01-23T17:26:40.792Z",
+      "result": {
+        "summary": "Completed S-1 documentation tasks: created detailed implementation docs for workflow:plan, workflow:lite-plan, issue:plan, and added a consolidated reference guide with code-linked evidence and schema notes.",
+        "files_modified": [
+          ".workflow/.scratchpad/T1-workflow-plan.md",
+          ".workflow/.scratchpad/T2-workflow-lite-plan.md",
+          ".workflow/.scratchpad/T3-issue-plan.md",
+          ".workflow/.scratchpad/WORKFLOW_IMPLEMENTATION_PATTERNS.md"
+        ],
+        "commit": {
+          "hash": "7f24f00f",
+          "type": "docs"
+        },
+        "tasks_completed": 4
+      }
     }
   ],
   "conflicts": [],
@@ -36,8 +51,19 @@
     {
       "id": "P1",
       "type": "parallel",
-      "solutions": ["S-1"],
+      "solutions": [
+        "S-1"
+      ],
       "solution_count": 1
     }
-  ]
+  ],
+  "_metadata": {
+    "version": "2.0",
+    "total_tasks": 1,
+    "pending_count": 0,
+    "executing_count": 0,
+    "completed_count": 1,
+    "failed_count": 0,
+    "updated_at": "2026-01-23T17:26:41.144Z"
+  }
 }
