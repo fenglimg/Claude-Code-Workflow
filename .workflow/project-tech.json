@@ -1,0 +1,149 @@
+{
+  "project_name": "Claude-Code-Workflow",
+  "initialized_at": "2026-01-24T06:35:00.000Z",
+  "overview": {
+    "description": "JSON-driven multi-agent development framework with intelligent CLI orchestration (Gemini/Qwen/Codex/Claude), context-first architecture, and automated workflow execution. Features 4-level workflow system from instant execution to multi-role brainstorming.",
+    "technology_stack": {
+      "languages": [
+        {
+          "name": "TypeScript",
+          "file_count": 54,
+          "primary": true
+        },
+        {
+          "name": "Python",
+          "file_count": 250,
+          "primary": false
+        },
+        {
+          "name": "JavaScript",
+          "file_count": 19,
+          "primary": false
+        },
+        {
+          "name": "Markdown",
+          "file_count": 153,
+          "primary": false
+        }
+      ],
+      "frameworks": [
+        "Node.js",
+        "Commander.js",
+        "Inquirer.js",
+        "MCP SDK",
+        "LiteLLM",
+        "FastEmbed",
+        "Tree-sitter"
+      ],
+      "build_tools": [
+        "npm",
+        "TypeScript Compiler",
+        "setuptools"
+      ],
+      "test_frameworks": [
+        "Node.js Test Runner",
+        "Playwright",
+        "pytest"
+      ]
+    },
+    "architecture": {
+      "style": "Modular CLI-based microservices with agent orchestration",
+      "layers": [
+        "CLI Interface",
+        "Command Orchestration",
+        "Agent Execution",
+        "Core Services",
+        "Tool Integration",
+        "Dashboard/UI"
+      ],
+      "patterns": [
+        "Command Pattern",
+        "Factory Pattern",
+        "Repository Pattern",
+        "Observer Pattern",
+        "Strategy Pattern",
+        "Agent-based Architecture"
+      ]
+    },
+    "key_components": [
+      {
+        "name": "CLI Orchestrator",
+        "path": "ccw/src/cli.ts",
+        "description": "Main CLI entry point orchestrating multi-agent workflows with semantic CLI invocation",
+        "importance": "high"
+      },
+      {
+        "name": "Command System",
+        "path": "ccw/src/commands/",
+        "description": "Workflow commands (plan, execute, lite-plan, lite-fix, brainstorm, issue, memory)",
+        "importance": "high"
+      },
+      {
+        "name": "Agent Layer",
+        "path": ".claude/agents/",
+        "description": "Multi-agent system including cli-explore-agent, action-planning-agent, universal-executor, and 20+ specialized agents",
+        "importance": "high"
+      },
+      {
+        "name": "Core Services",
+        "path": "ccw/src/core/services/",
+        "description": "Business logic services for workflow execution, session management, and state persistence",
+        "importance": "high"
+      },
+      {
+        "name": "Dashboard",
+        "path": "ccw/src/core/routes/",
+        "description": "Web-based dashboard for session overview, CodexLens search, graph explorer, and CLI manager",
+        "importance": "high"
+      },
+      {
+        "name": "CodexLens",
+        "path": "codex-lens/",
+        "description": "Python-based semantic code search engine with FTS5, embedding, hybrid search, and reranking",
+        "importance": "high"
+      },
+      {
+        "name": "MCP Server",
+        "path": "ccw/src/mcp-server/",
+        "description": "Model Context Protocol server for tool integration and context management",
+        "importance": "medium"
+      },
+      {
+        "name": "CCW LiteLLM",
+        "path": "ccw-litellm/",
+        "description": "Unified LiteLLM interface layer shared by ccw and codex-lens for multi-model LLM access",
+        "importance": "medium"
+      },
+      {
+        "name": "Skill System",
+        "path": ".claude/skills/",
+        "description": "Reusable skill templates for code review, project analysis, issue management, and workflow automation",
+        "importance": "medium"
+      },
+      {
+        "name": "Workflow Templates",
+        "path": ".claude/workflows/",
+        "description": "CLI templates, schemas, and protocol definitions for workflow execution",
+        "importance": "medium"
+      }
+    ]
+  },
+  "features": [],
+  "development_index": {
+    "feature": [],
+    "enhancement": [],
+    "bugfix": [],
+    "refactor": [],
+    "docs": []
+  },
+  "statistics": {
+    "total_features": 0,
+    "total_sessions": 0,
+    "last_updated": "2026-01-24T06:35:00.000Z"
+  },
+  "_metadata": {
+    "initialized_by": "cli-explore-agent",
+    "analysis_timestamp": "2026-01-24T06:35:00.000Z",
+    "analysis_mode": "deep-scan"
+  }
+}

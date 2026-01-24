@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Learn Workflow User Profile",
+  "description": "Represents a user's learning profile, including skills, preferences, and history.",
+  "type": "object",
+  "properties": {
+    "profile_id": { "type": "string" },
+    "experience_level": { "type": "string", "enum": ["beginner", "intermediate", "advanced", "expert"] },
+    "known_topics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "topic_id": { "type": "string" },
+          "proficiency": { "type": "number", "minimum": 0, "maximum": 1 },
+          "last_updated": { "type": "string", "format": "date-time" },
+          "evidence": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["topic_id", "proficiency"]
+      }
+    },
+    "learning_preferences": {
+      "type": "object",
+      "properties": {
+        "style": { "type": "string", "enum": ["practical", "theoretical", "visual"] },
+        "preferred_sources": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "feedback_journal": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "session_id": { "type": "string" },
+          "rating": { "type": "integer", "minimum": 1, "maximum": 5 }
+        },
+        "required": ["date", "session_id", "rating"]
+      }
+    }
+  },
+  "required": ["profile_id", "experience_level", "known_topics"]
+}
