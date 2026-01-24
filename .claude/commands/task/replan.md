@@ -1,9 +1,13 @@
 ---
 name: replan
 description: Update task JSON with new requirements or batch-update multiple tasks from verification report, tracks changes in task-changes.json
-argument-hint: "task-id [\"text\"|file.md] | --batch [verification-report.md]"
+argument-hint: "[-y|--yes] task-id [\"text\"|file.md] | --batch [verification-report.md]"
 allowed-tools: Read(*), Write(*), Edit(*), TodoWrite(*), Glob(*), Bash(*)
 ---
+
+## Auto Mode
+
+When `--yes` or `-y`: Auto-confirm updates, use recommended changes.
 
 # Task Replan Command (/task:replan)
 
@@ -353,7 +357,7 @@ Review error details in summary report
 
 # No replan recommendations found
 Verification report contains no replan recommendations
-Check report content or use /workflow:action-plan-verify first
+Check report content or use /workflow:plan-verify first
 ```
 
 ## Batch Mode Integration

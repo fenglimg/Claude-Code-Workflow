@@ -1,9 +1,13 @@
 ---
 name: plan
 description: 5-phase planning workflow with action-planning-agent task generation, outputs IMPL_PLAN.md and task JSONs
-argument-hint: "\"text description\"|file.md"
+argument-hint: "[-y|--yes] \"text description\"|file.md"
 allowed-tools: SlashCommand(*), TodoWrite(*), Read(*), Bash(*)
 ---
+
+## Auto Mode
+
+When `--yes` or `-y`: Auto-continue all phases (skip confirmations), use recommended conflict resolutions.
 
 # Workflow Plan Command (/workflow:plan)
 
@@ -318,11 +322,11 @@ Tasks generated: [count]
 Plan: .workflow/active/[sessionId]/IMPL_PLAN.md
 
 Recommended Next Steps:
-1. /workflow:action-plan-verify --session [sessionId]  # Verify plan quality before execution
+1. /workflow:plan-verify --session [sessionId]  # Verify plan quality before execution
 2. /workflow:status  # Review task breakdown
 3. /workflow:execute  # Start implementation (after verification)
 
-Quality Gate: Consider running /workflow:action-plan-verify to catch issues early
+Quality Gate: Consider running /workflow:plan-verify to catch issues early
 ```
 
 ## TodoWrite Pattern
@@ -546,6 +550,6 @@ CONSTRAINTS: [Limitations or boundaries]
 - `/workflow:tools:task-generate-agent` - Phase 4: Generate task JSON files with agent-driven approach
 
 **Follow-up Commands**:
-- `/workflow:action-plan-verify` - Recommended: Verify plan quality and catch issues before execution
+- `/workflow:plan-verify` - Recommended: Verify plan quality and catch issues before execution
 - `/workflow:status` - Review task breakdown and current progress
 - `/workflow:execute` - Begin implementation of generated tasks
