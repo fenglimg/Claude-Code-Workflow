@@ -38,7 +38,9 @@ Input Parsing:
 Phase 1: Profile Discovery & Validation
    ├─ 读取 .workflow/learn/state.json
    ├─ 验证 active_profile_id 存在
-   └─ 如果不存在 → 自动创建 default profile
+   ├─ 如果不存在 → 自动创建 default profile
+   └─ Clarification Check: 目标是否过泛？
+      └─ Yes → AskUserQuestion 澄清具体方向
 
 Phase 2: Knowledge Gap Analysis
    ├─ 加载 profile: {known_topics, experience_level}
@@ -49,29 +51,49 @@ Phase 3: Plan Generation (Agent or Template)
    ├─ 决策：--no-agent flag?
    │  ├─ Yes → 使用静态模板生成
    │  └─ No → 调用 learn-planning-agent
-   │     ├─ Task(tool="learn-planning-agent")
+   │     ├─ Task(tool="learn-planning-agent", run_in_background=false)
    │     ├─ 输入：目标 + profile + gap_analysis
-   │     └─ 输出：知识点 DAG + 资源推荐
-   └─ 验证输出：无循环依赖、前置条件合理
+   │     ├─ MCP工具集成：ACE + Exa + smart_search
+   │     └─ 输出：知识点 DAG + 资源推荐（schema-first）
+   └─ 初步验证：基本结构完整性
 
-Phase 4: Session Creation
+Phase 4: Validation Gate (Multi-Layer QA)
+   ├─ Layer 0: Schema Validation（阻断型）
+   │  ├─ 加载 learn-plan-schema.json
+   │  ├─ 验证必填字段、类型、枚举值
+   │  └─ 验证约束：maxItems=15, minItems=1 for resources
+   ├─ Layer 1: Graph Validity（阻断型）
+   │  ├─ DAG循环检测（DFS-based）
+   │  ├─ Prerequisites引用存在性检查
+   │  └─ 生成拓扑排序（学习顺序建议）
+   ├─ Layer 2: Profile→Plan Matching（告警型）
+   │  ├─ 高熟练度topic (proficiency>=0.8) → 标记为optional
+   │  ├─ 缺少基础prerequisites → 警告或补充基础KP
+   │  └─ 生成 profile_fingerprint 防止不匹配
+   └─ Layer 3: Resource Quality Scoring（告警型）
+      ├─ 每个KP至少1个Gold-tier资源
+      ├─ 资源质量评分（gold/silver/bronze）
+      └─ 不满足 → 警告用户或降级继续
+
+Phase 5: Session Creation
    ├─ 生成 session_id: LS-YYYYMMDD-NNN
    ├─ 创建目录：.workflow/learn/sessions/{session_id}/
    ├─ 写入文件：
    │  ├─ manifest.json（会话元数据）
-   │  ├─ plan.json（学习计划）
+   │  ├─ plan.json（学习计划，已验证）
    │  └─ progress.json（初始进度）
    └─ 更新 state.json（active_session_id）
 
-Phase 5: User Confirmation
+Phase 6: User Confirmation
    ├─ 显示计划摘要
-   │  ├─ 知识点数量
-   │  ├─ 依赖关系概览
-   │  ├─ 预估难度分布
-   │  └─ 资源质量统计
+   │  ├─ 知识点数量 + 难度分布
+   │  ├─ 依赖关系概览（拓扑顺序）
+   │  ├─ 资源质量统计（Gold/Silver/Bronze）
+   │  └─ 验证结果（通过/警告）
    └─ AskUserQuestion: 确认开始学习？
       ├─ Yes → 返回 session_id，提示使用 /learn:execute
-      └─ No → 保留会话，可稍后 resume
+      ├─ Review → 显示完整plan.json
+      └─ Modify → 收集反馈，返回Phase 3重新生成
 ```
 
 ## Implementation
@@ -373,6 +395,16 @@ const hardCount = plan.knowledge_points.filter(kp => kp.estimated_effort === 'ha
 
 const goldResources = plan.knowledge_points.reduce((acc, kp) =>
   acc + kp.resources.filter(r => r.quality === 'gold').length, 0);
+const silverResources = plan.knowledge_points.reduce((acc, kp) =>
+  acc + kp.resources.filter(r => r.quality === 'silver').length, 0);
+const bronzeResources = plan.knowledge_points.reduce((acc, kp) =>
+  acc + kp.resources.filter(r => r.quality === 'bronze').length, 0);
+
+// Display validation results
+const validationWarnings = [];
+if (goldResources < plan.knowledge_points.length) {
+  validationWarnings.push(`⚠️  ${plan.knowledge_points.length - goldResources} KPs lack Gold-tier resources`);
+}
 
 console.log(`
 ## Learning Plan Summary
@@ -387,34 +419,72 @@ console.log(`
 
 **Resources**:
 - Gold-tier: ${goldResources}
-- Total: ${plan.knowledge_points.reduce((acc, kp) => acc + kp.resources.length, 0)}
+- Silver-tier: ${silverResources}
+- Bronze-tier: ${bronzeResources}
+- Total: ${goldResources + silverResources + bronzeResources}
 
 **Dependencies**:
 ${plan.dependency_graph.edges.map(edge =>
   `  ${edge.from} → ${edge.to}`
 ).join('\n')}
 
+**Validation**: ${validationWarnings.length === 0 ? '✅ All checks passed' : validationWarnings.join('\n')}
+
 Next: /learn:execute
 `);
 
-// Ask user confirmation
+// Ask user confirmation (规范化key-based访问)
+const PLAN_CONFIRMATION_KEY = 'plan_action';
+
 const answer = AskUserQuestion({
   questions: [{
-    question: "Start learning this plan now?",
-    header: "Confirm",
+    key: PLAN_CONFIRMATION_KEY,
+    question: "What would you like to do with this plan?",
+    header: "Plan Action",
     multiSelect: false,
     options: [
-      {label: "Yes", description: "Start with first knowledge point"},
-      {label: "Later", description: "Plan saved, start anytime with /learn:execute"}
+      {value: "accept", label: "Accept & Start", description: "Begin learning with first knowledge point"},
+      {value: "review", label: "Review Details", description: "View full plan.json before deciding"},
+      {value: "modify", label: "Request Changes", description: "Provide feedback to regenerate plan"},
+      {value: "save", label: "Save for Later", description: "Plan saved, start anytime with /learn:execute"}
     ]
   }]
 });
 
-const userChoice = answer[Object.keys(answer)[0]];
-if (userChoice === 'Yes') {
-  console.log(`Ready! Use /learn:execute to begin learning.`);
-} else {
-  console.log(`Plan saved. Resume with: /learn:execute --session ${sessionId}`);
+// 使用key-based访问（稳健方式）
+const userChoice = answer[PLAN_CONFIRMATION_KEY];
+
+switch (userChoice) {
+  case 'accept':
+    console.log(`✅ Plan accepted! Use /learn:execute to begin learning.`);
+    break;
+  case 'review':
+    console.log('\n## Full Plan Details\n');
+    console.log(JSON.stringify(plan, null, 2));
+    // 递归调用确认
+    break;
+  case 'modify':
+    const FEEDBACK_KEY = 'feedback_type';
+    const feedback = AskUserQuestion({
+      questions: [{
+        key: FEEDBACK_KEY,
+        question: "What would you like to change?",
+        header: "Feedback",
+        multiSelect: false,
+        options: [
+          {value: "practical", label: "More Practical", description: "Focus on hands-on exercises"},
+          {value: "theoretical", label: "More Theory", description: "Add conceptual depth"},
+          {value: "shorter", label: "Shorter Plan", description: "Reduce number of knowledge points"},
+          {value: "custom", label: "Custom Request", description: "Provide specific feedback"}
+        ]
+      }]
+    });
+    // 返回Phase 3重新生成
+    console.log(`Regenerating plan with feedback: ${feedback[FEEDBACK_KEY]}...`);
+    break;
+  case 'save':
+    console.log(`Plan saved. Resume with: /learn:execute --session ${sessionId}`);
+    break;
 }
 ```
 
@@ -425,8 +495,63 @@ if (userChoice === 'Yes') {
 | Profile not found | Auto-create default profile via `/learn:profile create` |
 | Agent timeout | Fallback to template-based planning |
 | Invalid session ID | Generate new session ID |
-| Plan validation fails | Regenerate with agent or manual fix |
+| Plan validation fails | Check validation layer (0-3), regenerate or manual fix |
 | Directory creation fails | Check `.workflow/learn/` permissions |
+| Schema validation fails | Review plan.json against learn-plan-schema.json |
+| Circular dependencies | Use DAG validator to identify cycle, break dependency chain |
+| MCP tools unavailable | Clarify degraded mode acceptance or cancel |
+
+## P0 Fixes Applied (Multi-CLI Analysis)
+
+Based on 3-round multi-CLI collaborative analysis (Gemini → Codex → Gemini), the following P0 blockers have been addressed:
+
+### 1. Issue CLI Integration ✅
+
+**Problem**: Original implementation used non-existent `--title/--body` flags
+**Solution**: Use stdin JSON with heredoc (implemented in learn-execute.md)
+
+```javascript
+// ✅ Correct implementation (see learn-execute.md for full code)
+const issueData = { title: "...", body: "...", labels: [...] };
+const command = `ccw issue create <<'EOF'\n${JSON.stringify(issueData, null, 2)}\nEOF`;
+```
+
+### 2. Schema Files ✅
+
+**Problem**: Referenced schema files did not exist
+**Solution**: Created 3 P0 schema files in `schemas/` directory
+- `learn-state.schema.json` - Global state definition
+- `learn-profile.schema.json` - User profile definition  
+- `learn-plan.schema.json` - Learning plan definition (with maxItems:15 constraint)
+
+### 3. Validation Gate ✅
+
+**Problem**: No validation mechanism for agent-generated plans
+**Solution**: Implemented 4-layer QA gate (see Enhancement: Validation Gate section)
+- Layer 0: Schema validation (阻断型)
+- Layer 1: Graph validity (阻断型)
+- Layer 2: Profile→Plan matching (告警型)
+- Layer 3: Resource quality scoring (告警型)
+
+### 4. AskUserQuestion Pattern ✅
+
+**Problem**: Brittle `Object.values(answer)[0]` usage
+**Solution**: Key-based access pattern (see Phase 5: User Confirmation)
+
+```javascript
+// ✅ Robust pattern
+const KEY = 'action_key';
+const answer = AskUserQuestion({ questions: [{ key: KEY, ... }] });
+const choice = answer[KEY];
+```
+
+### 5. Clarification Blocking ✅
+
+**Problem**: Agent made best-guess decisions on ambiguous input
+**Solution**: Implemented clarification blocking mechanism (see Enhancement: Clarification Blocking)
+- Goal clarity check (< 2 keywords → clarify)
+- Knowledge chain conflict resolution (user decision required)
+- MCP tool availability check (degraded mode confirmation)
 
 ## Quality Checklist
 
@@ -605,45 +730,239 @@ Gemini → Qwen → Codex → degraded (structure only, no resource links)
 
 ## Enhancement: Validation Gate (Phase 4)
 
-### Layer 0: Schema Validation
-```javascript
-// Load schema first
-const schema = JSON.parse(
-  Read('.claude/workflows/cli-templates/schemas/learn-plan-schema.json')
-);
+基于3轮多CLI协作分析的P0阻断问题修复，完整实现4层QA验证机制。
 
-// Validate plan against schema
-const validate = (plan, schema) => {
-  // Check all required fields present
-  // Validate enums, patterns, constraints
-  return validationResult;
+### 实现准备
+
+**文件结构**:
+```
+.workflow/.scratchpad/learn-workflow-draft/
+├── schemas/
+│   ├── learn-state.schema.json
+│   ├── learn-profile.schema.json
+│   └── learn-plan.schema.json
+└── lib/
+    ├── validator.js       # Schema validator
+    └── dag-validator.js   # DAG validator
+```
+
+### Layer 0: Schema Validation（阻断型）
+
+```javascript
+// 加载schema文件
+const SchemaValidator = require('./lib/validator');
+const schemaValidator = new SchemaValidator('./schemas');
+
+// 验证plan.json
+const schemaResult = schemaValidator.validatePlan(plan);
+
+if (!schemaResult.valid) {
+  console.error('❌ Schema validation failed:');
+  schemaResult.errors.forEach(err => console.error(`  - ${err}`));
+  throw new Error('Plan schema validation failed');
+}
+
+console.log('✅ Schema validation passed');
+```
+
+**验证项**:
+- 必填字段存在性（session_id, learning_goal, knowledge_points等）
+- 字段类型正确性（string, number, array等）
+- 枚举值合法性（quality: gold/silver/bronze）
+- 约束条件（maxItems: 15, minItems: 1 for resources）
+- 模式匹配（KP-ID格式：^KP-\d+$）
+
+### Layer 1: Graph Validity（阻断型）
+
+```javascript
+// 加载DAG验证器
+const DAGValidator = require('./lib/dag-validator');
+const dagValidator = new DAGValidator();
+
+// 验证依赖图
+const dagResult = dagValidator.validate(plan.knowledge_points);
+
+if (!dagResult.valid) {
+  console.error('❌ Graph validation failed:');
+  dagResult.errors.forEach(err => console.error(`  - ${err}`));
+  throw new Error('Circular dependencies detected');
+}
+
+console.log('✅ Graph validation passed');
+console.log(`   Suggested order: ${dagResult.order.join(' → ')}`);
+
+// 保存学习顺序到metadata
+plan._metadata.learning_order = dagResult.order;
+```
+
+**验证项**:
+- 循环依赖检测（DFS算法）
+- Prerequisites引用存在性
+- 拓扑排序生成
+
+### Layer 2: Profile→Plan Matching（告警型）
+
+```javascript
+// 检查高熟练度topic
+const highProficiencyTopics = profile.known_topics
+  .filter(t => t.proficiency >= 0.8)
+  .map(t => t.topic_id);
+
+let optionalKPs = 0;
+plan.knowledge_points.forEach(kp => {
+  const kpTopics = kp.topic_refs || [];
+  const overlap = kpTopics.filter(t => highProficiencyTopics.includes(t));
+  
+  if (overlap.length > 0) {
+    kp.status = 'optional';
+    kp._note = `Already proficient in: ${overlap.join(', ')}`;
+    optionalKPs++;
+  }
+});
+
+if (optionalKPs > 0) {
+  console.log(`ℹ️  Marked ${optionalKPs} KPs as optional (high proficiency)`);
+}
+
+// 生成profile fingerprint
+plan._metadata.profile_fingerprint = {
+  profile_id: profile.profile_id,
+  known_topics_count: profile.known_topics.length,
+  generated_at: new Date().toISOString()
 };
 ```
 
-### Layer 1: Graph Validity
+**验证项**:
+- 高熟练度topic标记为optional
+- 缺少基础prerequisites警告
+- Profile fingerprint生成
+
+### Layer 3: Resource Quality Scoring（告警型）
+
 ```javascript
-// Check for circular dependencies
-function detectCycle(knowledgePoints) {
-  const visited = new Set();
-  const recursionStack = new Set();
-
-  function visit(kpId) {
-    if (recursionStack.has(kpId)) return true; // Cycle
-    if (visited.has(kpId)) return false;
-
-    visited.add(kpId);
-    recursionStack.add(kpId);
-
-    const kp = knowledgePoints.find(k => k.id === kpId);
-    for (const prereq of kp.prerequisites) {
-      if (visit(prereq)) return true;
-    }
-
-    recursionStack.delete(kpId);
-    return false;
+// 质量评分rubric
+const qualityRubric = {
+  gold: {
+    threshold: 0.8,
+    sources: ['official docs', 'typescriptlang.org', 'developer.mozilla.org', 'docs.rs'],
+    description: 'Official documentation or authoritative sources'
+  },
+  silver: {
+    threshold: 0.6,
+    sources: ['blog', 'tutorial', 'course', 'egghead.io'],
+    description: 'High-quality tutorials or blogs'
+  },
+  bronze: {
+    threshold: 0.4,
+    sources: ['stackoverflow', 'medium.com', 'dev.to'],
+    description: 'Community resources or forums'
   }
+};
 
-  return knowledgePoints.some(kp => visit(kp.id));
+// 检查每个KP的资源质量
+let kpsWithoutGold = 0;
+plan.knowledge_points.forEach(kp => {
+  const hasGold = kp.resources.some(r => r.quality === 'gold');
+  
+  if (!hasGold) {
+    kpsWithoutGold++;
+    kp._warning = 'Lacks gold-tier resource';
+  }
+  
+  // 添加质量评分metadata
+  kp.resources.forEach(res => {
+    res.quality_score = calculateQualityScore(res, qualityRubric);
+    res.retrieved_at = new Date().toISOString();
+  });
+});
+
+if (kpsWithoutGold > 0) {
+  console.log(`⚠️  ${kpsWithoutGold} KPs lack gold-tier resources`);
+  
+  // 询问用户是否继续
+  const QUALITY_KEY = 'quality_decision';
+  const answer = AskUserQuestion({
+    questions: [{
+      key: QUALITY_KEY,
+      question: `${kpsWithoutGold} knowledge points lack gold-tier resources. Continue?`,
+      header: "Quality Warning",
+      multiSelect: false,
+      options: [
+        {value: "continue", label: "Continue", description: "Accept degraded quality"},
+        {value: "regenerate", label: "Regenerate", description: "Try different search terms"},
+        {value: "cancel", label: "Cancel", description: "Review plan manually"}
+      ]
+    }]
+  });
+  
+  const decision = answer[QUALITY_KEY];
+  if (decision === 'regenerate') {
+    return planGenerationPhase(); // 重试
+  } else if (decision === 'cancel') {
+    throw new Error('Plan generation cancelled by user');
+  }
+  // continue → 继续执行
+}
+
+console.log('✅ Resource quality check completed');
+```
+
+**验证项**:
+- 每个KP至少1个Gold-tier资源
+- 资源质量评分（0-1）
+- 不满足时询问用户
+
+### 完整验证流程示例
+
+```javascript
+function validatePlan(plan, profile) {
+  console.log('\n🔍 Starting validation gate...\n');
+  
+  // Layer 0: Schema
+  const schemaResult = schemaValidator.validatePlan(plan);
+  if (!schemaResult.valid) {
+    return { valid: false, layer: 0, errors: schemaResult.errors };
+  }
+  
+  // Layer 1: Graph
+  const dagResult = dagValidator.validate(plan.knowledge_points);
+  if (!dagResult.valid) {
+    return { valid: false, layer: 1, errors: dagResult.errors };
+  }
+  
+  // Layer 2: Profile matching
+  const profileWarnings = checkProfileMatch(plan, profile);
+  
+  // Layer 3: Resource quality
+  const qualityWarnings = checkResourceQuality(plan);
+  
+  // 如果Layer 3有严重问题，询问用户
+  if (qualityWarnings.critical > 0) {
+    const decision = askUserDecision(qualityWarnings);
+    if (decision === 'cancel') {
+      return { valid: false, layer: 3, errors: ['Cancelled by user'] };
+    }
+  }
+  
+  return {
+    valid: true,
+    warnings: { profile: profileWarnings, quality: qualityWarnings },
+    learning_order: dagResult.order
+  };
+}
+
+// 使用
+const validationResult = validatePlan(draftPlan, userProfile);
+
+if (!validationResult.valid) {
+  console.error(`❌ Validation failed at Layer ${validationResult.layer}`);
+  // 处理错误或重新生成
+} else {
+  console.log('✅ All validation passed');
+  if (validationResult.warnings) {
+    console.log(`ℹ️  Warnings: ${JSON.stringify(validationResult.warnings)}`);
+  }
+  // 继续创建session
 }
 ```
 
@@ -723,37 +1042,173 @@ if (kpsWithoutGold.length > 0) {
 
 Following issue-queue-agent pattern, **block on ambiguity** instead of best-guess:
 
+### Trigger Conditions
+
+| Condition | Detection | Action |
+|-----------|-----------|--------|
+| **Goal too vague** | Keywords < 2 or generic terms | AskUserQuestion for focus area |
+| **Profile missing** | No active_profile_id | Create default or clarify preferences |
+| **Knowledge chain conflicts** | Prerequisites mismatch | Block and present options |
+| **Resource unavailability** | MCP tools fail | Clarify degraded mode acceptance |
+
+### Implementation
+
 ```javascript
-// Check: Is goal too vague?
-const goalKeywords = extractKeywords($ARGUMENTS);
-if (goalKeywords.length < 2) {
+// Phase 1: Check goal clarity
+function checkGoalClarity(goal) {
+  const keywords = extractKeywords(goal);
+  const genericTerms = ['learn', 'study', 'understand', 'master'];
+  const isGeneric = genericTerms.some(term => goal.toLowerCase().includes(term));
+  
+  if (keywords.length < 2 || isGeneric) {
+    return { clear: false, reason: 'Goal too broad' };
+  }
+  
+  return { clear: true };
+}
+
+const goalCheck = checkGoalClarity($ARGUMENTS);
+
+if (!goalCheck.clear) {
+  const FOCUS_KEY = 'focus_area';
   const clarification = AskUserQuestion({
     questions: [{
+      key: FOCUS_KEY,
       question: "Your goal seems broad. Which area to focus?",
-      header: "Clarify",
+      header: "Clarify Goal",
+      multiSelect: false,
       options: [
-        {label: "Theory", description: "Concepts and principles"},
-        {label: "Practice", description: "Hands-on exercises"},
-        {label: "Both", description: "Balanced theory + practice"}
+        {value: "theory", label: "Theory", description: "Concepts and principles"},
+        {value: "practice", label: "Practice", description: "Hands-on exercises"},
+        {value: "both", label: "Both", description: "Balanced theory + practice"},
+        {value: "custom", label: "Custom", description: "Specify exact focus"}
       ]
     }]
   });
-
+  
   // Refine goal based on answer
-  $ARGUMENTS = refineGoal($ARGUMENTS, clarification);
+  const focusArea = clarification[FOCUS_KEY];
+  $ARGUMENTS = refineGoal($ARGUMENTS, focusArea);
 }
 
-// Check: Knowledge chain conflicts?
-const conflicts = detectPrerequisiteConflicts(plan);
-if (conflicts.length > 0 && !hasUserResolution) {
+// Phase 3: Check knowledge chain conflicts
+function detectPrerequisiteConflicts(plan, profile) {
+  const conflicts = [];
+  
+  for (const kp of plan.knowledge_points) {
+    for (const prereqId of kp.prerequisites) {
+      const prereqKP = plan.knowledge_points.find(k => k.id === prereqId);
+      
+      // Check if prerequisite is marked as optional (user already knows it)
+      if (prereqKP && prereqKP.status === 'optional') {
+        conflicts.push({
+          kp_id: kp.id,
+          prereq_id: prereqId,
+          description: `${kp.id} depends on ${prereqId}, but ${prereqId} is optional (user proficient)`,
+          resolutionOptions: [
+            {value: "keep_both", label: "Keep Both", description: "Include optional KP for completeness"},
+            {value: "remove_prereq", label: "Remove Prerequisite", description: "Skip optional KP"},
+            {value: "mark_optional", label: "Mark as Optional", description: "Make both optional"}
+          ]
+        });
+      }
+    }
+  }
+  
+  return conflicts;
+}
+
+const conflicts = detectPrerequisiteConflicts(plan, profile);
+
+if (conflicts.length > 0) {
+  console.log(`⚠️  Detected ${conflicts.length} knowledge chain conflicts`);
+  
   // DO NOT auto-resolve - present to user
-  const resolution = AskUserQuestion({
-    questions: conflicts.map(c => ({
+  const CONFLICT_KEY = 'conflict_resolution';
+  const resolutions = AskUserQuestion({
+    questions: conflicts.map((c, idx) => ({
+      key: `${CONFLICT_KEY}_${idx}`,
       question: `Conflict: ${c.description}`,
-      header: "Conflict",
+      header: `Conflict ${idx + 1}`,
+      multiSelect: false,
       options: c.resolutionOptions
     }))
   });
+  
+  // Apply user decisions
+  conflicts.forEach((c, idx) => {
+    const decision = resolutions[`${CONFLICT_KEY}_${idx}`];
+    applyConflictResolution(plan, c, decision);
+  });
+}
+
+// Phase 4: Check MCP tool availability
+function checkMCPToolsAvailability() {
+  const tools = ['mcp__ace-tool__search_context', 'mcp__exa__get_code_context_exa'];
+  const available = {};
+  
+  for (const tool of tools) {
+    try {
+      // Test tool availability
+      available[tool] = true;
+    } catch (e) {
+      available[tool] = false;
+    }
+  }
+  
+  return available;
+}
+
+const mcpAvailability = checkMCPToolsAvailability();
+const unavailableTools = Object.entries(mcpAvailability)
+  .filter(([_, available]) => !available)
+  .map(([tool, _]) => tool);
+
+if (unavailableTools.length > 0) {
+  console.log(`⚠️  MCP tools unavailable: ${unavailableTools.join(', ')}`);
+  
+  const DEGRADED_KEY = 'degraded_mode';
+  const answer = AskUserQuestion({
+    questions: [{
+      key: DEGRADED_KEY,
+      question: "Some MCP tools are unavailable. Resource quality may be degraded. Continue?",
+      header: "Tool Availability",
+      multiSelect: false,
+      options: [
+        {value: "continue", label: "Continue", description: "Use fallback resources"},
+        {value: "cancel", label: "Cancel", description: "Wait for tools to be available"}
+      ]
+    }]
+  });
+  
+  if (answer[DEGRADED_KEY] === 'cancel') {
+    throw new Error('Plan generation cancelled: MCP tools unavailable');
+  }
+  
+  // Mark plan as degraded
+  plan._metadata.degraded_mode = true;
+  plan._metadata.unavailable_tools = unavailableTools;
 }
 ```
+
+### Clarification vs Auto-Resolution
+
+**Block (Clarification Required)**:
+- Goal ambiguity (< 2 keywords)
+- Knowledge chain conflicts (prerequisites mismatch)
+- Critical resource unavailability (all MCP tools fail)
+- Schema validation failures
+
+**Auto-Resolve (No Blocking)**:
+- Minor resource quality issues (some KPs lack gold)
+- Profile-plan mismatches (mark as optional)
+- Non-critical warnings (topological order suggestions)
+
+### Best Practices
+
+1. **Limit clarification rounds**: Max 2 rounds per phase to avoid user fatigue
+2. **Provide context**: Always explain WHY clarification is needed
+3. **Offer defaults**: Include "Continue with defaults" option when possible
+4. **Batch questions**: Group related clarifications in single AskUserQuestion call
+5. **Track confidence**: Mark low-confidence decisions for future refinement
 
