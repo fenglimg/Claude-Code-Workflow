@@ -186,6 +186,8 @@ interface Queue {
     completed_count: number;
     failed_count: number;
     updated_at: string;
+    merged_into?: string;        // Queue ID this was merged into
+    merged_at?: string;          // Timestamp of merge
   };
 }
 
@@ -230,6 +232,37 @@ interface IssueOptions {
 }
 
 const ISSUES_DIR = '.workflow/issues';
+
+// ============ Status Constants ============
+
+const VALID_QUEUE_STATUSES = ['active', 'completed', 'archived', 'failed'] as const;
+const VALID_ITEM_STATUSES = ['pending', 'ready', 'executing', 'completed', 'failed', 'blocked'] as const;
+const VALID_ISSUE_STATUSES = ['registered', 'planning', 'planned', 'queued', 'executing', 'completed', 'failed', 'paused'] as const;
+
+type QueueStatus = typeof VALID_QUEUE_STATUSES[number];
+type QueueItemStatus = typeof VALID_ITEM_STATUSES[number];
+type IssueStatus = typeof VALID_ISSUE_STATUSES[number];
+
+/**
+ * Validate queue status
+ */
+function validateQueueStatus(status: string): status is QueueStatus {
+  return VALID_QUEUE_STATUSES.includes(status as QueueStatus);
+}
+
+/**
+ * Validate queue item status
+ */
+function validateItemStatus(status: string): status is QueueItemStatus {
+  return VALID_ITEM_STATUSES.includes(status as QueueItemStatus);
+}
+
+/**
+ * Validate issue status
+ */
+function validateIssueStatus(status: string): status is IssueStatus {
+  return VALID_ISSUE_STATUSES.includes(status as IssueStatus);
+}
 
 // ============ Storage Layer (JSONL) ============
 
@@ -744,7 +777,7 @@ interface MergeResult {
  * Merge items from source queue into target queue
  * - Skips duplicate items (same issue_id + solution_id)
  * - Re-generates item IDs for merged items
- * - Marks source queue as 'merged' with metadata (or deletes if deleteSource=true)
+ * - Marks source queue as 'archived' with metadata (or deletes if deleteSource=true)
  * - Updates queue index
  */
 function mergeQueues(target: Queue, source: Queue, options?: { deleteSource?: boolean }): MergeResult {
@@ -799,7 +832,7 @@ function mergeQueues(target: Queue, source: Queue, options?: { deleteSource?: bo
   // Write updated target queue
   writeQueue(target);
 
-  // Handle source queue: delete or mark as merged
+  // Handle source queue: delete or mark as archived
   const index = readQueueIndex();
 
   if (options?.deleteSource) {
@@ -810,8 +843,8 @@ function mergeQueues(target: Queue, source: Queue, options?: { deleteSource?: bo
     }
     index.queues = index.queues.filter(q => q.id !== source.id);
   } else {
-    // Mark source queue as merged
-    source.status = 'merged' as any;
+    // Mark source queue as archived (was merged)
+    source.status = 'archived';
     if (!source._metadata) {
       source._metadata = {
         version: '2.1',
@@ -823,13 +856,13 @@ function mergeQueues(target: Queue, source: Queue, options?: { deleteSource?: bo
         updated_at: new Date().toISOString()
       };
     }
-    (source._metadata as any).merged_into = target.id;
-    (source._metadata as any).merged_at = new Date().toISOString();
+    source._metadata.merged_into = target.id;
+    source._metadata.merged_at = new Date().toISOString();
     writeQueue(source);
 
     const sourceEntry = index.queues.find(q => q.id === source.id);
     if (sourceEntry) {
-      sourceEntry.status = 'merged';
+      sourceEntry.status = 'archived';
     }
   }
 
@@ -1806,13 +1839,12 @@ async function updateAction(issueId: string | undefined, options: IssueOptions):
   const updates: Partial<Issue> = {};
 
   if (options.status) {
-    const validStatuses = ['registered', 'planning', 'planned', 'queued', 'executing', 'completed', 'failed', 'paused'];
-    if (!validStatuses.includes(options.status)) {
+    if (!validateIssueStatus(options.status)) {
       console.error(chalk.red(`Invalid status: ${options.status}`));
-      console.error(chalk.gray(`Valid: ${validStatuses.join(', ')}`));
+      console.error(chalk.gray(`Valid: ${VALID_ISSUE_STATUSES.join(', ')}`));
       process.exit(1);
     }
-    updates.status = options.status as Issue['status'];
+    updates.status = options.status;
 
     // Auto-set timestamps based on status
     if (options.status === 'planned') updates.planned_at = new Date().toISOString();
@@ -2233,7 +2265,7 @@ async function queueAction(subAction: string | undefined, issueId: string | unde
       process.exit(1);
     }
 
-    // mergeQueues marks source as 'merged' and updates index
+    // mergeQueues marks source as 'archived' and updates index
     const result = mergeQueues(targetQueue, sourceQueue);
 
     if (options.json) {
@@ -2253,7 +2285,7 @@ async function queueAction(subAction: string | undefined, issueId: string | unde
           console.log(chalk.gray(`  Skipped ${result.skippedDuplicates} duplicate items`));
         }
         console.log(chalk.gray(`  Total items in target: ${result.totalItems}`));
-        console.log(chalk.gray(`  Source queue ${sourceQueueId} marked as 'merged'`));
+        console.log(chalk.gray(`  Source queue ${sourceQueueId} archived`));
       } else {
         console.log(chalk.yellow(`⚠ Merge skipped: ${result.reason}`));
       }
@@ -2437,15 +2469,31 @@ async function queueAction(subAction: string | undefined, issueId: string | unde
     return;
   }
 
-  // Show current queue
-  const queue = readActiveQueue();
+  // Show current queue - use readQueue() to detect if queue actually exists
+  const queue = readQueue();
+
+  // Handle no active queue case for all output modes
+  if (!queue) {
+    if (options.brief || options.json) {
+      console.log(JSON.stringify({
+        status: 'empty',
+        message: 'No active queue',
+        id: null,
+        issue_ids: [],
+        total: 0,
+        items: []
+      }, null, 2));
+      return;
+    }
+    // Human-readable output handled below
+  }
 
   // Brief mode: minimal queue info (id, issue_ids, item summaries)
   if (options.brief) {
-    const items = queue.solutions || queue.tasks || [];
+    const items = queue!.solutions || queue!.tasks || [];
     const briefQueue = {
-      id: queue.id,
-      issue_ids: queue.issue_ids || [],
+      id: queue!.id,
+      issue_ids: queue!.issue_ids || [],
       total: items.length,
       pending: items.filter(i => i.status === 'pending').length,
       executing: items.filter(i => i.status === 'executing').length,
@@ -2469,14 +2517,21 @@ async function queueAction(subAction: string | undefined, issueId: string | unde
 
   console.log(chalk.bold.cyan('\nActive Queue\n'));
 
+  // Handle no queue case (human-readable)
+  if (!queue) {
+    console.log(chalk.yellow('No active queue'));
+    console.log(chalk.gray('Create one: ccw issue queue add <issue-id>'));
+    console.log(chalk.gray('Or list history: ccw issue queue list'));
+    return;
+  }
+
   // Support both solution-level and task-level queues
   const items = queue.solutions || queue.tasks || [];
   const isSolutionLevel = !!(queue.solutions && queue.solutions.length > 0);
 
-  if (!queue.id || items.length === 0) {
-    console.log(chalk.yellow('No active queue'));
-    console.log(chalk.gray('Create one: ccw issue queue add <issue-id>'));
-    console.log(chalk.gray('Or list history: ccw issue queue list'));
+  if (items.length === 0) {
+    console.log(chalk.yellow(`Queue ${queue.id} is empty`));
+    console.log(chalk.gray('Add issues: ccw issue queue add <issue-id>'));
     return;
   }
 
@@ -2908,10 +2963,10 @@ async function retryAction(issueId: string | undefined, options: IssueOptions): 
                 created_at: item.failure_details.timestamp
               });
 
-              // Keep issue status as 'failed' (or optionally 'pending_replan')
-              // This signals to planning phase that this issue had failures
+              // Reset issue status to 'queued' for re-execution
+              // Failure details preserved in feedback for debugging
               updateIssue(item.issue_id, {
-                status: 'failed',
+                status: 'queued',
                 updated_at: new Date().toISOString()
               });
 
@@ -2927,7 +2982,7 @@ async function retryAction(issueId: string | undefined, options: IssueOptions): 
             item.failure_history.push(item.failure_details);
           }
 
-          // Reset QueueItem for retry (but Issue status remains 'failed')
+          // Reset QueueItem for retry (Issue status also reset to 'queued')
           item.status = 'pending';
           item.failure_reason = undefined;
           item.failure_details = undefined;

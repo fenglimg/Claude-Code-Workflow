@@ -11,6 +11,75 @@ Interactive orchestration tool: analyze task → discover commands → recommend
 
 **Execution Model**: Pseudocode guidance. Claude intelligently executes each phase based on context.
 
+## Core Concept: Minimum Execution Units (最小执行单元)
+
+### What is a Minimum Execution Unit?
+
+**Definition**: A set of commands that must execute together as an atomic group to achieve a meaningful workflow milestone. Splitting these commands breaks the logical flow and creates incomplete states.
+
+**Why This Matters**:
+- **Prevents Incomplete States**: Avoid stopping after task generation without execution
+- **User Experience**: User gets complete results, not intermediate artifacts requiring manual follow-up
+- **Workflow Integrity**: Maintains logical coherence of multi-step operations
+
+### Minimum Execution Units
+
+**Planning + Execution Units** (规划+执行单元):
+
+| Unit Name | Commands | Purpose | Output |
+|-----------|----------|---------|--------|
+| **Quick Implementation** | lite-plan → lite-execute | Lightweight plan and immediate execution | Working code |
+| **Multi-CLI Planning** | multi-cli-plan → lite-execute | Multi-perspective analysis and execution | Working code |
+| **Bug Fix** | lite-fix → lite-execute | Quick bug diagnosis and fix execution | Fixed code |
+| **Full Planning + Execution** | plan → execute | Detailed planning and execution | Working code |
+| **Verified Planning + Execution** | plan → plan-verify → execute | Planning with verification and execution | Working code |
+| **Replanning + Execution** | replan → execute | Update plan and execute changes | Working code |
+| **TDD Planning + Execution** | tdd-plan → execute | Test-driven development planning and execution | Working code |
+| **Test Generation + Execution** | test-gen → execute | Generate test suite and execute | Generated tests |
+
+**Testing Units** (测试单元):
+
+| Unit Name | Commands | Purpose | Output |
+|-----------|----------|---------|--------|
+| **Test Validation** | test-fix-gen → test-cycle-execute | Generate test tasks and execute test-fix cycle | Tests passed |
+
+**Review Units** (审查单元):
+
+| Unit Name | Commands | Purpose | Output |
+|-----------|----------|---------|--------|
+| **Code Review (Session)** | review-session-cycle → review-fix | Complete review cycle and apply fixes | Fixed code |
+| **Code Review (Module)** | review-module-cycle → review-fix | Module review cycle and apply fixes | Fixed code |
+
+### Command-to-Unit Mapping (命令与最小单元的映射)
+
+| Command | Can Precede | Atomic Units |
+|---------|-----------|--------------|
+| lite-plan | lite-execute | Quick Implementation |
+| multi-cli-plan | lite-execute | Multi-CLI Planning |
+| lite-fix | lite-execute | Bug Fix |
+| plan | plan-verify, execute | Full Planning + Execution, Verified Planning + Execution |
+| plan-verify | execute | Verified Planning + Execution |
+| replan | execute | Replanning + Execution |
+| test-gen | execute | Test Generation + Execution |
+| tdd-plan | execute | TDD Planning + Execution |
+| review-session-cycle | review-fix | Code Review (Session) |
+| review-module-cycle | review-fix | Code Review (Module) |
+| test-fix-gen | test-cycle-execute | Test Validation |
+
+### Atomic Group Rules
+
+1. **Never Split Units**: Coordinator must recommend complete units, not partial chains
+2. **Multi-Unit Participation**: Some commands can participate in multiple units (e.g., plan → execute or plan → plan-verify → execute)
+3. **User Override**: User can explicitly request partial execution (advanced mode)
+4. **Visualization**: Pipeline view shows unit boundaries with `【 】` markers
+5. **Validation**: Before execution, verify all unit commands are included
+
+**Example Pipeline with Units**:
+```
+需求 → 【lite-plan → lite-execute】→ 代码 → 【test-fix-gen → test-cycle-execute】→ 测试通过
+       └──── Quick Implementation ────┘         └────── Test Validation ──────┘
+```
+
 ## 3-Phase Workflow
 
 ### Phase 1: Analyze Requirements
@@ -77,43 +146,71 @@ const commandPorts = {
     name: 'lite-plan',
     input: ['requirement'],                    // 输入端口：需求
     output: ['plan'],                           // 输出端口：计划
-    tags: ['planning']
+    tags: ['planning'],
+    atomic_group: 'quick-implementation'       // 最小单元：与 lite-execute 绑定
   },
   'lite-execute': {
     name: 'lite-execute',
-    input: ['plan'],                            // 输入端口：计划
+    input: ['plan', 'multi-cli-plan', 'lite-fix'], // 输入端口：可接受多种规划输出
     output: ['code'],                           // 输出端口：代码
-    tags: ['execution']
+    tags: ['execution'],
+    atomic_groups: [                           // 可参与多个最小单元
+      'quick-implementation',                  // lite-plan → lite-execute
+      'multi-cli-planning',                    // multi-cli-plan → lite-execute
+      'bug-fix'                                // lite-fix → lite-execute
+    ]
   },
   'plan': {
     name: 'plan',
     input: ['requirement'],
     output: ['detailed-plan'],
-    tags: ['planning']
+    tags: ['planning'],
+    atomic_groups: [                           // 可参与多个最小单元
+      'full-planning-execution',               // plan → execute
+      'verified-planning-execution'            // plan → plan-verify → execute
+    ]
+  },
+  'plan-verify': {
+    name: 'plan-verify',
+    input: ['detailed-plan'],
+    output: ['verified-plan'],
+    tags: ['planning'],
+    atomic_group: 'verified-planning-execution' // 最小单元：plan → plan-verify → execute
+  },
+  'replan': {
+    name: 'replan',
+    input: ['session', 'feedback'],             // 输入端口：会话或反馈
+    output: ['replan'],                         // 输出端口：更新后的计划（供 execute 执行）
+    tags: ['planning'],
+    atomic_group: 'replanning-execution'       // 最小单元：与 execute 绑定
   },
   'execute': {
     name: 'execute',
-    input: ['detailed-plan'],                   // 从 plan 的输出匹配
+    input: ['detailed-plan', 'verified-plan', 'replan', 'test-tasks', 'tdd-tasks'], // 可接受多种规划输出
     output: ['code'],
-    tags: ['execution']
+    tags: ['execution'],
+    atomic_groups: [                           // 可参与多个最小单元
+      'full-planning-execution',               // plan → execute
+      'verified-planning-execution',           // plan → plan-verify → execute
+      'replanning-execution',                  // replan → execute
+      'test-generation-execution',             // test-gen → execute
+      'tdd-planning-execution'                 // tdd-plan → execute
+    ]
   },
   'test-cycle-execute': {
     name: 'test-cycle-execute',
-    input: ['code'],                            // 输入端口：代码
+    input: ['test-tasks'],                      // 输入端口：测试任务(需先test-fix-gen生成)
     output: ['test-passed'],                    // 输出端口：测试通过
-    tags: ['testing']
+    tags: ['testing'],
+    atomic_group: 'test-validation',           // 最小单元：与 test-fix-gen 绑定
+    note: '需要先执行test-fix-gen生成测试任务，再由此命令执行测试周期'
   },
   'tdd-plan': {
     name: 'tdd-plan',
     input: ['requirement'],
-    output: ['tdd-tasks'],                      // TDD 任务
-    tags: ['planning', 'tdd']
-  },
-  'execute': {
-    name: 'execute',
-    input: ['tdd-tasks'],
-    output: ['code'],
-    tags: ['execution']
+    output: ['tdd-tasks'],                      // TDD 任务（供 execute 执行）
+    tags: ['planning', 'tdd'],
+    atomic_group: 'tdd-planning-execution'     // 最小单元：与 execute 绑定
   },
   'tdd-verify': {
     name: 'tdd-verify',
@@ -124,8 +221,9 @@ const commandPorts = {
   'lite-fix': {
     name: 'lite-fix',
     input: ['bug-report'],                      // 输入端口：bug 报告
-    output: ['fixed-code'],                     // 输出端口：修复后的代码
-    tags: ['bugfix']
+    output: ['lite-fix'],                       // 输出端口：修复计划（供 lite-execute 执行）
+    tags: ['bugfix'],
+    atomic_group: 'bug-fix'                    // 最小单元：与 lite-execute 绑定
   },
   'debug': {
     name: 'debug',
@@ -136,14 +234,17 @@ const commandPorts = {
   'test-gen': {
     name: 'test-gen',
     input: ['code', 'session'],                 // 可接受代码或会话
-    output: ['tests'],
-    tags: ['testing']
+    output: ['test-tasks'],                     // 输出测试任务(IMPL-001,IMPL-002)，供 execute 执行
+    tags: ['testing'],
+    atomic_group: 'test-generation-execution'  // 最小单元：与 execute 绑定
   },
   'test-fix-gen': {
     name: 'test-fix-gen',
     input: ['failing-tests', 'session'],
-    output: ['test-tasks'],
-    tags: ['testing']
+    output: ['test-tasks'],                     // 输出测试任务，针对特定问题生成测试并在测试中修正
+    tags: ['testing'],
+    atomic_group: 'test-validation',           // 最小单元：与 test-cycle-execute 绑定
+    note: '生成测试任务供test-cycle-execute执行'
   },
   'review': {
     name: 'review',
@@ -153,9 +254,10 @@ const commandPorts = {
   },
   'review-fix': {
     name: 'review-fix',
-    input: ['review-findings'],
+    input: ['review-findings', 'review-verified'],  // Accept output from review-session-cycle or review-module-cycle
     output: ['fixed-code'],
-    tags: ['review']
+    tags: ['review'],
+    atomic_group: 'code-review'                // 最小单元：与 review-session-cycle/review-module-cycle 绑定
   },
   'brainstorm:auto-parallel': {
     name: 'brainstorm:auto-parallel',
@@ -166,26 +268,23 @@ const commandPorts = {
   'multi-cli-plan': {
     name: 'multi-cli-plan',
     input: ['requirement'],
-    output: ['comparison-plan'],                // 对比分析计划
-    tags: ['planning', 'multi-cli']
-  },
-  'plan-verify': {
-    name: 'plan-verify',
-    input: ['detailed-plan'],
-    output: ['verified-plan'],
-    tags: ['planning']
+    output: ['multi-cli-plan'],                 // 对比分析计划（供 lite-execute 执行）
+    tags: ['planning', 'multi-cli'],
+    atomic_group: 'multi-cli-planning'         // 最小单元：与 lite-execute 绑定
   },
   'review-session-cycle': {
     name: 'review-session-cycle',
     input: ['code', 'session'],                 // 可接受代码或会话
     output: ['review-verified'],                // 输出端口:审查通过
-    tags: ['review']
+    tags: ['review'],
+    atomic_group: 'code-review'                // 最小单元：与 review-fix 绑定
   },
   'review-module-cycle': {
     name: 'review-module-cycle',
     input: ['module-pattern'],                  // 输入端口:模块模式
     output: ['review-verified'],                // 输出端口:审查通过
-    tags: ['review']
+    tags: ['review'],
+    atomic_group: 'code-review'                // 最小单元：与 review-fix 绑定
   }
 };
 ```
@@ -302,17 +401,19 @@ async function executeCommandChain(chain, analysis) {
     state.updated_at = new Date().toISOString();
     Write(`${stateDir}/state.json`, JSON.stringify(state, null, 2));
 
-    // Assemble prompt with previous results
-    let prompt = `Task: ${analysis.goal}\n`;
+    // Assemble prompt: Command first, then context
+    let promptContent = formatCommand(cmd, state.execution_results, analysis);
+
+    // Build full prompt: Command → Task → Previous Results
+    let prompt = `${promptContent}\n\nTask: ${analysis.goal}`;
     if (state.execution_results.length > 0) {
-      prompt += '\nPrevious results:\n';
+      prompt += '\n\nPrevious results:\n';
       state.execution_results.forEach(r => {
         if (r.session_id) {
           prompt += `- ${r.command}: ${r.session_id} (${r.artifacts?.join(', ') || 'completed'})\n`;
         }
       });
     }
-    prompt += `\n${formatCommand(cmd, state.execution_results, analysis)}\n`;
 
     // Record prompt used
     state.prompts_used.push({
@@ -322,9 +423,12 @@ async function executeCommandChain(chain, analysis) {
     });
 
     // Execute CLI command in background and stop
+    // Format: ccw cli -p "PROMPT" --tool <tool> --mode <mode>
+    // Note: -y is a command parameter INSIDE the prompt, not a ccw cli parameter
+    // Example prompt: "/workflow:plan -y \"task description here\""
     try {
       const taskId = Bash(
-        `ccw cli -p "${escapePrompt(prompt)}" --tool claude --mode write -y`,
+        `ccw cli -p "${escapePrompt(prompt)}" --tool claude --mode write`,
         { run_in_background: true }
       ).task_id;
 
@@ -387,69 +491,71 @@ async function executeCommandChain(chain, analysis) {
 }
 
 // Smart parameter assembly
+// Returns prompt content to be used with: ccw cli -p "RETURNED_VALUE" --tool claude --mode write
 function formatCommand(cmd, previousResults, analysis) {
-  let line = cmd.command + ' --yes';
+  // Format: /workflow:<command> -y <parameters>
+  let prompt = `/workflow:${cmd.name} -y`;
   const name = cmd.name;
 
   // Planning commands - take task description
   if (['lite-plan', 'plan', 'tdd-plan', 'multi-cli-plan'].includes(name)) {
-    line += ` "${analysis.goal}"`;
+    prompt += ` "${analysis.goal}"`;
 
   // Lite execution - use --in-memory if plan exists
   } else if (name === 'lite-execute') {
     const hasPlan = previousResults.some(r => r.command.includes('plan'));
-    line += hasPlan ? ' --in-memory' : ` "${analysis.goal}"`;
+    prompt += hasPlan ? ' --in-memory' : ` "${analysis.goal}"`;
 
   // Standard execution - resume from planning session
   } else if (name === 'execute') {
     const plan = previousResults.find(r => r.command.includes('plan'));
-    if (plan?.session_id) line += ` --resume-session="${plan.session_id}"`;
+    if (plan?.session_id) prompt += ` --resume-session="${plan.session_id}"`;
 
   // Bug fix commands - take bug description
   } else if (['lite-fix', 'debug'].includes(name)) {
-    line += ` "${analysis.goal}"`;
+    prompt += ` "${analysis.goal}"`;
 
   // Brainstorm - take topic description
   } else if (name === 'brainstorm:auto-parallel' || name === 'auto-parallel') {
-    line += ` "${analysis.goal}"`;
+    prompt += ` "${analysis.goal}"`;
 
   // Test generation from session - needs source session
   } else if (name === 'test-gen') {
     const impl = previousResults.find(r =>
       r.command.includes('execute') || r.command.includes('lite-execute')
     );
-    if (impl?.session_id) line += ` "${impl.session_id}"`;
-    else line += ` "${analysis.goal}"`;
+    if (impl?.session_id) prompt += ` "${impl.session_id}"`;
+    else prompt += ` "${analysis.goal}"`;
 
   // Test fix generation - session or description
   } else if (name === 'test-fix-gen') {
     const latest = previousResults.filter(r => r.session_id).pop();
-    if (latest?.session_id) line += ` "${latest.session_id}"`;
-    else line += ` "${analysis.goal}"`;
+    if (latest?.session_id) prompt += ` "${latest.session_id}"`;
+    else prompt += ` "${analysis.goal}"`;
 
   // Review commands - take session or use latest
   } else if (name === 'review') {
     const latest = previousResults.filter(r => r.session_id).pop();
-    if (latest?.session_id) line += ` --session="${latest.session_id}"`;
+    if (latest?.session_id) prompt += ` --session="${latest.session_id}"`;
 
   // Review fix - takes session from review
   } else if (name === 'review-fix') {
     const review = previousResults.find(r => r.command.includes('review'));
     const latest = review || previousResults.filter(r => r.session_id).pop();
-    if (latest?.session_id) line += ` --session="${latest.session_id}"`;
+    if (latest?.session_id) prompt += ` --session="${latest.session_id}"`;
 
   // TDD verify - takes execution session
   } else if (name === 'tdd-verify') {
     const exec = previousResults.find(r => r.command.includes('execute'));
-    if (exec?.session_id) line += ` --session="${exec.session_id}"`;
+    if (exec?.session_id) prompt += ` --session="${exec.session_id}"`;
 
   // Session-based commands (test-cycle, review-session, plan-verify)
   } else if (name.includes('test') || name.includes('review') || name.includes('verify')) {
     const latest = previousResults.filter(r => r.session_id).pop();
-    if (latest?.session_id) line += ` --session="${latest.session_id}"`;
+    if (latest?.session_id) prompt += ` --session="${latest.session_id}"`;
   }
 
-  return line;
+  return prompt;
 }
 
 // Hook callback: Called when background CLI completes
@@ -564,12 +670,12 @@ function parseOutput(output) {
     {
       "index": 0,
       "command": "/workflow:plan",
-      "prompt": "Task: Implement user registration...\n\n/workflow:plan --yes \"Implement user registration...\""
+      "prompt": "/workflow:plan -y \"Implement user registration...\"\n\nTask: Implement user registration..."
     },
     {
       "index": 1,
       "command": "/workflow:execute",
-      "prompt": "Task: Implement user registration...\n\nPrevious results:\n- /workflow:plan: WFS-plan-20250124 (IMPL_PLAN.md)\n\n/workflow:execute --yes --resume-session=\"WFS-plan-20250124\""
+      "prompt": "/workflow:execute -y --resume-session=\"WFS-plan-20250124\"\n\nTask: Implement user registration\n\nPrevious results:\n- /workflow:plan: WFS-plan-20250124 (IMPL_PLAN.md)"
     }
   ]
 }
@@ -629,200 +735,68 @@ const cmd = registry.getCommand('lite-plan');
 // {name, command, description, argumentHint, allowedTools, filePath}
 ```
 
-## Execution Examples
+## Universal Prompt Template
 
-### Simple Feature
-```
-Goal: Add API endpoint for user profile
-Scope: [api]
-Complexity: simple
-Constraints: []
-Task Type: feature
+### Standard Format
 
-Pipeline:
-需求 → lite-plan → 计划 → lite-execute → 代码 → test-cycle-execute → 测试通过
-
-Chain:
-1. /workflow:lite-plan --yes "Add API endpoint..."
-2. /workflow:lite-execute --yes --in-memory
-3. /workflow:test-cycle-execute --yes --session="WFS-xxx"
+```bash
+ccw cli -p "PROMPT_CONTENT" --tool <tool> --mode <mode>
 ```
 
-### Complex Feature with Verification
+### Prompt Content Template
+
 ```
-Goal: Implement OAuth2 authentication system
-Scope: [auth, database, api, frontend]
-Complexity: complex
-Constraints: [no breaking changes]
-Task Type: feature
+/workflow:<command> -y <command_parameters>
 
-Pipeline:
-需求 → plan → 详细计划 → plan-verify → 验证计划 → execute → 代码
-     → review-session-cycle → 审查通过 → test-cycle-execute → 测试通过
+Task: <task_description>
 
-Chain:
-1. /workflow:plan --yes "Implement OAuth2..."
-2. /workflow:plan-verify --yes --session="WFS-xxx"
-3. /workflow:execute --yes --resume-session="WFS-xxx"
-4. /workflow:review-session-cycle --yes --session="WFS-xxx"
-5. /workflow:test-cycle-execute --yes --session="WFS-xxx"
+<optional_previous_results>
 ```
 
-### Quick Bug Fix
-```
-Goal: Fix login timeout issue
-Scope: [auth]
-Complexity: simple
-Constraints: [urgent]
-Task Type: bugfix
+### Template Variables
 
-Pipeline:
-Bug报告 → lite-fix → 修复代码 → test-cycle-execute → 测试通过
+| Variable | Description | Examples |
+|----------|-------------|----------|
+| `<command>` | Workflow command name | `plan`, `lite-execute`, `test-cycle-execute` |
+| `-y` | Auto-confirm flag (inside prompt) | Always include for automation |
+| `<command_parameters>` | Command-specific parameters | Task description, session ID, flags |
+| `<task_description>` | Brief task description | "Implement user authentication", "Fix memory leak" |
+| `<optional_previous_results>` | Context from previous commands | "Previous results:\n- /workflow:plan: WFS-xxx" |
 
-Chain:
-1. /workflow:lite-fix --yes "Fix login timeout..."
-2. /workflow:test-cycle-execute --yes --session="WFS-xxx"
-```
+### Command Parameter Patterns
 
-### Skip Tests
-```
-Goal: Update documentation
-Scope: [docs]
-Complexity: simple
-Constraints: [skip-tests]
-Task Type: feature
+| Command Type | Parameter Pattern | Example |
+|--------------|------------------|---------|
+| **Planning** | `"task description"` | `/workflow:plan -y "Implement OAuth2"` |
+| **Execution (with plan)** | `--resume-session="WFS-xxx"` | `/workflow:execute -y --resume-session="WFS-plan-001"` |
+| **Execution (standalone)** | `--in-memory` or `"task"` | `/workflow:lite-execute -y --in-memory` |
+| **Session-based** | `--session="WFS-xxx"` | `/workflow:test-fix-gen -y --session="WFS-impl-001"` |
+| **Fix/Debug** | `"problem description"` | `/workflow:lite-fix -y "Fix timeout bug"` |
 
-Pipeline:
-需求 → lite-plan → 计划 → lite-execute → 代码
+### Complete Examples
 
-Chain:
-1. /workflow:lite-plan --yes "Update documentation..."
-2. /workflow:lite-execute --yes --in-memory
+**Planning Command**:
+```bash
+ccw cli -p '/workflow:plan -y "Implement user registration with email validation"
+
+Task: Implement user registration' --tool claude --mode write
 ```
 
-### TDD Workflow
-```
-Goal: Implement user authentication with test-first approach
-Scope: [auth]
-Complexity: medium
-Constraints: [test-driven]
-Task Type: tdd
+**Execution with Context**:
+```bash
+ccw cli -p '/workflow:execute -y --resume-session="WFS-plan-20250124"
 
-Pipeline:
-需求 → tdd-plan → TDD任务 → execute → 代码 → tdd-verify → TDD验证通过
+Task: Implement user registration
 
-Chain:
-1. /workflow:tdd-plan --yes "Implement user authentication..."
-2. /workflow:execute --yes --resume-session="WFS-xxx"
-3. /workflow:tdd-verify --yes --session="WFS-xxx"
+Previous results:
+- /workflow:plan: WFS-plan-20250124 (IMPL_PLAN.md)' --tool claude --mode write
 ```
 
-### Debug Workflow
-```
-Goal: Fix memory leak in WebSocket handler
-Scope: [websocket]
-Complexity: medium
-Constraints: [production-issue]
-Task Type: bugfix
+**Standalone Lite Execution**:
+```bash
+ccw cli -p '/workflow:lite-fix -y "Fix login timeout in auth module"
 
-Pipeline (快速修复):
-Bug报告 → lite-fix → 修复代码 → test-cycle-execute → 测试通过
-
-Pipeline (系统调试):
-Bug报告 → debug → 调试日志 → 分析定位 → 修复
-
-Chain:
-1. /workflow:lite-fix --yes "Fix memory leak in WebSocket..."
-2. /workflow:test-cycle-execute --yes --session="WFS-xxx"
-
-OR (for hypothesis-driven debugging):
-1. /workflow:debug --yes "Memory leak in WebSocket handler..."
-```
-
-### Test Fix Workflow
-```
-Goal: Fix failing authentication tests
-Scope: [auth, tests]
-Complexity: simple
-Constraints: []
-Task Type: test-fix
-
-Pipeline:
-失败测试 → test-fix-gen → 测试任务 → test-cycle-execute → 测试通过
-
-Chain:
-1. /workflow:test-fix-gen --yes "WFS-auth-impl-001"
-2. /workflow:test-cycle-execute --yes --session="WFS-test-xxx"
-```
-
-### Test Generation from Implementation
-```
-Goal: Generate tests for completed user registration feature
-Scope: [auth, tests]
-Complexity: medium
-Constraints: []
-Task Type: test-gen
-
-Pipeline:
-代码 → test-gen → 测试 → test-cycle-execute → 测试通过
-
-Chain:
-1. /workflow:test-gen --yes "WFS-registration-20250124"
-2. /workflow:test-cycle-execute --yes --session="WFS-test-xxx"
-```
-
-### Review + Fix Workflow
-```
-Goal: Code review of payment module
-Scope: [payment]
-Complexity: medium
-Constraints: []
-Task Type: review
-
-Pipeline:
-代码 → review → 审查发现 → review-fix → 修复代码 → test-cycle-execute → 测试通过
-
-Chain:
-1. /workflow:review --yes --session="WFS-payment-impl"
-2. /workflow:review-fix --yes --session="WFS-payment-impl"
-3. /workflow:test-cycle-execute --yes --session="WFS-payment-impl"
-```
-
-### Brainstorm Workflow (Uncertain Requirements)
-```
-Goal: Explore solutions for real-time notification system
-Scope: [notifications, architecture]
-Complexity: complex
-Constraints: []
-Task Type: brainstorm
-
-Pipeline:
-探索主题 → brainstorm:auto-parallel → 分析结果 → plan → 详细计划
-     → plan-verify → 验证计划 → execute → 代码 → test-cycle-execute → 测试通过
-
-Chain:
-1. /workflow:brainstorm:auto-parallel --yes "Explore solutions for real-time..."
-2. /workflow:plan --yes "Implement chosen notification approach..."
-3. /workflow:plan-verify --yes --session="WFS-xxx"
-4. /workflow:execute --yes --resume-session="WFS-xxx"
-5. /workflow:test-cycle-execute --yes --session="WFS-xxx"
-```
-
-### Multi-CLI Plan (Multi-Perspective Analysis)
-```
-Goal: Compare microservices vs monolith architecture
-Scope: [architecture]
-Complexity: complex
-Constraints: []
-Task Type: multi-cli
-
-Pipeline:
-需求 → multi-cli-plan → 对比计划 → lite-execute → 代码 → test-cycle-execute → 测试通过
-
-Chain:
-1. /workflow:multi-cli-plan --yes "Compare microservices vs monolith..."
-2. /workflow:lite-execute --yes --in-memory
-3. /workflow:test-cycle-execute --yes --session="WFS-xxx"
+Task: Fix login timeout' --tool claude --mode write
 ```
 
 ## Execution Flow
@@ -858,18 +832,75 @@ async function ccwCoordinator(taskDescription) {
 
 ## CLI Execution Model
 
-**Serial Blocking**: Commands execute one-by-one. After launching CLI in background, orchestrator stops immediately and waits for hook callback.
+### CLI Invocation Format
+
+**IMPORTANT**: The `ccw cli` command executes prompts through external tools. The format is:
+
+```bash
+ccw cli -p "PROMPT_CONTENT" --tool <tool> --mode <mode>
+```
+
+**Parameters**:
+- `-p "PROMPT_CONTENT"`: The prompt content to execute (required)
+- `--tool <tool>`: CLI tool to use (e.g., `claude`, `gemini`, `qwen`)
+- `--mode <mode>`: Execution mode (`analysis` or `write`)
+
+**Note**: `-y` is a **command parameter inside the prompt**, NOT a `ccw cli` parameter.
+
+### Prompt Assembly
+
+The prompt content MUST start with the workflow command, followed by task context:
+
+```
+/workflow:<command> -y <parameters>
+
+Task: <description>
+
+<optional_context>
+```
+
+**Examples**:
+```bash
+# Planning command
+ccw cli -p '/workflow:plan -y "Implement user registration feature"
+
+Task: Implement user registration' --tool claude --mode write
+
+# Execution command (with session reference)
+ccw cli -p '/workflow:execute -y --resume-session="WFS-plan-20250124"
+
+Task: Implement user registration
+
+Previous results:
+- /workflow:plan: WFS-plan-20250124' --tool claude --mode write
+
+# Lite execution (in-memory from previous plan)
+ccw cli -p '/workflow:lite-execute -y --in-memory
+
+Task: Implement user registration' --tool claude --mode write
+```
+
+### Serial Blocking
+
+**CRITICAL**: Commands execute one-by-one. After launching CLI in background:
+1. Orchestrator stops immediately (`break`)
+2. Wait for hook callback - **DO NOT use TaskOutput polling**
+3. Hook callback triggers next command
+
+**Prompt Structure**: Command must be first in prompt content
 
 ```javascript
 // Example: Execute command and stop
-const taskId = Bash(`ccw cli -p "..." --tool claude --mode write -y`, { run_in_background: true }).task_id;
+const prompt = '/workflow:plan -y "Implement user authentication"\n\nTask: Implement user auth system';
+const taskId = Bash(`ccw cli -p "${prompt}" --tool claude --mode write`, { run_in_background: true }).task_id;
 state.execution_results.push({ status: 'in-progress', task_id: taskId, ... });
 Write(`${stateDir}/state.json`, JSON.stringify(state, null, 2));
-break; // Stop, wait for hook callback
+break; // ⚠️ STOP HERE - DO NOT use TaskOutput polling
 
-// Hook calls handleCliCompletion(sessionId, taskId, output) when done
+// Hook callback will call handleCliCompletion(sessionId, taskId, output) when done
 // → Updates state → Triggers next command via resumeChainExecution()
 ```
+
 
 ## Available Commands
 
@@ -886,18 +917,32 @@ All from `~/.claude/commands/workflow/`:
 **Tools**: context-gather, test-context-gather, task-generate, conflict-resolution, action-plan-verify
 **Utility**: clean, init, replan
 
-### Task Type Routing (Pipeline View)
+### Testing Commands Distinction
 
-| Task Type | Pipeline |
-|-----------|----------|
-| **feature** (simple) | 需求 → lite-plan → 计划 → lite-execute → 代码 → test-cycle-execute → 测试通过 |
-| **feature** (complex) | 需求 → plan → 详细计划 → plan-verify → 验证计划 → execute → 代码 → review-session-cycle → 审查通过 → test-cycle-execute → 测试通过 |
-| **bugfix** | Bug报告 → lite-fix → 修复代码 → test-cycle-execute → 测试通过 |
-| **tdd** | 需求 → tdd-plan → TDD任务 → execute → 代码 → tdd-verify → TDD验证通过 |
-| **test-fix** | 失败测试 → test-fix-gen → 测试任务 → test-cycle-execute → 测试通过 |
-| **test-gen** | 代码 → test-gen → 测试 → test-cycle-execute → 测试通过 |
-| **review** | 代码 → review → 审查发现 → review-fix → 修复代码 → test-cycle-execute → 测试通过 |
-| **brainstorm** | 探索主题 → brainstorm:auto-parallel → 分析结果 → plan → 详细计划 → execute → 代码 → test-cycle-execute → 测试通过 |
-| **multi-cli** | 需求 → multi-cli-plan → 对比计划 → lite-execute → 代码 → test-cycle-execute → 测试通过 |
+| Command | Purpose | Output | Follow-up |
+|---------|---------|--------|-----------|
+| **test-gen** | 广泛测试示例生成并进行测试 | test-tasks (IMPL-001, IMPL-002) | `/workflow:execute` |
+| **test-fix-gen** | 针对特定问题生成测试并在测试中修正 | test-tasks | `/workflow:test-cycle-execute` |
+| **test-cycle-execute** | 执行测试周期（迭代测试和修复） | test-passed | N/A (终点) |
+
+**流程说明**:
+- **test-gen → execute**: 生成全面的测试套件，execute 执行生成和测试
+- **test-fix-gen → test-cycle-execute**: 针对特定问题生成修复任务，test-cycle-execute 迭代测试和修复直到通过
+
+### Task Type Routing (Pipeline Summary)
+
+**Note**: `【 】` marks Minimum Execution Units (最小执行单元) - these commands must execute together.
+
+| Task Type | Pipeline | Minimum Units |
+|-----------|----------|---|
+| **feature** (simple) | 需求 →【lite-plan → lite-execute】→ 代码 →【test-fix-gen → test-cycle-execute】→ 测试通过 | Quick Implementation + Test Validation |
+| **feature** (complex) | 需求 →【plan → plan-verify】→ validate → execute → 代码 → review → fix | Full Planning + Code Review + Testing |
+| **bugfix** | Bug报告 → lite-fix → 修复代码 →【test-fix-gen → test-cycle-execute】→ 测试通过 | Bug Fix + Test Validation |
+| **tdd** | 需求 → tdd-plan → TDD任务 → execute → 代码 → tdd-verify | TDD Planning + Execution |
+| **test-fix** | 失败测试 →【test-fix-gen → test-cycle-execute】→ 测试通过 | Test Validation |
+| **test-gen** | 代码/会话 →【test-gen → execute】→ 测试通过 | Test Generation + Execution |
+| **review** | 代码 →【review-* → review-fix】→ 修复代码 →【test-fix-gen → test-cycle-execute】→ 测试通过 | Code Review + Testing |
+| **brainstorm** | 探索主题 → brainstorm → 分析 →【plan → plan-verify】→ execute → test | Exploration + Planning + Execution |
+| **multi-cli** | 需求 → multi-cli-plan → 对比分析 → lite-execute → test | Multi-Perspective + Testing |
 
 Use `CommandRegistry.getAllCommandsSummary()` to discover all commands dynamically.
