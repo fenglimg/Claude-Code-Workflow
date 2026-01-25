@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Learn Workflow User Profile",
+  "description": "Represents a user's learning profile, including skills, preferences, time availability, career context, and history.",
+  "type": "object",
+  "properties": {
+    "profile_id": { "type": "string" },
+    "experience_level": { "type": "string", "enum": ["beginner", "intermediate", "advanced", "expert"] },
+    "known_topics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "topic_id": { "type": "string" },
+          "proficiency": { "type": "number", "minimum": 0, "maximum": 1 },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "last_updated": { "type": "string", "format": "date-time" },
+          "evidence": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["topic_id", "proficiency"]
+      }
+    },
+    "learning_preferences": {
+      "type": "object",
+      "properties": {
+        "style": { "type": "string", "enum": ["practical", "theoretical", "visual"] },
+        "preferred_sources": { "type": "array", "items": { "type": "string" } },
+        "focus": { "type": "string", "enum": ["depth", "breadth", "balanced"] },
+        "approach": { "type": "string", "enum": ["theory-first", "practice-first", "mixed"] }
+      }
+    },
+    "time_availability": {
+      "type": "object",
+      "properties": {
+        "hours_per_week": { "type": "integer", "minimum": 0, "maximum": 168 },
+        "schedule": {
+          "type": "object",
+          "properties": {
+            "preferred_time_of_day": { "type": "string", "enum": ["morning", "afternoon", "evening", "night"] },
+            "preferred_days": { "type": "array", "items": { "type": "string", "enum": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] } },
+            "availability_consistency": { "type": "string", "enum": ["consistent", "variable", "irregular"] }
+          }
+        }
+      }
+    },
+    "career_context": {
+      "type": "object",
+      "properties": {
+        "current_role": { "type": "string" },
+        "target_role": { "type": "string" },
+        "industry": { "type": "string" },
+        "transition_timeline_months": { "type": "integer", "minimum": 0 },
+        "career_change_intent": { "type": "string", "enum": ["none", "exploring", "planning", "active"] }
+      }
+    },
+    "learning_history": {
+      "type": "object",
+      "properties": {
+        "completed_courses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "course_name": { "type": "string" },
+              "provider": { "type": "string" },
+              "completion_date": { "type": "string", "format": "date" },
+              "certification_earned": { "type": "boolean" }
+            }
+          }
+        },
+        "completed_projects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "project_name": { "type": "string" },
+              "description": { "type": "string" },
+              "technologies_used": { "type": "array", "items": { "type": "string" } },
+              "completion_date": { "type": "string", "format": "date" },
+              "source_url": { "type": "string", "format": "uri" }
+            }
+          }
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "monthly_learning_budget_usd": { "type": "number", "minimum": 0 },
+        "resource_access": {
+          "type": "object",
+          "properties": {
+            "has_paid_resources_access": { "type": "boolean" },
+            "has_internet_restriction": { "type": "boolean" },
+            "preferred_free_resources_only": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "feedback_journal": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "session_id": { "type": "string" },
+          "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "notes": { "type": "string" }
+        },
+        "required": ["date", "session_id", "rating"]
+      }
+    }
+  },
+  "required": ["profile_id", "experience_level", "known_topics"]
+}

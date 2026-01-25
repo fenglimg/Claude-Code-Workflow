@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Learn Workflow Global State",
+  "description": "Defines the global state for the learn workflow, tracking the active profile and session.",
+  "type": "object",
+  "properties": {
+    "active_profile_id": {
+      "description": "The ID of the currently active user learning profile.",
+      "type": ["string", "null"]
+    },
+    "active_session_id": {
+      "description": "The ID of the currently active learning session.",
+      "type": ["string", "null"]
+    },
+    "version": {
+      "description": "The schema version.",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "_metadata": {
+      "type": "object",
+      "properties": {
+        "last_updated": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["last_updated"]
+    }
+  },
+  "required": ["active_profile_id", "active_session_id", "version", "_metadata"]
+}

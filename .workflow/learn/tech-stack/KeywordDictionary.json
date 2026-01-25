@@ -1,0 +1,55 @@
+{
+  "version": "1.0.0",
+  "categories": {
+    "frontend": {
+      "frameworks": ["react", "vue", "angular", "svelte", "solid"],
+      "languages": ["javascript", "typescript", "html", "css", "scss", "less", "tailwind"],
+      "libraries": ["redux", "mobx", "zustand", "axios", "fetch", "react-router", "vue-router", "express"],
+      "keywords": ["component", "state", "hook", "props", "virtual DOM", "SPA", "hydration"]
+    },
+    "backend": {
+      "languages": ["node", "python", "go", "rust", "java", "csharp", "php"],
+      "frameworks": ["express", "fastapi", "django", "flask", "spring", "aspnet", "gin"],
+      "databases": ["mongodb", "postgresql", "mysql", "redis", "mongodb"],
+      "libraries": ["prisma", "typeorm", "sequelize", "numpy", "pandas", "asyncio"],
+      "keywords": ["api", "rest", "graphql", "middleware", "microservice", "endpoint", "crud"]
+    },
+    "infrastructure": {
+      "platforms": ["docker", "kubernetes", "aws", "gcp", "azure", "terraform", "ansible"],
+      "tools": ["git", "linux", "bash", "nginx", "jenkins", "cicd", "prometheus", "grafana"],
+      "keywords": ["container", "deployment", "pipeline", "ci/cd", "devops", "monitoring", "log"]
+    },
+    "mobile": {
+      "languages": ["swift", "kotlin", "flutter", "react-native", "swiftui"],
+      "frameworks": ["swiftui", "react-native", "flutter", "jetpack compose"],
+      "libraries": ["alamofire", "coredata", "rxjava", "room", "firebase"],
+      "keywords": ["ios", "android", "cross-platform", "native", "arhitecture"]
+    },
+    "data_science": {
+      "languages": ["python", "r", "julia"],
+      "frameworks": ["pandas", "numpy", "scikit-learn", "pytorch", "tensorflow"],
+      "libraries": ["matplotlib", "seaborn", "plotly", "dask"],
+      "keywords": ["machine learning", "data analysis", "visualization", "model", "training", "inference", "statistics"]
+    },
+    "devops": {
+      "tools": ["jenkins", "gitlab", "circleci", "argocd", "terraform", "ansible"],
+      "platforms": ["aws", "azure", "gcp", "digitalocean", "heroku"],
+      "keywords": ["cicd", "pipeline", "deployment", "automation", "iac", "cloud", "monitoring"]
+    },
+    "database": {
+      "databases": ["mysql", "postgresql", "mongodb", "sqlite", "oracle", "cassandra"],
+      "orms": ["prisma", "sequelize", "typeorm", "mongoose", "sqlalchemy"],
+      "keywords": ["migration", "schema", "query", "transaction", "index", "optimization", "relation", "normalization"]
+    },
+    "security": {
+      "practices": ["authentication", "authorization", "oauth", "jwt", "rbac", "encryption", "hashing"],
+      "tools": ["oauth2", "passport", "jwt", "bcrypt", "crypto"],
+      "keywords": ["login", "token", "session", "permission", "role", "access control", "csrf", "xss"]
+    },
+    "ai_ml": {
+      "languages": ["python", "typescript"],
+      "frameworks": ["pytorch", "tensorflow", "transformers", "langchain", "openai", "huggingface"],
+      "libraries": ["scikit-learn", "pandas", "numpy", "keras", "fastapi"],
+      "keywords": ["neural network", "model", "training", "inference", "nlp", "computer vision", "llm", "rag", "fine-tuning"]
+    }
+}

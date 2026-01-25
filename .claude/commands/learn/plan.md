@@ -120,6 +120,7 @@ try {
       total_sessions_completed: 0
     }
   };
+  Write(statePath, JSON.stringify(state, null, 2));
 }
 
 // Step 2: 检查 profile
@@ -127,18 +128,97 @@ const profileId = flags.profile || state.active_profile_id;
 
 if (!profileId) {
   console.log('No profile found. Creating default profile...');
-  SlashCommand('/learn:profile create');
-  // 重新加载 state
-  state = JSON.parse(Read(statePath));
+
+  try {
+    SlashCommand('/learn:profile create');
+    // 重新加载 state
+    state = JSON.parse(Read(statePath));
+  } catch (e) {
+    console.error('❌ Profile creation failed:', e.message);
+    throw new Error('Cannot proceed without a valid profile. Please create a profile manually with /learn:profile create');
+  }
 }
 
 // Step 3: 加载 profile
 const profilePath = `.workflow/learn/profiles/${state.active_profile_id}.json`;
-const profile = JSON.parse(Read(profilePath));
+let profile;
+
+try {
+  profile = JSON.parse(Read(profilePath));
+} catch (e) {
+  console.error('❌ Failed to load profile:', e.message);
+  throw new Error(`Profile not found or corrupted: ${state.active_profile_id}. Please select a valid profile.`);
+}
 
 console.log(`Using profile: ${state.active_profile_id}`);
 console.log(`Experience level: ${profile.experience_level}`);
 console.log(`Known topics: ${profile.known_topics.map(t => t.topic_id).join(', ')}`);
+
+// Step 4: Profile Update Check (NEW - Phase1 Enhancement)
+if (profile._metadata && profile._metadata.updated_at) {
+  const lastUpdated = new Date(profile._metadata.updated_at);
+  const daysSinceUpdate = Math.floor((Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24));
+
+  console.log(`\nℹ️  Profile last updated: ${daysSinceUpdate} days ago`);
+
+  // Check if learning goal suggests profile should be updated
+  const goalRelevanceCheck = () => {
+    const goalLower = $ARGUMENTS.toLowerCase();
+    const knownTopics = profile.known_topics.map(t => t.topic_id.toLowerCase());
+
+    // Extract technology keywords from goal
+    const goalTechKeywords = [];
+    const commonTech = ['react', 'vue', 'angular', 'typescript', 'javascript', 'python', 'rust', 'go', 'node', 'docker', 'kubernetes', 'aws', 'graphql'];
+
+    commonTech.forEach(tech => {
+      if (goalLower.includes(tech) && !knownTopics.includes(tech)) {
+        goalTechKeywords.push(tech);
+      }
+    });
+
+    return goalTechKeywords;
+  };
+
+  const missingTechForGoal = goalRelevanceCheck();
+
+  if (missingTechForGoal.length > 0 || daysSinceUpdate > 30) {
+    const UPDATE_CONFIRM_KEY = 'profile_update_confirm';
+    const updateConfirmAnswer = AskUserQuestion({
+      questions: [{
+        key: UPDATE_CONFIRM_KEY,
+        question: missingTechForGoal.length > 0
+          ? `Your goal mentions: ${missingTechForGoal.join(', ')} which are not in your profile. Update now?`
+          : `Your profile was last updated ${daysSinceUpdate} days ago. Refresh it for this goal?`,
+        header: "Profile Update",
+        multiSelect: false,
+        options: [
+          {value: "yes", label: "Yes, Update", description: "Run goal-oriented profile update"},
+          {value: "no", label: "Skip", description: "Continue with current profile"}
+        ]
+      }]
+    });
+
+    if (updateConfirmAnswer[UPDATE_CONFIRM_KEY] === 'yes') {
+      console.log('\n## Updating Profile for Learning Goal\n');
+
+      try {
+        // Execute profile update with goal parameter
+        SlashCommand(`/learn:profile update --goal "${$ARGUMENTS}"`);
+
+        // Reload profile after update
+        profile = JSON.parse(Read(profilePath));
+        console.log('\n✅ Profile updated successfully');
+        console.log(`New topics count: ${profile.known_topics.length}`);
+
+      } catch (e) {
+        console.warn('⚠️  Profile update failed, continuing with existing profile:', e.message);
+        // Continue despite update failure - non-blocking
+      }
+    }
+  }
+}
+
+console.log('');
 ```
 
 ### Phase 2: Knowledge Gap Analysis
@@ -185,7 +265,7 @@ Task({
   description: "Generate learning plan with knowledge points",
   prompt: `
 ## Planning Task
-Generate a structured learning plan for the following goal.
+Generate a structured learning plan for following goal.
 
 ## Input Context
 **Learning Goal**: ${goal}
@@ -222,7 +302,7 @@ Generate a structured learning plan for the following goal.
 
 ## Output Schema
 
-Execute: cat .claude/workflows/cli-templates/schemas/learn-plan-schema.json
+Execute: cat .claude/workflows/cli-templates/schemas/learn-plan.schema.json
 
 Generate complete plan.json following the schema above.
 
@@ -260,6 +340,7 @@ const templatePlan = {
       title: `${goal} - Fundamentals`,
       description: `Core concepts and basics of ${goal}`,
       prerequisites: [],
+      topic_refs: [],
       resources: [
         {
           type: "documentation",
@@ -273,7 +354,6 @@ const templatePlan = {
         description: `Build a simple project with ${goal}`,
         acceptance_criteria: ["Works correctly", "Code is clean"]
       },
-      estimated_effort: "medium",
       status: "pending"
     },
     {
@@ -281,6 +361,7 @@ const templatePlan = {
       title: `${goal} - Advanced Topics`,
       description: `Deep dive into advanced ${goal} concepts`,
       prerequisites: ["KP-1"],
+      topic_refs: [],
       resources: [
         {
           type: "tutorial",
@@ -294,7 +375,6 @@ const templatePlan = {
         description: `Solve complex ${goal} challenge`,
         acceptance_criteria: ["Efficient solution", "Well-documented"]
       },
-      estimated_effort: "hard",
       status: "pending"
     }
   ],
@@ -503,7 +583,7 @@ switch (userChoice) {
 
 ## P0 Fixes Applied (Multi-CLI Analysis)
 
-Based on 3-round multi-CLI collaborative analysis (Gemini → Codex → Gemini), the following P0 blockers have been addressed:
+Based on 3-round multi-CLI collaborative analysis (Gemini → Codex → Gemini), following P0 blockers have been addressed:
 
 ### 1. Issue CLI Integration ✅
 
@@ -557,7 +637,7 @@ const choice = answer[KEY];
 
 Before completing plan generation, verify:
 
-- [ ] `plan.json` follows `learn-plan-schema.json`
+- [ ] `plan.json` follows `learn-plan.schema.json`
 - [ ] No circular dependencies in knowledge_points
 - [ ] Each knowledge point has at least 1 Gold-tier resource
 - [ ] Prerequisites are logically ordered
@@ -668,63 +748,6 @@ Note: Limited personalization. Remove --no-agent for AI-driven planning.
 - **Dependencies**: `/learn:profile` (for profile creation)
 - **Consumed By**: `/learn:execute` (reads plan.json)
 
-
-
----
-
-## Enhancement: MCP Tool Integration
-
-### Tool Selection Strategy
-
-Based on learning goal type, use different MCP tool combinations:
-
-**A) Project/Code-Related Learning**:
-```javascript
-// Step 1: Discover codebase patterns
-mcp__ace-tool__search_context(
-  project_root_path="/path/to/project",
-  query="auth middleware patterns + security"
-)
-
-// Step 2: Find exact implementations
-smart_search(action="search", query="authentication.*middleware")
-
-// Step 3: Get external authoritative docs
-mcp__exa__get_code_context_exa(
-  query="best practices authentication 2025",
-  tokensNum=5000
-)
-```
-
-**B) General Knowledge Learning**:
-```javascript
-// Prioritize official documentation
-mcp__exa__get_code_context_exa(
-  query="official TypeScript generics documentation",
-  tokensNum=5000
-)
-
-// Check local cache/historical sessions
-smart_search(
-  action="search",
-  path=".workflow/learn/sessions/**/plan.json",
-  query="generics"
-)
-```
-
-### Tool Composition (within learn-planning-agent)
-
-**Execution Flow**:
-1. **ACE**: Semantic search for codebase context
-2. **Exa**: Fetch high-quality external resources
-3. **Normalize**: Unify to topic_ids + deduplicate URLs
-4. **Score**: gold/silver/bronze + enforce gold>=1 per KP
-5. **Emit**: plan.json (schema-first)
-
-**Fallback Chain**:
-```
-Gemini → Qwen → Codex → degraded (structure only, no resource links)
-```
 
 ---
 
@@ -966,76 +989,6 @@ if (!validationResult.valid) {
 }
 ```
 
-### Layer 2: Profile→Plan Matching
-```javascript
-// Check for high-proficiency topics being planned as basic
-const highProficiencyTopics = profile.known_topics
-  .filter(t => t.proficiency >= 0.8)
-  .map(t => t.topic_id);
-
-plan.knowledge_points.forEach(kp => {
-  const kpTopics = extractTopics(kp.title, kp.description);
-  const overlap = intersection(kpTopics, highProficiencyTopics);
-
-  if (overlap.length > 0) {
-    kp.status = 'optional';
-    kp._note = 'Already proficient, marked optional';
-  }
-});
-
-// Add fingerprint to detect profile/plan mismatch
-plan._metadata.profile_fingerprint = generateFingerprint(profile);
-```
-
-### Layer 3: Resource Quality Scoring
-```javascript
-// Quality rubric
-const qualityLevels = {
-  gold: {
-    threshold: 0.8,
-    sources: ['official docs', 'standards', 'authors', 'reputed courses'],
-    weight: 1.0
-  },
-  silver: {
-    threshold: 0.6,
-    sources: ['quality blogs', 'tutorials', 'books'],
-    weight: 0.7
-  },
-  bronze: {
-    threshold: 0.4,
-    sources: ['forums', 'StackOverflow', 'snippets'],
-    weight: 0.4
-  }
-};
-
-// Score each resource
-resources.forEach(res => {
-  res.quality_score = calculateQuality(res);
-  res.reasons = getQualityReasons(res);
-  res.retrieved_at = new Date().toISOString();
-  res.source_type = detectSourceType(res);
-});
-
-// Enforce: each KP must have at least 1 Gold resource
-const kpsWithoutGold = plan.knowledge_points.filter(kp =>
-  !kp.resources.some(r => r.quality === 'gold')
-);
-
-if (kpsWithoutGold.length > 0) {
-  // Ask user: continue with degraded resources?
-  const answer = AskUserQuestion({
-    questions: [{
-      question: `Some KPs lack Gold resources. Continue?`,
-      header: "Quality Gate",
-      options: [
-        {label: "Continue", description: "Accept degraded quality"},
-        {label: "Regenerate", description: "Try different search terms"}
-      ]
-    }]
-  });
-}
-```
-
 ---
 
 ## Enhancement: Clarification Blocking
@@ -1090,125 +1043,10 @@ if (!goalCheck.clear) {
   const focusArea = clarification[FOCUS_KEY];
   $ARGUMENTS = refineGoal($ARGUMENTS, focusArea);
 }
-
-// Phase 3: Check knowledge chain conflicts
-function detectPrerequisiteConflicts(plan, profile) {
-  const conflicts = [];
-
-  for (const kp of plan.knowledge_points) {
-    for (const prereqId of kp.prerequisites) {
-      const prereqKP = plan.knowledge_points.find(k => k.id === prereqId);
-
-      // Check if prerequisite is marked as optional (user already knows it)
-      if (prereqKP && prereqKP.status === 'optional') {
-        conflicts.push({
-          kp_id: kp.id,
-          prereq_id: prereqId,
-          description: `${kp.id} depends on ${prereqId}, but ${prereqId} is optional (user proficient)`,
-          resolutionOptions: [
-            {value: "keep_both", label: "Keep Both", description: "Include optional KP for completeness"},
-            {value: "remove_prereq", label: "Remove Prerequisite", description: "Skip optional KP"},
-            {value: "mark_optional", label: "Mark as Optional", description: "Make both optional"}
-          ]
-        });
-      }
-    }
-  }
-
-  return conflicts;
-}
-
-const conflicts = detectPrerequisiteConflicts(plan, profile);
-
-if (conflicts.length > 0) {
-  console.log(`⚠️  Detected ${conflicts.length} knowledge chain conflicts`);
-
-  // DO NOT auto-resolve - present to user
-  const CONFLICT_KEY = 'conflict_resolution';
-  const resolutions = AskUserQuestion({
-    questions: conflicts.map((c, idx) => ({
-      key: `${CONFLICT_KEY}_${idx}`,
-      question: `Conflict: ${c.description}`,
-      header: `Conflict ${idx + 1}`,
-      multiSelect: false,
-      options: c.resolutionOptions
-    }))
-  });
-
-  // Apply user decisions
-  conflicts.forEach((c, idx) => {
-    const decision = resolutions[`${CONFLICT_KEY}_${idx}`];
-    applyConflictResolution(plan, c, decision);
-  });
-}
-
-// Phase 4: Check MCP tool availability
-function checkMCPToolsAvailability() {
-  const tools = ['mcp__ace-tool__search_context', 'mcp__exa__get_code_context_exa'];
-  const available = {};
-
-  for (const tool of tools) {
-    try {
-      // Test tool availability
-      available[tool] = true;
-    } catch (e) {
-      available[tool] = false;
-    }
-  }
-
-  return available;
-}
-
-const mcpAvailability = checkMCPToolsAvailability();
-const unavailableTools = Object.entries(mcpAvailability)
-  .filter(([_, available]) => !available)
-  .map(([tool, _]) => tool);
-
-if (unavailableTools.length > 0) {
-  console.log(`⚠️  MCP tools unavailable: ${unavailableTools.join(', ')}`);
-
-  const DEGRADED_KEY = 'degraded_mode';
-  const answer = AskUserQuestion({
-    questions: [{
-      key: DEGRADED_KEY,
-      question: "Some MCP tools are unavailable. Resource quality may be degraded. Continue?",
-      header: "Tool Availability",
-      multiSelect: false,
-      options: [
-        {value: "continue", label: "Continue", description: "Use fallback resources"},
-        {value: "cancel", label: "Cancel", description: "Wait for tools to be available"}
-      ]
-    }]
-  });
-
-  if (answer[DEGRADED_KEY] === 'cancel') {
-    throw new Error('Plan generation cancelled: MCP tools unavailable');
-  }
-
-  // Mark plan as degraded
-  plan._metadata.degraded_mode = true;
-  plan._metadata.unavailable_tools = unavailableTools;
-}
 ```
 
-### Clarification vs Auto-Resolution
+---
 
-**Block (Clarification Required)**:
-- Goal ambiguity (< 2 keywords)
-- Knowledge chain conflicts (prerequisites mismatch)
-- Critical resource unavailability (all MCP tools fail)
-- Schema validation failures
-
-**Auto-Resolve (No Blocking)**:
-- Minor resource quality issues (some KPs lack gold)
-- Profile-plan mismatches (mark as optional)
-- Non-critical warnings (topological order suggestions)
-
-### Best Practices
-
-1. **Limit clarification rounds**: Max 2 rounds per phase to avoid user fatigue
-2. **Provide context**: Always explain WHY clarification is needed
-3. **Offer defaults**: Include "Continue with defaults" option when possible
-4. **Batch questions**: Group related clarifications in single AskUserQuestion call
-5. **Track confidence**: Mark low-confidence decisions for future refinement
-
+**版本**: v1.0.0-mvp
+**状态**: MVP Ready - P0 Fixes Applied
+**最后更新**: 2026-01-24

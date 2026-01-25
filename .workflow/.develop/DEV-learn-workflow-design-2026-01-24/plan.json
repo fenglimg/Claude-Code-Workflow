@@ -1,0 +1,117 @@
+{
+  "summary": "Iterate learn-profile create/update commands based on multi-CLI deep exploration results",
+  "approach": "Implement 4 major iterations in 3 phases:\n1. Dynamic tech stack detection based on role background\n2. Enhanced profile schema with customization options\n3. Profile integration with learn-plan Phase1\n4. Optimized skill assessment algorithm with multi-factor verification",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Dynamic Tech Stack Detection",
+      "description": "Implement multi-stage inference pipeline to detect tech stack from user's role background. Parse role description, match keywords to tech categories, validate with user confirmation, and seed known_topics array.",
+      "files": [
+        ".claude/commands/learn/profile.md",
+        ".workflow/learn/tech-stack/KeywordDictionary.json"
+      ],
+      "executor": "agent",
+      "depends_on": [],
+      "complexity": "Medium",
+      "status": "completed"
+    },
+    {
+      "id": "T2",
+      "title": "Profile Schema Enhancement",
+      "description": "Extend learn-profile.schema.json with new optional fields: time_availability, career_context, learning_history, constraints. Implement backward compatibility with lazy migration.",
+      "files": [
+        ".claude/workflows/cli-templates/schemas/learn-profile.schema.json"
+      ],
+      "executor": "agent",
+      "depends_on": [],
+      "complexity": "Low",
+      "status": "completed"
+    },
+    {
+      "id": "T3",
+      "title": "Profile Update with --goal Parameter",
+      "description": "Add --goal flag to profile update command for non-interactive, goal-oriented skill assessment. Extract keywords from learning goal, run targeted assessment, update relevant known_topics.",
+      "files": [
+        ".claude/commands/learn/profile.md"
+      ],
+      "executor": "agent",
+      "depends_on": ["T1"],
+      "complexity": "Medium",
+      "status": "completed"
+    },
+    {
+      "id": "T4",
+      "title": "Profile Integration in learn-plan Phase1",
+      "description": "Modify learn-plan Phase1 to check profile existence, prompt for update with new goal, and reload profile after create/update operations. Add error handling for profile operation failures.",
+      "files": [
+        ".claude/commands/learn/plan.md"
+      ],
+      "executor": "agent",
+      "depends_on": ["T3"],
+      "complexity": "Medium",
+      "status": "completed"
+    },
+    {
+      "id": "T5",
+      "title": "Multi-Factor Skill Assessment Algorithm",
+      "description": "Optimize skill assessment with multi-factor verification: self-assessment (calibration only), open-ended conceptual checks, MCP-validated practical challenges, cross-validation with learning goal. Implement weighted scoring and anti-inflation mechanisms.",
+      "files": [
+        ".claude/commands/learn/profile.md"
+      ],
+      "executor": "agent",
+      "depends_on": ["T1"],
+      "complexity": "High",
+      "status": "completed"
+    },
+    {
+      "id": "T6",
+      "title": "Simulated MCP for Code Validation",
+      "description": "Build simulated MCP platform for code challenge validation. Provide code input interface, run safe sandbox execution (vm2), return test results and performance metrics.",
+      "files": [
+        ".claude/workflows/learn/mcp-simulator.js"
+      ],
+      "executor": "agent",
+      "depends_on": ["T5"],
+      "complexity": "High",
+      "status": "completed"
+    }
+  ],
+  "executorAssignments": {
+    "T1": {
+      "executor": "agent",
+      "reason": "Code implementation with multiple files (profile.md + KeywordDictionary.json)"
+    },
+    "T2": {
+      "executor": "agent",
+      "reason": "Schema modification with backward compatibility considerations"
+    },
+    "T3": {
+      "executor": "agent",
+      "reason": "Profile command implementation with new flag and logic"
+    },
+    "T4": {
+      "executor": "agent",
+      "reason": "Learn-plan command modification with integration logic"
+    },
+    "T5": {
+      "executor": "agent",
+      "reason": "Complex algorithm implementation with multiple verification stages"
+    },
+    "T6": {
+      "executor": "agent",
+      "reason": "New module implementation for code validation"
+    }
+  },
+  "estimated_time": "4-6 hours",
+  "complexity": "Medium-High",
+  "_metadata": {
+    "timestamp": "2026-01-25T10:00:00+08:00",
+    "source": "multi-cli-exploration",
+    "exploration_angles": [
+      "dynamic-tech-stack-detection",
+      "profile-integration-learn-plan",
+      "profile-customization-enhancement",
+      "skill-assessment-algorithm-optimization"
+    ]
+  }
+}
