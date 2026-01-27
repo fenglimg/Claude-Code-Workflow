@@ -76,6 +76,8 @@ Visual session management, CodexLens search, graph explorer
 
 ### Install CCW
 
+**Prerequisite**: Node >=22.0.0 (required for CCW's test runner and some workflows like learn tool-verification).
+
 ```bash
 npm install -g claude-code-workflow
 ccw install -m Global

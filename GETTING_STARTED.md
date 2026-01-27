@@ -22,6 +22,8 @@ Let's build a "Hello World" web application from scratch with a simple example.
 
 First, make sure you have installed CCW according to the [Installation Guide](INSTALL.md).
 
+**Prerequisite**: Node >=22.0.0 (required for CCW's test runner and some workflows like learn tool-verification).
+
 ### Step 2: Create an Execution Plan (Automatically Starts a Session)
 
 Now, tell CCW what you want to do. CCW will analyze your request and automatically generate a detailed, executable task plan.

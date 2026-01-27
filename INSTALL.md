@@ -45,12 +45,16 @@ npm link
 
 ## Platform Requirements
 
-- **Node.js**: 16.0.0 or higher
+- **Node**: 22.0.0 or higher
 - **OS**: Windows, Linux, macOS
+
+Why Node >=22?
+- CCW test runner uses Node's `--experimental-strip-types`
+- Some workflows (e.g. learn tool-verification) rely on Node's permission model (`--permission`)
 
 Check Node.js version:
 ```bash
-node --version  # Should be >= 16.0.0
+node --version  # Should be >= 22.0.0
 ```
 
 ## ⚙️ Configuration

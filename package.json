@@ -29,7 +29,7 @@
   "author": "dyw",
   "license": "MIT",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=22.0.0"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",

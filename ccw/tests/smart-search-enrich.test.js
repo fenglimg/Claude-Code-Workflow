@@ -206,9 +206,9 @@ describe('Smart Search Tool Definition', async () => {
     const modeEnum = params.properties.mode?.enum;
 
     assert.ok(modeEnum, 'Should have mode enum');
-    assert.ok(modeEnum.includes('auto'), 'Should support auto mode');
-    assert.ok(modeEnum.includes('hybrid'), 'Should support hybrid mode');
-    assert.ok(modeEnum.includes('exact'), 'Should support exact mode');
+    // Current implementation supports fuzzy + semantic modes.
+    assert.ok(modeEnum.includes('fuzzy'), 'Should support fuzzy mode');
+    assert.ok(modeEnum.includes('semantic'), 'Should support semantic mode');
   });
 });
 

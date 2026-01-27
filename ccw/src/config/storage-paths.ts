@@ -6,7 +6,7 @@
  */
 
 import { homedir } from 'os';
-import { join, resolve, dirname, relative, sep } from 'path';
+import { join, resolve, dirname, relative, sep, win32 } from 'path';
 import { createHash } from 'crypto';
 import { existsSync, mkdirSync, renameSync, rmSync, readdirSync, cpSync } from 'fs';
 import { readdir } from 'fs/promises';
@@ -69,6 +69,20 @@ function pathToFolderName(absolutePath: string): string {
   return folderName || 'unknown';
 }
 
+function isWindowsAbsolutePath(p: string): boolean {
+  // e.g. D:\path, D:/path, \\server\share
+  return /^[a-zA-Z]:[\\/]/.test(p) || /^\\\\/.test(p);
+}
+
+function resolveProjectPath(projectPath: string): { absolutePath: string; isWindowsPath: boolean } {
+  if (isWindowsAbsolutePath(projectPath)) {
+    return { absolutePath: win32.normalize(projectPath), isWindowsPath: true };
+  }
+
+  // Default: resolve using current platform semantics.
+  return { absolutePath: resolve(projectPath), isWindowsPath: false };
+}
+
 /**
  * Calculate project identifier from project path
  * Returns a human-readable folder name based on the path
@@ -76,7 +90,7 @@ function pathToFolderName(absolutePath: string): string {
  * @returns Folder-safe project identifier
  */
 export function getProjectId(projectPath: string): string {
-  const absolutePath = resolve(projectPath);
+  const { absolutePath } = resolveProjectPath(projectPath);
   return pathToFolderName(absolutePath);
 }
 
@@ -101,18 +115,20 @@ const hierarchyCache = new Map<string, HierarchyInfo>();
  * @returns Hierarchy information
  */
 export function detectHierarchy(projectPath: string): HierarchyInfo {
-  const absolutePath = resolve(projectPath);
+  const { absolutePath, isWindowsPath } = resolveProjectPath(projectPath);
+  // Cache key must be stable across platform-specific normalization
+  const cacheKey = isWindowsPath ? `win:${absolutePath}` : absolutePath;
 
   // Check cache
-  if (hierarchyCache.has(absolutePath)) {
-    return hierarchyCache.get(absolutePath)!;
+  if (hierarchyCache.has(cacheKey)) {
+    return hierarchyCache.get(cacheKey)!;
   }
 
   // Execute detection
-  const result = detectHierarchyImpl(absolutePath);
+  const result = detectHierarchyImpl(absolutePath, isWindowsPath);
 
   // Cache result
-  hierarchyCache.set(absolutePath, result);
+  hierarchyCache.set(cacheKey, result);
 
   return result;
 }
@@ -120,7 +136,7 @@ export function detectHierarchy(projectPath: string): HierarchyInfo {
 /**
  * Internal hierarchy detection implementation
  */
-function detectHierarchyImpl(absolutePath: string): HierarchyInfo {
+function detectHierarchyImpl(absolutePath: string, isWindowsPath: boolean): HierarchyInfo {
   const currentId = pathToFolderName(absolutePath);
 
   // Get all existing project directories
@@ -129,10 +145,13 @@ function detectHierarchyImpl(absolutePath: string): HierarchyInfo {
     return { currentId, parentId: null, relativePath: '' };
   }
 
+  const dirnameFn = isWindowsPath ? win32.dirname : dirname;
+  const relativeFn = isWindowsPath ? win32.relative : relative;
+
   // Check if there's a parent path with storage
   let checkPath = absolutePath;
   while (true) {
-    const parentPath = dirname(checkPath);
+    const parentPath = dirnameFn(checkPath);
     if (parentPath === checkPath) break; // Reached root directory
 
     const parentId = pathToFolderName(parentPath);
@@ -140,7 +159,7 @@ function detectHierarchyImpl(absolutePath: string): HierarchyInfo {
 
     // If parent path has storage directory, we found the parent
     if (existsSync(parentStorageDir)) {
-      const relativePath = relative(parentPath, absolutePath).replace(/\\/g, '/');
+      const relativePath = relativeFn(parentPath, absolutePath).replace(/\\/g, '/');
       return { currentId, parentId, relativePath };
     }
 
