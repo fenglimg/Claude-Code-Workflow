@@ -74,6 +74,37 @@ const knownTopicIds = new Set(profile.known_topics.map(t => t.topic_id));
 const proficiencyMap = new Map(profile.known_topics.map(t => [t.topic_id, t.proficiency]));
 ```
 
+#### Phase 1.5: Profile-Aware Analysis (Personalization Rules)
+
+Use the profile to personalize **what** to include, **how** to sequence it, and **which** resources to recommend.
+
+**Profile signals to use**:
+- `profile.experience_level` (beginner|intermediate|advanced|expert)
+- `profile.known_topics[]` with `{ topic_id, proficiency, confidence }`
+
+**Rule 1 — Skip High-Proficiency Topics (mark optional)**:
+- If `proficiency >= 0.8` for a topic that would normally be a core knowledge point, keep it in the DAG but set `status: "optional"` and add a short rationale (`_note`) explaining why.
+- Do NOT remove nodes that are prerequisites for other nodes; instead mark them optional and keep edges intact.
+
+Example:
+- Input: `known_topics: [{ topic_id: "react", proficiency: 0.9 }]`
+- Output: a "React Fundamentals" KP is `optional`, but still exists if later KPs depend on it.
+
+**Rule 2 — Adjust Difficulty Distribution by Experience Level**:
+- beginner: emphasize foundations; more "easy"/"medium" KPs, fewer advanced-only KPs
+- intermediate: balanced; cover fundamentals briefly then progress
+- advanced/expert: fewer basics; focus on "hard" and architecture/edge cases
+
+**Rule 3 — Build on Existing Knowledge (transfer prerequisites)**:
+- Prefer prerequisites that bridge from known topics (transfer learning).
+- If a goal requires a missing concept, check for a related known topic and add a short bridging KP instead of a full beginner track.
+
+**Rule 4 — Match Resource Types to Experience Level**:
+- beginner: prioritize tutorials, guided courses, interactive docs; include more context in summaries
+- advanced/expert: prioritize official docs, RFCs/specs, deep dives; concise summaries + direct references
+
+These rules are applied during **Phase 3: Knowledge Point Generation** and **Phase 4: Resource Scoring**.
+
 #### Phase 2: Resource Discovery (MCP Tools)
 
 ```javascript
@@ -156,13 +187,38 @@ const qualityRubric = {
   }
 };
 
+function calculatePersonalizationScore(res, experienceLevel) {
+  const level = String(experienceLevel ?? 'beginner');
+  const type = String(res?.type ?? '').toLowerCase();
+
+  // Keep it simple and deterministic: return 0..0.2 bonus.
+  if (level === 'beginner') {
+    if (type.includes('tutorial') || type.includes('course') || type.includes('guide')) return 0.2;
+    return 0.05;
+  }
+
+  if (level === 'advanced' || level === 'expert') {
+    if (type.includes('documentation') || type.includes('spec') || type.includes('rfc')) return 0.2;
+    return 0.05;
+  }
+
+  // intermediate (balanced)
+  return 0.1;
+}
+
 knowledgePoints.forEach(kp => {
   // Score each resource
   kp.resources = kp.resources.map(res => ({
     ...res,
     quality_score: calculateQualityScore(res, qualityRubric),
+    // Personalization: rank resources differently by experience level.
+    // beginner -> tutorials/guides; advanced -> official docs/specs/deep dives
+    personalization_score: calculatePersonalizationScore(res, profile.experience_level),
     retrieved_at: new Date().toISOString()
   }));
+
+  // Sort resources so the most relevant (quality + personalization) comes first.
+  kp.resources.sort((a, b) => (b.quality_score + (b.personalization_score ?? 0)) - (a.quality_score + (a.personalization_score ?? 0)));
 
   // Enforce: at least 1 Gold resource
   const hasGold = kp.resources.some(r => r.quality === 'gold');

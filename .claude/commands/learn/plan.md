@@ -200,8 +200,18 @@ const gapAnalysis = {
   missing_topics: [],      // 完全未掌握
   weak_topics: [],         // 掌握不足 (proficiency < 0.5)
   strong_topics: [],       // 掌握良好 (proficiency >= 0.5)
-  related_experience: []   // 相关技能（可迁移）
+  related_experience: [],  // 相关技能（可迁移）
+  recommended_focus: []    // 推荐聚焦方向（可操作建议）
 };
+
+// Transferable skill map (very small, illustrative; the agent performs the real inference)
+const relatedSkills = {
+  react: [{ topic_id: 'vue', score: 0.7 }, { topic_id: 'angular', score: 0.6 }, { topic_id: 'svelte', score: 0.55 }],
+  typescript: [{ topic_id: 'javascript', score: 0.8 }],
+  python: [{ topic_id: 'ruby', score: 0.5 }, { topic_id: 'javascript', score: 0.45 }]
+};
+
+const knownIds = new Set((profile.known_topics || []).map(t => t.topic_id));
 
 // 分析 profile.known_topics
 profile.known_topics.forEach(topic => {
@@ -212,12 +222,36 @@ profile.known_topics.forEach(topic => {
   }
 });
 
+// Naive missing topic inference from keywords (agent will do better)
+for (const kw of goalKeywords) {
+  const topic_id = String(kw).toLowerCase();
+  if (!knownIds.has(topic_id)) gapAnalysis.missing_topics.push({ topic_id });
+}
+
+// Related experience: infer transferable skills from strong foundations
+for (const t of gapAnalysis.strong_topics) {
+  const mapped = relatedSkills[String(t.topic_id).toLowerCase()] || [];
+  for (const rel of mapped) {
+    if (!knownIds.has(rel.topic_id) && !gapAnalysis.missing_topics.some(m => m.topic_id === rel.topic_id)) {
+      gapAnalysis.related_experience.push({ from: t.topic_id, to: rel.topic_id, transferability_score: rel.score });
+    }
+  }
+}
+
+// Recommended focus: prioritize missing topics with no strong transfer path
+gapAnalysis.recommended_focus = gapAnalysis.missing_topics
+  .filter(m => !gapAnalysis.related_experience.some(r => r.to === m.topic_id))
+  .slice(0, 5)
+  .map(m => ({ topic_id: m.topic_id, reason: 'Missing core topic for goal (no strong transfer signal found)' }));
+
 console.log(`
 ## Knowledge Gap Analysis
 
 Missing topics: ${gapAnalysis.missing_topics.length}
 Weak topics: ${gapAnalysis.weak_topics.map(t => t.topic_id).join(', ')}
 Strong foundation: ${gapAnalysis.strong_topics.map(t => t.topic_id).join(', ')}
+Related experience: ${gapAnalysis.related_experience.map(r => `${r.from}→${r.to} (${r.transferability_score})`).join(', ')}
+Recommended focus: ${gapAnalysis.recommended_focus.map(r => r.topic_id).join(', ')}
 `);
 ```
 
@@ -533,6 +567,46 @@ const hardCount = plan.knowledge_points.filter(kp => kp.estimated_effort === 'ha
 
 const totalResources = plan.knowledge_points.reduce((acc, kp) => acc + (kp.resources?.length ?? 0), 0);
 
+// Simple learning path visualization (topological levels) for user comprehension
+const nodes = (plan.dependency_graph?.nodes?.length ? plan.dependency_graph.nodes : plan.knowledge_points.map(kp => kp.id)) || [];
+const edges = plan.dependency_graph?.edges || [];
+
+const incoming = new Map(nodes.map(n => [n, 0]));
+const outgoing = new Map(nodes.map(n => [n, []]));
+for (const e of edges) {
+  if (!incoming.has(e.to)) incoming.set(e.to, 0);
+  if (!outgoing.has(e.from)) outgoing.set(e.from, []);
+  incoming.set(e.to, (incoming.get(e.to) || 0) + 1);
+  outgoing.get(e.from).push(e.to);
+}
+
+// Kahn topological order + derived "depth"
+const queue = nodes.filter(n => (incoming.get(n) || 0) === 0);
+const topo = [];
+const depth = new Map(nodes.map(n => [n, 0]));
+while (queue.length > 0) {
+  const cur = queue.shift();
+  topo.push(cur);
+  const nexts = outgoing.get(cur) || [];
+  for (const nxt of nexts) {
+    depth.set(nxt, Math.max(depth.get(nxt) || 0, (depth.get(cur) || 0) + 1));
+    incoming.set(nxt, (incoming.get(nxt) || 0) - 1);
+    if ((incoming.get(nxt) || 0) === 0) queue.push(nxt);
+  }
+}
+
+const levels = {};
+for (const id of topo) {
+  const d = depth.get(id) || 0;
+  levels[d] = levels[d] || [];
+  levels[d].push(id);
+}
+const learningPath = Object.keys(levels)
+  .map(k => Number(k))
+  .sort((a, b) => a - b)
+  .map((lvl) => `  Level ${lvl}: ${levels[lvl].join(', ')}`)
+  .join('\\n');
+
 console.log(`
 ## Learning Plan Summary
 
@@ -551,6 +625,9 @@ console.log(`
 ${plan.dependency_graph.edges.map(edge =>
   `  ${edge.from} → ${edge.to}`
 ).join('\n')}
+
+**Learning Path**:
+${learningPath}
 
 **Validation**: ✅ Schema + DAG checks passed (see validation gate output)
 
