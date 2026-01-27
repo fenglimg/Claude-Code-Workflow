@@ -247,6 +247,7 @@ Bash(`mkdir -p ${sessionFolder}/interactions/notes`);
 ```javascript
 // Real LLM agent invocation via ccw cli (with retry + fallback)
 const { safeExecJson } = await import('./_internal/error-handler.js');
+const { callBashJsonWithRetry } = await import('./_internal/agent-caller.js');
 const { Logger } = await import('./_internal/logger.js');
 // Note: safeExecJson uses lastJsonObjectFromText internally for robust parsing of noisy CLI output.
 
@@ -270,22 +271,20 @@ let planDraft = null;
 let lastError = null;
 
 if (!flags.noAgent) {
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      const raw = Bash(`ccw cli -p '${escapedPrompt}' --tool gemini --mode write --cd .`);
-      let jsonText = raw.trim();
-      const m = jsonText.match(/```(?:json)?\\s*([\\s\\S]*?)```/);
-      if (m) jsonText = m[1].trim();
-      planDraft = JSON.parse(jsonText);
-      break;
-    } catch (e) {
-      lastError = e;
-      console.warn(`⚠️ learn-planning-agent attempt ${attempt} failed:`, e.message || e);
-      if (attempt < 3) {
-        // Exponential backoff: 2s, 4s
-        Bash(`sleep ${Math.pow(2, attempt)}`);
-      }
-    }
+  try {
+    const cliCommand = `ccw cli -p '${escapedPrompt}' --tool gemini --mode write --cd .`;
+    const res = await callBashJsonWithRetry({
+      command: cliCommand,
+      description: 'learn-planning-agent via ccw cli',
+      max_attempts: 3,
+      timeout_ms: 600000,
+      backoff_ms: 2000
+    });
+    planDraft = res.json;
+    logger.info('Agent plan generated', { method: 'ccw-cli', attempts_used: res.attempts_used });
+  } catch (e) {
+    lastError = e;
+    console.warn('⚠️ learn-planning-agent generation failed:', e?.message || e);
   }
 }
 

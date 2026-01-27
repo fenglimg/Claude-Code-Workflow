@@ -48,4 +48,23 @@ describe('learn/_internal/error-handler', () => {
       /Failed to execute my step/
     );
   });
+
+  it('safeExecJson supports Bash() result objects with stdout', () => {
+    const out = safeExecJson('echo ok', 'test', {
+      bashFn: () => ({ stdout: ['noise', '{"a":1}'].join('\n') })
+    });
+    assert.deepEqual(out, { a: 1 });
+  });
+
+  it('safeExecJson forwards timeoutMs to Bash(cmd, opts) when provided', () => {
+    const calls = [];
+    function bashFn(command, opts) {
+      calls.push({ command, opts });
+      return '{"ok":true}';
+    }
+    const out = safeExecJson('echo ok', 'test', { bashFn, timeoutMs: 123 });
+    assert.deepEqual(out, { ok: true });
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].opts.timeout, 123);
+  });
 });

@@ -53,12 +53,31 @@ export function safeExecJson(command, description, opts = {}) {
     throw new Error('safeExecJson: missing Bash() implementation (pass opts.bashFn)');
   }
 
+  const extractStdout = (raw) => {
+    if (raw == null) return '';
+    if (typeof raw === 'string') return raw;
+    if (typeof raw === 'object') {
+      if (typeof raw.stdout === 'string') return raw.stdout;
+      if (typeof raw.output === 'string') return raw.output;
+    }
+    return String(raw);
+  };
+
+  const execBash = (cmd) => {
+    const timeout = Number(opts.timeoutMs ?? opts.timeout_ms ?? opts.timeout);
+    if (!Number.isFinite(timeout) || timeout <= 0) return bashFn(String(cmd));
+
+    const runOpts = { timeout, run_in_background: false };
+    // Support both Bash(cmd, opts) and Bash({ command, ...opts }) call styles.
+    if (bashFn.length >= 2) return bashFn(String(cmd), runOpts);
+    return bashFn({ command: String(cmd), ...runOpts });
+  };
+
   try {
-    const raw = bashFn(String(command));
-    return lastJsonObjectFromText(raw);
+    const raw = execBash(command);
+    return lastJsonObjectFromText(extractStdout(raw));
   } catch (err) {
     const msg = err?.message ?? String(err);
     throw new Error(`Failed to execute ${description}: ${msg}`);
   }
 }
-
