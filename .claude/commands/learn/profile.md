@@ -1052,6 +1052,144 @@ switch (updateType) {
 }
 ```
 
+### Phase 4: Profile Selection Flow (select)
+
+```javascript
+// List and select an active profile, then persist to state via CLI.
+const lastJsonObjectFromText = (text) => {
+  const raw = String(text ?? '').trim();
+  if (!raw) throw new Error('Empty command output');
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  for (let i = lines.length - 1; i >= 0; i--) {
+    try {
+      return JSON.parse(lines[i]);
+    } catch {
+      // keep scanning
+    }
+  }
+  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (m) return JSON.parse(m[1].trim());
+  throw new Error('Failed to parse JSON from command output');
+};
+
+// Discover available profiles (by file names under .workflow/learn/profiles)
+const rawList = Bash('ls -1 .workflow/learn/profiles/*.json 2>/dev/null || true');
+const profileIds = String(rawList)
+  .trim()
+  .split('\n')
+  .map(s => s.trim())
+  .filter(Boolean)
+  .map(p => p.split('/').pop().replace(/\.json$/, ''));
+
+if (profileIds.length === 0) {
+  console.error('❌ No profiles found. Create one with /learn:profile create');
+  return;
+}
+
+// Load current state (to mark active profile in UI)
+const stateResp = lastJsonObjectFromText(Bash('ccw learn:read-state --json'));
+if (!stateResp.ok) {
+  console.error('❌ Failed to read learn state:', stateResp.error);
+  throw new Error(stateResp.error?.message || 'State read failed');
+}
+const activeId = stateResp.data.active_profile_id;
+
+// Ask user to select
+const SELECT_KEY = 'selected_profile';
+const selectAnswer = AskUserQuestion({
+  questions: [{
+    key: SELECT_KEY,
+    question: "Select a profile to activate:",
+    header: "Profile Selection",
+    multiSelect: false,
+    options: profileIds.map(id => ({
+      value: id,
+      label: id,
+      description: id === activeId ? 'Active profile (current)' : ''
+    }))
+  }]
+});
+
+const selectedId = selectAnswer[SELECT_KEY];
+
+// Persist selection (avoid direct file writes)
+const updateStateResp = lastJsonObjectFromText(
+  Bash(`ccw learn:update-state --field active_profile_id --value "${selectedId}" --json`)
+);
+if (!updateStateResp.ok) {
+  console.error('❌ Failed to update learn state:', updateStateResp.error);
+  throw new Error(updateStateResp.error?.message || 'State update failed');
+}
+
+console.log(`✅ Active profile set to: ${selectedId}`);
+```
+
+### Phase 5: Profile Display Flow (show)
+
+```javascript
+// Display the active profile (or a specified profile-id), using CLI read APIs.
+const lastJsonObjectFromText = (text) => {
+  const raw = String(text ?? '').trim();
+  if (!raw) throw new Error('Empty command output');
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  for (let i = lines.length - 1; i >= 0; i--) {
+    try {
+      return JSON.parse(lines[i]);
+    } catch {
+      // keep scanning
+    }
+  }
+  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (m) return JSON.parse(m[1].trim());
+  throw new Error('Failed to parse JSON from command output');
+};
+
+const args = String($ARGUMENTS ?? '').trim().split(/\s+/).filter(Boolean);
+const requestedProfileId = args[1] || null; // `/learn:profile show <profile-id>`
+
+const stateResp = lastJsonObjectFromText(Bash('ccw learn:read-state --json'));
+if (!stateResp.ok) {
+  console.error('❌ Failed to read learn state:', stateResp.error);
+  throw new Error(stateResp.error?.message || 'State read failed');
+}
+
+const state = stateResp.data;
+const profileId = requestedProfileId || state.active_profile_id;
+
+if (!profileId) {
+  console.error('❌ No active profile. Create one with /learn:profile create');
+  return;
+}
+
+const profileResp = lastJsonObjectFromText(
+  Bash(`ccw learn:read-profile --profile-id "${profileId}" --json`)
+);
+if (!profileResp.ok) {
+  console.error('❌ Failed to read profile:', profileResp.error);
+  throw new Error(profileResp.error?.message || 'Profile read failed');
+}
+
+const profile = profileResp.data;
+const knownTopics = Array.isArray(profile.known_topics) ? profile.known_topics : [];
+const learningStyle = profile.learning_preferences?.style;
+
+console.log('\n## Current Profile\\n');
+console.log(`**Profile ID**: ${profile.profile_id}`);
+console.log(`**Experience Level**: ${profile.experience_level}`);
+if (learningStyle) console.log(`**Learning Style**: ${learningStyle}`);
+console.log(`\\n**Known Topics** (${knownTopics.length}):`);
+
+knownTopics
+  .slice()
+  .sort((a, b) => (b.proficiency ?? 0) - (a.proficiency ?? 0))
+  .slice(0, 10)
+  .forEach(t => {
+    const pct = ((t.proficiency ?? 0) * 100).toFixed(0);
+    const conf = typeof t.confidence === 'number' ? ` (confidence: ${(t.confidence * 100).toFixed(0)}%)` : '';
+    console.log(`  - ${t.topic_id}: ${pct}%${conf}`);
+  });
+```
+
 ## Error Handling
 
 | Error | Resolution |
