@@ -14,12 +14,13 @@
  */
 
 import chalk from 'chalk';
-import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, copyFileSync, unlinkSync, openSync, closeSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, copyFileSync, unlinkSync, openSync, closeSync, realpathSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import AjvModule from 'ajv';
 import addFormatsModule from 'ajv-formats';
 import type { ErrorObject } from 'ajv';
 import { validatePath } from '../utils/path-validator.js';
+import { getPackageRoot } from '../utils/project-root.js';
 
 // Handle EPIPE errors gracefully (occurs when piping to head/jq that closes early)
 process.stdout.on('error', (err: NodeJS.ErrnoException) => {
@@ -49,11 +50,21 @@ interface WriteProfileOptions extends BaseOptions {
   data?: string;
 }
 
-const LEARN_ROOT = '.workflow/learn';
+const PROJECT_ROOT = (() => {
+  const raw = process.env.CCW_PROJECT_ROOT || getPackageRoot();
+  const absolute = resolve(raw);
+  // Normalize through realpath so validatePath doesn't reject /var -> /private/var (macOS).
+  try {
+    return realpathSync(absolute);
+  } catch {
+    return absolute;
+  }
+})();
+const LEARN_ROOT = join(PROJECT_ROOT, '.workflow', 'learn');
 const STATE_PATH = join(LEARN_ROOT, 'state.json');
 const PROFILES_DIR = join(LEARN_ROOT, 'profiles');
 const LOCK_PATH = join(LEARN_ROOT, '.lock');
-const SCHEMA_DIR = '.claude/workflows/cli-templates/schemas';
+const SCHEMA_DIR = join(PROJECT_ROOT, '.claude', 'workflows', 'cli-templates', 'schemas');
 
 const PROFILE_ID_RE = /^[a-zA-Z0-9_-]+$/;
 
@@ -96,7 +107,7 @@ function fail<T>(options: BaseOptions, error: ResultErr['error'], exitCode: 1 | 
 async function ensureLearnDirs(): Promise<void> {
   mkdirSync(PROFILES_DIR, { recursive: true });
   // Validate that resolved paths stay under project root.
-  await validatePath(LEARN_ROOT, { allowedDirectories: [resolve(process.cwd())] });
+  await validatePath(LEARN_ROOT, { allowedDirectories: [PROJECT_ROOT] });
 }
 
 function loadJsonFile(filePath: string): any {

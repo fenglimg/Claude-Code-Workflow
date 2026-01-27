@@ -26,10 +26,18 @@ function setupSandboxProject() {
   return dir;
 }
 
-function runCcw(args, cwd, env = {}) {
+function runCcw(args, cwd, env = {}, options = {}) {
+  const { setProjectRoot = true } = options;
+  const finalEnv = { ...process.env, ...env };
+  // For most tests we want a hermetic project root under the temp sandbox.
+  // The learn commands now default to a stable package root, so we override via env.
+  if (setProjectRoot && !('CCW_PROJECT_ROOT' in finalEnv)) {
+    finalEnv.CCW_PROJECT_ROOT = cwd;
+  }
+
   const res = spawnSync(process.execPath, [ccwBin, ...args], {
     cwd,
-    env: { ...process.env, ...env },
+    env: finalEnv,
     encoding: 'utf8'
   });
 
@@ -129,7 +137,7 @@ describe('ccw learn:* state commands', () => {
       // Start a writer that holds the lock briefly.
       const p1 = spawn(process.execPath, [ccwBin, 'learn:update-state', '--field', 'active_profile_id', '--value', 'p1', '--json'], {
         cwd,
-        env: { ...process.env, CCW_LEARN_LOCK_HOLD_MS: '200' },
+        env: { ...process.env, CCW_PROJECT_ROOT: cwd, CCW_LEARN_LOCK_HOLD_MS: '200' },
         stdio: ['ignore', 'pipe', 'pipe']
       });
 
@@ -159,7 +167,7 @@ describe('ccw learn:* state commands', () => {
       // Spawn a process that holds the lock longer than the wait timeout (2s).
       const p1 = spawn(process.execPath, [ccwBin, 'learn:update-state', '--field', 'active_profile_id', '--value', 'p1', '--json'], {
         cwd,
-        env: { ...process.env, CCW_LEARN_LOCK_HOLD_MS: '2500' },
+        env: { ...process.env, CCW_PROJECT_ROOT: cwd, CCW_LEARN_LOCK_HOLD_MS: '2500' },
         stdio: ['ignore', 'pipe', 'pipe']
       });
 
@@ -176,6 +184,50 @@ describe('ccw learn:* state commands', () => {
       await new Promise((resolve) => p1.on('exit', resolve));
     } finally {
       rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
+  it('uses package root learn paths when invoked from a nested cwd', () => {
+    const nestedCwd = path.join(repoRoot, 'ccw');
+    const nestedWorkflowDir = path.join(nestedCwd, '.workflow');
+
+    const learnDir = path.join(repoRoot, '.workflow', 'learn');
+    const profilesDir = path.join(learnDir, 'profiles');
+    const statePath = path.join(learnDir, 'state.json');
+
+    const hadLearnDir = existsSync(learnDir);
+    const hadProfilesDir = existsSync(profilesDir);
+    const prevState = existsSync(statePath) ? readFileSync(statePath, 'utf8') : null;
+
+    rmSync(nestedWorkflowDir, { recursive: true, force: true });
+
+    const unique = `test-${process.pid}-${Date.now()}`;
+    try {
+      const { res, out } = runCcw(
+        ['learn:update-state', '--field', 'active_session_id', '--value', unique, '--json'],
+        nestedCwd,
+        {},
+        { setProjectRoot: false }
+      );
+      assert.equal(res.status, 0);
+      assert.equal(out.ok, true);
+
+      const persisted = JSON.parse(readFileSync(statePath, 'utf8'));
+      assert.equal(persisted.active_session_id, unique);
+      assert.equal(existsSync(nestedWorkflowDir), false);
+    } finally {
+      if (prevState !== null) {
+        writeFileSync(statePath, prevState, 'utf8');
+      } else {
+        rmSync(statePath, { force: true });
+      }
+
+      if (!hadProfilesDir) {
+        rmSync(profilesDir, { recursive: true, force: true });
+      }
+      if (!hadLearnDir) {
+        rmSync(learnDir, { recursive: true, force: true });
+      }
     }
   });
 });
