@@ -13,6 +13,12 @@ import { memoryCommand } from './commands/memory.js';
 import { coreMemoryCommand } from './commands/core-memory.js';
 import { hookCommand } from './commands/hook.js';
 import { issueCommand } from './commands/issue.js';
+import {
+  learnReadStateCommand,
+  learnUpdateStateCommand,
+  learnReadProfileCommand,
+  learnWriteProfileCommand
+} from './commands/learn.js';
 import { workflowCommand } from './commands/workflow.js';
 import { loopCommand } from './commands/loop.js';
 import { readFileSync, existsSync } from 'fs';
@@ -305,6 +311,36 @@ export function run(argv: string[]): void {
     .option('--limit <n>', 'Maximum number of issues to pull from GitHub')
     .option('--labels <labels>', 'Filter by GitHub labels (comma-separated)')
     .action((subcommand, args, options) => issueCommand(subcommand, args, options));
+
+  // Learn workflow state commands (internal API for agents)
+  program
+    .command('learn:read-state')
+    .description('Read learn workflow state (initializes default if missing)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnReadStateCommand(options));
+
+  program
+    .command('learn:update-state')
+    .description('Update a single field in learn state (atomic + validated)')
+    .requiredOption('--field <field>', 'Field to update: active_profile_id|active_session_id')
+    .requiredOption('--value <value>', 'Value to set (use "null" to clear)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnUpdateStateCommand(options));
+
+  program
+    .command('learn:read-profile')
+    .description('Read learn profile by id (validated)')
+    .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnReadProfileCommand(options));
+
+  program
+    .command('learn:write-profile')
+    .description('Write learn profile by id (atomic + validated)')
+    .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
+    .requiredOption('--data <json>', 'Profile JSON string')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnWriteProfileCommand(options));
 
   // Loop command - Loop management for multi-CLI orchestration
   program

@@ -1,8 +1,8 @@
 ---
 name: profile
 description: Manage user learning profiles with evidence-based skill assessment and personalized learning preferences
-argument-hint: "[create|update|select|show] [profile-id] [--goal=\"<learning goal>\"] [--no-assessment]"
-allowed-tools: TodoWrite(*), Task(*), AskUserQuestion(*), Bash(*), Read(*), Write(*)
+argument-hint: "[create|update|select|show] [profile-id] [--goal=\"<learning goal>\"] [--no-assessment] [--full-assessment]"
+allowed-tools: TodoWrite(*), Task(*), AskUserQuestion(*), Bash(*)
 ---
 
 # Learn:Profile Command - 个人档案管理
@@ -15,6 +15,7 @@ allowed-tools: TodoWrite(*), Task(*), AskUserQuestion(*), Bash(*), Read(*), Writ
 /learn:profile select profile-advanced   # 选择激活档案
 /learn:profile show                      # 显示当前档案
 /learn:profile create --no-assessment    # 创建档案（跳过评估）
+/learn:profile create --full-assessment  # 创建档案（完整评估，较耗时）
 ```
 
 ## Overview
@@ -155,7 +156,7 @@ if (goalType === 'role') {
   let inferredTopics = [];
 
   try {
-    const keywordDict = JSON.parse(Read(keywordDictPath));
+    const keywordDict = JSON.parse(Bash(`cat ${keywordDictPath}`));
 
     // Extract technology keywords from all categories
     const allTechKeywords = [];
@@ -199,9 +200,24 @@ if (goalType === 'role') {
     initialKnownTopics = confirmedTopics.map(topic => ({
       topic_id: topic.toLowerCase(),
       proficiency: 0.3,  // Low initial proficiency
-      confidence: 0.5,   // Low initial confidence
+      confidence: 0.3,   // Low initial confidence (minimal profile default)
       last_updated: new Date().toISOString(),
-      evidence: ['Inferred from role description', 'Confirmed by user']
+      evidence: [
+        {
+          evidence_type: 'self-report',
+          kind: 'inferred_topic',
+          timestamp: new Date().toISOString(),
+          summary: 'Inferred from role description (seed topic)',
+          data: { source: 'role_description' }
+        },
+        {
+          evidence_type: 'self-report',
+          kind: 'confirmed_topic',
+          timestamp: new Date().toISOString(),
+          summary: 'Confirmed by user (seed topic)',
+          data: { source: 'user_confirmation' }
+        }
+      ]
     }));
 
     console.log(`\n✅ Seeded ${initialKnownTopics.length} topics for assessment.\n`);
@@ -267,24 +283,46 @@ const preferredSources = preferencesAnswer[SOURCES_KEY];
 #### Step 2: Evidence-Based Assessment
 
 ```javascript
-// Skip if --no-assessment flag
-if (flags.noAssessment) {
-  console.log('Skipping assessment. Using self-reported experience level.');
-  // Create profile with minimal known_topics
-  return createProfileWithDefaults(experienceLevel, learningStyle, preferredSources);
-}
+// Streamlined default: minimal profile (fast). Full assessment is opt-in.
+const runFullAssessment = Boolean(flags.fullAssessment) && !flags.noAssessment;
 
-console.log('\n## Evidence-Based Skill Assessment (Multi-Factor Verification)\n');
-console.log('We will assess your skills through multiple verification stages.');
-console.log('This prevents self-assessment bias and ensures accurate skill levels.\n');
+let knownTopics = [];
 
-// Conceptual Checks (理论探针) - Multi-Factor Verification
-const knownTopics = [...initialKnownTopics];
+if (!runFullAssessment) {
+  console.log('\n✅ Minimal Profile Mode (Fast)\n');
+  console.log('We will collect only essentials now.');
+  console.log('Detailed topic assessments will happen just-in-time during /learn:plan.\n');
 
-// Determine assessment topics based on knownTopics or default assessment
-const assessmentTopics = knownTopics.length > 0
-  ? knownTopics.map(t => t.topic_id)
-  : ['typescript', 'javascript'];
+  // Seed topics (low-confidence by default)
+  const seedTopicIds = initialKnownTopics.length > 0
+    ? initialKnownTopics.map(t => t.topic_id)
+    : ['typescript', 'javascript'];
+
+  knownTopics = seedTopicIds.map(topicId => ({
+    topic_id: topicId,
+    proficiency: 0.3,
+    confidence: 0.3,
+    last_updated: new Date().toISOString(),
+    evidence: [{
+      evidence_type: 'self-report',
+      kind: 'minimal_seed',
+      timestamp: new Date().toISOString(),
+      summary: 'Seed topic (minimal profile)',
+      data: { topic_id: topicId }
+    }]
+  }));
+} else {
+  console.log('\n## Full Evidence-Based Skill Assessment (Opt-in)\n');
+  console.log('We will assess your skills through multiple verification stages.');
+  console.log('This prevents self-assessment bias and ensures accurate skill levels.\n');
+
+  // Seed topics for full assessment
+  knownTopics = [...initialKnownTopics];
+
+  // Determine assessment topics based on knownTopics or default assessment
+  const assessmentTopics = knownTopics.length > 0
+    ? knownTopics.map(t => t.topic_id)
+    : ['typescript', 'javascript'];
 
 // Define weights based on goal type
 const weights = {
@@ -370,74 +408,130 @@ assessmentTopics.forEach((topicId, index) => {
     score: conceptScore
   });
 
-  // Stage 3: Practical Challenge (Simulated MCP Validation)
-  const CHALLENGE_KEY = `challenge_${topicId}`;
+  // Stage 3: Practical Challenge (Real MCP Verification)
+  //
+  // Goal: Replace self-report ("completed/partial") with objective execution results.
+  // We capture user code (paste or local file) and run it against a deterministic fixture
+  // via an isolated runner:
+  //
+  //   node .claude/commands/learn/_internal/mcp-runner.js <code-file> <fixture-file>
+  //
+  // mcp-runner output (JSON):
+  //   { tests_passed, tests_total, score, execution_time_ms }
+  const CHALLENGE_METHOD_KEY = `challenge_method_${topicId}`;
   const challenges = {
     typescript: {
-      description: "Write a TypeScript generic function that accepts an array and returns the first element.",
-      tests: 3
+      description: "Write and export: `export function first<T>(arr: T[]): T | undefined`",
+      fixture: ".claude/commands/learn/_internal/fixtures/typescript-first-element.mjs",
+      file_ext: "ts"
     },
     javascript: {
-      description: "Write a JavaScript function that filters even numbers from an array using reduce.",
-      tests: 2
+      description: "Write and export: `export function evenNumbers(arr) { /* must use reduce */ }`",
+      fixture: ".claude/commands/learn/_internal/fixtures/javascript-even-reduce.mjs",
+      file_ext: "js"
     },
     react: {
-      description: "Explain how to implement a custom hook that manages a counter state.",
-      tests: 2
+      description: "Optional (conceptual): Explain how you'd implement a custom hook that manages a counter state.",
+      fixture: null,
+      file_ext: null
     },
     node: {
-      description: "Explain how to create a simple REST API endpoint using Express.js.",
-      tests: 2
+      description: "Optional (conceptual): Explain how you'd create a simple REST API endpoint using Express.js.",
+      fixture: null,
+      file_ext: null
     }
   };
 
-  const challenge = challenges[topicId] || {
-    description: `Complete a practical task related to ${topicId}.`,
-    tests: 1
-  };
+  const challenge = challenges[topicId] || { description: `Complete a practical task related to ${topicId}.`, fixture: null, file_ext: null };
 
   console.log(`\n**Practical Challenge**: ${challenge.description}`);
-  console.log('(In full implementation, you would submit code for automated testing)');
 
-  const challengeAnswer = AskUserQuestion({
-    questions: [{
-      key: CHALLENGE_KEY,
-      question: `Complete this challenge: "${challenge.description}"`,
-      header: "Code Challenge",
-      multiSelect: false,
-      options: [
-        {value: "completed", label: "Completed Successfully", description: "I can write the correct solution"},
-        {value: "partial", label: "Partial Solution", description: "I understand it but need help"},
-        {value: "skip", label: "Skip Challenge", description: "I don't know how to solve this"}
-      ]
-    }]
-  });
+  // If we don't have an executable fixture, fall back to conceptual evidence.
+  // (We still record it, but with lower confidence than tool-verified evidence.)
+  if (!challenge.fixture) {
+    const challengeAnswer = AskUserQuestion({
+      questions: [{
+        key: CHALLENGE_METHOD_KEY,
+        question: "Do you want to skip the code challenge for this topic?",
+        header: "Practical Challenge (Optional)",
+        multiSelect: false,
+        options: [
+          {value: "skip", label: "Skip", description: "Skip challenge for this topic"},
+          {value: "explain", label: "Explain", description: "Provide a short explanation (non-verified)"}
+        ]
+      }]
+    });
 
-  let challengeResult = challengeAnswer[CHALLENGE_KEY];
-
-  // Simulate MCP validation
-  let testsPassed = 0;
-  let totalTests = challenge.tests;
-
-  if (challengeResult === 'completed') {
-    testsPassed = totalTests;
-    challengeScore = 1.0;
-  } else if (challengeResult === 'partial') {
-    testsPassed = Math.floor(totalTests / 2);
-    challengeScore = 0.5;
+    evidenceTrail.push({
+      type: 'micro_challenge',
+      mode: challengeAnswer[CHALLENGE_METHOD_KEY],
+      challenge: challenge.description,
+      verified: false,
+      score: 0.0
+    });
   } else {
-    testsPassed = 0;
-    challengeScore = 0.0;
-  }
+    // For fixture-backed challenges, collect real code and execute tests.
+    console.log('\nSubmit your solution as either:');
+    console.log('  (a) paste a single code block in chat, OR');
+    console.log('  (b) provide a local file path that contains your solution.');
+    console.log(`Expected output is verified by fixture: ${challenge.fixture}`);
 
-  evidenceTrail.push({
-    type: 'micro_challenge',
-    challenge: challenge.description,
-    result: challengeResult,
-    tests_passed: testsPassed,
-    tests_total: totalTests,
-    score: challengeScore
-  });
+    const methodAnswer = AskUserQuestion({
+      questions: [{
+        key: CHALLENGE_METHOD_KEY,
+        question: "How would you like to submit your solution?",
+        header: "Code Challenge (Tool-Verified)",
+        multiSelect: false,
+        options: [
+          {value: "paste", label: "Paste code", description: "Paste your code in one code block"},
+          {value: "file", label: "Use a file path", description: "Provide a local path to a .js/.ts file"},
+          {value: "skip", label: "Skip", description: "Skip this challenge"}
+        ]
+      }]
+    });
+
+    const method = methodAnswer[CHALLENGE_METHOD_KEY];
+    let challengeResult = { tests_passed: 0, tests_total: 0, score: 0, execution_time_ms: 0 };
+    let codeContent = null;
+    let codePath = null;
+
+    if (method === 'skip') {
+      challengeScore = 0.0;
+    } else {
+      // IMPORTANT: Capture user code content for evidence:
+      // - If "paste": user pastes a single code block → set codeContent to that block
+      // - If "file": user provides a path → Bash(`cat <path>`) into codeContent
+      codeContent = '/* user-provided code */';
+
+      // Persist it so we can run deterministic fixtures.
+      // (Use a scratch path that is gitignored by default.)
+      const scratchDir = `.workflow/.scratchpad/learn-challenges`;
+      Bash(`mkdir -p ${scratchDir}`);
+      codePath = `${scratchDir}/${topicId}-${Date.now()}.${challenge.file_ext}`;
+      // Avoid direct Write() - persist via Bash in a way that preserves newlines safely.
+      Bash(`python3 - <<'PY'\nfrom pathlib import Path\nimport json\nPath(${JSON.stringify(codePath)}).write_text(${JSON.stringify(codeContent)}, encoding='utf-8')\nPY`);
+
+      // Execute real tests (isolated runner) and map to score:
+      const raw = Bash(`node .claude/commands/learn/_internal/mcp-runner.js ${codePath} ${challenge.fixture} --timeout-ms=2000`);
+      challengeResult = JSON.parse(raw);
+      challengeScore = challengeResult.score;
+    }
+
+    evidenceTrail.push({
+      type: 'real_mcp',
+      mode: method,
+      challenge: challenge.description,
+      code_path: codePath,
+      code: codeContent,
+      fixture: challenge.fixture,
+      verified: method !== 'skip',
+      tests_passed: challengeResult.tests_passed,
+      tests_total: challengeResult.tests_total,
+      score: challengeResult.score,
+      execution_time_ms: challengeResult.execution_time_ms,
+      verified_at: new Date().toISOString()
+    });
+  }
 
   // Stage 4: Calculate Final Proficiency & Confidence
   const finalProficiency = (conceptScore * weights.concept) + (challengeScore * weights.challenge);
@@ -453,25 +547,117 @@ assessmentTopics.forEach((topicId, index) => {
   }
 
   // Update or add to knownTopics
+  // Evidence structure upgrade (backward compatible):
+  // - Legacy profiles stored evidence as JSON strings
+  // - New profiles store structured evidence objects with provenance + verification metadata
+  const EVIDENCE_CONFIDENCE_CAPS = {
+    'self-report': 0.5,
+    conceptual: 0.7,
+    'tool-verified': 0.95
+  };
+
+  const normalizeEvidenceItem = (item) => {
+    // Already-structured evidence object
+    if (item && typeof item === 'object' && item.evidence_type) return item;
+
+    // Legacy string: attempt JSON parse, otherwise store as conceptual legacy blob
+    if (typeof item === 'string') {
+      try {
+        const parsed = JSON.parse(item);
+        const kind = typeof parsed?.type === 'string' ? parsed.type : 'legacy';
+
+        let evidenceType = 'conceptual';
+        if (kind === 'self_assessment') evidenceType = 'self-report';
+        if (kind === 'conceptual_check') evidenceType = 'conceptual';
+        if (kind === 'real_mcp') evidenceType = 'tool-verified';
+
+        return {
+          evidence_type: evidenceType,
+          kind,
+          timestamp: new Date().toISOString(),
+          data: parsed
+        };
+      } catch {
+        return {
+          evidence_type: 'conceptual',
+          kind: 'legacy',
+          timestamp: new Date().toISOString(),
+          data: { raw: item }
+        };
+      }
+    }
+
+    return null;
+  };
+
+  const toEvidenceItem = (e) => {
+    const kind = e?.type ?? 'unknown';
+    let evidenceType = 'conceptual';
+
+    if (kind === 'self_assessment') evidenceType = 'self-report';
+    if (kind === 'conceptual_check') evidenceType = 'conceptual';
+    if (kind === 'real_mcp' && e?.verified) evidenceType = 'tool-verified';
+
+    const evidence = {
+      evidence_type: evidenceType,
+      kind,
+      timestamp: new Date().toISOString(),
+      data: e
+    };
+
+    if (evidenceType === 'tool-verified') {
+      evidence.verification_metadata = {
+        method: 'mcp-runner',
+        timestamp: e?.verified_at ?? new Date().toISOString(),
+        test_results: {
+          tests_passed: e?.tests_passed ?? 0,
+          tests_total: e?.tests_total ?? 0,
+          score: e?.score ?? 0,
+          execution_time_ms: e?.execution_time_ms ?? 0
+        },
+        confidence_source: 'tool-verified'
+      };
+    }
+
+    return evidence;
+  };
+
   const existingIndex = knownTopics.findIndex(t => t.topic_id === topicId);
 
   if (existingIndex >= 0) {
     // Update existing topic
     knownTopics[existingIndex].proficiency = Math.max(knownTopics[existingIndex].proficiency, finalProficiency);
-    knownTopics[existingIndex].confidence = confidence;
-    knownTopics[existingIndex].evidence = [
-      ...knownTopics[existingIndex].evidence,
-      ...evidenceTrail.map(e => JSON.stringify(e))
-    ];
+    const existingEvidence = Array.isArray(knownTopics[existingIndex].evidence) ? knownTopics[existingIndex].evidence : [];
+    const normalizedExistingEvidence = existingEvidence.map(normalizeEvidenceItem).filter(Boolean);
+    const newEvidence = evidenceTrail.map(toEvidenceItem);
+    const mergedEvidence = [...normalizedExistingEvidence, ...newEvidence];
+
+    // Confidence cap by evidence provenance:
+    //   self-report <= 0.5, conceptual <= 0.7, tool-verified <= 0.95
+    const hasToolVerified = mergedEvidence.some(e => e?.evidence_type === 'tool-verified');
+    const hasConceptual = mergedEvidence.some(e => e?.evidence_type === 'conceptual');
+    const cap = hasToolVerified ? EVIDENCE_CONFIDENCE_CAPS['tool-verified']
+      : hasConceptual ? EVIDENCE_CONFIDENCE_CAPS.conceptual
+        : EVIDENCE_CONFIDENCE_CAPS['self-report'];
+
+    knownTopics[existingIndex].confidence = Math.min(confidence, cap);
+    knownTopics[existingIndex].evidence = mergedEvidence;
     knownTopics[existingIndex].last_updated = new Date().toISOString();
   } else {
     // Add new topic
+    const newEvidence = evidenceTrail.map(toEvidenceItem);
+    const hasToolVerified = newEvidence.some(e => e?.evidence_type === 'tool-verified');
+    const hasConceptual = newEvidence.some(e => e?.evidence_type === 'conceptual');
+    const cap = hasToolVerified ? EVIDENCE_CONFIDENCE_CAPS['tool-verified']
+      : hasConceptual ? EVIDENCE_CONFIDENCE_CAPS.conceptual
+        : EVIDENCE_CONFIDENCE_CAPS['self-report'];
+
     knownTopics.push({
       topic_id: topicId,
       proficiency: finalProficiency,
-      confidence: confidence,
+      confidence: Math.min(confidence, cap),
       last_updated: new Date().toISOString(),
-      evidence: evidenceTrail.map(e => JSON.stringify(e))
+      evidence: newEvidence
     });
   }
 
@@ -488,6 +674,7 @@ console.log('✅ Reduced Subjective Weight: Self-assessment used for calibration
 console.log('✅ Multi-Factor Verification: Conceptual + Practical challenges');
 console.log('✅ Weighted Scoring: Goals determine assessment emphasis');
 console.log('✅ Confidence Tracking: Evidence strength clearly marked\n');
+} // end full assessment (flags.fullAssessment)
 ```
 
 #### Step 3: Known Topics Collection
@@ -532,10 +719,16 @@ if (addMoreAnswer[ADD_MORE_KEY] === 'yes') {
 const timestamp = Date.now();
 const profileId = `profile-${timestamp}`;
 
+// Streamlined default: minimal profile unless --full-assessment is specified
+const runFullAssessment = Boolean(flags.fullAssessment) && !flags.noAssessment;
+const isMinimal = !runFullAssessment;
+const completionPercent = runFullAssessment ? 100 : 60;
+
 // Create profile object
 const profile = {
   "$schema": "./schemas/learn-profile.schema.json",
   "profile_id": profileId,
+  "is_minimal": isMinimal,
   "experience_level": experienceLevel,
   "known_topics": knownTopics,
   "learning_preferences": {
@@ -548,41 +741,28 @@ const profile = {
     "updated_at": new Date().toISOString(),
     "version": "1.0.0",
     "goal_type": goalType,
-    "assessment_method": flags.noAssessment ? "self-reported" : "evidence-based"
+    "assessment_method": isMinimal ? "minimal" : "evidence-based",
+    "completion_percent": completionPercent
   }
 };
 
-// Ensure directory exists
-const profilesDir = '.workflow/learn/profiles';
-Bash(`mkdir -p ${profilesDir}`);
+// Persist via CLI (no direct Read/Write)
+const escapeSingleQuotesForShell = (s) => s.replace(/'/g, "'\\''");
 
-// Write profile file
-const profilePath = `${profilesDir}/${profileId}.json`;
-Write(profilePath, JSON.stringify(profile, null, 2));
+const profilePayload = JSON.stringify(profile);
+const escapedProfilePayload = escapeSingleQuotesForShell(profilePayload);
 
-// Update state.json
-const statePath = '.workflow/learn/state.json';
-let state;
-
-try {
-  state = JSON.parse(Read(statePath));
-} catch (e) {
-  // First profile - initialize state
-  state = {
-    active_profile_id: null,
-    active_session_id: null,
-    version: '1.0.0',
-    _metadata: {
-      last_updated: new Date().toISOString(),
-      total_sessions_completed: 0
-    }
-  };
+const writeProfileResp = JSON.parse(Bash(`ccw learn:write-profile --profile-id ${profileId} --data '${escapedProfilePayload}' --json`));
+if (!writeProfileResp.ok) {
+  console.error('❌ Failed to write profile:', writeProfileResp.error);
+  throw new Error(writeProfileResp.error?.message || 'Profile write failed');
 }
 
-state.active_profile_id = profileId;
-state._metadata.last_updated = new Date().toISOString();
-
-Write(statePath, JSON.stringify(state, null, 2));
+const updateStateResp = JSON.parse(Bash(`ccw learn:update-state --field active_profile_id --value ${profileId} --json`));
+if (!updateStateResp.ok) {
+  console.error('❌ Failed to update learn state:', updateStateResp.error);
+  throw new Error(updateStateResp.error?.message || 'State update failed');
+}
 
 // Display summary
 console.log(`
@@ -592,6 +772,7 @@ console.log(`
 **Experience Level**: ${experienceLevel}
 **Learning Style**: ${learningStyle}
 **Known Topics**: ${knownTopics.length}
+**Profile Completion**: ${completionPercent}% (${isMinimal ? 'minimal' : 'full'})
 
 **Top Skills**:
 ${knownTopics
@@ -601,6 +782,7 @@ ${knownTopics
   .join('\n')}
 
 ✅ Profile activated. Ready to create learning plans with /learn:plan
+${isMinimal ? 'ℹ️  Tip: Use /learn:plan to trigger JIT assessments, or re-run with --full-assessment for deep profiling.' : ''}
 `);
 ```
 
@@ -608,16 +790,26 @@ ${knownTopics
 
 ```javascript
 // Load current profile
-const statePath = '.workflow/learn/state.json';
-const state = JSON.parse(Read(statePath));
+const stateResp = JSON.parse(Bash('ccw learn:read-state --json'));
+if (!stateResp.ok) {
+  console.error('❌ Failed to read learn state:', stateResp.error);
+  throw new Error(stateResp.error?.message || 'State read failed');
+}
+const state = stateResp.data;
 
 if (!state.active_profile_id) {
   console.error('❌ No active profile. Create one with /learn:profile create');
   return;
 }
 
-const profilePath = `.workflow/learn/profiles/${state.active_profile_id}.json`;
-const profile = JSON.parse(Read(profilePath));
+const profileResp = JSON.parse(Bash(`ccw learn:read-profile --profile-id ${state.active_profile_id} --json`));
+if (!profileResp.ok) {
+  console.error('❌ Failed to read profile:', profileResp.error);
+  throw new Error(profileResp.error?.message || 'Profile read failed');
+}
+const profile = profileResp.data;
+
+const escapeSingleQuotesForShell = (s) => s.replace(/'/g, "'\\''");
 
 // Check for --goal parameter (non-interactive mode)
 if (flags.goal) {
@@ -702,14 +894,27 @@ if (flags.goal) {
     if (existingTopic) {
       existingTopic.proficiency = newProficiency;
       existingTopic.last_updated = new Date().toISOString();
-      existingTopic.evidence.push(`Goal-oriented update: ${learningGoal} - ${new Date().toISOString()}`);
+      existingTopic.evidence = Array.isArray(existingTopic.evidence) ? existingTopic.evidence : [];
+      existingTopic.evidence.push({
+        evidence_type: 'self-report',
+        kind: 'goal_update',
+        timestamp: new Date().toISOString(),
+        summary: `Goal-oriented update: ${learningGoal}`,
+        data: { learning_goal: learningGoal, level }
+      });
     } else {
       profile.known_topics.push({
         topic_id: topicId,
         proficiency: newProficiency,
         confidence: 0.7,
         last_updated: new Date().toISOString(),
-        evidence: [`Goal-oriented update: ${learningGoal}`]
+        evidence: [{
+          evidence_type: 'self-report',
+          kind: 'goal_update',
+          timestamp: new Date().toISOString(),
+          summary: `Goal-oriented update: ${learningGoal}`,
+          data: { learning_goal: learningGoal, level }
+        }]
       });
     }
 
@@ -718,7 +923,13 @@ if (flags.goal) {
 
   // Save updated profile
   profile._metadata.updated_at = new Date().toISOString();
-  Write(profilePath, JSON.stringify(profile, null, 2));
+  const updatedProfilePayload = JSON.stringify(profile);
+  const escapedUpdatedProfilePayload = escapeSingleQuotesForShell(updatedProfilePayload);
+  const writeProfileResp = JSON.parse(Bash(`ccw learn:write-profile --profile-id ${profile.profile_id} --data '${escapedUpdatedProfilePayload}' --json`));
+  if (!writeProfileResp.ok) {
+    console.error('❌ Failed to write updated profile:', writeProfileResp.error);
+    throw new Error(writeProfileResp.error?.message || 'Profile write failed');
+  }
 
   console.log(`\n✅ Profile updated based on goal: "${flags.goal}"`);
   console.log(`Total topics: ${profile.known_topics.length}`);
@@ -769,7 +980,13 @@ switch (updateType) {
     profile.learning_preferences.style = styleUpdateAnswer[STYLE_UPDATE_KEY];
     profile._metadata.updated_at = new Date().toISOString();
 
-    Write(profilePath, JSON.stringify(profile, null, 2));
+    const updatedProfilePayload = JSON.stringify(profile);
+    const escapedUpdatedProfilePayload = escapeSingleQuotesForShell(updatedProfilePayload);
+    const writeProfileResp = JSON.parse(Bash(`ccw learn:write-profile --profile-id ${profile.profile_id} --data '${escapedUpdatedProfilePayload}' --json`));
+    if (!writeProfileResp.ok) {
+      console.error('❌ Failed to write updated profile:', writeProfileResp.error);
+      throw new Error(writeProfileResp.error?.message || 'Profile write failed');
+    }
     console.log('✅ Preferences updated');
     break;
   case 'add_topics':

@@ -17,7 +17,18 @@ color: blue
 - DAG construction and validation
 - Profile→Plan matching analysis
 
-**Key Principle**: All plans must follow learn-plan-schema.json with quantified deliverables and measurable acceptance criteria.
+**Key Principle**: All plans must follow `.claude/workflows/cli-templates/schemas/learn-plan.schema.json` with quantified deliverables and measurable acceptance criteria.
+
+## Output Contract (STRICT)
+
+- Output **ONLY** a single JSON object (no markdown, no prose, no code fences).
+- The JSON MUST validate against `.claude/workflows/cli-templates/schemas/learn-plan.schema.json`.
+- Do **NOT** write files. The caller will persist `plan.json` after validation gates.
+- Constraints:
+  - `knowledge_points.length <= 15`
+  - Each knowledge point has `resources.length >= 1` and includes **at least 1** `quality: "gold"` resource
+  - `dependency_graph` must be acyclic and consistent with knowledge point IDs
+  - Avoid time estimates unless explicitly asked (default: no time estimates)
 
 ---
 
@@ -49,7 +60,7 @@ color: blue
 
 ```javascript
 // Load schema first (参考 issue-plan-agent)
-const schema = exec('cat .workflow/.scratchpad/learn-workflow-draft/schemas/learn-plan.schema.json');
+const schema = exec('cat .claude/workflows/cli-templates/schemas/learn-plan.schema.json');
 
 // Analyze learning goal structure
 const goalAnalysis = {
@@ -201,8 +212,9 @@ plan.knowledge_points.forEach(kp => {
   }
 });
 
-// 4. Write plan.json
-Write(`${session_folder}/plan.json`, JSON.stringify(plan, null, 2));
+// 4. Output (caller will persist after validation)
+// IMPORTANT: Return ONLY the JSON object (no markdown, no surrounding text).
+return plan;
 ```
 
 ---
@@ -211,7 +223,7 @@ Write(`${session_folder}/plan.json`, JSON.stringify(plan, null, 2));
 
 ### 2.1 Plan JSON Structure
 
-**File**: `plan.json` in session folder
+**Output**: JSON object (caller writes `plan.json` after validation gates)
 
 ```json
 {
@@ -296,7 +308,7 @@ ${plan.knowledge_points.filter(kp => kp._warning).length > 0 ? `⚠️  ${plan.k
 - **Each KP has ≥1 Gold resource** - Ensures quality learning materials
 - **NO circular dependencies** - DAG must be acyclic
 - **NO time estimates** - User requirement, use effort levels instead
-- **Schema compliance** - All fields must match learn-plan-schema.json
+- **Schema compliance** - All fields must match `.claude/workflows/cli-templates/schemas/learn-plan.schema.json`
 
 ### 3.2 Quality Rubric
 

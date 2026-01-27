@@ -1,7 +1,7 @@
 ---
 name: plan
 description: Generate personalized learning plans based on user profile and learning goals using AI-driven knowledge gap analysis
-argument-hint: "\"<learning goal>\" [--profile=<profile-id>] [--no-agent]"
+argument-hint: "\"<learning goal>\" [--profile=<profile-id>] [--no-agent] [--skip-assessment]"
 allowed-tools: TodoWrite(*), Task(*), SlashCommand(*), AskUserQuestion(*), Bash(*), Read(*), Write(*)
 ---
 
@@ -13,6 +13,7 @@ allowed-tools: TodoWrite(*), Task(*), SlashCommand(*), AskUserQuestion(*), Bash(
 /learn:plan "Master React Server Components"
 /learn:plan "Learn Rust for systems programming" --profile profile-dev
 /learn:plan "Advanced TypeScript patterns" --no-agent
+/learn:plan "Master React Server Components" --skip-assessment
 ```
 
 ## Overview
@@ -59,7 +60,7 @@ Phase 3: Plan Generation (Agent or Template)
 
 Phase 4: Validation Gate (Multi-Layer QA)
    ├─ Layer 0: Schema Validation（阻断型）
-   │  ├─ 加载 learn-plan-schema.json
+   │  ├─ 加载 `.claude/workflows/cli-templates/schemas/learn-plan.schema.json`
    │  ├─ 验证必填字段、类型、枚举值
    │  └─ 验证约束：maxItems=15, minItems=1 for resources
    ├─ Layer 1: Graph Validity（阻断型）
@@ -256,74 +257,243 @@ Strong foundation: ${gapAnalysis.strong_topics.map(t => t.topic_id).join(', ')}
 
 ### Phase 3: Plan Generation
 
+**Initialize session folder (used by both agent/template paths)**:
+
+```javascript
+// Session ID generation
+const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+const sessionCounter = loadNextSessionCounter();
+const sessionId = `LS-${dateStr}-${sessionCounter.toString().padStart(3, '0')}`;
+
+// Create session directory early so plan generation can write draft output
+const sessionFolder = `.workflow/learn/sessions/${sessionId}`;
+Bash(`mkdir -p ${sessionFolder}/interactions/notes`);
+```
+
+**Phase 1.5: JIT Assessment Triggers (Progressive Profiling)**:
+
+```javascript
+// Just-in-time assessment: only when needed, brief (2-3 questions), and only once per topic per session.
+// Uses CLI state API to update profile (no direct profile file writes).
+const JIT_THRESHOLD = 0.6;
+const jitStatePath = `${sessionFolder}/interactions/jit-assessments.json`;
+
+// Load assessed topics for this session (prevents repetition)
+let assessedTopics = [];
+try {
+  const jitState = JSON.parse(Bash(`cat ${jitStatePath}`));
+  assessedTopics = Array.isArray(jitState.assessed_topics) ? jitState.assessed_topics : [];
+} catch (e) {
+  assessedTopics = [];
+}
+
+if (!flags.skipAssessment) {
+  // Candidate topics inferred from the goal + weak topics
+  const goalTopics = extractKeywords(goal).map(k => k.toLowerCase());
+  const weakTopics = gapAnalysis.weak_topics.map(t => t.topic_id.toLowerCase());
+  const candidateTopics = [...new Set([...goalTopics, ...weakTopics])].filter(Boolean);
+
+  const topicConfidence = (topicId) => {
+    const t = profile.known_topics.find(x => x.topic_id.toLowerCase() === topicId);
+    return typeof t?.confidence === 'number' ? t.confidence : 0.3;
+  };
+
+  const lowConfidenceTopics = candidateTopics
+    .filter(t => topicConfidence(t) < JIT_THRESHOLD)
+    .filter(t => !assessedTopics.includes(t));
+
+  // Limit per session to keep UX non-intrusive
+  const topicsToAssess = lowConfidenceTopics.slice(0, 3);
+
+  if (topicsToAssess.length > 0) {
+    console.log(`\n## Quick Check (JIT Assessment)\nLow-confidence topics detected: ${topicsToAssess.join(', ')}\n`);
+  }
+
+  topicsToAssess.forEach(topicId => {
+    const CONF_KEY = `jit_conf_${topicId}`;
+    const CONCEPT_KEY = `jit_concept_${topicId}`;
+
+    const answers = AskUserQuestion({
+      questions: [
+        {
+          key: CONF_KEY,
+          question: `How confident are you with ${topicId}?`,
+          header: `JIT Assessment: ${topicId}`,
+          multiSelect: false,
+          options: [
+            { value: "low", label: "Low", description: "I often need help" },
+            { value: "medium", label: "Medium", description: "I can do common tasks" },
+            { value: "high", label: "High", description: "I can handle complex tasks" }
+          ]
+        },
+        {
+          key: CONCEPT_KEY,
+          question: `Do you understand the core concepts of ${topicId}?`,
+          header: `JIT Assessment: ${topicId}`,
+          multiSelect: false,
+          options: [
+            { value: "no", label: "No", description: "Not yet" },
+            { value: "some", label: "Some", description: "Basic understanding" },
+            { value: "yes", label: "Yes", description: "Solid understanding" }
+          ]
+        }
+      ]
+    });
+
+    const confMap = { low: 0.4, medium: 0.65, high: 0.85 };
+    const conceptMap = { no: 0.2, some: 0.5, yes: 0.8 };
+    const newConfidence = confMap[answers[CONF_KEY]] ?? 0.4;
+    const newProficiency = conceptMap[answers[CONCEPT_KEY]] ?? 0.3;
+
+    // Update profile topic entry (minimal, evidence-based)
+    const existing = profile.known_topics.find(t => t.topic_id.toLowerCase() === topicId);
+    const evidence = {
+      evidence_type: 'conceptual',
+      kind: 'jit_assessment',
+      timestamp: new Date().toISOString(),
+      summary: `JIT assessment for plan generation: ${goal}`,
+      data: { topic_id: topicId, confidence: newConfidence, proficiency: newProficiency }
+    };
+
+    if (existing) {
+      existing.proficiency = Math.max(existing.proficiency ?? 0, newProficiency);
+      existing.confidence = Math.max(existing.confidence ?? 0, newConfidence);
+      existing.last_updated = new Date().toISOString();
+      existing.evidence = Array.isArray(existing.evidence) ? existing.evidence : [];
+      existing.evidence.push(evidence);
+    } else {
+      profile.known_topics.push({
+        topic_id: topicId,
+        proficiency: newProficiency,
+        confidence: newConfidence,
+        last_updated: new Date().toISOString(),
+        evidence: [evidence]
+      });
+    }
+
+    assessedTopics.push(topicId);
+  });
+
+  if (topicsToAssess.length > 0) {
+    // Persist assessed topics for this session
+    Bash(`mkdir -p ${sessionFolder}/interactions`);
+    Write(jitStatePath, JSON.stringify({ assessed_topics: assessedTopics, updated_at: new Date().toISOString() }, null, 2));
+
+    // Persist updated profile via CLI
+    profile._metadata = profile._metadata || {};
+    profile._metadata.updated_at = new Date().toISOString();
+    const escapedProfile = JSON.stringify(profile).replace(/'/g, "'\\''");
+    const writeResp = JSON.parse(Bash(`ccw learn:write-profile --profile-id ${profile.profile_id} --data '${escapedProfile}' --json`));
+    if (!writeResp.ok) {
+      console.warn('⚠️ Failed to persist profile updates from JIT assessment:', writeResp.error);
+    } else {
+      console.log('✅ Profile updated from JIT assessment');
+    }
+  }
+}
+```
+
 #### Option A: Agent-Driven Planning (默认)
 
 ```javascript
-Task({
-  subagent_type: "learn-planning-agent",
-  run_in_background: false,
-  description: "Generate learning plan with knowledge points",
-  prompt: `
-## Planning Task
-Generate a structured learning plan for following goal.
+// Real LLM agent invocation via ccw cli (with retry + fallback)
+const agentTemplate = Bash('cat .claude/agents/learn-planning-agent.md');
+const agentContext = {
+  goal,
+  profile,
+  gap_analysis: gapAnalysis,
+  constraints: {
+    max_knowledge_points: 15,
+    require_gold_resource_per_kp: true,
+    no_time_estimates: true
+  }
+};
 
-## Input Context
-**Learning Goal**: ${goal}
-**User Profile**:
-- Experience level: ${profile.experience_level}
-- Known topics: ${JSON.stringify(profile.known_topics)}
-- Learning preferences: ${JSON.stringify(profile.learning_preferences)}
+const cliPrompt = `${agentTemplate}\n\nINPUT_CONTEXT_JSON:\n${JSON.stringify(agentContext, null, 2)}\n\nIMPORTANT: Output ONLY a single JSON object (no markdown, no code fences).`;
+const escapedPrompt = cliPrompt.replace(/'/g, "'\\''");
 
-**Gap Analysis**:
-- Missing topics: ${gapAnalysis.missing_topics.map(t => t.topic_id).join(', ')}
-- Weak topics: ${gapAnalysis.weak_topics.map(t => t.topic_id).join(', ')}
+let planDraft = null;
+let lastError = null;
 
-## Planning Rules
+if (!flags.noAgent) {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const raw = Bash(`ccw cli -p '${escapedPrompt}' --tool gemini --mode write --cd .`);
+      let jsonText = raw.trim();
+      const m = jsonText.match(/```(?:json)?\\s*([\\s\\S]*?)```/);
+      if (m) jsonText = m[1].trim();
+      planDraft = JSON.parse(jsonText);
+      break;
+    } catch (e) {
+      lastError = e;
+      console.warn(`⚠️ learn-planning-agent attempt ${attempt} failed:`, e.message || e);
+      if (attempt < 3) {
+        // Exponential backoff: 2s, 4s
+        Bash(`sleep ${Math.pow(2, attempt)}`);
+      }
+    }
+  }
+}
 
-1. **Knowledge Point Decomposition**:
-   - Each knowledge point must be: specific, achievable, verifiable
-   - ID format: KP-{number}
-   - Prerequisites: Array of KP IDs (no circular dependencies)
-   - Estimated effort: easy | medium | hard
+// Fallback to template generation if agent unavailable/failed
+if (!planDraft) {
+  console.warn('⚠️ Agent generation failed. Falling back to template plan.', lastError?.message || lastError);
+  planDraft = {
+    session_id: sessionId,
+    learning_goal: goal,
+    profile_id: state.active_profile_id,
+    knowledge_points: [
+      {
+        id: "KP-1",
+        title: `${goal} - Fundamentals`,
+        description: `Core concepts and basics of ${goal}`,
+        prerequisites: [],
+        topic_refs: [],
+        resources: [{ type: "documentation", url: "https://example.com", summary: "Official documentation", quality: "gold" }],
+        assessment: { type: "practical_task", description: `Build a simple project with ${goal}`, acceptance_criteria: ["Works correctly", "Code is clean"] },
+        status: "pending"
+      }
+    ],
+    dependency_graph: { nodes: ["KP-1"], edges: [] },
+    _metadata: { created_at: new Date().toISOString(), generation_method: "template-fallback" }
+  };
+}
 
-2. **Resource Recommendation** (Quality Tiers):
-   - **Gold**: Official documentation, authoritative books
-   - **Silver**: High-quality blogs, interactive tutorials
-   - **Bronze**: Community resources, video courses
+// Write draft and run validation gates (schema → DAG → profile warnings)
+const draftPlanPath = `${sessionFolder}/plan.tmp.json`;
+Write(draftPlanPath, JSON.stringify(planDraft, null, 2));
+const validation = JSON.parse(Bash(`node .claude/commands/learn/_internal/learn-plan-validator.js ${draftPlanPath} --profile ${profilePath}`));
 
-3. **Assessment Types**:
-   - practical_task: Build something
-   - code_challenge: Solve a problem
-   - multiple_choice: Knowledge test
+if (!validation.ok) {
+  if (!validation.layer0?.ok) {
+    console.error('❌ Plan schema validation failed:', validation.layer0?.errors);
+    throw new Error('Plan generation failed schema validation. Please regenerate or fix agent output.');
+  }
+  if (!validation.layer1?.ok) {
+    console.error('❌ Plan dependency graph validation failed:', validation.layer1?.errors);
+    throw new Error('Plan generation produced a cyclic/invalid dependency graph. Please regenerate with acyclic prerequisites.');
+  }
+}
 
-4. **Dependency Graph**:
-   - Build a DAG of knowledge points
-   - Ensure logical learning progression
+// Promote draft to final plan.json only after schema validation passes
+Bash(`mv ${draftPlanPath} ${sessionFolder}/plan.json`);
+let plan = JSON.parse(Read(`${sessionFolder}/plan.json`));
 
-## Output Schema
+// Layer 2: Profile→Plan matching (warning-only)
+for (const w of validation.layer2?.warnings ?? []) {
+  if (w.type === 'high_proficiency_topic' && w.knowledge_point_id) {
+    const kp = plan.knowledge_points?.find(k => k.id === w.knowledge_point_id);
+    if (kp && kp.status === 'pending') {
+      kp.status = 'optional';
+      kp._note = w.message;
+    }
+  }
+}
 
-Execute: cat .claude/workflows/cli-templates/schemas/learn-plan.schema.json
-
-Generate complete plan.json following the schema above.
-
-## Key Constraints
-- NO time estimates (user requirement)
-- Max 15 knowledge points per session
-- Each KP must have at least 1 Gold-tier resource
-- Dependencies must be acyclic
-
-## Execution
-1. Read schema file (cat command above)
-2. Analyze goal + profile + gaps
-3. Generate knowledge point DAG
-4. Recommend high-quality resources for each KP
-5. Write: ${sessionFolder}/plan.json
-6. Return: Brief summary with KP count and difficulty distribution
-`
-});
-
-// 等待 agent 完成
-const plan = JSON.parse(Read(`${sessionFolder}/plan.json`));
+// Store profile fingerprint to detect later mismatch between plan + profile
+plan._metadata = plan._metadata || {};
+plan._metadata.profile_fingerprint = validation.layer2?.profile_fingerprint ?? null;
+Write(`${sessionFolder}/plan.json`, JSON.stringify(plan, null, 2));
 ```
 
 #### Option B: Template-Based Planning (--no-agent)
@@ -391,7 +561,38 @@ const templatePlan = {
   }
 };
 
-Write(`${sessionFolder}/plan.json`, JSON.stringify(templatePlan, null, 2));
+// Layer 0: Schema Validation (blocking) before writing final plan.json
+const draftPlanPath = `${sessionFolder}/plan.tmp.json`;
+Write(draftPlanPath, JSON.stringify(templatePlan, null, 2));
+
+const validation = JSON.parse(Bash(`node .claude/commands/learn/_internal/learn-plan-validator.js ${draftPlanPath} --profile ${profilePath}`));
+if (!validation.ok) {
+  if (!validation.layer0?.ok) {
+    console.error('❌ Plan schema validation failed:', validation.layer0?.errors);
+    throw new Error('Template plan failed schema validation. Please fix the template output.');
+  }
+  if (!validation.layer1?.ok) {
+    console.error('❌ Plan dependency graph validation failed:', validation.layer1?.errors);
+    throw new Error('Template plan produced a cyclic/invalid dependency graph. Fix prerequisites/edges to be acyclic.');
+  }
+}
+
+Bash(`mv ${draftPlanPath} ${sessionFolder}/plan.json`);
+
+// Layer 2: Profile→Plan matching (warning-only)
+let plan = JSON.parse(Read(`${sessionFolder}/plan.json`));
+for (const w of validation.layer2?.warnings ?? []) {
+  if (w.type === 'high_proficiency_topic' && w.knowledge_point_id) {
+    const kp = plan.knowledge_points?.find(k => k.id === w.knowledge_point_id);
+    if (kp && kp.status === 'pending') {
+      kp.status = 'optional';
+      kp._note = w.message;
+    }
+  }
+}
+plan._metadata = plan._metadata || {};
+plan._metadata.profile_fingerprint = validation.layer2?.profile_fingerprint ?? null;
+Write(`${sessionFolder}/plan.json`, JSON.stringify(plan, null, 2));
 ```
 
 ### Phase 4: Session Creation
@@ -399,14 +600,7 @@ Write(`${sessionFolder}/plan.json`, JSON.stringify(templatePlan, null, 2));
 **实现细节**：
 
 ```javascript
-// Session ID generation
-const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
-const sessionCounter = loadNextSessionCounter();
-const sessionId = `LS-${dateStr}-${sessionCounter.toString().padStart(3, '0')}`;
-
-// Create session directory
-const sessionFolder = `.workflow/learn/sessions/${sessionId}`;
-Bash(`mkdir -p ${sessionFolder}/interactions/notes`);
+// Note: sessionId/sessionFolder already created in Phase 3
 
 // Write manifest.json
 const manifest = {
@@ -577,7 +771,7 @@ switch (userChoice) {
 | Invalid session ID | Generate new session ID |
 | Plan validation fails | Check validation layer (0-3), regenerate or manual fix |
 | Directory creation fails | Check `.workflow/learn/` permissions |
-| Schema validation fails | Review plan.json against learn-plan-schema.json |
+| Schema validation fails | Review plan.json against learn-plan.schema.json |
 | Circular dependencies | Use DAG validator to identify cycle, break dependency chain |
 | MCP tools unavailable | Clarify degraded mode acceptance or cancel |
 

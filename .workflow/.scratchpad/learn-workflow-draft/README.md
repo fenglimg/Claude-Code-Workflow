@@ -60,7 +60,11 @@ learn workflow = 独立应用 + CLI调用入口
 
 ### 2.2 数据 Schema
 
-(Schema definitions remain the same as in the original design: `state.json`, `profiles/{id}.json`, `sessions/{id}/plan.json`, `sessions/{id}/progress.json`)
+**Canonical schema location (单一真实来源)**:
+- `.claude/workflows/cli-templates/schemas/learn-profile.schema.json`
+- `.claude/workflows/cli-templates/schemas/learn-plan.schema.json`
+
+这些 schema 定义了 `.workflow/learn/` 下的文件结构（例如：`state.json`, `profiles/{id}.json`, `sessions/{id}/plan.json`, `sessions/{id}/progress.json`）。
 
 ---
 

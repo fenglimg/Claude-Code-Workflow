@@ -15,7 +15,57 @@
           "proficiency": { "type": "number", "minimum": 0, "maximum": 1 },
           "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
           "last_updated": { "type": "string", "format": "date-time" },
-          "evidence": { "type": "array", "items": { "type": "string" } }
+          "evidence": {
+            "type": "array",
+            "description": "Evidence items backing proficiency/confidence. Supports legacy string entries for backward compatibility.",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Legacy evidence entry (deprecated): JSON-stringified objects or free-form strings."
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "evidence_type": {
+                      "type": "string",
+                      "enum": ["self-report", "conceptual", "tool-verified"],
+                      "description": "Provenance tier used for confidence calibration."
+                    },
+                    "kind": {
+                      "type": "string",
+                      "description": "Concrete evidence kind (e.g. self_assessment, conceptual_check, real_mcp)."
+                    },
+                    "timestamp": { "type": "string", "format": "date-time" },
+                    "summary": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "description": "Arbitrary evidence payload (stored for auditability)."
+                    },
+                    "verification_metadata": {
+                      "type": "object",
+                      "description": "Present only for tool-verified evidence.",
+                      "properties": {
+                        "method": { "type": "string" },
+                        "timestamp": { "type": "string", "format": "date-time" },
+                        "test_results": {
+                          "type": "object",
+                          "properties": {
+                            "tests_passed": { "type": "integer", "minimum": 0 },
+                            "tests_total": { "type": "integer", "minimum": 0 },
+                            "score": { "type": "number", "minimum": 0, "maximum": 1 },
+                            "execution_time_ms": { "type": "integer", "minimum": 0 }
+                          }
+                        },
+                        "confidence_source": { "type": "string" }
+                      }
+                    }
+                  },
+                  "required": ["evidence_type", "kind", "timestamp"]
+                }
+              ]
+            }
+          }
         },
         "required": ["topic_id", "proficiency"]
       }
