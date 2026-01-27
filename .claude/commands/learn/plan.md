@@ -149,66 +149,38 @@ console.log(`Using profile: ${state.active_profile_id}`);
 console.log(`Experience level: ${profile.experience_level}`);
 console.log(`Known topics: ${profile.known_topics.map(t => t.topic_id).join(', ')}`);
 
-// Step 4: Profile Update Check (NEW - Phase1 Enhancement)
-if (profile._metadata && profile._metadata.updated_at) {
-  const lastUpdated = new Date(profile._metadata.updated_at);
-  const daysSinceUpdate = Math.floor((Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24));
+// Step 4: Profile Update Check (Simplified)
+// Only trigger when the profile is empty (no known topics). Avoid time-based heuristics and keyword guessing.
+const { Logger } = await import('./_internal/logger.js');
+const logger = new Logger(state.active_session_id || 'LS-PREPLAN');
 
-  console.log(`\nℹ️  Profile last updated: ${daysSinceUpdate} days ago`);
+const hasKnownTopics = Array.isArray(profile.known_topics) && profile.known_topics.length > 0;
+if (!hasKnownTopics) {
+  logger.warn('Empty profile detected; offering goal-oriented update', { profile_id: state.active_profile_id });
 
-  // Check if learning goal suggests profile should be updated
-  const goalRelevanceCheck = () => {
-    const goalLower = $ARGUMENTS.toLowerCase();
-    const knownTopics = profile.known_topics.map(t => t.topic_id.toLowerCase());
+  const UPDATE_CONFIRM_KEY = 'profile_update_confirm';
+  const updateConfirmAnswer = AskUserQuestion({
+    questions: [{
+      key: UPDATE_CONFIRM_KEY,
+      question: "Your profile has no known topics yet. Update it for this learning goal now?",
+      header: "Profile Update",
+      multiSelect: false,
+      options: [
+        { value: "yes", label: "Yes, Update", description: "Run goal-oriented profile update" },
+        { value: "no", label: "Skip", description: "Continue with current profile" }
+      ]
+    }]
+  });
 
-    // Extract technology keywords from goal
-    const goalTechKeywords = [];
-    const commonTech = ['react', 'vue', 'angular', 'typescript', 'javascript', 'python', 'rust', 'go', 'node', 'docker', 'kubernetes', 'aws', 'graphql'];
-
-    commonTech.forEach(tech => {
-      if (goalLower.includes(tech) && !knownTopics.includes(tech)) {
-        goalTechKeywords.push(tech);
-      }
-    });
-
-    return goalTechKeywords;
-  };
-
-  const missingTechForGoal = goalRelevanceCheck();
-
-  if (missingTechForGoal.length > 0 || daysSinceUpdate > 30) {
-    const UPDATE_CONFIRM_KEY = 'profile_update_confirm';
-    const updateConfirmAnswer = AskUserQuestion({
-      questions: [{
-        key: UPDATE_CONFIRM_KEY,
-        question: missingTechForGoal.length > 0
-          ? `Your goal mentions: ${missingTechForGoal.join(', ')} which are not in your profile. Update now?`
-          : `Your profile was last updated ${daysSinceUpdate} days ago. Refresh it for this goal?`,
-        header: "Profile Update",
-        multiSelect: false,
-        options: [
-          {value: "yes", label: "Yes, Update", description: "Run goal-oriented profile update"},
-          {value: "no", label: "Skip", description: "Continue with current profile"}
-        ]
-      }]
-    });
-
-    if (updateConfirmAnswer[UPDATE_CONFIRM_KEY] === 'yes') {
-      console.log('\n## Updating Profile for Learning Goal\n');
-
-      try {
-        // Execute profile update with goal parameter
-        SlashCommand(`/learn:profile update --goal "${$ARGUMENTS}"`);
-
-        // Reload profile after update
-        profile = JSON.parse(Read(profilePath));
-        console.log('\n✅ Profile updated successfully');
-        console.log(`New topics count: ${profile.known_topics.length}`);
-
-      } catch (e) {
-        console.warn('⚠️  Profile update failed, continuing with existing profile:', e.message);
-        // Continue despite update failure - non-blocking
-      }
+  if (updateConfirmAnswer[UPDATE_CONFIRM_KEY] === 'yes') {
+    console.log('\n## Updating Profile for Learning Goal\n');
+    try {
+      SlashCommand(`/learn:profile update --goal "${$ARGUMENTS}"`);
+      profile = JSON.parse(Read(profilePath));
+      console.log('\n✅ Profile updated successfully');
+      console.log(`New topics count: ${profile.known_topics.length}`);
+    } catch (e) {
+      console.warn('⚠️  Profile update failed, continuing with existing profile:', e.message);
     }
   }
 }
@@ -266,134 +238,9 @@ Bash(`mkdir -p ${sessionFolder}/interactions/notes`);
 
 **Phase 1.5: JIT Assessment Triggers (Progressive Profiling)**:
 
-```javascript
-// Just-in-time assessment: only when needed, brief (2-3 questions), and only once per topic per session.
-// Uses CLI state API to update profile (no direct profile file writes).
-const { safeReadJson, safeExecJson } = await import('./_internal/error-handler.js');
-const { Logger } = await import('./_internal/logger.js');
-// Note: safeExecJson uses lastJsonObjectFromText internally for robust parsing of noisy CLI output.
-
-const JIT_THRESHOLD = 0.6;
-const jitStatePath = `${sessionFolder}/interactions/jit-assessments.json`;
-
-const logger = new Logger(sessionId);
-
-// Load assessed topics for this session (prevents repetition)
-const jitState = safeReadJson(jitStatePath, { assessed_topics: [] });
-let assessedTopics = Array.isArray(jitState.assessed_topics) ? jitState.assessed_topics : [];
-
-if (!flags.skipAssessment) {
-  // Candidate topics inferred from the goal + weak topics
-  const goalTopics = extractKeywords(goal).map(k => k.toLowerCase());
-  const weakTopics = gapAnalysis.weak_topics.map(t => t.topic_id.toLowerCase());
-  const candidateTopics = [...new Set([...goalTopics, ...weakTopics])].filter(Boolean);
-
-  const topicConfidence = (topicId) => {
-    const t = profile.known_topics.find(x => x.topic_id.toLowerCase() === topicId);
-    return typeof t?.confidence === 'number' ? t.confidence : 0.3;
-  };
-
-  const lowConfidenceTopics = candidateTopics
-    .filter(t => topicConfidence(t) < JIT_THRESHOLD)
-    .filter(t => !assessedTopics.includes(t));
-
-  // Limit per session to keep UX non-intrusive
-  const topicsToAssess = lowConfidenceTopics.slice(0, 3);
-
-  if (topicsToAssess.length > 0) {
-    console.log(`\n## Quick Check (JIT Assessment)\nLow-confidence topics detected: ${topicsToAssess.join(', ')}\n`);
-  }
-
-  topicsToAssess.forEach(topicId => {
-    const CONF_KEY = `jit_conf_${topicId}`;
-    const CONCEPT_KEY = `jit_concept_${topicId}`;
-
-    const answers = AskUserQuestion({
-      questions: [
-        {
-          key: CONF_KEY,
-          question: `How confident are you with ${topicId}?`,
-          header: `JIT Assessment: ${topicId}`,
-          multiSelect: false,
-          options: [
-            { value: "low", label: "Low", description: "I often need help" },
-            { value: "medium", label: "Medium", description: "I can do common tasks" },
-            { value: "high", label: "High", description: "I can handle complex tasks" }
-          ]
-        },
-        {
-          key: CONCEPT_KEY,
-          question: `Do you understand the core concepts of ${topicId}?`,
-          header: `JIT Assessment: ${topicId}`,
-          multiSelect: false,
-          options: [
-            { value: "no", label: "No", description: "Not yet" },
-            { value: "some", label: "Some", description: "Basic understanding" },
-            { value: "yes", label: "Yes", description: "Solid understanding" }
-          ]
-        }
-      ]
-    });
-
-    const confMap = { low: 0.4, medium: 0.65, high: 0.85 };
-    const conceptMap = { no: 0.2, some: 0.5, yes: 0.8 };
-    const newConfidence = confMap[answers[CONF_KEY]] ?? 0.4;
-    const newProficiency = conceptMap[answers[CONCEPT_KEY]] ?? 0.3;
-
-    // Update profile topic entry (minimal, evidence-based)
-    const existing = profile.known_topics.find(t => t.topic_id.toLowerCase() === topicId);
-    const evidence = {
-      evidence_type: 'conceptual',
-      kind: 'jit_assessment',
-      timestamp: new Date().toISOString(),
-      summary: `JIT assessment for plan generation: ${goal}`,
-      data: { topic_id: topicId, confidence: newConfidence, proficiency: newProficiency }
-    };
-
-    if (existing) {
-      existing.proficiency = Math.max(existing.proficiency ?? 0, newProficiency);
-      existing.confidence = Math.max(existing.confidence ?? 0, newConfidence);
-      existing.last_updated = new Date().toISOString();
-      existing.evidence = Array.isArray(existing.evidence) ? existing.evidence : [];
-      existing.evidence.push(evidence);
-    } else {
-      profile.known_topics.push({
-        topic_id: topicId,
-        proficiency: newProficiency,
-        confidence: newConfidence,
-        last_updated: new Date().toISOString(),
-        evidence: [evidence]
-      });
-    }
-
-    assessedTopics.push(topicId);
-  });
-
-  if (topicsToAssess.length > 0) {
-    // Persist assessed topics for this session
-    Bash(`mkdir -p ${sessionFolder}/interactions`);
-    Write(jitStatePath, JSON.stringify({ assessed_topics: assessedTopics, updated_at: new Date().toISOString() }, null, 2));
-
-    // Persist updated profile via CLI
-    profile._metadata = profile._metadata || {};
-    profile._metadata.updated_at = new Date().toISOString();
-    const escapedProfile = JSON.stringify(profile).replace(/'/g, "'\\''");
-    try {
-      const writeResp = safeExecJson(
-        `ccw learn:write-profile --profile-id ${profile.profile_id} --data '${escapedProfile}' --json`,
-        'learn:write-profile'
-      );
-      if (!writeResp.ok) {
-        logger.warn('Failed to persist profile updates from JIT assessment', writeResp.error);
-      } else {
-        logger.info('Profile updated from JIT assessment', { profile_id: profile.profile_id });
-      }
-    } catch (e) {
-      logger.warn('Failed to persist profile updates from JIT assessment (exec error)', { message: e?.message ?? String(e) });
-    }
-  }
-}
-```
+> JIT Assessment removed to avoid interrupting the `/learn:plan` flow.  
+> Ref: `.workflow/.analysis/ANL-learn-plan-optimization-2026-01-27/implementation-plan.md` Phase 2.1  
+> Future: move to `/learn:execute` as on-demand preflight checks before each knowledge point.
 
 #### Option A: Agent-Driven Planning (默认)
 
@@ -401,6 +248,7 @@ if (!flags.skipAssessment) {
 // Real LLM agent invocation via ccw cli (with retry + fallback)
 const { safeExecJson } = await import('./_internal/error-handler.js');
 const { Logger } = await import('./_internal/logger.js');
+// Note: safeExecJson uses lastJsonObjectFromText internally for robust parsing of noisy CLI output.
 
 const agentTemplate = Bash('cat .claude/agents/learn-planning-agent.md');
 const logger = new Logger(sessionId);
@@ -411,7 +259,6 @@ const agentContext = {
   gap_analysis: gapAnalysis,
   constraints: {
     max_knowledge_points: 15,
-    require_gold_resource_per_kp: true,
     no_time_estimates: true
   }
 };
@@ -675,6 +522,9 @@ console.log(`Session created: ${sessionId}`);
 ### Phase 5: User Confirmation
 
 ```javascript
+const { Logger } = await import('./_internal/logger.js');
+const logger = new Logger(sessionId);
+
 // Display plan summary
 const plan = JSON.parse(Read(`${sessionFolder}/plan.json`));
 
@@ -682,18 +532,7 @@ const easyCount = plan.knowledge_points.filter(kp => kp.estimated_effort === 'ea
 const mediumCount = plan.knowledge_points.filter(kp => kp.estimated_effort === 'medium').length;
 const hardCount = plan.knowledge_points.filter(kp => kp.estimated_effort === 'hard').length;
 
-const goldResources = plan.knowledge_points.reduce((acc, kp) =>
-  acc + kp.resources.filter(r => r.quality === 'gold').length, 0);
-const silverResources = plan.knowledge_points.reduce((acc, kp) =>
-  acc + kp.resources.filter(r => r.quality === 'silver').length, 0);
-const bronzeResources = plan.knowledge_points.reduce((acc, kp) =>
-  acc + kp.resources.filter(r => r.quality === 'bronze').length, 0);
-
-// Display validation results
-const validationWarnings = [];
-if (goldResources < plan.knowledge_points.length) {
-  validationWarnings.push(`⚠️  ${plan.knowledge_points.length - goldResources} KPs lack Gold-tier resources`);
-}
+const totalResources = plan.knowledge_points.reduce((acc, kp) => acc + (kp.resources?.length ?? 0), 0);
 
 console.log(`
 ## Learning Plan Summary
@@ -707,17 +546,14 @@ console.log(`
 - Hard: ${hardCount}
 
 **Resources**:
-- Gold-tier: ${goldResources}
-- Silver-tier: ${silverResources}
-- Bronze-tier: ${bronzeResources}
-- Total: ${goldResources + silverResources + bronzeResources}
+- Total: ${totalResources}
 
 **Dependencies**:
 ${plan.dependency_graph.edges.map(edge =>
   `  ${edge.from} → ${edge.to}`
 ).join('\n')}
 
-**Validation**: ${validationWarnings.length === 0 ? '✅ All checks passed' : validationWarnings.join('\n')}
+**Validation**: ✅ Schema + DAG checks passed (see validation gate output)
 
 Next: /learn:execute
 `);
@@ -728,14 +564,12 @@ const PLAN_CONFIRMATION_KEY = 'plan_action';
 const answer = AskUserQuestion({
   questions: [{
     key: PLAN_CONFIRMATION_KEY,
-    question: "What would you like to do with this plan?",
+    question: "Accept this plan and start learning?",
     header: "Plan Action",
     multiSelect: false,
     options: [
-      {value: "accept", label: "Accept & Start", description: "Begin learning with first knowledge point"},
-      {value: "review", label: "Review Details", description: "View full plan.json before deciding"},
-      {value: "modify", label: "Request Changes", description: "Provide feedback to regenerate plan"},
-      {value: "save", label: "Save for Later", description: "Plan saved, start anytime with /learn:execute"}
+      { value: "accept", label: "Accept", description: "Start learning with /learn:execute" },
+      { value: "reject", label: "Reject", description: "Regenerate plan" }
     ]
   }]
 });
@@ -743,37 +577,13 @@ const answer = AskUserQuestion({
 // 使用key-based访问（稳健方式）
 const userChoice = answer[PLAN_CONFIRMATION_KEY];
 
-switch (userChoice) {
-  case 'accept':
-    console.log(`✅ Plan accepted! Use /learn:execute to begin learning.`);
-    break;
-  case 'review':
-    console.log('\n## Full Plan Details\n');
-    console.log(JSON.stringify(plan, null, 2));
-    // 递归调用确认
-    break;
-  case 'modify':
-    const FEEDBACK_KEY = 'feedback_type';
-    const feedback = AskUserQuestion({
-      questions: [{
-        key: FEEDBACK_KEY,
-        question: "What would you like to change?",
-        header: "Feedback",
-        multiSelect: false,
-        options: [
-          {value: "practical", label: "More Practical", description: "Focus on hands-on exercises"},
-          {value: "theoretical", label: "More Theory", description: "Add conceptual depth"},
-          {value: "shorter", label: "Shorter Plan", description: "Reduce number of knowledge points"},
-          {value: "custom", label: "Custom Request", description: "Provide specific feedback"}
-        ]
-      }]
-    });
-    // 返回Phase 3重新生成
-    console.log(`Regenerating plan with feedback: ${feedback[FEEDBACK_KEY]}...`);
-    break;
-  case 'save':
-    console.log(`Plan saved. Resume with: /learn:execute --session ${sessionId}`);
-    break;
+if (userChoice === 'accept') {
+  logger.info('Plan accepted by user', { session_id: sessionId });
+  console.log(`✅ Plan accepted! Use /learn:execute to begin learning.`);
+} else {
+  logger.info('Plan rejected by user; regenerate requested', { session_id: sessionId });
+  console.log('↩️ Plan rejected. Regenerating plan...');
+  // Return to Phase 3 for regeneration (agent/template path).
 }
 ```
 
@@ -784,7 +594,7 @@ switch (userChoice) {
 | Profile not found | Auto-create default profile via `/learn:profile create` |
 | Agent timeout | Fallback to template-based planning |
 | Invalid session ID | Generate new session ID |
-| Plan validation fails | Check validation layer (0-3), regenerate or manual fix |
+| Plan validation fails | Check validation layer (0-2), regenerate or manual fix |
 | Directory creation fails | Check `.workflow/learn/` permissions |
 | Schema validation fails | Review plan.json against learn-plan.schema.json |
 | Circular dependencies | Use DAG validator to identify cycle, break dependency chain |
@@ -839,7 +649,6 @@ Before completing plan generation, verify:
 
 - [ ] `plan.json` follows `learn-plan.schema.json`
 - [ ] No circular dependencies in knowledge_points
-- [ ] Each knowledge point has at least 1 Gold-tier resource
 - [ ] Prerequisites are logically ordered
 - [ ] Session files created: manifest.json, plan.json, progress.json
 - [ ] Global state updated: state.json
@@ -898,7 +707,6 @@ Launching learn-planning-agent...
 - Hard: 1
 
 **Resources**:
-- Gold-tier: 7
 - Total: 15
 
 Next: /learn:execute
