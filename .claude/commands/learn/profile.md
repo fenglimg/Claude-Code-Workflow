@@ -155,8 +155,24 @@ if (goalType === 'role') {
   const keywordDictPath = '.workflow/learn/tech-stack/KeywordDictionary.json';
   let inferredTopics = [];
 
+  function lastJsonObjectFromText(text) {
+    const raw = String(text ?? '').trim();
+    if (!raw) throw new Error('Empty command output');
+    const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+    for (let i = lines.length - 1; i >= 0; i--) {
+      try {
+        return JSON.parse(lines[i]);
+      } catch {
+        // keep scanning
+      }
+    }
+    const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (m) return JSON.parse(m[1].trim());
+    throw new Error('Failed to parse JSON from command output');
+  }
+
   try {
-    const keywordDict = JSON.parse(Bash(`cat ${keywordDictPath}`));
+    const keywordDict = lastJsonObjectFromText(Bash(`cat ${keywordDictPath}`));
 
     // Extract technology keywords from all categories
     const allTechKeywords = [];
@@ -749,16 +765,32 @@ const profile = {
 // Persist via CLI (no direct Read/Write)
 const escapeSingleQuotesForShell = (s) => s.replace(/'/g, "'\\''");
 
+const lastJsonObjectFromText = (text) => {
+  const raw = String(text ?? '').trim();
+  if (!raw) throw new Error('Empty command output');
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  for (let i = lines.length - 1; i >= 0; i--) {
+    try {
+      return JSON.parse(lines[i]);
+    } catch {
+      // keep scanning
+    }
+  }
+  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (m) return JSON.parse(m[1].trim());
+  throw new Error('Failed to parse JSON from command output');
+};
+
 const profilePayload = JSON.stringify(profile);
 const escapedProfilePayload = escapeSingleQuotesForShell(profilePayload);
 
-const writeProfileResp = JSON.parse(Bash(`ccw learn:write-profile --profile-id ${profileId} --data '${escapedProfilePayload}' --json`));
+const writeProfileResp = lastJsonObjectFromText(Bash(`ccw learn:write-profile --profile-id ${profileId} --data '${escapedProfilePayload}' --json`));
 if (!writeProfileResp.ok) {
   console.error('❌ Failed to write profile:', writeProfileResp.error);
   throw new Error(writeProfileResp.error?.message || 'Profile write failed');
 }
 
-const updateStateResp = JSON.parse(Bash(`ccw learn:update-state --field active_profile_id --value ${profileId} --json`));
+const updateStateResp = lastJsonObjectFromText(Bash(`ccw learn:update-state --field active_profile_id --value ${profileId} --json`));
 if (!updateStateResp.ok) {
   console.error('❌ Failed to update learn state:', updateStateResp.error);
   throw new Error(updateStateResp.error?.message || 'State update failed');
@@ -790,7 +822,23 @@ ${isMinimal ? 'ℹ️  Tip: Use /learn:plan to trigger JIT assessments, or re-ru
 
 ```javascript
 // Load current profile
-const stateResp = JSON.parse(Bash('ccw learn:read-state --json'));
+const lastJsonObjectFromText = (text) => {
+  const raw = String(text ?? '').trim();
+  if (!raw) throw new Error('Empty command output');
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  for (let i = lines.length - 1; i >= 0; i--) {
+    try {
+      return JSON.parse(lines[i]);
+    } catch {
+      // keep scanning
+    }
+  }
+  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (m) return JSON.parse(m[1].trim());
+  throw new Error('Failed to parse JSON from command output');
+};
+
+const stateResp = lastJsonObjectFromText(Bash('ccw learn:read-state --json'));
 if (!stateResp.ok) {
   console.error('❌ Failed to read learn state:', stateResp.error);
   throw new Error(stateResp.error?.message || 'State read failed');
@@ -802,7 +850,7 @@ if (!state.active_profile_id) {
   return;
 }
 
-const profileResp = JSON.parse(Bash(`ccw learn:read-profile --profile-id ${state.active_profile_id} --json`));
+const profileResp = lastJsonObjectFromText(Bash(`ccw learn:read-profile --profile-id ${state.active_profile_id} --json`));
 if (!profileResp.ok) {
   console.error('❌ Failed to read profile:', profileResp.error);
   throw new Error(profileResp.error?.message || 'Profile read failed');
@@ -925,7 +973,7 @@ if (flags.goal) {
   profile._metadata.updated_at = new Date().toISOString();
   const updatedProfilePayload = JSON.stringify(profile);
   const escapedUpdatedProfilePayload = escapeSingleQuotesForShell(updatedProfilePayload);
-  const writeProfileResp = JSON.parse(Bash(`ccw learn:write-profile --profile-id ${profile.profile_id} --data '${escapedUpdatedProfilePayload}' --json`));
+  const writeProfileResp = lastJsonObjectFromText(Bash(`ccw learn:write-profile --profile-id ${profile.profile_id} --data '${escapedUpdatedProfilePayload}' --json`));
   if (!writeProfileResp.ok) {
     console.error('❌ Failed to write updated profile:', writeProfileResp.error);
     throw new Error(writeProfileResp.error?.message || 'Profile write failed');
@@ -982,7 +1030,7 @@ switch (updateType) {
 
     const updatedProfilePayload = JSON.stringify(profile);
     const escapedUpdatedProfilePayload = escapeSingleQuotesForShell(updatedProfilePayload);
-    const writeProfileResp = JSON.parse(Bash(`ccw learn:write-profile --profile-id ${profile.profile_id} --data '${escapedUpdatedProfilePayload}' --json`));
+    const writeProfileResp = lastJsonObjectFromText(Bash(`ccw learn:write-profile --profile-id ${profile.profile_id} --data '${escapedUpdatedProfilePayload}' --json`));
     if (!writeProfileResp.ok) {
       console.error('❌ Failed to write updated profile:', writeProfileResp.error);
       throw new Error(writeProfileResp.error?.message || 'Profile write failed');

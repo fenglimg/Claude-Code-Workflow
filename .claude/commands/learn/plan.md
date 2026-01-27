@@ -278,10 +278,31 @@ Bash(`mkdir -p ${sessionFolder}/interactions/notes`);
 const JIT_THRESHOLD = 0.6;
 const jitStatePath = `${sessionFolder}/interactions/jit-assessments.json`;
 
+function lastJsonObjectFromText(text) {
+  const raw = String(text ?? '').trim();
+  if (!raw) throw new Error('Empty command output');
+
+  // Prefer parsing the last JSON-looking line (tolerates noisy output before/after).
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  for (let i = lines.length - 1; i >= 0; i--) {
+    try {
+      return JSON.parse(lines[i]);
+    } catch {
+      // keep scanning
+    }
+  }
+
+  // Fallback: code-fenced JSON blocks (LLM outputs)
+  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (m) return JSON.parse(m[1].trim());
+
+  throw new Error('Failed to parse JSON from command output');
+}
+
 // Load assessed topics for this session (prevents repetition)
 let assessedTopics = [];
 try {
-  const jitState = JSON.parse(Bash(`cat ${jitStatePath}`));
+  const jitState = lastJsonObjectFromText(Bash(`cat ${jitStatePath}`));
   assessedTopics = Array.isArray(jitState.assessed_topics) ? jitState.assessed_topics : [];
 } catch (e) {
   assessedTopics = [];
@@ -383,7 +404,7 @@ if (!flags.skipAssessment) {
     profile._metadata = profile._metadata || {};
     profile._metadata.updated_at = new Date().toISOString();
     const escapedProfile = JSON.stringify(profile).replace(/'/g, "'\\''");
-    const writeResp = JSON.parse(Bash(`ccw learn:write-profile --profile-id ${profile.profile_id} --data '${escapedProfile}' --json`));
+    const writeResp = lastJsonObjectFromText(Bash(`ccw learn:write-profile --profile-id ${profile.profile_id} --data '${escapedProfile}' --json`));
     if (!writeResp.ok) {
       console.warn('⚠️ Failed to persist profile updates from JIT assessment:', writeResp.error);
     } else {
@@ -398,6 +419,23 @@ if (!flags.skipAssessment) {
 ```javascript
 // Real LLM agent invocation via ccw cli (with retry + fallback)
 const agentTemplate = Bash('cat .claude/agents/learn-planning-agent.md');
+
+function lastJsonObjectFromText(text) {
+  const raw = String(text ?? '').trim();
+  if (!raw) throw new Error('Empty command output');
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  for (let i = lines.length - 1; i >= 0; i--) {
+    try {
+      return JSON.parse(lines[i]);
+    } catch {
+      // keep scanning
+    }
+  }
+  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (m) return JSON.parse(m[1].trim());
+  throw new Error('Failed to parse JSON from command output');
+}
+
 const agentContext = {
   goal,
   profile,
@@ -462,7 +500,7 @@ if (!planDraft) {
 // Write draft and run validation gates (schema → DAG → profile warnings)
 const draftPlanPath = `${sessionFolder}/plan.tmp.json`;
 Write(draftPlanPath, JSON.stringify(planDraft, null, 2));
-const validation = JSON.parse(Bash(`node .claude/commands/learn/_internal/learn-plan-validator.js ${draftPlanPath} --profile ${profilePath}`));
+const validation = lastJsonObjectFromText(Bash(`node .claude/commands/learn/_internal/learn-plan-validator.js ${draftPlanPath} --profile ${profilePath}`));
 
 if (!validation.ok) {
   if (!validation.layer0?.ok) {
@@ -565,7 +603,23 @@ const templatePlan = {
 const draftPlanPath = `${sessionFolder}/plan.tmp.json`;
 Write(draftPlanPath, JSON.stringify(templatePlan, null, 2));
 
-const validation = JSON.parse(Bash(`node .claude/commands/learn/_internal/learn-plan-validator.js ${draftPlanPath} --profile ${profilePath}`));
+function lastJsonObjectFromText(text) {
+  const raw = String(text ?? '').trim();
+  if (!raw) throw new Error('Empty command output');
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  for (let i = lines.length - 1; i >= 0; i--) {
+    try {
+      return JSON.parse(lines[i]);
+    } catch {
+      // keep scanning
+    }
+  }
+  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (m) return JSON.parse(m[1].trim());
+  throw new Error('Failed to parse JSON from command output');
+}
+
+const validation = lastJsonObjectFromText(Bash(`node .claude/commands/learn/_internal/learn-plan-validator.js ${draftPlanPath} --profile ${profilePath}`));
 if (!validation.ok) {
   if (!validation.layer0?.ok) {
     console.error('❌ Plan schema validation failed:', validation.layer0?.errors);
