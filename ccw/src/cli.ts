@@ -22,6 +22,7 @@ import {
   learnSetActiveProfileCommand
 } from './commands/learn.js';
 import { learnParseBackgroundCommand } from './commands/learn-background.js';
+import { learnAdaptiveStepCommand } from './commands/learn-adaptive.js';
 import { workflowCommand } from './commands/workflow.js';
 import { loopCommand } from './commands/loop.js';
 import { readFileSync, existsSync } from 'fs';
@@ -365,6 +366,14 @@ export function run(argv: string[]): void {
     .option('--file <path>', 'Read background text from file (mutually exclusive with --text)')
     .option('--json', 'Output as JSON (recommended for agents)')
     .action((options) => learnParseBackgroundCommand(options));
+
+  program
+    .command('learn:adaptive-step')
+    .description('Pure adaptive assessment step (no interaction)')
+    .requiredOption('--state <json>', 'Adaptive assessment state JSON')
+    .requiredOption('--round-result <json>', 'Round result JSON (correct_ratio/consistency, optional target_difficulty/question_count)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnAdaptiveStepCommand(options));
 
   // Loop command - Loop management for multi-CLI orchestration
   program

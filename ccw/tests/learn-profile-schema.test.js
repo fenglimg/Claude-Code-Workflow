@@ -75,6 +75,49 @@ describe('learn-profile.schema.json', () => {
     const ok = validate(profile);
     assert.equal(ok, true, JSON.stringify(validate.errors, null, 2));
   });
+
+  it('accepts adaptive assessment evidence payloads (round history)', () => {
+    const validate = compileSchema();
+    const now = new Date().toISOString();
+
+    const profile = {
+      profile_id: 'profile-adaptive',
+      experience_level: 'beginner',
+      known_topics: [
+        {
+          topic_id: 'typescript',
+          proficiency: 0.6,
+          confidence: 0.6,
+          last_updated: now,
+          evidence: [
+            {
+              evidence_type: 'self-report',
+              kind: 'adaptive_assessment',
+              timestamp: now,
+              data: {
+                rounds: [
+                  {
+                    round_index: 0,
+                    target_difficulty: 0.5,
+                    question_count: 4,
+                    score_mean: 0.75,
+                    range_after: { min: 0.4, max: 0.6 },
+                    confidence_after: 0.4
+                  }
+                ],
+                range_after: { min: 0.4, max: 0.6 },
+                confidence_after: 0.4,
+                target_difficulty: 0.5
+              }
+            }
+          ]
+        }
+      ]
+    };
+
+    const ok = validate(profile);
+    assert.equal(ok, true, JSON.stringify(validate.errors, null, 2));
+  });
 });
 
 describe('KeywordDictionary.json', () => {
