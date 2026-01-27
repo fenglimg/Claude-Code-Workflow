@@ -23,6 +23,7 @@ import {
 } from './commands/learn.js';
 import { learnParseBackgroundCommand } from './commands/learn-background.js';
 import { learnAdaptiveStepCommand } from './commands/learn-adaptive.js';
+import { learnValidateQuestionsCommand } from './commands/learn-questions.js';
 import { workflowCommand } from './commands/workflow.js';
 import { loopCommand } from './commands/loop.js';
 import { readFileSync, existsSync } from 'fs';
@@ -374,6 +375,14 @@ export function run(argv: string[]): void {
     .requiredOption('--round-result <json>', 'Round result JSON (correct_ratio/consistency, optional target_difficulty/question_count)')
     .option('--json', 'Output as JSON (recommended for agents)')
     .action((options) => learnAdaptiveStepCommand(options));
+
+  program
+    .command('learn:validate-questions')
+    .description('Validate generated questions against quality rules')
+    .requiredOption('--target-difficulty <0-1>', 'Target difficulty for validation (0..1)')
+    .requiredOption('--questions <json>', 'Questions JSON string (array or {questions: []})')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnValidateQuestionsCommand(options));
 
   // Loop command - Loop management for multi-CLI orchestration
   program
