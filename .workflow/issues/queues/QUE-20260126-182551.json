@@ -1,0 +1,52 @@
+{
+  "id": "QUE-20260126-182551",
+  "status": "active",
+  "issue_ids": [
+    "ISS-20260126-001"
+  ],
+  "tasks": [],
+  "conflicts": [],
+  "_metadata": {
+    "version": "2.1",
+    "total_tasks": 1,
+    "pending_count": 0,
+    "executing_count": 1,
+    "completed_count": 0,
+    "failed_count": 0,
+    "updated_at": "2026-01-27T01:58:08.747Z"
+  },
+  "solutions": [
+    {
+      "item_id": "S-1",
+      "issue_id": "ISS-20260126-001",
+      "solution_id": "SOL-ISS-20260126-001-m7x9",
+      "status": "executing",
+      "execution_order": 1,
+      "execution_group": "P1",
+      "depends_on": [],
+      "semantic_priority": 0.75,
+      "task_count": 12,
+      "files_touched": [
+        ".claude/commands/learn/profile.md",
+        ".claude/commands/learn/_internal/mcp-runner.js",
+        ".claude/workflows/cli-templates/schemas/learn-profile.schema.json",
+        ".claude/commands/learn/plan.md",
+        ".claude/agents/learn-planning-agent.md",
+        ".workflow/.scratchpad/learn-workflow-draft/README.md",
+        ".claude/commands/ccw/learn.md",
+        "ccw/src/commands/learn.ts"
+      ],
+      "started_at": "2026-01-27T01:58:08.747Z"
+    }
+  ],
+  "execution_groups": [
+    {
+      "id": "P1",
+      "type": "parallel",
+      "solution_count": 1,
+      "solutions": [
+        "S-1"
+      ]
+    }
+  ]
+}
