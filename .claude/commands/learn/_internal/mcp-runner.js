@@ -63,6 +63,55 @@ function lastJsonObjectFromStdout(stdout) {
   return null;
 }
 
+function tryKill(child, signal) {
+  try {
+    return typeof signal === 'string' ? child.kill(signal) : child.kill();
+  } catch {
+    return false;
+  }
+}
+
+function waitForExit(child, timeoutMs) {
+  if (child.exitCode !== null) return Promise.resolve(true);
+
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      child.removeListener('exit', onExit);
+      resolve(false);
+    }, timeoutMs);
+
+    function onExit() {
+      clearTimeout(timer);
+      resolve(true);
+    }
+
+    child.once('exit', onExit);
+  });
+}
+
+async function terminateChild(child) {
+  if (!child || child.exitCode !== null) return;
+
+  // Prefer graceful termination first.
+  if (process.platform === 'win32') {
+    tryKill(child);
+  } else {
+    if (!tryKill(child, 'SIGTERM')) tryKill(child);
+  }
+
+  if (await waitForExit(child, 100)) return;
+
+  // Escalate if still running.
+  if (process.platform === 'win32') {
+    tryKill(child);
+    await waitForExit(child, 100);
+    return;
+  }
+
+  if (!tryKill(child, 'SIGKILL')) tryKill(child);
+  await waitForExit(child, 100);
+}
+
 async function main() {
   const startedAt = performance.now();
   const { codeFile, fixtureFile, timeoutMs, pretty } = parseArgs(process.argv.slice(2));
@@ -179,14 +228,22 @@ async function main() {
     });
 
     const timedOut = await new Promise((resolve) => {
+      let settled = false;
+      let didTimeout = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
       const timer = setTimeout(() => {
-        child.kill('SIGKILL');
-        resolve(true);
+        didTimeout = true;
+        terminateChild(child).finally(() => finish(true));
       }, timeoutMs);
 
-      child.on('exit', () => {
+      child.once('exit', () => {
         clearTimeout(timer);
-        resolve(false);
+        finish(didTimeout);
       });
     });
 

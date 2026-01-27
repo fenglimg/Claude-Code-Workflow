@@ -87,8 +87,14 @@ describe('mcp-runner', () => {
 
       const { out } = runMcp(codePath, fixtureTsPath, ['--timeout-ms=50']);
       assert.equal(out.tests_passed, 0);
+      assert.equal(out.tests_total, 0);
       assert.equal(out.score, 0);
-      assert.ok(out.failures?.some((f) => f?.error?.name === 'TimeoutError'));
+      assert.ok(typeof out.execution_time_ms === 'number');
+      assert.ok(out.execution_time_ms >= 0);
+
+      const timeoutFailure = out.failures?.find((f) => f?.error?.name === 'TimeoutError');
+      assert.ok(timeoutFailure);
+      assert.match(String(timeoutFailure.error?.message), /Timed out/i);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -138,4 +144,3 @@ describe('mcp-runner', () => {
     }
   });
 });
-
