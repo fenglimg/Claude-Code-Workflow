@@ -40,8 +40,6 @@ Phase 1: Profile Discovery & Validation
    ├─ 读取 .workflow/learn/state.json
    ├─ 验证 active_profile_id 存在
    ├─ 如果不存在 → 自动创建 default profile
-   └─ Clarification Check: 目标是否过泛？
-      └─ Yes → AskUserQuestion 澄清具体方向
 
 Phase 2: Knowledge Gap Analysis
    ├─ 加载 profile: {known_topics, experience_level}
@@ -71,10 +69,6 @@ Phase 4: Validation Gate (Multi-Layer QA)
    │  ├─ 高熟练度topic (proficiency>=0.8) → 标记为optional
    │  ├─ 缺少基础prerequisites → 警告或补充基础KP
    │  └─ 生成 profile_fingerprint 防止不匹配
-   └─ Layer 3: Resource Quality Scoring（告警型）
-      ├─ 每个KP至少1个Gold-tier资源
-      ├─ 资源质量评分（gold/silver/bronze）
-      └─ 不满足 → 警告用户或降级继续
 
 Phase 5: Session Creation
    ├─ 生成 session_id: LS-YYYYMMDD-NNN
@@ -275,38 +269,18 @@ Bash(`mkdir -p ${sessionFolder}/interactions/notes`);
 ```javascript
 // Just-in-time assessment: only when needed, brief (2-3 questions), and only once per topic per session.
 // Uses CLI state API to update profile (no direct profile file writes).
+const { safeReadJson, safeExecJson } = await import('./_internal/error-handler.js');
+const { Logger } = await import('./_internal/logger.js');
+// Note: safeExecJson uses lastJsonObjectFromText internally for robust parsing of noisy CLI output.
+
 const JIT_THRESHOLD = 0.6;
 const jitStatePath = `${sessionFolder}/interactions/jit-assessments.json`;
 
-function lastJsonObjectFromText(text) {
-  const raw = String(text ?? '').trim();
-  if (!raw) throw new Error('Empty command output');
-
-  // Prefer parsing the last JSON-looking line (tolerates noisy output before/after).
-  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-  for (let i = lines.length - 1; i >= 0; i--) {
-    try {
-      return JSON.parse(lines[i]);
-    } catch {
-      // keep scanning
-    }
-  }
-
-  // Fallback: code-fenced JSON blocks (LLM outputs)
-  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (m) return JSON.parse(m[1].trim());
-
-  throw new Error('Failed to parse JSON from command output');
-}
+const logger = new Logger(sessionId);
 
 // Load assessed topics for this session (prevents repetition)
-let assessedTopics = [];
-try {
-  const jitState = lastJsonObjectFromText(Bash(`cat ${jitStatePath}`));
-  assessedTopics = Array.isArray(jitState.assessed_topics) ? jitState.assessed_topics : [];
-} catch (e) {
-  assessedTopics = [];
-}
+const jitState = safeReadJson(jitStatePath, { assessed_topics: [] });
+let assessedTopics = Array.isArray(jitState.assessed_topics) ? jitState.assessed_topics : [];
 
 if (!flags.skipAssessment) {
   // Candidate topics inferred from the goal + weak topics
@@ -404,11 +378,18 @@ if (!flags.skipAssessment) {
     profile._metadata = profile._metadata || {};
     profile._metadata.updated_at = new Date().toISOString();
     const escapedProfile = JSON.stringify(profile).replace(/'/g, "'\\''");
-    const writeResp = lastJsonObjectFromText(Bash(`ccw learn:write-profile --profile-id ${profile.profile_id} --data '${escapedProfile}' --json`));
-    if (!writeResp.ok) {
-      console.warn('⚠️ Failed to persist profile updates from JIT assessment:', writeResp.error);
-    } else {
-      console.log('✅ Profile updated from JIT assessment');
+    try {
+      const writeResp = safeExecJson(
+        `ccw learn:write-profile --profile-id ${profile.profile_id} --data '${escapedProfile}' --json`,
+        'learn:write-profile'
+      );
+      if (!writeResp.ok) {
+        logger.warn('Failed to persist profile updates from JIT assessment', writeResp.error);
+      } else {
+        logger.info('Profile updated from JIT assessment', { profile_id: profile.profile_id });
+      }
+    } catch (e) {
+      logger.warn('Failed to persist profile updates from JIT assessment (exec error)', { message: e?.message ?? String(e) });
     }
   }
 }
@@ -418,23 +399,11 @@ if (!flags.skipAssessment) {
 
 ```javascript
 // Real LLM agent invocation via ccw cli (with retry + fallback)
-const agentTemplate = Bash('cat .claude/agents/learn-planning-agent.md');
+const { safeExecJson } = await import('./_internal/error-handler.js');
+const { Logger } = await import('./_internal/logger.js');
 
-function lastJsonObjectFromText(text) {
-  const raw = String(text ?? '').trim();
-  if (!raw) throw new Error('Empty command output');
-  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-  for (let i = lines.length - 1; i >= 0; i--) {
-    try {
-      return JSON.parse(lines[i]);
-    } catch {
-      // keep scanning
-    }
-  }
-  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (m) return JSON.parse(m[1].trim());
-  throw new Error('Failed to parse JSON from command output');
-}
+const agentTemplate = Bash('cat .claude/agents/learn-planning-agent.md');
+const logger = new Logger(sessionId);
 
 const agentContext = {
   goal,
@@ -500,7 +469,10 @@ if (!planDraft) {
 // Write draft and run validation gates (schema → DAG → profile warnings)
 const draftPlanPath = `${sessionFolder}/plan.tmp.json`;
 Write(draftPlanPath, JSON.stringify(planDraft, null, 2));
-const validation = lastJsonObjectFromText(Bash(`node .claude/commands/learn/_internal/learn-plan-validator.js ${draftPlanPath} --profile ${profilePath}`));
+const validation = safeExecJson(
+  `node .claude/commands/learn/_internal/learn-plan-validator.js ${draftPlanPath} --profile ${profilePath}`,
+  'learn-plan-validator'
+);
 
 if (!validation.ok) {
   if (!validation.layer0?.ok) {
@@ -516,6 +488,7 @@ if (!validation.ok) {
 // Promote draft to final plan.json only after schema validation passes
 Bash(`mv ${draftPlanPath} ${sessionFolder}/plan.json`);
 let plan = JSON.parse(Read(`${sessionFolder}/plan.json`));
+logger.info('Plan validated and written', { session_id: sessionId, plan_path: `${sessionFolder}/plan.json` });
 
 // Layer 2: Profile→Plan matching (warning-only)
 for (const w of validation.layer2?.warnings ?? []) {
@@ -538,6 +511,8 @@ Write(`${sessionFolder}/plan.json`, JSON.stringify(plan, null, 2));
 
 ```javascript
 // 使用预定义模板生成简单计划
+const { safeExecJson } = await import('./_internal/error-handler.js');
+
 const templatePlan = {
   session_id: sessionId,
   learning_goal: goal,
@@ -602,24 +577,10 @@ const templatePlan = {
 // Layer 0: Schema Validation (blocking) before writing final plan.json
 const draftPlanPath = `${sessionFolder}/plan.tmp.json`;
 Write(draftPlanPath, JSON.stringify(templatePlan, null, 2));
-
-function lastJsonObjectFromText(text) {
-  const raw = String(text ?? '').trim();
-  if (!raw) throw new Error('Empty command output');
-  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-  for (let i = lines.length - 1; i >= 0; i--) {
-    try {
-      return JSON.parse(lines[i]);
-    } catch {
-      // keep scanning
-    }
-  }
-  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (m) return JSON.parse(m[1].trim());
-  throw new Error('Failed to parse JSON from command output');
-}
-
-const validation = lastJsonObjectFromText(Bash(`node .claude/commands/learn/_internal/learn-plan-validator.js ${draftPlanPath} --profile ${profilePath}`));
+const validation = safeExecJson(
+  `node .claude/commands/learn/_internal/learn-plan-validator.js ${draftPlanPath} --profile ${profilePath}`,
+  'learn-plan-validator'
+);
 if (!validation.ok) {
   if (!validation.layer0?.ok) {
     console.error('❌ Plan schema validation failed:', validation.layer0?.errors);
@@ -855,11 +816,10 @@ const command = `ccw issue create <<'EOF'\n${JSON.stringify(issueData, null, 2)}
 ### 3. Validation Gate ✅
 
 **Problem**: No validation mechanism for agent-generated plans
-**Solution**: Implemented 4-layer QA gate (see Enhancement: Validation Gate section)
+**Solution**: Implemented 3-layer QA gate (schema → DAG → profile warnings)
 - Layer 0: Schema validation (阻断型)
 - Layer 1: Graph validity (阻断型)
 - Layer 2: Profile→Plan matching (告警型)
-- Layer 3: Resource quality scoring (告警型)
 
 ### 4. AskUserQuestion Pattern ✅
 
@@ -872,14 +832,6 @@ const KEY = 'action_key';
 const answer = AskUserQuestion({ questions: [{ key: KEY, ... }] });
 const choice = answer[KEY];
 ```
-
-### 5. Clarification Blocking ✅
-
-**Problem**: Agent made best-guess decisions on ambiguous input
-**Solution**: Implemented clarification blocking mechanism (see Enhancement: Clarification Blocking)
-- Goal clarity check (< 2 keywords → clarify)
-- Knowledge chain conflict resolution (user decision required)
-- MCP tool availability check (degraded mode confirmation)
 
 ## Quality Checklist
 
@@ -1108,192 +1060,14 @@ plan._metadata.profile_fingerprint = {
 - 缺少基础prerequisites警告
 - Profile fingerprint生成
 
-### Layer 3: Resource Quality Scoring（告警型）
+### (Reserved) Layer 3: Resource Quality Scoring（告警型）
 
-```javascript
-// 质量评分rubric
-const qualityRubric = {
-  gold: {
-    threshold: 0.8,
-    sources: ['official docs', 'typescriptlang.org', 'developer.mozilla.org', 'docs.rs'],
-    description: 'Official documentation or authoritative sources'
-  },
-  silver: {
-    threshold: 0.6,
-    sources: ['blog', 'tutorial', 'course', 'egghead.io'],
-    description: 'High-quality tutorials or blogs'
-  },
-  bronze: {
-    threshold: 0.4,
-    sources: ['stackoverflow', 'medium.com', 'dev.to'],
-    description: 'Community resources or forums'
-  }
-};
+Layer 3 scoring is not implemented in the MVP docs/runtime. Current validation behavior:
+- Layer 0: Schema validation (blocking)
+- Layer 1: DAG validity (blocking)
+- Layer 2: Profile→Plan matching (warning-only)
 
-// 检查每个KP的资源质量
-let kpsWithoutGold = 0;
-plan.knowledge_points.forEach(kp => {
-  const hasGold = kp.resources.some(r => r.quality === 'gold');
-
-  if (!hasGold) {
-    kpsWithoutGold++;
-    kp._warning = 'Lacks gold-tier resource';
-  }
-
-  // 添加质量评分metadata
-  kp.resources.forEach(res => {
-    res.quality_score = calculateQualityScore(res, qualityRubric);
-    res.retrieved_at = new Date().toISOString();
-  });
-});
-
-if (kpsWithoutGold > 0) {
-  console.log(`⚠️  ${kpsWithoutGold} KPs lack gold-tier resources`);
-
-  // 询问用户是否继续
-  const QUALITY_KEY = 'quality_decision';
-  const answer = AskUserQuestion({
-    questions: [{
-      key: QUALITY_KEY,
-      question: `${kpsWithoutGold} knowledge points lack gold-tier resources. Continue?`,
-      header: "Quality Warning",
-      multiSelect: false,
-      options: [
-        {value: "continue", label: "Continue", description: "Accept degraded quality"},
-        {value: "regenerate", label: "Regenerate", description: "Try different search terms"},
-        {value: "cancel", label: "Cancel", description: "Review plan manually"}
-      ]
-    }]
-  });
-
-  const decision = answer[QUALITY_KEY];
-  if (decision === 'regenerate') {
-    return planGenerationPhase(); // 重试
-  } else if (decision === 'cancel') {
-    throw new Error('Plan generation cancelled by user');
-  }
-  // continue → 继续执行
-}
-
-console.log('✅ Resource quality check completed');
-```
-
-**验证项**:
-- 每个KP至少1个Gold-tier资源
-- 资源质量评分（0-1）
-- 不满足时询问用户
-
-### 完整验证流程示例
-
-```javascript
-function validatePlan(plan, profile) {
-  console.log('\n🔍 Starting validation gate...\n');
-
-  // Layer 0: Schema
-  const schemaResult = schemaValidator.validatePlan(plan);
-  if (!schemaResult.valid) {
-    return { valid: false, layer: 0, errors: schemaResult.errors };
-  }
-
-  // Layer 1: Graph
-  const dagResult = dagValidator.validate(plan.knowledge_points);
-  if (!dagResult.valid) {
-    return { valid: false, layer: 1, errors: dagResult.errors };
-  }
-
-  // Layer 2: Profile matching
-  const profileWarnings = checkProfileMatch(plan, profile);
-
-  // Layer 3: Resource quality
-  const qualityWarnings = checkResourceQuality(plan);
-
-  // 如果Layer 3有严重问题，询问用户
-  if (qualityWarnings.critical > 0) {
-    const decision = askUserDecision(qualityWarnings);
-    if (decision === 'cancel') {
-      return { valid: false, layer: 3, errors: ['Cancelled by user'] };
-    }
-  }
-
-  return {
-    valid: true,
-    warnings: { profile: profileWarnings, quality: qualityWarnings },
-    learning_order: dagResult.order
-  };
-}
-
-// 使用
-const validationResult = validatePlan(draftPlan, userProfile);
-
-if (!validationResult.valid) {
-  console.error(`❌ Validation failed at Layer ${validationResult.layer}`);
-  // 处理错误或重新生成
-} else {
-  console.log('✅ All validation passed');
-  if (validationResult.warnings) {
-    console.log(`ℹ️  Warnings: ${JSON.stringify(validationResult.warnings)}`);
-  }
-  // 继续创建session
-}
-```
-
----
-
-## Enhancement: Clarification Blocking
-
-Following issue-queue-agent pattern, **block on ambiguity** instead of best-guess:
-
-### Trigger Conditions
-
-| Condition | Detection | Action |
-|-----------|-----------|--------|
-| **Goal too vague** | Keywords < 2 or generic terms | AskUserQuestion for focus area |
-| **Profile missing** | No active_profile_id | Create default or clarify preferences |
-| **Knowledge chain conflicts** | Prerequisites mismatch | Block and present options |
-| **Resource unavailability** | MCP tools fail | Clarify degraded mode acceptance |
-
-### Implementation
-
-```javascript
-// Phase 1: Check goal clarity
-function checkGoalClarity(goal) {
-  const keywords = extractKeywords(goal);
-  const genericTerms = ['learn', 'study', 'understand', 'master'];
-  const isGeneric = genericTerms.some(term => goal.toLowerCase().includes(term));
-
-  if (keywords.length < 2 || isGeneric) {
-    return { clear: false, reason: 'Goal too broad' };
-  }
-
-  return { clear: true };
-}
-
-const goalCheck = checkGoalClarity($ARGUMENTS);
-
-if (!goalCheck.clear) {
-  const FOCUS_KEY = 'focus_area';
-  const clarification = AskUserQuestion({
-    questions: [{
-      key: FOCUS_KEY,
-      question: "Your goal seems broad. Which area to focus?",
-      header: "Clarify Goal",
-      multiSelect: false,
-      options: [
-        {value: "theory", label: "Theory", description: "Concepts and principles"},
-        {value: "practice", label: "Practice", description: "Hands-on exercises"},
-        {value: "both", label: "Both", description: "Balanced theory + practice"},
-        {value: "custom", label: "Custom", description: "Specify exact focus"}
-      ]
-    }]
-  });
-
-  // Refine goal based on answer
-  const focusArea = clarification[FOCUS_KEY];
-  $ARGUMENTS = refineGoal($ARGUMENTS, focusArea);
-}
-```
-
----
+If you need resource quality enforcement (e.g. “each KP has 1 gold resource”), implement it as a separate validator step and document the UX explicitly.
 
 **版本**: v1.0.0-mvp
 **状态**: MVP Ready - P0 Fixes Applied

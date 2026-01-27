@@ -8,6 +8,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { lastJsonObjectFromText as lastJsonObjectFromTextFromModule } from '../../.claude/commands/learn/_internal/json-parser.js';
 
 function lastJsonObjectFromText(text) {
   const raw = String(text ?? '').trim();
@@ -42,6 +43,11 @@ describe('learn docs: robust JSON parsing', () => {
     assert.ok(profileDoc.includes('lastJsonObjectFromText'), 'profile.md should mention lastJsonObjectFromText');
   });
 
+  it('json-parser utility matches documented behavior (empty + single-line)', () => {
+    assert.throws(() => lastJsonObjectFromTextFromModule(''), /Empty command output/i);
+    assert.deepEqual(lastJsonObjectFromTextFromModule(' {\"a\":1} '), { a: 1 });
+  });
+
   it('helper extracts JSON from noisy output (last JSON wins)', () => {
     const noisy = [
       'some warning: ignore',
@@ -49,6 +55,7 @@ describe('learn docs: robust JSON parsing', () => {
       '{"ok":true,"data":{"x":1}}',
     ].join('\n');
     assert.deepEqual(lastJsonObjectFromText(noisy), { ok: true, data: { x: 1 } });
+    assert.deepEqual(lastJsonObjectFromTextFromModule(noisy), { ok: true, data: { x: 1 } });
   });
 
   it('helper extracts JSON from code-fenced blocks', () => {
@@ -60,6 +67,7 @@ describe('learn docs: robust JSON parsing', () => {
       'tail noise',
     ].join('\n');
     assert.deepEqual(lastJsonObjectFromText(fenced), { a: 1 });
+    assert.deepEqual(lastJsonObjectFromTextFromModule(fenced), { a: 1 });
   });
 });
 
