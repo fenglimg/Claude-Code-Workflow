@@ -21,6 +21,7 @@ import {
   learnListProfilesCommand,
   learnSetActiveProfileCommand
 } from './commands/learn.js';
+import { learnParseBackgroundCommand } from './commands/learn-background.js';
 import { workflowCommand } from './commands/workflow.js';
 import { loopCommand } from './commands/loop.js';
 import { readFileSync, existsSync } from 'fs';
@@ -356,6 +357,14 @@ export function run(argv: string[]): void {
     .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
     .option('--json', 'Output as JSON (recommended for agents)')
     .action((options) => learnSetActiveProfileCommand(options));
+
+  program
+    .command('learn:parse-background')
+    .description('Parse background text into inferred skills (JSON)')
+    .option('--text <text>', 'Background text (mutually exclusive with --file)')
+    .option('--file <path>', 'Read background text from file (mutually exclusive with --text)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnParseBackgroundCommand(options));
 
   // Loop command - Loop management for multi-CLI orchestration
   program

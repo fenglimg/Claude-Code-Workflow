@@ -77,3 +77,18 @@ describe('learn-profile.schema.json', () => {
   });
 });
 
+describe('KeywordDictionary.json', () => {
+  it('is valid JSON and contains categories + aliases', () => {
+    const dictPath = path.join(repoRoot, '.workflow/learn/tech-stack/KeywordDictionary.json');
+    const dict = JSON.parse(readFileSync(dictPath, 'utf8'));
+
+    assert.equal(typeof dict, 'object');
+    assert.equal(typeof dict.categories, 'object');
+    assert.equal(typeof dict.aliases, 'object');
+
+    const aliasKeys = Object.keys(dict.aliases);
+    assert.ok(aliasKeys.length >= 10, 'Expected at least 10 alias mappings');
+    assert.ok(aliasKeys.every(k => k === k.toLowerCase()), 'Alias keys must be lowercase');
+  });
+});
+

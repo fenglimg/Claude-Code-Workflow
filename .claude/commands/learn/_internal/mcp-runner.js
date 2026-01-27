@@ -16,8 +16,15 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
+import { pathToFileURL } from 'node:url';
 
 const DEFAULT_TIMEOUT_MS = 2000;
+
+function getNodeMajor() {
+  const raw = String(process.versions?.node ?? '0');
+  const major = Number.parseInt(raw.split('.')[0] ?? '0', 10);
+  return Number.isFinite(major) ? major : 0;
+}
 
 function parseArgs(argv) {
   const positional = [];
@@ -130,6 +137,13 @@ async function main() {
     await fs.copyFile(codeFile, tmpCodePath);
     await fs.copyFile(fixtureFile, tmpFixturePath);
 
+    // Node >= 22 supports native TypeScript stripping (`--experimental-strip-types`) plus the permission model.
+    // For older Node versions (e.g. Node 20 in some dev environments), fall back to transpiling TS to ESM
+    // and running without the permission flags (best-effort isolation still comes from the preload).
+    const nodeMajor = getNodeMajor();
+    const supportsPermissions = nodeMajor >= 22;
+    const supportsStripTypes = nodeMajor >= 22;
+
     const preloadSrc = new URL('./sandbox-preload.mjs', import.meta.url);
     const tmpPreloadPath = path.join(tmpDir, 'sandbox-preload.mjs');
     await fs.copyFile(preloadSrc, tmpPreloadPath);
@@ -194,18 +208,36 @@ async function main() {
       return [...roots];
     })();
 
-    const nodeArgs = [
-      '--experimental-strip-types',
-      '--permission',
-      ...readRoots.map((p) => `--allow-fs-read=${p}`),
-      `--allow-fs-write=${tmpDir}`,
-      `--allow-fs-write=${realTmpDir}`,
-      '--import',
-      tmpPreloadPath,
-      tmpRunnerPath,
-      tmpCodePath,
-      tmpFixturePath
-    ];
+    let execCodePath = tmpCodePath;
+    if (!supportsStripTypes && (codeExt === '.ts' || codeExt === '.tsx')) {
+      // Lazy-load TypeScript only when needed (keeps the Node>=22 fast path dependency-free).
+      const ts = await import('typescript');
+      const source = await fs.readFile(tmpCodePath, 'utf8');
+      const result = ts.transpileModule(source, {
+        compilerOptions: {
+          module: ts.ModuleKind.ESNext,
+          target: ts.ScriptTarget.ES2022
+        },
+        fileName: path.basename(tmpCodePath)
+      });
+      execCodePath = path.join(tmpDir, 'solution.mjs');
+      await fs.writeFile(execCodePath, result.outputText, 'utf8');
+    }
+
+    const nodeArgs = supportsPermissions
+      ? [
+          '--experimental-strip-types',
+          '--permission',
+          ...readRoots.map((p) => `--allow-fs-read=${p}`),
+          `--allow-fs-write=${tmpDir}`,
+          `--allow-fs-write=${realTmpDir}`,
+          '--import',
+          pathToFileURL(tmpPreloadPath).href,
+          tmpRunnerPath,
+          execCodePath,
+          tmpFixturePath
+        ]
+      : ['--import', pathToFileURL(tmpPreloadPath).href, tmpRunnerPath, execCodePath, tmpFixturePath];
 
     const child = spawn(process.execPath, nodeArgs, {
       cwd: tmpDir,

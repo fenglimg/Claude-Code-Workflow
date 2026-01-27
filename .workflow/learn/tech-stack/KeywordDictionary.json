@@ -1,5 +1,26 @@
 {
   "version": "1.0.0",
+  "aliases": {
+    "angularjs": "angular",
+    "amazon web services": "aws",
+    "asp.net": "aspnet",
+    "c#": "csharp",
+    "ci/cd": "cicd",
+    "dotnet": "aspnet",
+    "g-cloud": "gcp",
+    "google cloud": "gcp",
+    "js": "javascript",
+    "k8s": "kubernetes",
+    "mongo": "mongodb",
+    "node.js": "node",
+    "nodejs": "node",
+    "postgres": "postgresql",
+    "react.js": "react",
+    "reactjs": "react",
+    "ts": "typescript",
+    "vue.js": "vue",
+    "vuejs": "vue"
+  },
   "categories": {
     "frontend": {
       "frameworks": ["react", "vue", "angular", "svelte", "solid"],
@@ -10,7 +31,7 @@
     "backend": {
       "languages": ["node", "python", "go", "rust", "java", "csharp", "php"],
       "frameworks": ["express", "fastapi", "django", "flask", "spring", "aspnet", "gin"],
-      "databases": ["mongodb", "postgresql", "mysql", "redis", "mongodb"],
+      "databases": ["mongodb", "postgresql", "mysql", "redis"],
       "libraries": ["prisma", "typeorm", "sequelize", "numpy", "pandas", "asyncio"],
       "keywords": ["api", "rest", "graphql", "middleware", "microservice", "endpoint", "crud"]
     },
@@ -23,7 +44,7 @@
       "languages": ["swift", "kotlin", "flutter", "react-native", "swiftui"],
       "frameworks": ["swiftui", "react-native", "flutter", "jetpack compose"],
       "libraries": ["alamofire", "coredata", "rxjava", "room", "firebase"],
-      "keywords": ["ios", "android", "cross-platform", "native", "arhitecture"]
+      "keywords": ["ios", "android", "cross-platform", "native", "architecture"]
     },
     "data_science": {
       "languages": ["python", "r", "julia"],
@@ -52,4 +73,5 @@
       "libraries": ["scikit-learn", "pandas", "numpy", "keras", "fastapi"],
       "keywords": ["neural network", "model", "training", "inference", "nlp", "computer vision", "llm", "rag", "fine-tuning"]
     }
+  }
 }

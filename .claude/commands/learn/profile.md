@@ -240,6 +240,119 @@ if (goalType === 'role') {
   }
 }
 
+// Optional: Background-driven topic seeding (independent of goal type)
+// Users can paste a short background or provide a local file path.
+const BG_SOURCE_KEY = 'background_source';
+const bgSourceAnswer = AskUserQuestion({
+  questions: [{
+    key: BG_SOURCE_KEY,
+    question: "Would you like to provide background text to seed your known topics (optional)?",
+    header: "Background (Optional)",
+    multiSelect: false,
+    options: [
+      { value: "skip", label: "Skip", description: "Continue without background parsing" },
+      { value: "text", label: "Paste Text", description: "Paste a short background summary (recommended)" },
+      { value: "file", label: "Local File", description: "Provide a local file path containing your background" }
+    ]
+  }]
+});
+
+let backgroundText = '';
+if (bgSourceAnswer[BG_SOURCE_KEY] === 'text') {
+  console.log('\nPlease paste a short background summary (e.g. \"3 years React + Node.js, some Postgres\")');
+  // In real implementation, would collect multi-line input via Read tool.
+  console.log('ℹ️  For now, we will proceed without background text.');
+}
+if (bgSourceAnswer[BG_SOURCE_KEY] === 'file') {
+  console.log('\nPlease provide a local file path to read background from (plain text).');
+  // In real implementation, would collect file path via Read tool and load file content.
+  console.log('ℹ️  For now, we will proceed without background text.');
+}
+
+if (backgroundText) {
+  console.log('\n## Background-Driven Topic Seeding\n');
+
+  function lastJsonObjectFromText(text) {
+    const raw = String(text ?? '').trim();
+    if (!raw) throw new Error('Empty command output');
+    const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+    for (let i = lines.length - 1; i >= 0; i--) {
+      try {
+        return JSON.parse(lines[i]);
+      } catch {
+        // keep scanning
+      }
+    }
+    const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (m) return JSON.parse(m[1].trim());
+    throw new Error('Failed to parse JSON from command output');
+  }
+
+  let inferredSkills = [];
+  try {
+    const raw = Bash(`ccw learn:parse-background --text ${JSON.stringify(backgroundText)} --json`);
+    const parsed = lastJsonObjectFromText(raw);
+    if (parsed?.ok) inferredSkills = parsed?.data?.skills ?? [];
+  } catch (e) {
+    console.log('⚠️  Background parsing failed. Continuing without background seeding.');
+  }
+
+  if (inferredSkills.length > 0) {
+    const choices = AskUserQuestion({
+      questions: inferredSkills.map(skill => ({
+        key: `bg_${skill.topic_id}`,
+        question: `Confirm your familiarity with ${skill.topic_id}:`,
+        header: "Confirm Background Topics",
+        multiSelect: false,
+        options: [
+          { value: "often", label: "经常使用", description: "I use this frequently / in real projects" },
+          { value: "touched", label: "接触过", description: "I have used it a bit / followed tutorials" },
+          { value: "heard", label: "听说过", description: "I only know it at a high level" },
+          { value: "no", label: "不对", description: "This topic does not apply to me" }
+        ]
+      }))
+    });
+
+    const now = new Date().toISOString();
+    const confirmed = inferredSkills
+      .map(skill => {
+        const v = choices[`bg_${skill.topic_id}`];
+        const prof = v === 'often' ? 0.7 : v === 'touched' ? 0.4 : v === 'heard' ? 0.2 : null;
+        if (prof === null) return null;
+        return {
+          topic_id: String(skill.topic_id).toLowerCase(),
+          proficiency: prof,
+          confidence: 0.4, // conservative default; will be refined later by assessments
+          last_updated: now,
+          evidence: [
+            {
+              evidence_type: 'self-report',
+              kind: 'background_inference',
+              timestamp: now,
+              summary: 'Inferred from background text (seed topic)',
+              data: { source: 'learn:parse-background' }
+            },
+            {
+              evidence_type: 'self-report',
+              kind: 'confirmed_topic',
+              timestamp: now,
+              summary: 'Confirmed by user (seed topic)',
+              data: { source: 'user_confirmation' }
+            }
+          ]
+        };
+      })
+      .filter(Boolean);
+
+    // Merge into initialKnownTopics (prefer higher proficiency if duplicates).
+    for (const t of confirmed) {
+      const existing = initialKnownTopics.find(x => x.topic_id === t.topic_id);
+      if (!existing) initialKnownTopics.push(t);
+      else existing.proficiency = Math.max(existing.proficiency ?? 0, t.proficiency ?? 0);
+    }
+  }
+}
+
 // 经验水平（初步）
 const EXP_LEVEL_KEY = 'experience_level';
 const expLevelAnswer = AskUserQuestion({

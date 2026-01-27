@@ -15,6 +15,7 @@ describe('learn/profile.md minimal profile flow', () => {
     assert.ok(content.includes('is_minimal'));
     assert.ok(content.includes('completion_percent'));
     assert.ok(content.includes('JIT'));
+    assert.ok(content.includes('learn:parse-background'));
   });
 });
 
