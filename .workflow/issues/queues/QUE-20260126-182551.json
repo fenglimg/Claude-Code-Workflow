@@ -1,6 +1,6 @@
 {
   "id": "QUE-20260126-182551",
-  "status": "active",
+  "status": "completed",
   "issue_ids": [
     "ISS-20260126-001"
   ],
@@ -10,17 +10,17 @@
     "version": "2.1",
     "total_tasks": 1,
     "pending_count": 0,
-    "executing_count": 1,
-    "completed_count": 0,
+    "executing_count": 0,
+    "completed_count": 1,
     "failed_count": 0,
-    "updated_at": "2026-01-27T01:58:08.747Z"
+    "updated_at": "2026-01-27T05:03:25.185Z"
   },
   "solutions": [
     {
       "item_id": "S-1",
       "issue_id": "ISS-20260126-001",
       "solution_id": "SOL-ISS-20260126-001-m7x9",
-      "status": "executing",
+      "status": "completed",
       "execution_order": 1,
       "execution_group": "P1",
       "depends_on": [],
@@ -36,7 +36,44 @@
         ".claude/commands/ccw/learn.md",
         "ccw/src/commands/learn.ts"
       ],
-      "started_at": "2026-01-27T01:58:08.747Z"
+      "started_at": "2026-01-27T01:58:08.747Z",
+      "completed_at": "2026-01-27T05:03:25.183Z",
+      "result": {
+        "files_modified": [
+          ".claude/agents/learn-planning-agent.md",
+          ".claude/commands/ccw/learn.md",
+          ".claude/commands/learn/plan.md",
+          ".claude/commands/learn/profile.md",
+          ".claude/commands/learn/_internal/mcp-runner.js",
+          ".claude/commands/learn/_internal/learn-plan-validator.js",
+          ".claude/workflows/cli-templates/schemas/learn-profile.schema.json",
+          ".workflow/.scratchpad/learn-workflow-draft/README.md",
+          "ccw/src/cli.ts",
+          "ccw/src/commands/learn.ts",
+          "ccw/tests/mcp-runner.test.js",
+          "ccw/tests/learn-state-cli.test.js"
+        ],
+        "tests_passed": true,
+        "commit": {
+          "hash": "da117244",
+          "type": "feat",
+          "tasks": [
+            "T1",
+            "T2",
+            "T3",
+            "T4",
+            "T5",
+            "T6",
+            "T7",
+            "T8",
+            "T9",
+            "T10",
+            "T11",
+            "T12"
+          ]
+        },
+        "summary": "Implemented real (fixture-based) MCP challenge verification, strengthened evidence schema, added learn plan validation gates (schema/DAG/profile warnings), implemented ccw learn:* state CLI with locking/atomic writes, refactored learn profile/plan commands to use these interfaces, and added JIT assessment + minimal-by-default profile flow."
+      }
     }
   ],
   "execution_groups": [
