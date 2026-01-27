@@ -859,6 +859,26 @@ const profile = profileResp.data;
 
 const escapeSingleQuotesForShell = (s) => s.replace(/'/g, "'\\''");
 
+const extractKeywords = (text) => {
+  const raw = String(text ?? '').toLowerCase().trim();
+  if (!raw) return [];
+
+  const stopwords = new Set([
+    'a', 'an', 'the', 'and', 'or', 'to', 'of', 'in', 'on', 'for', 'with', 'from', 'at', 'by',
+    'learn', 'learning', 'master', 'advanced', 'beginner', 'intermediate', 'expert',
+    'build', 'create', 'project', 'projects', 'app', 'apps'
+  ]);
+
+  const tokens = raw.split(/[^a-z0-9#+.]+/g).map(s => s.trim()).filter(Boolean);
+  const out = [];
+  for (const t of tokens) {
+    if (stopwords.has(t)) continue;
+    if (!out.includes(t)) out.push(t);
+    if (out.length >= 20) break;
+  }
+  return out;
+};
+
 // Check for --goal parameter (non-interactive mode)
 if (flags.goal) {
   console.log(`\n## Goal-Oriented Profile Update`);
