@@ -76,6 +76,42 @@ describe('learn-profile.schema.json', () => {
     assert.equal(ok, true, JSON.stringify(validate.errors, null, 2));
   });
 
+  it('accepts background and custom_fields (optional, backward compatible)', () => {
+    const validate = compileSchema();
+    const now = new Date().toISOString();
+
+    const profile = {
+      profile_id: 'profile-background',
+      experience_level: 'beginner',
+      known_topics: [
+        {
+          topic_id: 'javascript',
+          proficiency: 0.2,
+          last_updated: now,
+          evidence: []
+        }
+      ],
+      background: {
+        work_experience: [
+          { role: 'Frontend Developer', company: 'Acme', technologies: ['react', 'typescript'] }
+        ],
+        personal_projects: [
+          { name: 'Todo App', technologies: ['node.js', 'sqlite'] }
+        ],
+        education: [
+          { degree: 'BS', focus: 'Computer Science', technologies: ['python'] }
+        ]
+      },
+      custom_fields: {
+        preferred_editor: 'vscode',
+        timezone: 'UTC+8'
+      }
+    };
+
+    const ok = validate(profile);
+    assert.equal(ok, true, JSON.stringify(validate.errors, null, 2));
+  });
+
   it('accepts adaptive assessment evidence payloads (round history)', () => {
     const validate = compileSchema();
     const now = new Date().toISOString();
@@ -91,16 +127,17 @@ describe('learn-profile.schema.json', () => {
           last_updated: now,
           evidence: [
             {
-              evidence_type: 'self-report',
+              evidence_type: 'adaptive-assessment',
               kind: 'adaptive_assessment',
               timestamp: now,
               data: {
                 rounds: [
                   {
-                    round_index: 0,
+                    round_index: 1,
                     target_difficulty: 0.5,
                     question_count: 4,
                     score_mean: 0.75,
+                    consistency: 0.8,
                     range_after: { min: 0.4, max: 0.6 },
                     confidence_after: 0.4
                   }

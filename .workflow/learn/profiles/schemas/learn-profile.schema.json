@@ -29,7 +29,7 @@
                   "properties": {
                     "evidence_type": {
                       "type": "string",
-                      "enum": ["self-report", "conceptual", "tool-verified"],
+                      "enum": ["self-report", "conceptual", "tool-verified", "adaptive-assessment"],
                       "description": "Provenance tier used for confidence calibration."
                     },
                     "kind": {
@@ -61,6 +61,18 @@
                       }
                     }
                   },
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": { "evidence_type": { "const": "adaptive-assessment" } },
+                        "required": ["evidence_type"]
+                      },
+                      "then": {
+                        "properties": { "data": { "$ref": "#/definitions/adaptive_assessment_data" } },
+                        "required": ["data"]
+                      }
+                    }
+                  ],
                   "required": ["evidence_type", "kind", "timestamp"]
                 }
               ]
@@ -69,6 +81,21 @@
         },
         "required": ["topic_id", "proficiency"]
       }
+    },
+    "background": {
+      "type": "object",
+      "description": "Optional background context used to seed planning and topic inference.",
+      "properties": {
+        "work_experience": { "type": "array", "items": { "$ref": "#/definitions/background_item" } },
+        "personal_projects": { "type": "array", "items": { "$ref": "#/definitions/background_item" } },
+        "education": { "type": "array", "items": { "$ref": "#/definitions/background_item" } }
+      },
+      "additionalProperties": true
+    },
+    "custom_fields": {
+      "type": "object",
+      "description": "Extension point for user-defined profile fields.",
+      "additionalProperties": true
     },
     "learning_preferences": {
       "type": "object",
@@ -159,6 +186,54 @@
         },
         "required": ["date", "session_id", "rating"]
       }
+    }
+  },
+  "definitions": {
+    "background_item": {
+      "type": "object",
+      "properties": {
+        "role": { "type": "string" },
+        "company": { "type": "string" },
+        "name": { "type": "string" },
+        "degree": { "type": "string" },
+        "focus": { "type": "string" },
+        "technologies": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "difficulty_range": {
+      "type": "object",
+      "properties": {
+        "min": { "type": "number", "minimum": 0, "maximum": 1 },
+        "max": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["min", "max"],
+      "additionalProperties": false
+    },
+    "adaptive_assessment_round": {
+      "type": "object",
+      "properties": {
+        "round_index": { "type": "integer", "minimum": 1 },
+        "target_difficulty": { "type": "number", "minimum": 0, "maximum": 1 },
+        "question_count": { "const": 4 },
+        "score_mean": { "type": "number", "minimum": 0, "maximum": 1 },
+        "consistency": { "type": "number", "minimum": 0, "maximum": 1 },
+        "range_after": { "$ref": "#/definitions/difficulty_range" },
+        "confidence_after": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["round_index", "target_difficulty", "question_count", "score_mean", "consistency", "range_after", "confidence_after"],
+      "additionalProperties": true
+    },
+    "adaptive_assessment_data": {
+      "type": "object",
+      "properties": {
+        "rounds": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/adaptive_assessment_round" } },
+        "range_after": { "$ref": "#/definitions/difficulty_range" },
+        "confidence_after": { "type": "number", "minimum": 0, "maximum": 1 },
+        "target_difficulty": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["rounds"],
+      "additionalProperties": true
     }
   },
   "required": ["profile_id", "experience_level", "known_topics"]
