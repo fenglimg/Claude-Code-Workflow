@@ -526,9 +526,25 @@ assessmentTopics.forEach((topicId, index) => {
         `python3 - <<'PY'\nimport hashlib\nfrom pathlib import Path\np=Path(${JSON.stringify(codePath)})\nprint(hashlib.sha256(p.read_bytes()).hexdigest())\nPY`
       ).trim();
 
+      const lastJsonObjectFromText = (text) => {
+        const raw = String(text ?? '').trim();
+        if (!raw) throw new Error('Empty command output');
+        const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+        for (let i = lines.length - 1; i >= 0; i--) {
+          try {
+            return JSON.parse(lines[i]);
+          } catch {
+            // keep scanning
+          }
+        }
+        const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (m) return JSON.parse(m[1].trim());
+        throw new Error('Failed to parse JSON from command output');
+      };
+
       // Execute real tests (isolated runner) and map to score:
       const raw = Bash(`node .claude/commands/learn/_internal/mcp-runner.js ${codePath} ${challenge.fixture} --timeout-ms=2000`);
-      challengeResult = JSON.parse(raw);
+      challengeResult = lastJsonObjectFromText(raw);
       challengeScore = challengeResult.score;
     }
 
