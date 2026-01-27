@@ -487,45 +487,44 @@ assessmentTopics.forEach((topicId, index) => {
     });
   } else {
     // For fixture-backed challenges, collect real code and execute tests.
-    console.log('\nSubmit your solution as either:');
-    console.log('  (a) paste a single code block in chat, OR');
-    console.log('  (b) provide a local file path that contains your solution.');
-    console.log(`Expected output is verified by fixture: ${challenge.fixture}`);
+    const scratchDir = `.workflow/.scratchpad/learn-challenges`;
+    const codePath = `${scratchDir}/${topicId}-solution.${challenge.file_ext}`;
 
-    const methodAnswer = AskUserQuestion({
+    console.log('\nThis challenge is tool-verified using a deterministic scratch file path.');
+    console.log('Create/edit the file locally (outside the agent), then come back and run verification:');
+    console.log(`  1) mkdir -p ${scratchDir}`);
+    console.log(`  2) edit: ${codePath}`);
+    console.log(`  3) ensure it exports the required function for: ${challenge.description}`);
+    console.log(`Fixture used for verification: ${challenge.fixture}`);
+
+    const CHALLENGE_READY_KEY = `challenge_ready_${topicId}`;
+    const readyAnswer = AskUserQuestion({
       questions: [{
-        key: CHALLENGE_METHOD_KEY,
-        question: "How would you like to submit your solution?",
-        header: "Code Challenge (Tool-Verified)",
+        key: CHALLENGE_READY_KEY,
+        question: 'Ready to run the tool-verified challenge now?',
+        header: 'Code Challenge (Tool-Verified)',
         multiSelect: false,
         options: [
-          {value: "paste", label: "Paste code", description: "Paste your code in one code block"},
-          {value: "file", label: "Use a file path", description: "Provide a local path to a .js/.ts file"},
-          {value: "skip", label: "Skip", description: "Skip this challenge"}
+          {value: 'ready', label: 'Ready (run tests)', description: 'Run mcp-runner against your scratch file'},
+          {value: 'skip', label: 'Skip', description: 'Skip this challenge for now'}
         ]
       }]
     });
 
-    const method = methodAnswer[CHALLENGE_METHOD_KEY];
+    const method = readyAnswer[CHALLENGE_READY_KEY] === 'ready' ? 'scratch_file' : 'skip';
     let challengeResult = { tests_passed: 0, tests_total: 0, score: 0, execution_time_ms: 0 };
-    let codeContent = null;
-    let codePath = null;
+    let codeSha256 = null;
 
     if (method === 'skip') {
       challengeScore = 0.0;
     } else {
-      // IMPORTANT: Capture user code content for evidence:
-      // - If "paste": user pastes a single code block → set codeContent to that block
-      // - If "file": user provides a path → Bash(`cat <path>`) into codeContent
-      codeContent = '/* user-provided code */';
-
-      // Persist it so we can run deterministic fixtures.
-      // (Use a scratch path that is gitignored by default.)
-      const scratchDir = `.workflow/.scratchpad/learn-challenges`;
       Bash(`mkdir -p ${scratchDir}`);
-      codePath = `${scratchDir}/${topicId}-${Date.now()}.${challenge.file_ext}`;
-      // Avoid direct Write() - persist via Bash in a way that preserves newlines safely.
-      Bash(`python3 - <<'PY'\nfrom pathlib import Path\nimport json\nPath(${JSON.stringify(codePath)}).write_text(${JSON.stringify(codeContent)}, encoding='utf-8')\nPY`);
+      // Gate: require the user to have created/edited the real solution file first.
+      Bash(`test -f ${codePath}`);
+      // Optional: store a short hash instead of full code to avoid prompt bloat.
+      codeSha256 = Bash(
+        `python3 - <<'PY'\nimport hashlib\nfrom pathlib import Path\np=Path(${JSON.stringify(codePath)})\nprint(hashlib.sha256(p.read_bytes()).hexdigest())\nPY`
+      ).trim();
 
       // Execute real tests (isolated runner) and map to score:
       const raw = Bash(`node .claude/commands/learn/_internal/mcp-runner.js ${codePath} ${challenge.fixture} --timeout-ms=2000`);
@@ -538,7 +537,7 @@ assessmentTopics.forEach((topicId, index) => {
       mode: method,
       challenge: challenge.description,
       code_path: codePath,
-      code: codeContent,
+      code_sha256: codeSha256,
       fixture: challenge.fixture,
       verified: method !== 'skip',
       tests_passed: challengeResult.tests_passed,
