@@ -115,6 +115,49 @@ describe('ccw learn:* state commands', () => {
     }
   });
 
+  it('learn:list-profiles returns validated summaries', () => {
+    const cwd = setupSandboxProject();
+    try {
+      const payload = { experience_level: 'beginner', known_topics: [] };
+      runCcw(['learn:write-profile', '--profile-id', 'p1', '--data', JSON.stringify(payload), '--json'], cwd);
+      runCcw(['learn:write-profile', '--profile-id', 'p2', '--data', JSON.stringify(payload), '--json'], cwd);
+
+      const { res, out } = runCcw(['learn:list-profiles', '--json'], cwd);
+      assert.equal(res.status, 0);
+      assert.equal(out.ok, true);
+      assert.ok(Array.isArray(out.data));
+      const ids = out.data.map((p) => p.profile_id);
+      assert.ok(ids.includes('p1'));
+      assert.ok(ids.includes('p2'));
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
+  it('learn:set-active-profile validates existence and updates state', () => {
+    const cwd = setupSandboxProject();
+    try {
+      const payload = { experience_level: 'beginner', known_topics: [] };
+      runCcw(['learn:write-profile', '--profile-id', 'p1', '--data', JSON.stringify(payload), '--json'], cwd);
+
+      const { res: r1, out: o1 } = runCcw(['learn:set-active-profile', '--profile-id', 'p1', '--json'], cwd);
+      assert.equal(r1.status, 0);
+      assert.equal(o1.ok, true);
+      assert.equal(o1.data.active_profile_id, 'p1');
+
+      const { out: o2 } = runCcw(['learn:read-state', '--json'], cwd);
+      assert.equal(o2.ok, true);
+      assert.equal(o2.data.active_profile_id, 'p1');
+
+      const { res: r3, out: o3 } = runCcw(['learn:set-active-profile', '--profile-id', 'missing', '--json'], cwd);
+      assert.equal(r3.status, 1);
+      assert.equal(o3.ok, false);
+      assert.equal(o3.error.code, 'NOT_FOUND');
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
   it('rejects invalid profile ids (path traversal)', () => {
     const cwd = setupSandboxProject();
     try {

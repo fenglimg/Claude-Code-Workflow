@@ -14,7 +14,7 @@
  */
 
 import chalk from 'chalk';
-import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, copyFileSync, unlinkSync, openSync, closeSync, realpathSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, copyFileSync, unlinkSync, openSync, closeSync, realpathSync, readdirSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import AjvModule from 'ajv';
 import addFormatsModule from 'ajv-formats';
@@ -48,6 +48,10 @@ interface ReadProfileOptions extends BaseOptions {
 interface WriteProfileOptions extends BaseOptions {
   profileId?: string;
   data?: string;
+}
+
+interface SetActiveProfileOptions extends BaseOptions {
+  profileId?: string;
 }
 
 const PROJECT_ROOT = (() => {
@@ -394,6 +398,86 @@ export async function learnWriteProfileCommand(options: WriteProfileOptions): Pr
     });
 
     print(options, { ok: true, data: written });
+  } catch (err: any) {
+    if (err?._exitCode === 2) {
+      fail(options, { code: err.code ?? 'LOCKED', message: err.message ?? 'Locked', details: err.details }, 2);
+    }
+    fail(options, { code: err.code ?? 'IO_ERROR', message: err.message ?? String(err), details: err.details });
+  }
+}
+
+export async function learnListProfilesCommand(options: BaseOptions): Promise<void> {
+  try {
+    await ensureLearnDirs();
+
+    const entries = readdirSync(PROFILES_DIR, { withFileTypes: true });
+    const files = entries
+      .filter((e) => e.isFile() && e.name.endsWith('.json'))
+      .map((e) => e.name)
+      .sort((a, b) => a.localeCompare(b));
+
+    const summaries = files.map((fileName) => {
+      const profileId = fileName.replace(/\.json$/, '');
+      safeProfileIdOrThrow(profileId);
+      const profilePath = join(PROFILES_DIR, fileName);
+
+      const profile = loadJsonFile(profilePath);
+      const ok = getProfileValidator()(profile);
+      if (!ok) {
+        throw Object.assign(new Error('Profile schema validation failed'), {
+          code: 'SCHEMA_INVALID',
+          details: formatAjvErrors((getProfileValidator() as any).errors)
+        });
+      }
+
+      const knownTopicsCount = Array.isArray(profile?.known_topics) ? profile.known_topics.length : 0;
+
+      return {
+        profile_id: profile.profile_id ?? profileId,
+        experience_level: profile.experience_level,
+        known_topics_count: knownTopicsCount,
+        updated_at: profile?._metadata?.updated_at ?? null
+      };
+    });
+
+    print(options, { ok: true, data: summaries });
+  } catch (err: any) {
+    fail(options, { code: err.code ?? 'IO_ERROR', message: err.message ?? String(err), details: err.details });
+  }
+}
+
+export async function learnSetActiveProfileCommand(options: SetActiveProfileOptions): Promise<void> {
+  const profileId = options.profileId;
+  if (!profileId) fail(options, { code: 'INVALID_ARGS', message: 'Missing --profile-id' });
+
+  try {
+    const updated = await withLearnLock(async () => {
+      const id = safeProfileIdOrThrow(profileId);
+      const profilePath = join(PROFILES_DIR, `${id}.json`);
+
+      if (!existsSync(profilePath)) {
+        throw Object.assign(new Error(`Profile not found: ${id}`), { code: 'NOT_FOUND' });
+      }
+
+      const profile = loadJsonFile(profilePath);
+      const ok = getProfileValidator()(profile);
+      if (!ok) {
+        throw Object.assign(new Error('Profile schema validation failed'), {
+          code: 'SCHEMA_INVALID',
+          details: formatAjvErrors((getProfileValidator() as any).errors)
+        });
+      }
+
+      const current = existsSync(STATE_PATH) ? loadJsonFile(STATE_PATH) : defaultState();
+      current.active_profile_id = id;
+      current._metadata = current._metadata || {};
+      current._metadata.last_updated = nowIso();
+
+      atomicWriteJson(STATE_PATH, current, getStateValidator());
+      return current;
+    });
+
+    print(options, { ok: true, data: updated });
   } catch (err: any) {
     if (err?._exitCode === 2) {
       fail(options, { code: err.code ?? 'LOCKED', message: err.message ?? 'Locked', details: err.details }, 2);

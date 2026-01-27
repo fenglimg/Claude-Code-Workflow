@@ -17,7 +17,9 @@ import {
   learnReadStateCommand,
   learnUpdateStateCommand,
   learnReadProfileCommand,
-  learnWriteProfileCommand
+  learnWriteProfileCommand,
+  learnListProfilesCommand,
+  learnSetActiveProfileCommand
 } from './commands/learn.js';
 import { workflowCommand } from './commands/workflow.js';
 import { loopCommand } from './commands/loop.js';
@@ -341,6 +343,19 @@ export function run(argv: string[]): void {
     .requiredOption('--data <json>', 'Profile JSON string')
     .option('--json', 'Output as JSON (recommended for agents)')
     .action((options) => learnWriteProfileCommand(options));
+
+  program
+    .command('learn:list-profiles')
+    .description('List learn profiles (validated summaries)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnListProfilesCommand(options));
+
+  program
+    .command('learn:set-active-profile')
+    .description('Set active learn profile id (validated + persists state)')
+    .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnSetActiveProfileCommand(options));
 
   // Loop command - Loop management for multi-CLI orchestration
   program
