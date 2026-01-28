@@ -184,41 +184,135 @@ const kp = byId[targetId];
 console.log(`\n## ${kp.id}: ${kp.title}\n`);
 console.log(kp.description || '');
 
-const qualityRank = { gold: 3, silver: 2, bronze: 1 };
-const resources = Array.isArray(kp.resources) ? kp.resources.slice() : [];
-const approach = profile?.learning_preferences?.approach || 'mixed'; // theory-first | practice-first | mixed
-function approachBoost(r) {
-  const t = String(r?.type || '').toLowerCase();
-  if (approach === 'theory-first') {
-    return t.includes('documentation') || t.includes('article') ? 2 : 0;
+function displayResources(kp, profile) {
+  const qualityRank = { gold: 3, silver: 2, bronze: 1 };
+  const resources = Array.isArray(kp.resources) ? kp.resources.slice() : [];
+
+  const approach = profile?.learning_preferences?.approach || 'mixed'; // theory-first | practice-first | mixed
+  const style = profile?.learning_preferences?.style || 'balanced';    // practical | theoretical | visual | balanced
+
+  function approachBoost(r) {
+    const t = String(r?.type || '').toLowerCase();
+    if (approach === 'theory-first') return t.includes('documentation') || t.includes('article') ? 2 : 0;
+    if (approach === 'practice-first') return t.includes('tutorial') || t.includes('video') || t.includes('github') ? 2 : 0;
+    return 0;
   }
-  if (approach === 'practice-first') {
-    return t.includes('tutorial') || t.includes('video') || t.includes('github') ? 2 : 0;
+
+  function styleBoost(r) {
+    const t = String(r?.type || '').toLowerCase();
+    if (style === 'practical') return t.includes('tutorial') || t.includes('example') || t.includes('github') ? 2 : 0;
+    if (style === 'theoretical') return t.includes('documentation') || t.includes('article') ? 2 : 0;
+    if (style === 'visual') return t.includes('video') || t.includes('diagram') || t.includes('slides') ? 2 : 0;
+    return 0;
   }
-  return 0;
+
+  resources.sort((a, b) =>
+    ((qualityRank[b?.quality] || 0) + approachBoost(b) + styleBoost(b)) -
+    ((qualityRank[a?.quality] || 0) + approachBoost(a) + styleBoost(a))
+  );
+
+  console.log('\n### Resources\n');
+  resources.forEach((r, i) => {
+    console.log(`${i + 1}. [${r.quality}] ${r.type}: ${r.url}`);
+  });
+
+  const PICK_KEY = 'resource_pick';
+  const pick = AskUserQuestion({
+    questions: [{
+      key: PICK_KEY,
+      question: 'Pick one resource to study now:',
+      multiSelect: false,
+      options: resources.map((r, i) => ({
+        value: String(i),
+        label: `${r.quality} ${r.type}`,
+        description: r.url
+      }))
+    }]
+  });
+  const picked = resources[Number(pick[PICK_KEY] ?? 0)] || resources[0];
+  if (picked) console.log(`\nSelected: ${picked.url}\n`);
+
+  return { resources, picked };
 }
-resources.sort((a, b) => ((qualityRank[b?.quality] || 0) + approachBoost(b)) - ((qualityRank[a?.quality] || 0) + approachBoost(a)));
 
-console.log('\n### Resources\n');
-resources.forEach((r, i) => {
-  console.log(`${i + 1}. [${r.quality}] ${r.type}: ${r.url}`);
-});
+function displayAssessment(kp) {
+  console.log('\n### Assessment\n');
+  console.log(kp.assessment?.description || '');
+  if (Array.isArray(kp.assessment?.acceptance_criteria) && kp.assessment.acceptance_criteria.length > 0) {
+    kp.assessment.acceptance_criteria.forEach((c) => console.log(`- ${c}`));
+  }
+}
 
-const PICK_KEY = 'resource_pick';
-const pick = AskUserQuestion({
-  questions: [{
-    key: PICK_KEY,
-    question: 'Pick one resource to study now:',
-    multiSelect: false,
-    options: resources.map((r, i) => ({
-      value: String(i),
-      label: `${r.quality} ${r.type}`,
-      description: r.url
-    }))
-  }]
-});
-const picked = resources[Number(pick[PICK_KEY] ?? 0)] || resources[0];
-if (picked) console.log(`\nSelected: ${picked.url}\n`);
+function orchestrateLearning(kp, profile) {
+  const approach = profile?.learning_preferences?.approach || 'mixed';
+  if (approach === 'practice-first') {
+    displayAssessment(kp);
+    return displayResources(kp, profile);
+  }
+  if (approach === 'theory-first') {
+    const out = displayResources(kp, profile);
+    displayAssessment(kp);
+    return out;
+  }
+  // mixed
+  const out = displayResources(kp, profile);
+  displayAssessment(kp);
+  return out;
+}
+
+const { resources, picked } = orchestrateLearning(kp, profile);
+
+function suggestTimeAllocation(kp, profile) {
+  const hoursPerWeek = Number(profile?.time_availability?.hours_per_week);
+  const type = kp.assessment?.type;
+  const estMinutes =
+    type === 'code_challenge' ? 60 :
+    type === 'practical_task' ? 45 :
+    type === 'multiple_choice' ? 15 :
+    30;
+
+  console.log('\n### Time Suggestion\n');
+  console.log(`Estimated time for this KP: ~${estMinutes} minutes`);
+
+  if (Number.isFinite(hoursPerWeek) && hoursPerWeek > 0) {
+    const daily = Math.max(5, Math.round((hoursPerWeek * 60) / 7));
+    console.log(`Based on your availability (~${hoursPerWeek}h/week): ~${daily} min/day`);
+    if (estMinutes > daily) {
+      console.log('Suggestion: split into multiple short sessions (e.g. 2x) and keep notes for continuity.');
+    }
+  } else {
+    console.log('Tip: if you have limited time today, consider a 25-45 minute focused session.');
+  }
+}
+
+suggestTimeAllocation(kp, profile);
+
+function adjustDifficulty(kp, profile) {
+  const level = profile?.experience_level || 'unknown';
+  const known = Array.isArray(profile?.known_topics) ? profile.known_topics : [];
+  const refs = Array.isArray(kp.topic_refs) ? kp.topic_refs : [];
+
+  const matched = known.filter((t) => refs.includes(t?.topic_id));
+  const avg = matched.length
+    ? matched.reduce((sum, t) => sum + (Number(t?.proficiency) || 0), 0) / matched.length
+    : 0;
+
+  console.log('\n### Difficulty Adjustment\n');
+  if (level === 'beginner' || avg < 0.3) {
+    console.log('Mode: Guided');
+    console.log('- Suggestion: focus on fundamentals; keep the acceptance criteria simple.');
+    if (refs.length > 0) console.log(`- Related topics to review: ${refs.join(', ')}`);
+  } else if (level === 'advanced' || level === 'expert' || avg >= 0.6) {
+    console.log('Mode: Challenge');
+    console.log('- Suggestion: aim for tool-verified evidence if possible (mcp-runner).');
+    console.log('- Try extending the task with an extra constraint (performance, edge cases, or API ergonomics).');
+  } else {
+    console.log('Mode: Standard');
+    console.log('- Suggestion: follow the default resources + assessment flow.');
+  }
+}
+
+adjustDifficulty(kp, profile);
 
 const READY_KEY = 'ready';
 const ready = AskUserQuestion({

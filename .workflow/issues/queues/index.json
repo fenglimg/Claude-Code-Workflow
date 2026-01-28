@@ -2,7 +2,7 @@
   "queues": [
     {
       "id": "QUE-20260128-143047",
-      "status": "active",
+      "status": "completed",
       "issue_ids": [
         "ISS-20260128-002",
         "ISS-20260128-003",
@@ -12,8 +12,9 @@
         "ISS-20260128-006"
       ],
       "created_at": "20260128-143047",
+      "completed_at": "2026-01-28T15:56:28.051Z",
       "total_solutions": 6,
-      "completed_solutions": 5
+      "completed_solutions": 6
     },
     {
       "id": "QUE-20260127-155457",
