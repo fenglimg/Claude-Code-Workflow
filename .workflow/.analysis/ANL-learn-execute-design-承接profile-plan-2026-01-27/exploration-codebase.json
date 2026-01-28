@@ -1,0 +1,298 @@
+{
+  "relevant_files": [
+    {
+      "path": ".claude/commands/learn/profile.md",
+      "relevance": "critical",
+      "rationale": "Demonstrates AskUserQuestion pattern, evidence-based assessment, CLI state API usage (ccw learn:update-state), and robust key-based answer access. Shows how to avoid direct file writes."
+    },
+    {
+      "path": ".claude/commands/learn/plan.md",
+      "relevance": "critical",
+      "rationale": "Shows agent invocation pattern (learn-planning-agent via ccw cli), session creation, JIT assessment triggers, validation gates (schema → DAG → profile), and plan.json generation workflow."
+    },
+    {
+      "path": ".claude/agents/learn-planning-agent.md",
+      "relevance": "high",
+      "rationale": "Real LLM agent template showing JSON-only output constraint, MCP tool integration (ACE, Exa, smart_search), and schema validation requirements. Model for potential learn-execution-agent."
+    },
+    {
+      "path": ".claude/commands/learn/_internal/mcp-runner.js",
+      "relevance": "critical",
+      "rationale": "Isolated code execution engine for assessment validation. Uses Node.js permission model, sandboxing, and returns structured JSON results. Core infrastructure for learn:execute assessment validation."
+    },
+    {
+      "path": ".claude/commands/learn/_internal/learn-plan-validator.js",
+      "relevance": "high",
+      "rationale": "Multi-layer validation pattern (schema → DAG → profile warnings). Shows how to validate plan integrity before execution. Model for execution state validation."
+    },
+    {
+      "path": "ccw/src/commands/learn.ts",
+      "relevance": "critical",
+      "rationale": "TypeScript CLI state API implementation showing atomic file operations (withLearnLock), schema validation (Ajv), backup/rollback, and JSON state management. Backend for learn:read-state and learn:update-state commands."
+    },
+    {
+      "path": ".workflow/learn/state.json",
+      "relevance": "high",
+      "rationale": "Global learn workflow state tracking active_profile_id and active_session_id. Shows state structure and metadata pattern."
+    },
+    {
+      "path": ".workflow/learn/profiles/profile-1737734400000.json",
+      "relevance": "high",
+      "rationale": "Example profile structure with evidence-based topic proficiency, confidence scores, and feedback journal. Shows data model for profile updates after learning."
+    },
+    {
+      "path": ".claude/workflows/cli-templates/schemas/learn-plan.schema.json",
+      "relevance": "critical",
+      "rationale": "Plan schema defining knowledge_points structure with status enum (pending, in_progress, completed, skipped, optional), assessment types, and dependency_graph. Foundation for execution state tracking."
+    },
+    {
+      "path": ".claude/commands/workflow/execute.md",
+      "relevance": "high",
+      "rationale": "Comprehensive execution orchestration pattern showing TodoWrite integration, lazy loading, agent coordination, and autonomous completion. Model for learn:execute workflow structure."
+    },
+    {
+      "path": ".claude/commands/task/execute.md",
+      "relevance": "medium",
+      "rationale": "Task execution pattern with agent selection logic, pre/post execution protocols, and error handling. Simpler model than workflow:execute but shows core execution concepts."
+    },
+    {
+      "path": ".claude/commands/issue/execute.md",
+      "relevance": "medium",
+      "rationale": "Shows CLI tool invocation pattern (ccw cli --tool codex/gemini --mode write) with background execution and timeout handling. Alternative to Task() agent calls."
+    }
+  ],
+  "patterns": {
+    "agent_invocation": {
+      "pattern": "Real CLI Agent via ccw cli",
+      "description": "learn:profile and learn:plan use real LLM agents via 'ccw cli -p' with structured prompts, not simulated agents",
+      "examples": [
+        "learn:plan → ccw cli with learn-planning-agent.md template",
+        "issue:execute → ccw cli --tool codex/gemini --mode write"
+      ],
+      "key_characteristics": [
+        "Agent templates in .claude/agents/ define role and constraints",
+        "Invoked via Bash('ccw cli -p \"...\" --tool gemini --mode analysis/write')",
+        "Output parsed via lastJsonObjectFromText() helper",
+        "Retry + fallback chain (gemini → qwen → codex)",
+        "Background execution with run_in_background: true"
+      ]
+    },
+    "state_management": {
+      "pattern": "CLI State API + Atomic File Operations",
+      "description": "Avoid direct file writes; use CLI state API (ccw learn:read-state, ccw learn:update-state) for state.json, direct writes only for session-scoped files",
+      "examples": [
+        "profile.md: Bash('ccw learn:update-state --field active_profile_id --value \"${id}\" --json')",
+        "plan.md: Write(sessionFolder/plan.json) after validation",
+        "learn.ts: atomicWriteJson() with lock, backup, schema validation"
+      ],
+      "key_characteristics": [
+        "Global state (.workflow/learn/state.json) via CLI API only",
+        "Session-scoped files (sessions/*/plan.json) via direct Write()",
+        "Atomic operations: write to .tmp → validate → rename",
+        "Lock mechanism (withLearnLock) prevents concurrent corruption",
+        "Backup before write, rollback on failure",
+        "Schema validation (Ajv) before commit"
+      ]
+    },
+    "user_interaction": {
+      "pattern": "Key-Based AskUserQuestion Access",
+      "description": "Robust pattern using explicit keys for answer access, avoiding brittle Object.values()[0]",
+      "examples": [
+        "const KEY = 'question_key'; const answer = AskUserQuestion({questions: [{key: KEY, ...}]}); const choice = answer[KEY];",
+        "profile.md: const SELF_ASSESS_KEY = `self_assess_${topicId}`; const answer = AskUserQuestion(...); const level = answer[SELF_ASSESS_KEY];"
+      ],
+      "key_characteristics": [
+        "Always define explicit key constant before AskUserQuestion",
+        "Access answer via answer[KEY], never Object.values()[0]",
+        "Supports multiSelect: false (single choice) and multiSelect: true (array)",
+        "Options array with {value, label, description} structure"
+      ]
+    },
+    "validation_gates": {
+      "pattern": "Multi-Layer Validation Pipeline",
+      "description": "Validate data through multiple layers before committing: schema → domain logic → warnings",
+      "examples": [
+        "plan.md: schema validation → DAG cycle check → profile mismatch warnings",
+        "learn-plan-validator.js: layer0 (schema) → layer1 (DAG) → layer2 (profile-plan consistency)"
+      ],
+      "key_characteristics": [
+        "Layer 0: JSON schema validation (Ajv)",
+        "Layer 1: Domain-specific validation (DAG acyclic, edge consistency)",
+        "Layer 2: Cross-entity warnings (profile-plan mismatch, high proficiency topics)",
+        "Fail fast on critical errors, collect warnings for user review",
+        "Validation output: {ok: boolean, layer0: {...}, layer1: {...}, layer2: {...}}"
+      ]
+    },
+    "assessment_execution": {
+      "pattern": "Isolated Sandbox Execution with mcp-runner.js",
+      "description": "Execute user code against test fixtures in isolated Node.js process with permission model",
+      "examples": [
+        "profile.md: Bash('node .claude/commands/learn/_internal/mcp-runner.js ${codePath} ${fixture} --timeout-ms=2000')",
+        "mcp-runner.js: spawn Node with --permission, --allow-fs-read, --allow-fs-write"
+      ],
+      "key_characteristics": [
+        "Isolated temp directory per execution",
+        "Node.js permission model restricts file system access",
+        "Timeout enforcement (default 2000ms)",
+        "Structured JSON output: {tests_passed, tests_total, score, execution_time_ms, failures}",
+        "Graceful termination (SIGTERM → SIGKILL escalation)",
+        "Cleanup temp directory after execution"
+      ]
+    },
+    "session_management": {
+      "pattern": "Session-Scoped File Structure",
+      "description": "Each learning session has isolated directory with plan, interactions, and progress tracking",
+      "examples": [
+        "plan.md: sessionFolder = `.workflow/learn/sessions/${sessionId}`",
+        "Directory structure: sessions/LS-YYYYMMDD-NNN/{plan.json, interactions/notes/, interactions/jit-assessments.json}"
+      ],
+      "key_characteristics": [
+        "Session ID format: LS-YYYYMMDD-NNN (e.g., LS-20250124-001)",
+        "Plan stored in sessions/${sessionId}/plan.json",
+        "Interactions tracked in sessions/${sessionId}/interactions/",
+        "JIT assessments logged in interactions/jit-assessments.json",
+        "Session folder created early (mkdir -p) before plan generation"
+      ]
+    }
+  },
+  "key_findings": [
+    "learn:profile uses AskUserQuestion for interactive assessment with evidence-based scoring (conceptual checks + micro-challenges via mcp-runner.js)",
+    "learn:plan invokes real LLM agent (learn-planning-agent) via 'ccw cli' to generate knowledge point DAG with resources and assessments",
+    "State management follows CLI API pattern: global state via 'ccw learn:update-state', session files via direct Write()",
+    "Atomic file operations with lock (withLearnLock), backup, schema validation (Ajv), and rollback on failure",
+    "Multi-layer validation: schema (Ajv) → domain logic (DAG cycle check) → warnings (profile-plan mismatch)",
+    "Assessment execution uses isolated sandbox (mcp-runner.js) with Node.js permission model and timeout enforcement",
+    "Session structure: .workflow/learn/sessions/${sessionId}/{plan.json, interactions/notes/, interactions/jit-assessments.json}",
+    "Agent invocation pattern: Bash('ccw cli -p \"...\" --tool gemini --mode analysis/write') with retry fallback chain",
+    "Output parsing: lastJsonObjectFromText() scans backwards for last valid JSON in command output",
+    "JIT assessment triggers: progressive profiling with confidence threshold (0.6), only when needed, brief (2-3 questions)",
+    "Knowledge point status enum: pending, in_progress, completed, skipped, optional (from learn-plan.schema.json)",
+    "Resource quality tiers: gold (must have ≥1 per KP), silver, bronze with quality_score (0-1)",
+    "Dependency graph validation: nodes must match KP IDs, edges must reference valid nodes, no cycles allowed",
+    "Profile update pattern: read profile → modify known_topics → update via CLI API (avoid direct file writes)",
+    "Evidence-based proficiency: each topic has proficiency (0-1), confidence (0-1), and evidence array with timestamps"
+  ],
+  "architecture_insights": {
+    "separation_of_concerns": {
+      "command_layer": "Markdown command files (.claude/commands/learn/*.md) orchestrate workflow, handle user interaction, invoke agents",
+      "agent_layer": "Agent templates (.claude/agents/*.md) define specialized LLM roles with constraints and output schemas",
+      "tool_layer": "Internal tools (.claude/commands/learn/_internal/*.js) provide validation, execution, and utility functions",
+      "state_layer": "CLI API (ccw/src/commands/learn.ts) manages atomic state operations with locking and validation"
+    },
+    "data_flow": {
+      "profile_creation": "user input (AskUserQuestion) → assessment (mcp-runner.js) → profile.json → state.json (active_profile_id)",
+      "plan_generation": "goal + profile → gap analysis → agent (learn-planning-agent) → plan.json → validation gates → session creation",
+      "execution_flow": "plan.json → select KP → present resources → user learning → assessment → update KP status → update profile → next KP"
+    },
+    "integration_points": {
+      "profile_to_plan": "plan.md reads active profile via 'ccw learn:read-state' → loads profile.json → passes to agent for personalization",
+      "plan_to_execute": "execute.md reads plan.json → iterates knowledge_points → tracks status (pending → in_progress → completed)",
+      "execute_to_profile": "after KP completion, update profile.known_topics with new evidence and proficiency scores"
+    }
+  },
+  "design_questions": [
+    "Should learn:execute manage entire session (all KPs) or single KP execution? Recommendation: Single KP for granular control, with loop in command for session management.",
+    "How to handle resource presentation? Options: (A) Display in terminal with links, (B) Open in browser via Bash('open URL'), (C) Generate HTML summary. Recommendation: (A) for simplicity.",
+    "Assessment validation strategy? Options: (A) Mandatory for all KPs, (B) Optional with --skip-assessment flag, (C) Adaptive based on KP difficulty. Recommendation: (B) for flexibility.",
+    "Profile update timing? Options: (A) After each KP completion, (B) Batch update at session end, (C) User-triggered via separate command. Recommendation: (A) for real-time feedback.",
+    "Session resumption? Should learn:execute support --resume flag to continue interrupted sessions? Recommendation: Yes, check state.json for active_session_id.",
+    "Progress tracking? Should use TodoWrite for KP execution progress? Recommendation: Yes, following workflow:execute pattern for consistency.",
+    "Agent vs Direct Implementation? Options: (A) Create learn-execution-agent for resource curation and assessment generation, (B) Direct implementation in command. Recommendation: (B) for simplicity, agent only if complex logic needed.",
+    "CLI tool integration? Should invoke external tools (ccw cli --tool gemini) for assessment generation or use built-in logic? Recommendation: Built-in for speed, CLI for complex cases.",
+    "Error handling? How to handle assessment failures, resource unavailability, or user abandonment? Recommendation: Mark KP as 'skipped', allow retry, log to interactions/errors.json.",
+    "Feedback collection? Should collect user feedback after each KP (difficulty rating, resource quality)? Recommendation: Yes, store in profile.feedback_journal for plan improvement."
+  ],
+  "implementation_recommendations": {
+    "command_structure": {
+      "name": "learn:execute",
+      "description": "Execute learning session by presenting resources, facilitating learning, and validating knowledge acquisition",
+      "argument_hint": "[session-id] [--kp=<knowledge-point-id>] [--skip-assessment] [--resume]",
+      "allowed_tools": "TodoWrite(*), AskUserQuestion(*), Bash(*), Read(*), Write(*)"
+    },
+    "execution_phases": [
+      "Phase 1: Session Discovery - Load active session from state.json or use --session-id parameter",
+      "Phase 2: Knowledge Point Selection - If --kp specified, load that KP; else find next pending/in_progress KP from plan.json",
+      "Phase 3: Resource Presentation - Display resources with quality indicators, open links if requested",
+      "Phase 4: Learning Facilitation - User studies resources, command waits or provides interactive notes",
+      "Phase 5: Assessment Validation - Run assessment (practical_task, code_challenge, or multiple_choice) via mcp-runner.js",
+      "Phase 6: Profile Update - Update known_topics with new evidence, proficiency, and confidence scores",
+      "Phase 7: Progress Tracking - Update KP status in plan.json, advance to next KP or complete session"
+    ],
+    "state_management_strategy": {
+      "global_state": "Use 'ccw learn:read-state' and 'ccw learn:update-state' for state.json (active_session_id)",
+      "session_state": "Direct Read/Write for sessions/${sessionId}/plan.json and interactions/*",
+      "profile_updates": "Read profile.json → modify → Write back (no CLI API for profile updates yet)",
+      "atomic_operations": "Follow atomicWriteJson pattern: write to .tmp → validate → rename"
+    },
+    "assessment_execution_strategy": {
+      "practical_task": "Present task description, user implements, validate via mcp-runner.js with fixture",
+      "code_challenge": "Similar to practical_task but with stricter acceptance criteria",
+      "multiple_choice": "Use AskUserQuestion with options, validate answer against correct_answer in assessment"
+    },
+    "progress_tracking_strategy": {
+      "todowrite_integration": "Generate TodoWrite with all KPs from plan.json, update status as execution progresses",
+      "status_transitions": "pending → in_progress (on start) → completed (on pass) / skipped (on skip) / optional (user choice)",
+      "checkpoint_updates": "After each KP completion, update plan.json and TodoWrite"
+    },
+    "error_handling_strategy": {
+      "assessment_failure": "Allow retry (max 3 attempts), offer skip option, log failures to interactions/errors.json",
+      "resource_unavailable": "Mark resource as unavailable, suggest alternatives, continue with remaining resources",
+      "session_interruption": "Save progress to plan.json, allow --resume to continue from last in_progress KP",
+      "validation_errors": "Catch schema validation errors, rollback to backup, log error details"
+    }
+  },
+  "code_patterns_to_reuse": {
+    "lastJsonObjectFromText": {
+      "source": "learn/plan.md:423-436",
+      "purpose": "Parse JSON from command output by scanning backwards for last valid JSON object",
+      "usage": "const result = lastJsonObjectFromText(Bash('ccw learn:read-state --json'));"
+    },
+    "withLearnLock": {
+      "source": "ccw/src/commands/learn.ts:167-194",
+      "purpose": "Acquire exclusive lock for atomic state operations",
+      "usage": "await withLearnLock(async () => { /* atomic operations */ });"
+    },
+    "atomicWriteJson": {
+      "source": "ccw/src/commands/learn.ts:196-271",
+      "purpose": "Write JSON with backup, validation, and rollback on failure",
+      "usage": "atomicWriteJson(targetPath, data, validator);"
+    },
+    "AskUserQuestion_pattern": {
+      "source": "learn/profile.md:334-348",
+      "purpose": "Robust key-based answer access for user questions",
+      "usage": "const KEY = 'question_key'; const answer = AskUserQuestion({questions: [{key: KEY, ...}]}); const choice = answer[KEY];"
+    },
+    "mcp_runner_invocation": {
+      "source": "learn/profile.md:546-548",
+      "purpose": "Execute code assessment in isolated sandbox",
+      "usage": "const raw = Bash('node .claude/commands/learn/_internal/mcp-runner.js ${codePath} ${fixture} --timeout-ms=2000'); const result = lastJsonObjectFromText(raw);"
+    },
+    "validation_pipeline": {
+      "source": "learn/plan.md:500-503",
+      "purpose": "Multi-layer validation with schema, domain logic, and warnings",
+      "usage": "Write(draftPath, JSON.stringify(data)); const validation = lastJsonObjectFromText(Bash('node .claude/commands/learn/_internal/learn-plan-validator.js ${draftPath} --profile ${profilePath}'));"
+    }
+  },
+  "next_steps": [
+    "Create learn:execute.md command file following workflow:execute.md structure",
+    "Define execution phases: discovery → selection → presentation → learning → assessment → update → progress",
+    "Implement TodoWrite integration for KP progress tracking",
+    "Add assessment execution logic using mcp-runner.js for code challenges",
+    "Implement profile update logic after KP completion (evidence-based proficiency updates)",
+    "Add session resumption support (--resume flag, check active_session_id)",
+    "Create error handling for assessment failures, resource issues, and interruptions",
+    "Add feedback collection after each KP (difficulty, resource quality, time spent)",
+    "Test with existing profile and plan from .workflow/learn/",
+    "Document integration points with profile and plan commands"
+  ],
+  "_metadata": {
+    "exploration_type": "codebase",
+    "timestamp": "2026-01-27T23:30:00+08:00",
+    "analysis_depth": "deep-scan",
+    "files_examined": 12,
+    "patterns_identified": 6,
+    "key_findings_count": 15,
+    "questions_generated": 10,
+    "recommendations_provided": 7
+  }
+}

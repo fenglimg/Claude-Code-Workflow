@@ -1,0 +1,103 @@
+{
+  "id": "QUE-20260128-143047",
+  "created_at": "2026-01-28T14:30:47.000Z",
+  "status": "active",
+  "total_solutions": 6,
+  "total_tasks": 38,
+  "completed_solutions": 0,
+  "issue_ids": [
+    "ISS-20260128-002",
+    "ISS-20260128-003",
+    "ISS-20260128-004",
+    "ISS-20260128-001",
+    "ISS-20260128-005",
+    "ISS-20260128-006"
+  ],
+  "execution_groups": [
+    {
+      "id": "S1",
+      "type": "sequential",
+      "items": ["S-1", "S-2", "S-4"]
+    },
+    {
+      "id": "P1",
+      "type": "parallel",
+      "items": ["S-3"]
+    },
+    {
+      "id": "S2",
+      "type": "sequential",
+      "items": ["S-5", "S-6"]
+    }
+  ],
+  "items": [
+    {
+      "id": "S-1",
+      "issue_id": "ISS-20260128-002",
+      "solution_id": "SOL-ISS-20260128-002-a1b2",
+      "task_count": 4,
+      "status": "pending",
+      "execution_group": "S1",
+      "dependencies": []
+    },
+    {
+      "id": "S-2",
+      "issue_id": "ISS-20260128-003",
+      "solution_id": "SOL-ISS-20260128-003-c3d4",
+      "task_count": 4,
+      "status": "pending",
+      "execution_group": "S1",
+      "dependencies": ["S-1"]
+    },
+    {
+      "id": "S-3",
+      "issue_id": "ISS-20260128-004",
+      "solution_id": "SOL-ISS-20260128-004-e5f6",
+      "task_count": 5,
+      "status": "pending",
+      "execution_group": "P1",
+      "dependencies": []
+    },
+    {
+      "id": "S-4",
+      "issue_id": "ISS-20260128-001",
+      "solution_id": "SOL-ISS-20260128-001-x7m9",
+      "task_count": 15,
+      "status": "pending",
+      "execution_group": "S1",
+      "dependencies": ["S-1", "S-2"]
+    },
+    {
+      "id": "S-5",
+      "issue_id": "ISS-20260128-005",
+      "solution_id": "SOL-ISS-20260128-005-g7h8",
+      "task_count": 6,
+      "status": "pending",
+      "execution_group": "S2",
+      "dependencies": ["S-2"]
+    },
+    {
+      "id": "S-6",
+      "issue_id": "ISS-20260128-006",
+      "solution_id": "SOL-ISS-20260128-006-i9j0",
+      "task_count": 4,
+      "status": "pending",
+      "execution_group": "S2",
+      "dependencies": ["S-5"]
+    }
+  ],
+  "conflicts": {
+    "file_conflicts": [
+      {
+        "file": ".claude/workflows/cli-templates/schemas/learn-plan.schema.json",
+        "solutions": ["SOL-ISS-20260128-002-a1b2", "SOL-ISS-20260128-001-x7m9"],
+        "resolution": "Sequential execution (SOL-002 before SOL-001)"
+      },
+      {
+        "file": "ccw/src/commands/learn.ts",
+        "solutions": ["SOL-ISS-20260128-003-c3d4", "SOL-ISS-20260128-001-x7m9"],
+        "resolution": "Sequential execution (SOL-003 before SOL-001)"
+      }
+    ]
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "session_id": "ANL-learn-execute-design-2026-01-27",
+  "topic": "learn:execute 设计 - 如何承接 learn:profile 和 learn:plan",
+  "completed": "2026-01-28T00:08:00+08:00",
+  "total_rounds": 3,
+  "summary": "通过多轮讨论和深度分析，确定了 learn:execute 的完整架构设计。核心决策包括：采用模拟 Agent 模式提供高度交互的学习体验，引入基于 DAG 层级的阶段管理机制，扩展 schema 支持阶段约束，全面利用 profile 数据实现个性化学习，严格遵循 CLI State API 进行状态管理。",
+  "key_conclusions": [
+    {
+      "point": "执行模式：阶段约束 + 灵活指定",
+      "evidence": "用户明确要求支持同一阶段内的知识点指定学习，默认按顺序执行，不同阶段需要拦截。这确保了学习路径的合理性，防止跳过基础知识。",
+      "confidence": "high"
+    },
+    {
+      "point": "Agent 模式：模拟 Agent（AskUserQuestion 编排）",
+      "evidence": "与 learn:profile 保持一致，提供确定性的向导式体验。Gemini 分析也确认这种模式适合教程和挑战格式。",
+      "confidence": "high"
+    },
+    {
+      "point": "阶段划分：按 DAG 依赖层级自动划分",
+      "evidence": "利用拓扑排序 + BFS 计算层级，技术实现简单，自然符合学习顺序，与现有 schema 无缝集成。动态决定阶段数量（1-5个）。",
+      "confidence": "high"
+    },
+    {
+      "point": "Schema 扩展：完整扩展（phase 字段 + phases 数组）",
+      "evidence": "用户选择完整扩展方案。每个知识点添加 phase 字段，根级别添加 phases 数组（包含 phase_number, phase_name, knowledge_point_ids, description, status）。",
+      "confidence": "high"
+    },
+    {
+      "point": "状态管理：严格使用 CLI State API",
+      "evidence": "Gemini 分析强调必须通过 CLI API 进行所有状态操作，禁止直接文件操作。需要扩展 API 添加 learn:read-session 和 learn:update-progress 命令。",
+      "confidence": "high"
+    },
+    {
+      "point": "评估验证：用户选择验证方式",
+      "evidence": "用户要求每次任务时询问偏好（mcp-runner vs 自报告）。code_challenge 必须使用 mcp-runner，practical_task 可选。",
+      "confidence": "high"
+    },
+    {
+      "point": "个性化：全面利用 profile 数据",
+      "evidence": "用户选择了所有个性化选项：调整资源呈现（style）、调整学习顺序（approach）、建议学习时长（time_availability）、动态难度调整（experience_level + known_topics）。",
+      "confidence": "high"
+    }
+  ],
+  "recommendations": [
+    {
+      "action": "扩展 learn-plan.schema.json",
+      "rationale": "添加 phase 字段（知识点级别）和 phases 数组（根级别），支持阶段管理。包含向后兼容逻辑（自动检测并补全缺失的 phase 信息）。",
+      "priority": "high",
+      "implementation": "修改 .claude/workflows/cli-templates/schemas/learn-plan.schema.json，添加 phase 和 phases 定义。在 learn:plan 生成时调用 assignPhases() 函数。"
+    },
+    {
+      "action": "扩展 learn-state.schema.json",
+      "rationale": "添加 current_phase 字段，跟踪用户当前所在的学习阶段。",
+      "priority": "high",
+      "implementation": "修改 .claude/workflows/cli-templates/schemas/learn-state.schema.json，添加 current_phase: { type: 'integer', minimum: 1 }。"
+    },
+    {
+      "action": "扩展 CLI State API",
+      "rationale": "添加 learn:read-session 和 learn:update-progress 命令，支持会话级别的状态操作。",
+      "priority": "high",
+      "implementation": "在 ccw/src/commands/learn.ts 中实现 learnReadSessionCommand 和 learnUpdateProgressCommand。"
+    },
+    {
+      "action": "实现 assignPhases() 算法",
+      "rationale": "在 learn:plan 生成时自动计算阶段划分，基于 DAG 依赖层级。",
+      "priority": "high",
+      "implementation": "在 learn:plan 命令中添加阶段划分逻辑，使用拓扑排序 + BFS 计算层级，动态决定阶段数量。"
+    },
+    {
+      "action": "实现 learn:execute 命令",
+      "rationale": "创建 .claude/commands/learn/execute.md，实现5阶段执行流程（初始化、内容交付、验证、状态更新、反馈）。",
+      "priority": "high",
+      "implementation": "参考 Gemini 分析提供的详细执行流程和伪代码，使用模拟 Agent 模式，严格遵循 CLI State API。"
+    },
+    {
+      "action": "实现个性化逻辑",
+      "rationale": "根据 profile 数据调整学习体验（资源呈现、学习顺序、时间建议、难度调整）。",
+      "priority": "medium",
+      "implementation": "在 learn:execute 中读取 profile，根据 style/approach/time_availability/experience_level 调整呈现逻辑。"
+    },
+    {
+      "action": "实现阶段切换逻辑",
+      "rationale": "提供 /learn:execute --next-phase 命令，验证当前阶段完成后允许进入下一阶段。",
+      "priority": "medium",
+      "implementation": "实现 canAdvanceToNextPhase() 和 advancePhase() 函数，更新 state.json 和 plan.json 中的阶段状态。"
+    },
+    {
+      "action": "创建测试用例",
+      "rationale": "确保阶段划分算法、状态管理、评估验证的正确性。",
+      "priority": "medium",
+      "implementation": "在 ccw/tests/ 中添加 learn-execute.test.js，覆盖关键场景（阶段约束、依赖检查、mcp-runner 集成）。"
+    }
+  ],
+  "open_questions": [],
+  "follow_up_suggestions": [
+    {
+      "type": "issue",
+      "summary": "实现 learn:execute 命令 - 阶段管理 + 个性化学习",
+      "description": "根据分析结论实现 learn:execute 命令，包括 schema 扩展、CLI API 扩展、阶段划分算法、5阶段执行流程、个性化逻辑。"
+    },
+    {
+      "type": "task",
+      "summary": "扩展 learn-plan.schema.json 和 learn-state.schema.json",
+      "description": "添加 phase 字段、phases 数组、current_phase 字段，支持阶段管理。"
+    },
+    {
+      "type": "task",
+      "summary": "实现 CLI State API 扩展（learn:read-session, learn:update-progress）",
+      "description": "在 ccw/src/commands/learn.ts 中实现会话级别的状态操作命令。"
+    }
+  ],
+  "architecture_summary": {
+    "execution_model": "模拟 Agent（AskUserQuestion 编排）",
+    "phase_management": "基于 DAG 依赖层级自动划分，动态决定阶段数量（1-5个）",
+    "state_management": "严格使用 CLI State API（learn:read-state, learn:update-state, learn:read-profile, learn:write-profile, learn:read-session, learn:update-progress）",
+    "verification": "mcp-runner.js 沙箱执行（code_challenge 必须，practical_task 可选）",
+    "personalization": "全面利用 profile 数据（style, approach, time_availability, experience_level, known_topics）",
+    "schema_extensions": [
+      "learn-plan.schema.json: 添加 phase 字段（知识点）和 phases 数组（根级别）",
+      "learn-state.schema.json: 添加 current_phase 字段"
+    ],
+    "execution_flow": [
+      "Phase 1: 初始化（读取 state, session, 确定目标知识点）",
+      "Phase 2: 内容交付与交互（展示资源，启动学习活动）",
+      "Phase 3: 证据验证（mcp-runner 或 AskUserQuestion）",
+      "Phase 4: 状态与 Profile 更新（更新 progress, 更新 known_topics 和 evidence）",
+      "Phase 5: 反馈与闭环（显示结果，建议下一步）"
+    ]
+  }
+}

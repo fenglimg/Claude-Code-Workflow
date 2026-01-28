@@ -1,0 +1,176 @@
+{
+  "id": "SOL-ISS-20260127-001-e4q2",
+  "description": "实现 BackgroundParser 三层解析器，并集成到 /learn:profile create 背景驱动流程（含测试）",
+  "analysis": {
+    "risk": "high",
+    "impact": "high",
+    "complexity": "high",
+    "notes": "涉及 .claude 命令脚本 + ccw CLI（learn:*）；AI 调用需可降级；易与其它 learn 相关 issue 冲突"
+  },
+  "score": 0.84,
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "修复并扩展 KeywordDictionary.json（别名/标准 topic_id 映射）",
+      "scope": "learn/tech-stack",
+      "action": "Update",
+      "implementation": [
+        "Analyze: 打开 `.workflow/learn/tech-stack/KeywordDictionary.json`，确保为合法 JSON（当前文件尾部缺少关闭括号）。",
+        "Implement: 在不破坏 `categories` 现有结构的前提下，新增顶层 `aliases`（key=别名/变体，value=标准 topic_id），补充常见技术别名（如 `node.js`→`node`、`reactjs`→`react` 等）。",
+        "Test: 新增/更新单元测试，覆盖 JSON 可解析、`categories`/`aliases` 存在且类型正确。",
+        "Optimize: 保持全小写 key，避免重复项；修正明显拼写错误（如 `arhitecture`→`architecture`）。",
+        "Commit: `chore(learn): fix keyword dictionary json and add aliases`"
+      ],
+      "acceptance": {
+        "criteria": [
+          "KeywordDictionary.json 可被 JSON.parse 成功解析（无语法错误）",
+          "新增 `aliases` 字段，至少包含 10 个别名映射且不影响现有 `categories` 读取逻辑"
+        ],
+        "verification": [
+          "运行 `npm test`，相关测试用例通过",
+          "执行 `node -e \"JSON.parse(require('fs').readFileSync('.workflow/learn/tech-stack/KeywordDictionary.json','utf8')); console.log('ok')\"` 输出 ok"
+        ]
+      },
+      "test": {
+        "commands": [
+          "npm test"
+        ],
+        "coverage_target": 0.8
+      },
+      "modification_points": [
+        {
+          "file": ".workflow/learn/tech-stack/KeywordDictionary.json",
+          "target": "root object",
+          "change": "fix JSON validity; add aliases map; keep categories backward-compatible"
+        },
+        {
+          "file": "ccw/tests/learn-profile-schema.test.js",
+          "target": "tests (extend as needed) or add new test file",
+          "change": "add JSON/aliases validation test(s)"
+        }
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "实现 BackgroundParser 核心：实体提取→标准化→级别推断（可测试、可降级）",
+      "scope": "ccw/learn",
+      "action": "Implement",
+      "implementation": [
+        "Analyze: 参考 `.claude/commands/learn/profile.md` 的动态 tech stack 片段与现有 evidence 结构；复用 `.claude/commands/learn/_internal/*` 的 ESM 风格与测试模式（node --experimental-strip-types）。",
+        "Implement: 新增 `ccw/src/learn/background-parser.ts`，暴露纯函数 API（例如 `parseBackground(text, keywordDict, opts)`），其中：",
+        "- Layer1: extractEntities() —— 默认用规则提取（技术词/版本号/公司/角色关键字），并允许注入 `llmExtractEntities(prompt)` 以接入 `ccw cli`。",
+        "- Layer2: normalizeSkills() —— 使用 `aliases` + categories 扫描；实现简单模糊匹配（去标点、去版本、同义词）。",
+        "- Layer3: inferLevels() —— 规则推断（年限/主导/高阶关键词）+ 可选 LLM 推断；combine 采用加权（AI 0.7/规则 0.3），confidence 取 min 并加入 mention/context 丰富度修正。",
+        "Test: 为 normalize / rule-based infer 编写单元测试（不依赖外部 LLM）。",
+        "Optimize: 确保无敏感信息写入日志；对空输入、超长输入（>20k chars）做截断/降级策略。",
+        "Commit: `feat(learn): add background parser (normalize + rule inference)`"
+      ],
+      "acceptance": {
+        "criteria": [
+          "parseBackground() 在无 LLM 情况下可产出 1+ inferred skills，字段包含 topic_id/proficiency/confidence/evidence",
+          "normalizeSkills() 覆盖：直接匹配、别名匹配、版本号处理（如 react@18、nodejs v20）3 类用例"
+        ],
+        "verification": [
+          "运行 `npm test`，新增测试全部通过",
+          "运行 `npm run build`（TypeScript 编译）成功"
+        ]
+      },
+      "test": {
+        "commands": [
+          "npm test",
+          "npm run build"
+        ],
+        "coverage_target": 0.8
+      },
+      "modification_points": [
+        {
+          "file": "ccw/src/learn/background-parser.ts",
+          "target": "new module",
+          "change": "implement BackgroundParser core + pure functions for testing"
+        },
+        {
+          "file": "ccw/tests/learn-background-parser.test.js",
+          "target": "new test file",
+          "change": "unit tests for normalization + rule inference"
+        }
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "提供 CLI 入口：ccw learn:parse-background（JSON 输出给 /learn:profile 调用）",
+      "scope": "ccw/cli",
+      "action": "Add",
+      "implementation": [
+        "Analyze: 参考 `ccw/src/cli.ts` 中现有 learn:* 命令（read-state/write-profile）注册方式与 `ccw/src/commands/learn.ts` 的 schema 校验/atomic write 模式。",
+        "Implement: 新增 `ccw/src/commands/learn-background.ts`（或扩展 learn.ts），实现 `learn:parse-background`：",
+        "- 输入：`--text <string>` 或 `--file <path>`（二选一）；可选 `--json`。",
+        "- 行为：读取 KeywordDictionary.json，调用 `parseBackground()`，输出 `{ ok: true, data: { skills: [...] } }`。",
+        "Wire: 在 `ccw/src/cli.ts` 注册 `.command('learn:parse-background')` 并指向实现函数。",
+        "Test: 添加 CLI 冒烟测试（给定固定输入文本，输出 skills 长度 >= 1 且 topic_id 为小写）。",
+        "Commit: `feat(learn): add learn:parse-background command`"
+      ],
+      "acceptance": {
+        "criteria": [
+          "`ccw learn:parse-background --text \"React + Node.js\" --json` 返回 ok=true 且 skills 数组长度>=1",
+          "命令在 KeywordDictionary.json 缺失/损坏时返回 ok=false 且错误信息明确（不抛出未捕获异常）"
+        ],
+        "verification": [
+          "运行 `npm test`，包含新增 CLI 测试通过",
+          "手动执行 `node ccw/bin/ccw.js learn:parse-background --text \"React + Node.js\" --json` 验证输出结构"
+        ]
+      },
+      "test": {
+        "commands": [
+          "npm test"
+        ]
+      },
+      "modification_points": [
+        {
+          "file": "ccw/src/cli.ts",
+          "target": "learn:* command registrations",
+          "change": "add learn:parse-background command"
+        },
+        {
+          "file": "ccw/src/commands/learn-background.ts",
+          "target": "new command implementation",
+          "change": "CLI handler calling background parser + JSON output"
+        },
+        {
+          "file": "ccw/tests/learn-background-cli.test.js",
+          "target": "new test file",
+          "change": "smoke tests for learn:parse-background"
+        }
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "集成到 /learn:profile create：背景输入→解析→用户确认→seed known_topics",
+      "scope": "learn/profile",
+      "action": "Update",
+      "implementation": [
+        "Analyze: 在 `.claude/commands/learn/profile.md` 的 create 流程中定位 Step 1（Basic Information）与 role-based tech stack detection 片段。",
+        "Implement: 增加背景输入分支（选择：跳过/粘贴短文本/提供本地文件路径），并调用 `ccw learn:parse-background ... --json` 获取 skills。",
+        "Implement: 使用 AskUserQuestion 让用户对每个推断 topic 选择：经常使用/接触过/听说过/不对；将反馈映射到 seed proficiency（例如 0.7/0.4/0.2/删除）并写入 evidence(kind=background_inference + confirmed_topic)。",
+        "Test: 增加 1 个端到端脚本测试或文档化测试步骤：使用固定背景文本，确认输出 known_topics 增量 >= 3（不要求真实 LLM）。",
+        "Commit: `feat(learn): integrate background-driven profile seeding`"
+      ],
+      "acceptance": {
+        "criteria": [
+          "create 流程支持可选 background 输入且不影响原有 --no-assessment 分支",
+          "用户确认后，profile.known_topics 新增/更新条目数与用户选择一致（>=3 条可验证示例）"
+        ],
+        "verification": [
+          "运行 `npm test`（CLI/Schema 测试通过）",
+          "按文档示例执行一次 `/learn:profile create`（手动或脚本），确认背景推断进入 known_topics"
+        ]
+      },
+      "modification_points": [
+        {
+          "file": ".claude/commands/learn/profile.md",
+          "target": "create flow (Step 1 / tech stack detection)",
+          "change": "add background input + call learn:parse-background + confirmation mapping"
+        }
+      ]
+    }
+  ]
+}

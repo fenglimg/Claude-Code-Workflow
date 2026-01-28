@@ -1,0 +1,113 @@
+{
+  "id": "SOL-ISS-20260127-004-j9s3",
+  "description": "更新 learn-profile.schema.json：新增 background/custom_fields，并扩展 evidence 支持 adaptive-assessment rounds",
+  "analysis": {
+    "risk": "medium",
+    "impact": "high",
+    "complexity": "medium",
+    "notes": "schema 变更会影响 learn:read-profile/learn:write-profile 的 Ajv 校验；需保持 legacy evidence strings 向后兼容"
+  },
+  "score": 0.9,
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "扩展 Profile Schema：新增 background 与 custom_fields",
+      "scope": "learn/profile-schema",
+      "action": "Update",
+      "implementation": [
+        "Analyze: 确认 schema 单一真实来源为 `.claude/workflows/cli-templates/schemas/learn-profile.schema.json`（并同步 `.workflow/learn/profiles/schemas/learn-profile.schema.json` 作为副本/参考）。",
+        "Implement: 在 schema 顶层 properties 新增：",
+        "- `background`: object，包含 `work_experience[]`/`personal_projects[]`/`education[]`；每项允许包含 `role/company/name/degree/focus` 与 `technologies[]`。",
+        "- `custom_fields`: object，`additionalProperties: true`（扩展点）。",
+        "Backward-compat: 不修改 required 列表（仍为 profile_id/experience_level/known_topics），确保旧 profile 通过。",
+        "Commit: `feat(learn): extend profile schema with background and custom_fields`"
+      ],
+      "acceptance": {
+        "criteria": [
+          "schema 新增字段后，旧 profile（无 background/custom_fields）仍可通过 Ajv 校验",
+          "background.work_experience/personal_projects/education 均支持 0..N 项，technologies 字段为 string[]"
+        ],
+        "verification": [
+          "运行 `npm test`，schema 测试通过",
+          "运行 `node -e \"const Ajv=require('ajv'); const addFormats=require('ajv-formats');\"`（可选）或使用现有测试验证 Ajv 编译通过"
+        ]
+      },
+      "modification_points": [
+        {
+          "file": ".claude/workflows/cli-templates/schemas/learn-profile.schema.json",
+          "target": "root.properties",
+          "change": "add background + custom_fields definitions"
+        },
+        {
+          "file": ".workflow/learn/profiles/schemas/learn-profile.schema.json",
+          "target": "keep in sync",
+          "change": "mirror schema changes (if this copy is still used by docs/tools)"
+        }
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "优化 evidence 结构：支持 adaptive-assessment（rounds 历史）",
+      "scope": "learn/profile-schema",
+      "action": "Update",
+      "implementation": [
+        "Analyze: 现有 evidence.evidence_type enum 为 self-report/conceptual/tool-verified，需扩展以存储多轮评估输出。",
+        "Implement: 扩展 enum 增加 `adaptive-assessment`；并在 evidence items.anyOf 中新增一个 object variant（或复用现有 object）以允许 data.rounds: array 结构：",
+        "- rounds[].round_index (int>=1), target_difficulty (0..1), question_count (=4), score_mean (0..1), consistency (0..1), range_after {min,max}, confidence_after (0..1)",
+        "Backward-compat: 保留 legacy string evidence anyOf 分支不变。",
+        "Commit: `feat(learn): allow adaptive-assessment evidence rounds in profile schema`"
+      ],
+      "acceptance": {
+        "criteria": [
+          "schema 接受 evidence_type='adaptive-assessment' 且 data.rounds.length>=1 的 evidence 对象",
+          "schema 仍接受 legacy evidence string（原测试不回归）"
+        ],
+        "verification": [
+          "运行 `npm test`，新增 schema 测试用例通过",
+          "在 `ccw/tests/learn-profile-schema.test.js` 添加一个 profile 样例并通过 Ajv 校验"
+        ]
+      },
+      "modification_points": [
+        {
+          "file": ".claude/workflows/cli-templates/schemas/learn-profile.schema.json",
+          "target": "known_topics.items.properties.evidence.items.anyOf",
+          "change": "extend evidence_type enum and allow rounds payload"
+        }
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "更新 schema 测试用例：覆盖 background/custom_fields 与 adaptive-assessment evidence",
+      "scope": "ccw/tests",
+      "action": "Test",
+      "implementation": [
+        "Analyze: 参考 `ccw/tests/learn-profile-schema.test.js` 的 Ajv 编译与断言模式。",
+        "Implement: 在现有测试文件中新增 2 个测试：",
+        "- 接受 background + custom_fields 的 profile（不增加 required）",
+        "- 接受 adaptive-assessment evidence（包含 rounds 数组与量化字段）",
+        "Commit: `test(learn): cover background and adaptive assessment schema`"
+      ],
+      "acceptance": {
+        "criteria": [
+          "新增 2 个 schema 测试用例且全部通过",
+          "测试用例包含 rounds 的量化字段（question_count=4, range_after.min/max, confidence_after）"
+        ],
+        "verification": [
+          "运行 `npm test`，learn-profile schema 测试通过"
+        ]
+      },
+      "test": {
+        "commands": [
+          "npm test"
+        ]
+      },
+      "modification_points": [
+        {
+          "file": "ccw/tests/learn-profile-schema.test.js",
+          "target": "add tests",
+          "change": "add coverage for background/custom_fields and adaptive-assessment evidence"
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,39 @@
 {
   "queues": [
     {
+      "id": "QUE-20260128-143047",
+      "status": "active",
+      "issue_ids": [
+        "ISS-20260128-002",
+        "ISS-20260128-003",
+        "ISS-20260128-004",
+        "ISS-20260128-001",
+        "ISS-20260128-005",
+        "ISS-20260128-006"
+      ],
+      "created_at": "2026-01-28T14:30:47.000Z",
+      "total_solutions": 6,
+      "completed_solutions": 0
+    },
+    {
+      "id": "QUE-20260127-155457",
+      "status": "completed",
+      "issue_ids": [
+        "ISS-20260127-001",
+        "ISS-20260127-005",
+        "ISS-20260127-002",
+        "ISS-20260127-006",
+        "ISS-20260127-003",
+        "ISS-20260127-004",
+        "ISS-20260127-007",
+        "ISS-20260127-008"
+      ],
+      "created_at": "20260127-155457",
+      "completed_at": "2026-01-27T18:05:06.053Z",
+      "total_solutions": 8,
+      "completed_solutions": 8
+    },
+    {
       "id": "QUE-20260126-182551",
       "status": "completed",
       "issue_ids": [
@@ -23,5 +56,8 @@
       "completed_solutions": 1
     }
   ],
-  "active_queue_id": "QUE-20260126-182551"
+  "active_queue_id": "QUE-20260128-143047",
+  "active_queue_ids": [
+    "QUE-20260128-143047"
+  ]
 }

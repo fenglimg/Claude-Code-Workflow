@@ -1,0 +1,470 @@
+{
+  "id": "QUE-20260127-155457",
+  "status": "completed",
+  "issue_ids": [
+    "ISS-20260127-001",
+    "ISS-20260127-005",
+    "ISS-20260127-002",
+    "ISS-20260127-006",
+    "ISS-20260127-003",
+    "ISS-20260127-004",
+    "ISS-20260127-007",
+    "ISS-20260127-008"
+  ],
+  "tasks": [],
+  "conflicts": [
+    {
+      "type": "file_conflict",
+      "solutions": [
+        "S-1",
+        "S-2",
+        "S-4"
+      ],
+      "file": "ccw/tests/learn-profile-schema.test.js",
+      "resolution": "sequential",
+      "resolution_order": [
+        "S-1",
+        "S-2",
+        "S-4"
+      ],
+      "rationale": "Overlapping modifications to ccw/tests/learn-profile-schema.test.js; execute sequentially in semantic priority order.",
+      "resolved": true
+    },
+    {
+      "type": "file_conflict",
+      "solutions": [
+        "S-1",
+        "S-2",
+        "S-3"
+      ],
+      "file": "ccw/src/cli.ts",
+      "resolution": "sequential",
+      "resolution_order": [
+        "S-1",
+        "S-2",
+        "S-3"
+      ],
+      "rationale": "Overlapping modifications to ccw/src/cli.ts; execute sequentially in semantic priority order.",
+      "resolved": true
+    },
+    {
+      "type": "file_conflict",
+      "solutions": [
+        "S-5",
+        "S-6",
+        "S-7",
+        "S-8"
+      ],
+      "file": ".claude/commands/learn/plan.md",
+      "resolution": "sequential",
+      "resolution_order": [
+        "S-5",
+        "S-6",
+        "S-7",
+        "S-8"
+      ],
+      "rationale": "Overlapping modifications to .claude/commands/learn/plan.md; execute sequentially in semantic priority order.",
+      "resolved": true
+    }
+  ],
+  "_metadata": {
+    "version": "2.1",
+    "total_tasks": 8,
+    "pending_count": 0,
+    "executing_count": 0,
+    "completed_count": 8,
+    "failed_count": 0,
+    "updated_at": "2026-01-27T18:05:06.053Z"
+  },
+  "solutions": [
+    {
+      "item_id": "S-1",
+      "issue_id": "ISS-20260127-001",
+      "solution_id": "SOL-ISS-20260127-001-e4q2",
+      "status": "completed",
+      "execution_order": 1,
+      "execution_group": "P1",
+      "depends_on": [],
+      "semantic_priority": 0.75,
+      "task_count": 4,
+      "files_touched": [
+        ".workflow/learn/tech-stack/KeywordDictionary.json",
+        "ccw/tests/learn-profile-schema.test.js",
+        "ccw/src/learn/background-parser.ts",
+        "ccw/tests/learn-background-parser.test.js",
+        "ccw/src/cli.ts",
+        "ccw/src/commands/learn-background.ts",
+        "ccw/tests/learn-background-cli.test.js",
+        ".claude/commands/learn/profile.md"
+      ],
+      "started_at": "2026-01-27T15:58:28.079Z",
+      "completed_at": "2026-01-27T16:33:36.693Z",
+      "result": {
+        "files_modified": [
+          ".workflow/learn/tech-stack/KeywordDictionary.json",
+          "ccw/tests/learn-profile-schema.test.js",
+          "ccw/src/learn/background-parser.ts",
+          "ccw/tests/learn-background-parser.test.js",
+          "ccw/src/cli.ts",
+          "ccw/src/commands/learn-background.ts",
+          "ccw/tests/learn-background-cli.test.js",
+          ".claude/commands/learn/profile.md",
+          "ccw/tests/learn-profile-minimal.test.js",
+          ".claude/commands/learn/_internal/mcp-runner.js",
+          "ccw/scripts/run-tests.js",
+          "package.json"
+        ],
+        "tests_passed": true,
+        "commit": {
+          "hash": "dabe803d",
+          "type": "feat",
+          "tasks": [
+            "T1",
+            "T2",
+            "T3",
+            "T4"
+          ]
+        },
+        "summary": "Fixed KeywordDictionary JSON and added aliases, implemented a rule-based BackgroundParser, added ccw learn:parse-background CLI + tests, and documented background-driven profile topic seeding."
+      }
+    },
+    {
+      "item_id": "S-5",
+      "issue_id": "ISS-20260127-005",
+      "solution_id": "SOL-ISS-20260127-005-k7m2",
+      "status": "completed",
+      "execution_order": 2,
+      "execution_group": "P1",
+      "depends_on": [],
+      "semantic_priority": 0.5,
+      "task_count": 6,
+      "files_touched": [
+        ".claude/commands/learn/_internal/json-parser.js",
+        ".claude/commands/learn/_internal/error-handler.js",
+        ".claude/commands/learn/_internal/logger.js",
+        ".claude/commands/learn/plan.md"
+      ],
+      "started_at": "2026-01-27T16:33:45.821Z",
+      "completed_at": "2026-01-27T16:51:15.884Z",
+      "result": {
+        "files_modified": [
+          ".claude/commands/learn/_internal/json-parser.js",
+          ".claude/commands/learn/_internal/error-handler.js",
+          ".claude/commands/learn/_internal/logger.js",
+          ".claude/commands/learn/plan.md",
+          "ccw/tests/learn-doc-json-parse-robustness.test.js",
+          "ccw/tests/learn-error-handler.test.js",
+          "ccw/tests/learn-logger.test.js"
+        ],
+        "tests_passed": true,
+        "commit": {
+          "hash": "c2e0ef86",
+          "type": "refactor",
+          "tasks": [
+            "T1",
+            "T2",
+            "T3",
+            "T4",
+            "T5",
+            "T6"
+          ]
+        },
+        "summary": "Extracted duplicated JSON parsing helper into reusable utilities, added error-handling and logging helpers, refactored learn/plan.md to use them, removed unimplemented doc sections, and added unit tests."
+      }
+    },
+    {
+      "item_id": "S-2",
+      "issue_id": "ISS-20260127-002",
+      "solution_id": "SOL-ISS-20260127-002-f6n0",
+      "status": "completed",
+      "execution_order": 3,
+      "execution_group": "P2",
+      "depends_on": [
+        "S-1"
+      ],
+      "semantic_priority": 0.75,
+      "task_count": 4,
+      "files_touched": [
+        "ccw/src/learn/adaptive-ability-assessment.ts",
+        "ccw/tests/learn-profile-schema.test.js",
+        "ccw/src/cli.ts",
+        "ccw/src/commands/learn-adaptive.ts",
+        "ccw/tests/learn-adaptive-step-cli.test.js",
+        "ccw/tests/adaptive-ability-assessment.test.js"
+      ],
+      "started_at": "2026-01-27T16:51:26.146Z",
+      "completed_at": "2026-01-27T17:04:16.729Z",
+      "result": {
+        "files_modified": [
+          "ccw/src/learn/adaptive-ability-assessment.ts",
+          "ccw/src/commands/learn-adaptive.ts",
+          "ccw/src/cli.ts",
+          "ccw/tests/adaptive-ability-assessment.test.js",
+          "ccw/tests/learn-adaptive-step-cli.test.js",
+          "ccw/tests/learn-profile-schema.test.js"
+        ],
+        "tests_passed": true,
+        "commit": {
+          "hash": "833a6544",
+          "type": "feat",
+          "tasks": [
+            "T1",
+            "T2",
+            "T3",
+            "T4"
+          ]
+        },
+        "summary": "Implemented multi-round adaptive ability assessment core with misjudgment detection, added evidence-friendly round history types, exposed a pure learn:adaptive-step CLI, and added unit/CLI tests."
+      }
+    },
+    {
+      "item_id": "S-6",
+      "issue_id": "ISS-20260127-006",
+      "solution_id": "SOL-ISS-20260127-006-m7p2",
+      "status": "completed",
+      "execution_order": 4,
+      "execution_group": "P2",
+      "depends_on": [
+        "S-5"
+      ],
+      "semantic_priority": 0.5,
+      "task_count": 5,
+      "files_touched": [
+        ".claude/commands/learn/plan.md"
+      ],
+      "started_at": "2026-01-27T17:04:30.321Z",
+      "completed_at": "2026-01-27T17:18:45.830Z",
+      "result": {
+        "files_modified": [
+          ".claude/commands/learn/plan.md",
+          "ccw/tests/learn-plan-jit-assessment.test.js"
+        ],
+        "tests_passed": true,
+        "commit": {
+          "hash": "caaa544d",
+          "type": "refactor",
+          "tasks": [
+            "T1",
+            "T2",
+            "T3",
+            "T4",
+            "T5"
+          ]
+        },
+        "summary": "Removed JIT assessment from learn:plan, simplified profile update heuristics and user confirmation, trimmed unimplemented Layer 3 docs, and updated tests accordingly."
+      }
+    },
+    {
+      "item_id": "S-3",
+      "issue_id": "ISS-20260127-003",
+      "solution_id": "SOL-ISS-20260127-003-g1h7",
+      "status": "completed",
+      "execution_order": 5,
+      "execution_group": "P3",
+      "depends_on": [
+        "S-2"
+      ],
+      "semantic_priority": 0.75,
+      "task_count": 4,
+      "files_touched": [
+        "ccw/src/learn/question-types.ts",
+        "ccw/src/learn/question-parse.ts",
+        "ccw/tests/learn-question-parse.test.js",
+        "ccw/src/learn/question-validator.ts",
+        "ccw/tests/learn-question-validator.test.js",
+        "ccw/src/learn/question-regenerate.ts",
+        "ccw/tests/learn-question-regenerate.test.js",
+        "ccw/src/cli.ts",
+        "ccw/src/commands/learn-questions.ts",
+        "ccw/tests/learn-validate-questions-cli.test.js"
+      ],
+      "started_at": "2026-01-27T17:18:57.044Z",
+      "completed_at": "2026-01-27T17:37:04.177Z",
+      "result": {
+        "tests_passed": true,
+        "commit": {
+          "tasks": [
+            "T1",
+            "T2",
+            "T3",
+            "T4"
+          ],
+          "hash": "0f29a52d",
+          "type": "feat"
+        },
+        "summary": "Added strict question parsing, quality validation rules, regeneration loop, and a learn:validate-questions CLI for debugging/agents.",
+        "files_modified": [
+          "ccw/src/cli.ts",
+          "ccw/src/commands/learn-questions.ts",
+          "ccw/src/learn/question-types.ts",
+          "ccw/src/learn/question-parse.ts",
+          "ccw/src/learn/question-validator.ts",
+          "ccw/src/learn/question-regenerate.ts",
+          "ccw/tests/learn-question-parse.test.js",
+          "ccw/tests/learn-question-validator.test.js",
+          "ccw/tests/learn-question-regenerate.test.js",
+          "ccw/tests/learn-validate-questions-cli.test.js"
+        ]
+      }
+    },
+    {
+      "item_id": "S-4",
+      "issue_id": "ISS-20260127-004",
+      "solution_id": "SOL-ISS-20260127-004-j9s3",
+      "status": "completed",
+      "execution_order": 6,
+      "execution_group": "P3",
+      "depends_on": [
+        "S-2"
+      ],
+      "semantic_priority": 0.5,
+      "task_count": 3,
+      "files_touched": [
+        ".claude/workflows/cli-templates/schemas/learn-profile.schema.json",
+        ".workflow/learn/profiles/schemas/learn-profile.schema.json",
+        "ccw/tests/learn-profile-schema.test.js"
+      ],
+      "started_at": "2026-01-27T17:37:17.484Z",
+      "completed_at": "2026-01-27T17:44:15.944Z",
+      "result": {
+        "summary": "Extended learn profile schema with background/custom_fields and stricter adaptive-assessment evidence rounds; updated schema tests.",
+        "files_modified": [
+          ".claude/workflows/cli-templates/schemas/learn-profile.schema.json",
+          ".workflow/learn/profiles/schemas/learn-profile.schema.json",
+          "ccw/tests/learn-profile-schema.test.js"
+        ],
+        "commit": {
+          "type": "feat",
+          "hash": "bb95a1fc",
+          "tasks": [
+            "T1",
+            "T2",
+            "T3"
+          ]
+        },
+        "tests_passed": true
+      }
+    },
+    {
+      "item_id": "S-7",
+      "issue_id": "ISS-20260127-007",
+      "solution_id": "SOL-ISS-20260127-007-k3n8",
+      "status": "completed",
+      "execution_order": 7,
+      "execution_group": "P3",
+      "depends_on": [
+        "S-6"
+      ],
+      "semantic_priority": 0.5,
+      "task_count": 6,
+      "files_touched": [
+        ".claude/commands/learn/_internal/agent-caller.js",
+        ".claude/commands/learn/plan.md"
+      ],
+      "started_at": "2026-01-27T17:44:25.940Z",
+      "completed_at": "2026-01-27T17:57:37.376Z",
+      "result": {
+        "summary": "Added learn agent-caller utilities (Task/CLI patterns + retry/timeout), refactored learn/plan.md agent invocation, and added unit tests for reliability.",
+        "tests_passed": true,
+        "commit": {
+          "hash": "e1f21a4a",
+          "type": "feat",
+          "tasks": [
+            "T1",
+            "T2",
+            "T3",
+            "T4",
+            "T5",
+            "T6"
+          ]
+        },
+        "files_modified": [
+          ".claude/commands/learn/_internal/agent-caller.js",
+          ".claude/commands/learn/_internal/error-handler.js",
+          ".claude/commands/learn/plan.md",
+          "ccw/tests/learn-agent-caller.test.js",
+          "ccw/tests/learn-error-handler.test.js"
+        ]
+      }
+    },
+    {
+      "item_id": "S-8",
+      "issue_id": "ISS-20260127-008",
+      "solution_id": "SOL-ISS-20260127-008-k9w3",
+      "status": "completed",
+      "execution_order": 8,
+      "execution_group": "S4",
+      "depends_on": [
+        "S-7"
+      ],
+      "semantic_priority": 0.5,
+      "task_count": 6,
+      "files_touched": [
+        ".claude/agents/learn-planning-agent.md",
+        ".claude/commands/learn/plan.md"
+      ],
+      "started_at": "2026-01-27T17:57:47.795Z",
+      "completed_at": "2026-01-27T18:05:06.037Z",
+      "result": {
+        "summary": "Enhanced learn planning agent prompt with profile-aware personalization rules and resource scoring; updated learn plan docs with related-experience gap analysis and learning path visualization; added doc regression tests.",
+        "files_modified": [
+          ".claude/agents/learn-planning-agent.md",
+          ".claude/commands/learn/plan.md",
+          "ccw/tests/learn-plan-personalization-doc.test.js",
+          "ccw/tests/learn-planning-agent-profile-aware.test.js"
+        ],
+        "tests_passed": true,
+        "commit": {
+          "hash": "05ea36df",
+          "type": "feat",
+          "tasks": [
+            "T1",
+            "T2",
+            "T3",
+            "T4",
+            "T5",
+            "T6"
+          ]
+        }
+      }
+    }
+  ],
+  "execution_groups": [
+    {
+      "id": "P1",
+      "type": "parallel",
+      "solution_count": 2,
+      "solutions": [
+        "S-1",
+        "S-5"
+      ]
+    },
+    {
+      "id": "P2",
+      "type": "parallel",
+      "solution_count": 2,
+      "solutions": [
+        "S-2",
+        "S-6"
+      ]
+    },
+    {
+      "id": "P3",
+      "type": "parallel",
+      "solution_count": 3,
+      "solutions": [
+        "S-3",
+        "S-4",
+        "S-7"
+      ]
+    },
+    {
+      "id": "S4",
+      "type": "sequential",
+      "solution_count": 1,
+      "solutions": [
+        "S-8"
+      ]
+    }
+  ]
+}

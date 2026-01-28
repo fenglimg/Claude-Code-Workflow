@@ -1,0 +1,91 @@
+{
+  "session_id": "ANL-learn-execute-design-2026-01-27",
+  "timestamp": "2026-01-28T00:05:00+08:00",
+  "topic": "learn:execute 设计 - 如何承接 learn:profile 和 learn:plan",
+  "dimensions": ["architecture", "implementation", "integration"],
+  "sources": [
+    {
+      "type": "codebase",
+      "method": "ACE search_context",
+      "summary": "探索了 learn:profile 和 learn:plan 的实现模式，mcp-runner.js 沙箱执行环境，CLI State API"
+    },
+    {
+      "type": "gemini",
+      "method": "ccw cli --tool gemini --mode analysis",
+      "session_id": "1769529002175-gemini",
+      "summary": "提供了详细的架构设计，包括5阶段执行流程、状态管理策略、评估验证机制"
+    }
+  ],
+  "key_findings": [
+    {
+      "category": "Agent 模式",
+      "finding": "learn:profile 使用模拟 Agent（AskUserQuestion 编排），learn:plan 使用真实 CLI Agent",
+      "implication": "learn:execute 应采用模拟 Agent 以保持高度交互性"
+    },
+    {
+      "category": "状态管理",
+      "finding": "已有完整的 CLI State API（learn:read-state, learn:update-state, learn:read-profile, learn:write-profile）",
+      "implication": "必须通过 CLI API 进行所有状态操作，禁止直接文件操作"
+    },
+    {
+      "category": "评估验证",
+      "finding": "mcp-runner.js 提供沙箱执行环境，支持 TypeScript，网络隔离，超时控制",
+      "implication": "code_challenge 类型必须使用 mcp-runner 验证，practical_task 可选"
+    },
+    {
+      "category": "阶段管理",
+      "finding": "用户要求引入阶段概念，按 DAG 层级自动划分，动态决定阶段数量",
+      "implication": "需要扩展 schema 添加 phase 字段和 phases 数组，实现阶段约束逻辑"
+    },
+    {
+      "category": "个性化",
+      "finding": "profile 包含丰富的学习偏好数据（style, approach, time_availability）",
+      "implication": "learn:execute 应全面利用这些数据调整资源呈现、学习顺序、时间建议"
+    }
+  ],
+  "discussion_points": [
+    {
+      "point": "执行粒度",
+      "user_decision": "支持同一阶段内的知识点指定学习，默认按顺序执行，不同阶段需要拦截"
+    },
+    {
+      "point": "Agent 模式",
+      "user_decision": "采用模拟 Agent（高度交互），类似 learn:profile"
+    },
+    {
+      "point": "评估验证",
+      "user_decision": "用户选择验证方式（每次任务时询问偏好）"
+    },
+    {
+      "point": "阶段划分",
+      "recommendation": "按 DAG 依赖层级自动划分，动态决定阶段数量（1-5个）"
+    },
+    {
+      "point": "Schema 扩展",
+      "user_decision": "完整扩展 - 添加 phases 数组和 phase 字段"
+    }
+  ],
+  "open_questions": [],
+  "design_decisions": [
+    {
+      "decision": "使用模拟 Agent 模式",
+      "rationale": "提供确定性的、向导式的学习体验，与 learn:profile 保持一致"
+    },
+    {
+      "decision": "引入阶段管理",
+      "rationale": "按 DAG 层级自动划分阶段，确保学习顺序的合理性，防止跳过基础知识"
+    },
+    {
+      "decision": "扩展 learn-plan.schema.json",
+      "rationale": "添加 phase 字段和 phases 数组，支持阶段约束和状态跟踪"
+    },
+    {
+      "decision": "使用 CLI State API",
+      "rationale": "遵循架构原则，确保状态操作的原子性和一致性"
+    },
+    {
+      "decision": "全面个性化",
+      "rationale": "利用 profile 数据调整资源呈现、学习顺序、时间建议、难度"
+    }
+  ]
+}
