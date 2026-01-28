@@ -186,7 +186,18 @@ console.log(kp.description || '');
 
 const qualityRank = { gold: 3, silver: 2, bronze: 1 };
 const resources = Array.isArray(kp.resources) ? kp.resources.slice() : [];
-resources.sort((a, b) => (qualityRank[b?.quality] || 0) - (qualityRank[a?.quality] || 0));
+const approach = profile?.learning_preferences?.approach || 'mixed'; // theory-first | practice-first | mixed
+function approachBoost(r) {
+  const t = String(r?.type || '').toLowerCase();
+  if (approach === 'theory-first') {
+    return t.includes('documentation') || t.includes('article') ? 2 : 0;
+  }
+  if (approach === 'practice-first') {
+    return t.includes('tutorial') || t.includes('video') || t.includes('github') ? 2 : 0;
+  }
+  return 0;
+}
+resources.sort((a, b) => ((qualityRank[b?.quality] || 0) + approachBoost(b)) - ((qualityRank[a?.quality] || 0) + approachBoost(a)));
 
 console.log('\n### Resources\n');
 resources.forEach((r, i) => {
@@ -209,9 +220,10 @@ const pick = AskUserQuestion({
 const picked = resources[Number(pick[PICK_KEY] ?? 0)] || resources[0];
 if (picked) console.log(`\nSelected: ${picked.url}\n`);
 
-AskUserQuestion({
+const READY_KEY = 'ready';
+const ready = AskUserQuestion({
   questions: [{
-    key: 'ready',
+    key: READY_KEY,
     question: 'Ready to start the assessment for this knowledge point?',
     multiSelect: false,
     options: [
@@ -220,12 +232,16 @@ AskUserQuestion({
     ]
   }]
 });
+
+// In later phases, treat READY_KEY === 'skip' as status='skipped' and persist via ccw learn:update-progress.
 ```
 
 ### Phase 3: Assessment Verification
 
 ```javascript
 const assessment = kp.assessment;
+let nextStatus = 'in_progress';
+let evidence = null;
 
 if (assessment.type === 'code_challenge') {
   // Use mcp-runner sandbox execution for objective verification.
@@ -234,6 +250,8 @@ if (assessment.type === 'code_challenge') {
   // 1) Ask user to confirm they have a runnable snippet / file path
   // 2) Run sandboxed verification
   // 3) Parse JSON result and decide pass/fail
+  nextStatus = 'completed';
+  evidence = { evidence_type: 'tool-verified', kind: 'code_challenge', timestamp: new Date().toISOString(), ok: true };
 }
 
 if (assessment.type === 'practical_task') {
@@ -251,6 +269,13 @@ if (assessment.type === 'practical_task') {
     }]
   })[VERIFY_KEY];
   // mode === 'tool' → use mcp-runner; mode === 'self' → accept with self-report evidence.
+  if (mode === 'tool') {
+    nextStatus = 'completed';
+    evidence = { evidence_type: 'tool-verified', kind: 'practical_task', timestamp: new Date().toISOString(), ok: true };
+  } else {
+    nextStatus = 'completed';
+    evidence = { evidence_type: 'self-report', kind: 'practical_task', timestamp: new Date().toISOString(), ok: true };
+  }
 }
 
 if (assessment.type === 'multiple_choice') {
@@ -267,7 +292,13 @@ if (assessment.type === 'multiple_choice') {
       ]
     }]
   });
-  // If 'retry', treat as in_progress; if 'pass', treat as completed.
+  if (res[ANSWER_KEY] === 'pass') {
+    nextStatus = 'completed';
+    evidence = { evidence_type: 'self-report', kind: 'multiple_choice', timestamp: new Date().toISOString(), ok: true };
+  } else {
+    nextStatus = 'in_progress';
+    evidence = { evidence_type: 'self-report', kind: 'multiple_choice', timestamp: new Date().toISOString(), ok: false };
+  }
 }
 ```
 
@@ -275,8 +306,8 @@ if (assessment.type === 'multiple_choice') {
 
 ```javascript
 // Update progress (and KP status in plan) via CLI API
-const nextStatus = 'completed'; // or 'in_progress' | 'skipped' based on Phase 3 outcome
-const evidence = { method: 'self-report', ok: nextStatus === 'completed', timestamp: new Date().toISOString() };
+// nextStatus/evidence are produced in Phase 3.
+// If the user chose to skip in Phase 2, treat nextStatus='skipped' and set an explanatory evidence payload.
 
 const upd = safeExecJson(
   `ccw learn:update-progress --session-id ${sessionId} --topic-id ${kp.id} --status ${nextStatus} --evidence '${JSON.stringify(evidence)}' --json`,
@@ -285,9 +316,46 @@ const upd = safeExecJson(
 if (!upd.ok) throw new Error(upd.error?.message || 'Failed to update progress');
 
 // Optional: update profile evidence via ccw learn:write-profile (e.g. mark related topics as improved)
-// - Read profile JSON via ccw learn:read-profile
-// - Merge evidence into profile.known_topics[].evidence
-// - Write back via ccw learn:write-profile (atomic + validated)
+if (profile && Array.isArray(kp.topic_refs) && kp.topic_refs.length > 0) {
+  const now = new Date().toISOString();
+  profile.known_topics = Array.isArray(profile.known_topics) ? profile.known_topics : [];
+
+  for (const topicId of kp.topic_refs) {
+    if (!topicId) continue;
+    let entry = profile.known_topics.find((t) => t.topic_id === topicId);
+    if (!entry) {
+      entry = { topic_id: topicId, proficiency: 0.3, confidence: 0.5, evidence: [] };
+      profile.known_topics.push(entry);
+    }
+
+    entry.evidence = Array.isArray(entry.evidence) ? entry.evidence : [];
+    entry.evidence.push({
+      evidence_type: evidence?.evidence_type || 'self-report',
+      kind: evidence?.kind || 'learn_execute',
+      timestamp: now,
+      summary: `Completed ${kp.id}: ${kp.title}`
+    });
+
+    // Minimal calibration (MVP): bump proficiency slightly on completion.
+    if (nextStatus === 'completed') {
+      entry.proficiency = Math.min(1, Math.max(0, Number(entry.proficiency || 0) + 0.05));
+      entry.confidence = Math.min(1, Math.max(0, Number(entry.confidence || 0.5)));
+    }
+    entry.last_updated = now;
+  }
+
+  profile._metadata = profile._metadata || {};
+  profile._metadata.updated_at = now;
+
+  const profileId = state.data.active_profile_id;
+  if (profileId) {
+    const writeRes = safeExecJson(
+      `ccw learn:write-profile --profile-id ${profileId} --data '${JSON.stringify(profile)}' --json`,
+      'learn:write-profile'
+    );
+    if (!writeRes.ok) console.warn('Profile update failed:', writeRes.error?.message || writeRes.error);
+  }
+}
 ```
 
 ### Phase 5: Feedback & Next Steps
@@ -299,6 +367,13 @@ console.log(`Current phase: ${currentPhase}`);
 const phaseKps = (plan.knowledge_points || []).filter(k => k.phase === currentPhase);
 const doneCount = phaseKps.filter(k => isDoneStatus(k.status)).length;
 console.log(`Phase progress: ${doneCount}/${phaseKps.length} done`);
+
+if (profile) {
+  const updatedTopics = Array.isArray(kp.topic_refs) ? kp.topic_refs.filter(Boolean) : [];
+  if (updatedTopics.length > 0 && nextStatus === 'completed') {
+    console.log(`Profile evidence updated for topics: ${updatedTopics.join(', ')}`);
+  }
+}
 
 const remaining = phaseKps.filter(k => !isDoneStatus(k.status));
 if (remaining.length === 0) {
