@@ -54,6 +54,17 @@ interface SetActiveProfileOptions extends BaseOptions {
   profileId?: string;
 }
 
+interface ReadSessionOptions extends BaseOptions {
+  sessionId?: string;
+}
+
+interface UpdateProgressOptions extends BaseOptions {
+  sessionId?: string;
+  topicId?: string;
+  status?: string;
+  evidence?: string;
+}
+
 const PROJECT_ROOT = (() => {
   const raw = process.env.CCW_PROJECT_ROOT || getPackageRoot();
   const absolute = resolve(raw);
@@ -67,10 +78,13 @@ const PROJECT_ROOT = (() => {
 const LEARN_ROOT = join(PROJECT_ROOT, '.workflow', 'learn');
 const STATE_PATH = join(LEARN_ROOT, 'state.json');
 const PROFILES_DIR = join(LEARN_ROOT, 'profiles');
+const SESSIONS_DIR = join(LEARN_ROOT, 'sessions');
 const LOCK_PATH = join(LEARN_ROOT, '.lock');
 const SCHEMA_DIR = join(PROJECT_ROOT, '.claude', 'workflows', 'cli-templates', 'schemas');
 
 const PROFILE_ID_RE = /^[a-zA-Z0-9_-]+$/;
+const SESSION_ID_RE = /^LS-\d{8}-\d{3}$/;
+const TOPIC_ID_RE = /^KP-\d+$/;
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -218,6 +232,21 @@ function safeProfileIdOrThrow(profileId: string): string {
   return profileId;
 }
 
+function safeSessionIdOrThrow(sessionId: string): string {
+  // Strict session id format keeps session path traversal-proof.
+  if (!SESSION_ID_RE.test(sessionId) || sessionId.includes('/') || sessionId.includes('\\') || sessionId.includes('..')) {
+    throw Object.assign(new Error('Invalid session id'), { code: 'INVALID_ARGS', details: { session_id: sessionId } });
+  }
+  return sessionId;
+}
+
+function safeTopicIdOrThrow(topicId: string): string {
+  if (!TOPIC_ID_RE.test(topicId) || topicId.includes('/') || topicId.includes('\\') || topicId.includes('..')) {
+    throw Object.assign(new Error('Invalid topic id'), { code: 'INVALID_ARGS', details: { topic_id: topicId } });
+  }
+  return topicId;
+}
+
 function defaultState(): any {
   return {
     active_profile_id: null,
@@ -291,6 +320,123 @@ export async function learnReadStateCommand(options: BaseOptions): Promise<void>
     });
 
     print(options, { ok: true, data: state });
+  } catch (err: any) {
+    if (err?._exitCode === 2) {
+      fail(options, { code: err.code ?? 'LOCKED', message: err.message ?? 'Locked', details: err.details }, 2);
+    }
+    fail(options, { code: err.code ?? 'IO_ERROR', message: err.message ?? String(err), details: err.details });
+  }
+}
+
+export async function learnReadSessionCommand(options: ReadSessionOptions): Promise<void> {
+  const sessionId = options.sessionId;
+  if (!sessionId) fail(options, { code: 'INVALID_ARGS', message: 'Missing --session-id' });
+
+  try {
+    const id = safeSessionIdOrThrow(sessionId);
+
+    const session = await withLearnLock(async () => {
+      const sessionDir = join(SESSIONS_DIR, id);
+      const planPath = join(sessionDir, 'plan.json');
+      const progressPath = join(sessionDir, 'progress.json');
+
+      if (!existsSync(planPath)) {
+        throw Object.assign(new Error(`Session not found: ${id}`), { code: 'NOT_FOUND' });
+      }
+
+      const plan = loadJsonFile(planPath);
+      const progress = existsSync(progressPath) ? loadJsonFile(progressPath) : {};
+
+      return { session_id: id, plan, progress };
+    });
+
+    print(options, { ok: true, data: session });
+  } catch (err: any) {
+    if (err?._exitCode === 2) {
+      fail(options, { code: err.code ?? 'LOCKED', message: err.message ?? 'Locked', details: err.details }, 2);
+    }
+    fail(options, { code: err.code ?? 'IO_ERROR', message: err.message ?? String(err), details: err.details });
+  }
+}
+
+export async function learnUpdateProgressCommand(options: UpdateProgressOptions): Promise<void> {
+  const sessionId = options.sessionId;
+  const topicId = options.topicId;
+  const status = options.status;
+  const evidenceStr = options.evidence;
+
+  if (!sessionId) fail(options, { code: 'INVALID_ARGS', message: 'Missing --session-id' });
+  if (!topicId) fail(options, { code: 'INVALID_ARGS', message: 'Missing --topic-id' });
+  if (!status) fail(options, { code: 'INVALID_ARGS', message: 'Missing --status' });
+
+  let evidence: any = null;
+  if (evidenceStr !== undefined) {
+    try {
+      evidence = JSON.parse(evidenceStr);
+    } catch (err: any) {
+      fail(options, { code: 'INVALID_ARGS', message: 'Invalid JSON for --evidence', details: err.message ?? String(err) });
+    }
+  }
+
+  try {
+    const id = safeSessionIdOrThrow(sessionId);
+    const kpId = safeTopicIdOrThrow(topicId);
+
+    const updated = await withLearnLock(async () => {
+      const sessionDir = join(SESSIONS_DIR, id);
+      const planPath = join(sessionDir, 'plan.json');
+      const progressPath = join(sessionDir, 'progress.json');
+
+      if (!existsSync(planPath)) {
+        throw Object.assign(new Error(`Session not found: ${id}`), { code: 'NOT_FOUND' });
+      }
+
+      // Optional guardrail: if plan includes the KP list, ensure the topic id exists.
+      try {
+        const plan = loadJsonFile(planPath);
+        const kps = Array.isArray(plan?.knowledge_points) ? plan.knowledge_points : [];
+        if (kps.length > 0 && !kps.some((kp: any) => kp?.id === kpId)) {
+          throw Object.assign(new Error(`Unknown knowledge point: ${kpId}`), { code: 'NOT_FOUND' });
+        }
+      } catch (err: any) {
+        if (err?.code) throw err;
+        // If plan can't be parsed for any reason, continue (progress tracking should not hard-block execution).
+      }
+
+      const now = nowIso();
+      const progress: any = existsSync(progressPath) ? loadJsonFile(progressPath) : { session_id: id };
+
+      // Ensure expected containers exist.
+      if (!progress.session_id) progress.session_id = id;
+      if (!progress.knowledge_point_progress || typeof progress.knowledge_point_progress !== 'object') {
+        progress.knowledge_point_progress = {};
+      }
+      if (!Array.isArray(progress.completed_knowledge_points)) progress.completed_knowledge_points = [];
+      if (!Array.isArray(progress.in_progress_knowledge_points)) progress.in_progress_knowledge_points = [];
+
+      progress.knowledge_point_progress[kpId] = { status, evidence, updated_at: now };
+
+      // Keep convenience arrays in sync when present.
+      const remove = (arr: any[], value: string) => arr.filter((v) => v !== value);
+      const addUnique = (arr: any[], value: string) => (arr.includes(value) ? arr : [...arr, value]);
+
+      if (status === 'completed') {
+        progress.completed_knowledge_points = addUnique(remove(progress.completed_knowledge_points, kpId), kpId);
+        progress.in_progress_knowledge_points = remove(progress.in_progress_knowledge_points, kpId);
+      } else if (status === 'in_progress') {
+        progress.in_progress_knowledge_points = addUnique(remove(progress.in_progress_knowledge_points, kpId), kpId);
+        progress.completed_knowledge_points = remove(progress.completed_knowledge_points, kpId);
+      }
+
+      progress._metadata = progress._metadata || {};
+      progress._metadata.last_updated = now;
+
+      // We don't have a dedicated progress schema yet, but we still want atomic writes + backup.
+      atomicWriteJson(progressPath, progress, () => true);
+      return progress;
+    });
+
+    print(options, { ok: true, data: updated });
   } catch (err: any) {
     if (err?._exitCode === 2) {
       fail(options, { code: err.code ?? 'LOCKED', message: err.message ?? 'Locked', details: err.details }, 2);

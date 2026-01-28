@@ -19,7 +19,9 @@ import {
   learnReadProfileCommand,
   learnWriteProfileCommand,
   learnListProfilesCommand,
-  learnSetActiveProfileCommand
+  learnSetActiveProfileCommand,
+  learnReadSessionCommand,
+  learnUpdateProgressCommand
 } from './commands/learn.js';
 import { learnParseBackgroundCommand } from './commands/learn-background.js';
 import { learnAdaptiveStepCommand } from './commands/learn-adaptive.js';
@@ -359,6 +361,23 @@ export function run(argv: string[]): void {
     .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
     .option('--json', 'Output as JSON (recommended for agents)')
     .action((options) => learnSetActiveProfileCommand(options));
+
+  program
+    .command('learn:read-session')
+    .description('Read learn session plan + progress (best-effort, lock-protected)')
+    .requiredOption('--session-id <id>', 'Session id (folder name, e.g. LS-YYYYMMDD-NNN)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnReadSessionCommand(options));
+
+  program
+    .command('learn:update-progress')
+    .description('Update learn session progress for a single knowledge point (atomic + lock-protected)')
+    .requiredOption('--session-id <id>', 'Session id (folder name, e.g. LS-YYYYMMDD-NNN)')
+    .requiredOption('--topic-id <id>', 'Knowledge point id (e.g. KP-1)')
+    .requiredOption('--status <status>', 'Status (e.g. in_progress|completed)')
+    .option('--evidence <json>', 'Evidence JSON string')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnUpdateProgressCommand(options));
 
   program
     .command('learn:parse-background')

@@ -77,12 +77,33 @@
       "issue_id": "ISS-20260128-003",
       "solution_id": "SOL-ISS-20260128-003-c3d4",
       "task_count": 4,
-      "status": "pending",
+      "status": "completed",
       "execution_group": "S1",
       "depends_on": [
         "S-1"
       ],
-      "execution_order": 2
+      "execution_order": 2,
+      "started_at": "2026-01-28T15:02:30.971Z",
+      "completed_at": "2026-01-28T15:15:24.717Z",
+      "result": {
+        "commit": {
+          "type": "feat",
+          "tasks": [
+            "T1",
+            "T2",
+            "T3",
+            "T4"
+          ],
+          "hash": null
+        },
+        "tests_passed": true,
+        "files_modified": [
+          "ccw/src/commands/learn.ts",
+          "ccw/src/cli.ts",
+          "ccw/tests/learn-cli-api.test.js"
+        ],
+        "summary": "新增 learn:read-session / learn:update-progress CLI API，并注册命令与补齐单测（含并发锁验证）。"
+      }
     },
     {
       "item_id": "S-3",
@@ -220,10 +241,10 @@
   "_metadata": {
     "version": "2.0",
     "total_tasks": 6,
-    "pending_count": 5,
+    "pending_count": 4,
     "executing_count": 0,
-    "completed_count": 1,
+    "completed_count": 2,
     "failed_count": 0,
-    "updated_at": "2026-01-28T15:01:57.636Z"
+    "updated_at": "2026-01-28T15:15:24.726Z"
   }
 }
