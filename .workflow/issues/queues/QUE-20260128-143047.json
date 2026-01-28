@@ -17,17 +17,119 @@
     {
       "id": "S1",
       "type": "sequential",
-      "items": ["S-1", "S-2", "S-4"]
+      "items": [
+        "S-1",
+        "S-2",
+        "S-4"
+      ]
     },
     {
       "id": "P1",
       "type": "parallel",
-      "items": ["S-3"]
+      "items": [
+        "S-3"
+      ]
     },
     {
       "id": "S2",
       "type": "sequential",
-      "items": ["S-5", "S-6"]
+      "items": [
+        "S-5",
+        "S-6"
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "item_id": "S-1",
+      "issue_id": "ISS-20260128-002",
+      "solution_id": "SOL-ISS-20260128-002-a1b2",
+      "task_count": 4,
+      "status": "completed",
+      "execution_group": "S1",
+      "depends_on": [],
+      "execution_order": 1,
+      "started_at": "2026-01-28T14:47:13.779Z",
+      "completed_at": "2026-01-28T15:01:57.634Z",
+      "result": {
+        "summary": "为 learn plan/state schema 增加 phases/phase/current_phase，并在 learn:plan/learn:execute 初始化加入 ensurePhases 自动补全。",
+        "commit": {
+          "type": "feat",
+          "hash": null,
+          "tasks": [
+            "T1",
+            "T2",
+            "T3",
+            "T4"
+          ]
+        },
+        "tests_passed": true,
+        "files_modified": [
+          ".claude/workflows/cli-templates/schemas/learn-plan.schema.json",
+          ".claude/workflows/cli-templates/schemas/learn-state.schema.json",
+          ".claude/commands/learn/plan.md",
+          ".claude/commands/learn/execute.md"
+        ]
+      }
+    },
+    {
+      "item_id": "S-2",
+      "issue_id": "ISS-20260128-003",
+      "solution_id": "SOL-ISS-20260128-003-c3d4",
+      "task_count": 4,
+      "status": "pending",
+      "execution_group": "S1",
+      "depends_on": [
+        "S-1"
+      ],
+      "execution_order": 2
+    },
+    {
+      "item_id": "S-3",
+      "issue_id": "ISS-20260128-004",
+      "solution_id": "SOL-ISS-20260128-004-e5f6",
+      "task_count": 5,
+      "status": "pending",
+      "execution_group": "P1",
+      "depends_on": [],
+      "execution_order": 3
+    },
+    {
+      "item_id": "S-4",
+      "issue_id": "ISS-20260128-001",
+      "solution_id": "SOL-ISS-20260128-001-x7m9",
+      "task_count": 15,
+      "status": "pending",
+      "execution_group": "S1",
+      "depends_on": [
+        "S-1",
+        "S-2"
+      ],
+      "execution_order": 4
+    },
+    {
+      "item_id": "S-5",
+      "issue_id": "ISS-20260128-005",
+      "solution_id": "SOL-ISS-20260128-005-g7h8",
+      "task_count": 6,
+      "status": "pending",
+      "execution_group": "S2",
+      "depends_on": [
+        "S-2"
+      ],
+      "execution_order": 5
+    },
+    {
+      "item_id": "S-6",
+      "issue_id": "ISS-20260128-006",
+      "solution_id": "SOL-ISS-20260128-006-i9j0",
+      "task_count": 4,
+      "status": "pending",
+      "execution_group": "S2",
+      "depends_on": [
+        "S-5"
+      ],
+      "execution_order": 6
     }
   ],
   "items": [
@@ -47,7 +149,9 @@
       "task_count": 4,
       "status": "pending",
       "execution_group": "S1",
-      "dependencies": ["S-1"]
+      "dependencies": [
+        "S-1"
+      ]
     },
     {
       "id": "S-3",
@@ -65,7 +169,10 @@
       "task_count": 15,
       "status": "pending",
       "execution_group": "S1",
-      "dependencies": ["S-1", "S-2"]
+      "dependencies": [
+        "S-1",
+        "S-2"
+      ]
     },
     {
       "id": "S-5",
@@ -74,7 +181,9 @@
       "task_count": 6,
       "status": "pending",
       "execution_group": "S2",
-      "dependencies": ["S-2"]
+      "dependencies": [
+        "S-2"
+      ]
     },
     {
       "id": "S-6",
@@ -83,21 +192,38 @@
       "task_count": 4,
       "status": "pending",
       "execution_group": "S2",
-      "dependencies": ["S-5"]
+      "dependencies": [
+        "S-5"
+      ]
     }
   ],
   "conflicts": {
     "file_conflicts": [
       {
         "file": ".claude/workflows/cli-templates/schemas/learn-plan.schema.json",
-        "solutions": ["SOL-ISS-20260128-002-a1b2", "SOL-ISS-20260128-001-x7m9"],
+        "solutions": [
+          "SOL-ISS-20260128-002-a1b2",
+          "SOL-ISS-20260128-001-x7m9"
+        ],
         "resolution": "Sequential execution (SOL-002 before SOL-001)"
       },
       {
         "file": "ccw/src/commands/learn.ts",
-        "solutions": ["SOL-ISS-20260128-003-c3d4", "SOL-ISS-20260128-001-x7m9"],
+        "solutions": [
+          "SOL-ISS-20260128-003-c3d4",
+          "SOL-ISS-20260128-001-x7m9"
+        ],
         "resolution": "Sequential execution (SOL-003 before SOL-001)"
       }
     ]
+  },
+  "_metadata": {
+    "version": "2.0",
+    "total_tasks": 6,
+    "pending_count": 5,
+    "executing_count": 0,
+    "completed_count": 1,
+    "failed_count": 0,
+    "updated_at": "2026-01-28T15:01:57.636Z"
   }
 }

@@ -270,6 +270,57 @@ const sessionFolder = `.workflow/learn/sessions/${sessionId}`;
 Bash(`mkdir -p ${sessionFolder}/interactions/notes`);
 ```
 
+**Phase 3.0: Ensure phases (schema-required + backward compatibility)**:
+
+```javascript
+// NOTE:
+// - phases is required by learn-plan.schema.json (Layer 0 validation).
+// - phase is required on each knowledge point item.
+// - assignPhases() will be implemented with DAG-leveling (see /learn:execute design docs).
+//   Until then, keep a safe fallback so plan generation never regresses.
+
+function assignPhasesFallback(knowledgePoints) {
+  const kps = Array.isArray(knowledgePoints) ? knowledgePoints : [];
+  const updated = kps.map((kp) => {
+    const phase = typeof kp?.phase === 'number' && kp.phase >= 1 ? kp.phase : 1;
+    return { ...kp, phase };
+  });
+
+  const ids = updated.map((kp) => kp?.id).filter(Boolean);
+  const phases = [
+    {
+      phase_number: 1,
+      phase_name: 'Phase 1',
+      knowledge_point_ids: ids,
+      description: 'Auto-generated fallback phase (upgrade path: DAG-based assignPhases)',
+      status: 'active'
+    }
+  ];
+
+  return { knowledgePoints: updated, phases };
+}
+
+function ensurePhases(plan) {
+  if (!plan || typeof plan !== 'object') return plan;
+
+  const kps = Array.isArray(plan.knowledge_points) ? plan.knowledge_points : [];
+  const hasPhases = Array.isArray(plan.phases) && plan.phases.length > 0;
+  const missingKpPhase = kps.some((kp) => typeof kp?.phase !== 'number' || kp.phase < 1);
+
+  if (hasPhases && !missingKpPhase) return plan;
+
+  const { knowledgePoints, phases } =
+    typeof assignPhases === 'function'
+      ? assignPhases(kps, plan.dependency_graph)
+      : assignPhasesFallback(kps);
+
+  plan.knowledge_points = knowledgePoints;
+  plan.phases = phases;
+
+  return plan;
+}
+```
+
 **Phase 1.5: JIT Assessment Triggers (Progressive Profiling)**:
 
 > JIT Assessment removed to avoid interrupting the `/learn:plan` flow.  
@@ -345,6 +396,9 @@ if (!planDraft) {
     _metadata: { created_at: new Date().toISOString(), generation_method: "template-fallback" }
   };
 }
+
+// Ensure phase information exists before schema validation (supports legacy agent outputs).
+planDraft = ensurePhases(planDraft);
 
 // Write draft and run validation gates (schema → DAG → profile warnings)
 const draftPlanPath = `${sessionFolder}/plan.tmp.json`;
@@ -454,9 +508,11 @@ const templatePlan = {
   }
 };
 
+const ensuredTemplatePlan = ensurePhases(templatePlan);
+
 // Layer 0: Schema Validation (blocking) before writing final plan.json
 const draftPlanPath = `${sessionFolder}/plan.tmp.json`;
-Write(draftPlanPath, JSON.stringify(templatePlan, null, 2));
+Write(draftPlanPath, JSON.stringify(ensuredTemplatePlan, null, 2));
 const validation = safeExecJson(
   `node .claude/commands/learn/_internal/learn-plan-validator.js ${draftPlanPath} --profile ${profilePath}`,
   'learn-plan-validator'

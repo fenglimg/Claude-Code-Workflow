@@ -12,6 +12,11 @@
       "description": "The ID of the currently active learning session.",
       "type": ["string", "null"]
     },
+    "current_phase": {
+      "description": "The current active learning phase number in the active session (1-based).",
+      "type": "integer",
+      "minimum": 1
+    },
     "version": {
       "description": "The schema version.",
       "type": "string",
