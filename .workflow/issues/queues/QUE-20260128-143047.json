@@ -143,13 +143,55 @@
       "issue_id": "ISS-20260128-001",
       "solution_id": "SOL-ISS-20260128-001-x7m9",
       "task_count": 15,
-      "status": "pending",
+      "status": "completed",
       "execution_group": "S1",
       "depends_on": [
         "S-1",
         "S-2"
       ],
-      "execution_order": 4
+      "execution_order": 4,
+      "started_at": "2026-01-28T15:23:29.785Z",
+      "completed_at": "2026-01-28T15:47:03.365Z",
+      "result": {
+        "tests_passed": true,
+        "summary": "完成 learn:execute MVP（5 阶段骨架、phase gate、--next-phase 文档流程），对齐 plan/state schema 的向后兼容与 current_phase，强化 CLI session/progress API（schema 校验 + 原子更新），并补齐相关测试与文档。",
+        "commit": {
+          "type": "feat",
+          "tasks": [
+            "T1",
+            "T2",
+            "T3",
+            "T4",
+            "T5",
+            "T6",
+            "T7",
+            "T8",
+            "T9",
+            "T10",
+            "T11",
+            "T12",
+            "T13",
+            "T14",
+            "T15"
+          ],
+          "hash": null
+        },
+        "files_modified": [
+          ".claude/workflows/cli-templates/schemas/learn-plan.schema.json",
+          ".claude/workflows/cli-templates/schemas/learn-state.schema.json",
+          "ccw/src/commands/learn.ts",
+          "ccw/src/cli.ts",
+          ".claude/commands/learn/execute.md",
+          ".claude/commands/learn/plan.md",
+          ".claude/commands/learn/_internal/phase-assignment.js",
+          "README.md",
+          ".workflow/.scratchpad/learn-workflow-draft/README.md",
+          "ccw/tests/learn-execute.test.js",
+          "ccw/tests/learn-state-cli.test.js",
+          "ccw/tests/learn-cli-api.test.js",
+          "ccw/tests/learn-phase-assignment.test.js"
+        ]
+      }
     },
     {
       "item_id": "S-5",
@@ -264,10 +306,10 @@
   "_metadata": {
     "version": "2.0",
     "total_tasks": 6,
-    "pending_count": 3,
+    "pending_count": 2,
     "executing_count": 0,
-    "completed_count": 3,
+    "completed_count": 4,
     "failed_count": 0,
-    "updated_at": "2026-01-28T15:22:38.981Z"
+    "updated_at": "2026-01-28T15:47:03.375Z"
   }
 }

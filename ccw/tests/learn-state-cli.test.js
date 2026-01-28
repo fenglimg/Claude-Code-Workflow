@@ -89,6 +89,32 @@ describe('ccw learn:* state commands', () => {
     }
   });
 
+  it('learn:update-state supports current_phase (integer or null)', () => {
+    const cwd = setupSandboxProject();
+    try {
+      const { res: r1, out: o1 } = runCcw(
+        ['learn:update-state', '--field', 'current_phase', '--value', '1', '--json'],
+        cwd
+      );
+      assert.equal(r1.status, 0);
+      assert.equal(o1.ok, true);
+      assert.equal(o1.data.current_phase, 1);
+
+      const { out: o2 } = runCcw(['learn:read-state', '--json'], cwd);
+      assert.equal(o2.ok, true);
+      assert.equal(o2.data.current_phase, 1);
+
+      const { out: o3 } = runCcw(
+        ['learn:update-state', '--field', 'current_phase', '--value', 'null', '--json'],
+        cwd
+      );
+      assert.equal(o3.ok, true);
+      assert.equal(o3.data.current_phase, null);
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
   it('learn:write-profile + learn:read-profile roundtrip', () => {
     const cwd = setupSandboxProject();
     try {

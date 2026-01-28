@@ -77,20 +77,17 @@ export function getPhaseNameByNumber(num, total) {
   const n = Number(num);
   const t = Number(total);
 
-  if (t <= 3) {
-    if (n === 1) return 'Foundation';
-    if (n === 2) return 'Building';
-    if (n === 3) return 'Mastery';
-  }
+  // Always prefer ending with "Mastery" when total < 5.
+  const presets = {
+    1: ['Foundation'],
+    2: ['Foundation', 'Mastery'],
+    3: ['Foundation', 'Core Concepts', 'Mastery'],
+    4: ['Foundation', 'Core Concepts', 'Advanced Topics', 'Mastery'],
+    5: ['Foundation', 'Core Concepts', 'Advanced Topics', 'Specialization', 'Mastery']
+  };
 
-  if (t === 4) {
-    if (n === 1) return 'Foundation';
-    if (n === 2) return 'Building';
-    if (n === 3) return 'Advanced';
-    if (n === 4) return 'Mastery';
-  }
-
-  return `Phase ${n}`;
+  const names = presets[t] || presets[5];
+  return names[n - 1] || `Phase ${n}`;
 }
 
 /**

@@ -120,6 +120,23 @@ ccw install -m Global
 
 ---
 
+## 🧑‍🎓 Learn Workflow (Experimental)
+
+Learn workflow provides a profile-aware learning loop: profile → plan → execute.
+
+```bash
+/learn:profile create
+/learn:plan "Master React Server Components"
+/learn:execute
+```
+
+Key features:
+- Phase-based learning progression (`phases` + `current_phase`)
+- Dependency-aware knowledge points (DAG prerequisites)
+- Evidence-friendly progress tracking via CLI State API (`ccw learn:*`)
+
+---
+
 ## 🛠️ CLI Tool Installation
 
 <div align="center">

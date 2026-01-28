@@ -36,20 +36,18 @@ describe('learn phase assignment (DAG-based)', () => {
     assert.equal(levels.D, 2);
   });
 
-  it('getPhaseNameByNumber uses semantic names for <= 4 phases', () => {
+  it('getPhaseNameByNumber uses consistent naming and ends with Mastery', () => {
     assert.equal(getPhaseNameByNumber(1, 3), 'Foundation');
-    assert.equal(getPhaseNameByNumber(2, 3), 'Building');
+    assert.equal(getPhaseNameByNumber(2, 3), 'Core Concepts');
     assert.equal(getPhaseNameByNumber(3, 3), 'Mastery');
 
     assert.equal(getPhaseNameByNumber(1, 4), 'Foundation');
-    assert.equal(getPhaseNameByNumber(2, 4), 'Building');
-    assert.equal(getPhaseNameByNumber(3, 4), 'Advanced');
+    assert.equal(getPhaseNameByNumber(2, 4), 'Core Concepts');
+    assert.equal(getPhaseNameByNumber(3, 4), 'Advanced Topics');
     assert.equal(getPhaseNameByNumber(4, 4), 'Mastery');
-  });
 
-  it('getPhaseNameByNumber uses Phase N for >= 5 phases', () => {
-    assert.equal(getPhaseNameByNumber(1, 5), 'Phase 1');
-    assert.equal(getPhaseNameByNumber(5, 5), 'Phase 5');
+    assert.equal(getPhaseNameByNumber(4, 5), 'Specialization');
+    assert.equal(getPhaseNameByNumber(5, 5), 'Mastery');
   });
 
   it('assignPhases assigns 1-based phases and generates metadata', () => {
@@ -98,4 +96,3 @@ describe('learn phase assignment (DAG-based)', () => {
     assert.equal(phases[4].phase_number, 5);
   });
 });
-

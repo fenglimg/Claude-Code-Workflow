@@ -60,15 +60,6 @@ function writeTestSession(cwd, sessionId, { withProgress = false } = {}) {
     session_id: sessionId,
     learning_goal: 'Test Goal',
     profile_id: 'p1',
-    phases: [
-      {
-        phase_number: 1,
-        phase_name: 'Phase 1',
-        knowledge_point_ids: ['KP-1'],
-        description: 'Auto',
-        status: 'active'
-      }
-    ],
     knowledge_points: [
       {
         id: 'KP-1',
@@ -78,7 +69,6 @@ function writeTestSession(cwd, sessionId, { withProgress = false } = {}) {
         topic_refs: [],
         resources: [{ type: 'documentation', url: 'https://example.com', quality: 'gold' }],
         assessment: { type: 'practical_task', description: 'do it' },
-        phase: 1,
         status: 'pending'
       }
     ],
@@ -228,4 +218,3 @@ describe('ccw learn:* session/progress commands', () => {
     }
   });
 });
-

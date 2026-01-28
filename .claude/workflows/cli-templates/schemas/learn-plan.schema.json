@@ -15,7 +15,7 @@
         "type": "object",
         "properties": {
           "phase_number": { "type": "integer", "minimum": 1 },
-          "phase_name": { "type": "string" },
+          "phase_name": { "type": "string", "enum": ["Foundation", "Core Concepts", "Advanced Topics", "Specialization", "Mastery"] },
           "knowledge_point_ids": {
             "type": "array",
             "items": { "type": "string", "pattern": "^KP-\\d+$" }
@@ -23,7 +23,7 @@
           "description": { "type": "string" },
           "status": { "type": "string", "enum": ["locked", "pending", "active", "completed"] }
         },
-        "required": ["phase_number", "phase_name", "knowledge_point_ids", "description", "status"]
+        "required": ["phase_number", "phase_name", "knowledge_point_ids"]
       }
     },
     "knowledge_points": {
@@ -60,10 +60,10 @@
             },
             "required": ["type", "description"]
           },
-          "phase": { "type": "integer", "minimum": 1 },
+          "phase": { "type": "integer", "minimum": 1, "description": "Phase number this knowledge point belongs to (1-based)." },
           "status": { "type": "string", "enum": ["pending", "in_progress", "completed", "skipped", "optional"] }
         },
-        "required": ["id", "title", "prerequisites", "resources", "assessment", "phase", "status"]
+        "required": ["id", "title", "prerequisites", "resources", "assessment", "status"]
       }
     },
     "dependency_graph": {
@@ -86,5 +86,5 @@
     },
     "_metadata": { "type": "object" }
   },
-  "required": ["session_id", "learning_goal", "phases", "knowledge_points", "dependency_graph"]
+  "required": ["session_id", "learning_goal", "knowledge_points", "dependency_graph"]
 }

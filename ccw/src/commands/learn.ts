@@ -154,6 +154,7 @@ const ajv = (() => {
 
 let validateState: ((data: any) => boolean) | null = null;
 let validateProfile: ((data: any) => boolean) | null = null;
+let validatePlan: ((data: any) => boolean) | null = null;
 
 function getStateValidator(): (data: any) => boolean {
   if (validateState) return validateState;
@@ -169,6 +170,14 @@ function getProfileValidator(): (data: any) => boolean {
   const schema = loadJsonFile(schemaPath);
   validateProfile = ajv.compile(schema);
   return validateProfile!;
+}
+
+function getPlanValidator(): (data: any) => boolean {
+  if (validatePlan) return validatePlan;
+  const schemaPath = join(SCHEMA_DIR, 'learn-plan.schema.json');
+  const schema = loadJsonFile(schemaPath);
+  validatePlan = ajv.compile(schema);
+  return validatePlan!;
 }
 
 async function withLearnLock<T>(fn: () => Promise<T>): Promise<T> {
@@ -345,6 +354,13 @@ export async function learnReadSessionCommand(options: ReadSessionOptions): Prom
       }
 
       const plan = loadJsonFile(planPath);
+      const ok = getPlanValidator()(plan);
+      if (!ok) {
+        throw Object.assign(new Error('Plan schema validation failed'), {
+          code: 'SCHEMA_INVALID',
+          details: formatAjvErrors((getPlanValidator() as any).errors)
+        });
+      }
       const progress = existsSync(progressPath) ? loadJsonFile(progressPath) : {};
 
       return { session_id: id, plan, progress };
@@ -391,16 +407,19 @@ export async function learnUpdateProgressCommand(options: UpdateProgressOptions)
         throw Object.assign(new Error(`Session not found: ${id}`), { code: 'NOT_FOUND' });
       }
 
-      // Optional guardrail: if plan includes the KP list, ensure the topic id exists.
-      try {
-        const plan = loadJsonFile(planPath);
-        const kps = Array.isArray(plan?.knowledge_points) ? plan.knowledge_points : [];
-        if (kps.length > 0 && !kps.some((kp: any) => kp?.id === kpId)) {
-          throw Object.assign(new Error(`Unknown knowledge point: ${kpId}`), { code: 'NOT_FOUND' });
-        }
-      } catch (err: any) {
-        if (err?.code) throw err;
-        // If plan can't be parsed for any reason, continue (progress tracking should not hard-block execution).
+      const plan = loadJsonFile(planPath);
+      const planOk = getPlanValidator()(plan);
+      if (!planOk) {
+        throw Object.assign(new Error('Plan schema validation failed'), {
+          code: 'SCHEMA_INVALID',
+          details: formatAjvErrors((getPlanValidator() as any).errors)
+        });
+      }
+
+      const kps = Array.isArray(plan?.knowledge_points) ? plan.knowledge_points : [];
+      const kp = kps.find((p: any) => p?.id === kpId);
+      if (!kp) {
+        throw Object.assign(new Error(`Unknown knowledge point: ${kpId}`), { code: 'NOT_FOUND' });
       }
 
       const now = nowIso();
@@ -431,6 +450,12 @@ export async function learnUpdateProgressCommand(options: UpdateProgressOptions)
       progress._metadata = progress._metadata || {};
       progress._metadata.last_updated = now;
 
+      // Keep plan KP status in sync with progress updates (atomic + validated).
+      kp.status = status;
+      plan._metadata = plan._metadata || {};
+      plan._metadata.updated_at = now;
+      atomicWriteJson(planPath, plan, getPlanValidator());
+
       // We don't have a dedicated progress schema yet, but we still want atomic writes + backup.
       atomicWriteJson(progressPath, progress, () => true);
       return progress;
@@ -451,11 +476,22 @@ export async function learnUpdateStateCommand(options: UpdateStateOptions): Prom
   if (!field) fail(options, { code: 'INVALID_ARGS', message: 'Missing --field' });
   if (rawValue === undefined) fail(options, { code: 'INVALID_ARGS', message: 'Missing --value' });
 
-  if (!['active_profile_id', 'active_session_id'].includes(field)) {
+  if (!['active_profile_id', 'active_session_id', 'current_phase'].includes(field)) {
     fail(options, { code: 'INVALID_ARGS', message: `Unsupported state field: ${field}` });
   }
 
-  const value = rawValue === 'null' ? null : rawValue;
+  let value: any;
+  if (rawValue === 'null') {
+    value = null;
+  } else if (field === 'current_phase') {
+    const n = Number(rawValue);
+    if (!Number.isInteger(n) || n < 1) {
+      fail(options, { code: 'INVALID_ARGS', message: 'Invalid current_phase (must be integer >= 1 or null)' });
+    }
+    value = n;
+  } else {
+    value = rawValue;
+  }
 
   try {
     const updated = await withLearnLock(async () => {

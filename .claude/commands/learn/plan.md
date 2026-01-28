@@ -321,13 +321,16 @@ function computeTopologicalLevels(dependencyGraph) {
 }
 
 function getPhaseNameByNumber(num, total) {
-  if (total <= 3) {
-    return ['Foundation', 'Building', 'Mastery'][num - 1] || `Phase ${num}`;
-  }
-  if (total === 4) {
-    return ['Foundation', 'Building', 'Advanced', 'Mastery'][num - 1] || `Phase ${num}`;
-  }
-  return `Phase ${num}`;
+  const presets = {
+    1: ['Foundation'],
+    2: ['Foundation', 'Mastery'],
+    3: ['Foundation', 'Core Concepts', 'Mastery'],
+    4: ['Foundation', 'Core Concepts', 'Advanced Topics', 'Mastery'],
+    5: ['Foundation', 'Core Concepts', 'Advanced Topics', 'Specialization', 'Mastery']
+  };
+
+  const names = presets[total] || presets[5];
+  return names[num - 1] || `Phase ${num}`;
 }
 
 function assignPhases(knowledgePoints, dependencyGraph) {

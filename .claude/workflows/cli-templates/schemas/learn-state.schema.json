@@ -14,8 +14,9 @@
     },
     "current_phase": {
       "description": "The current active learning phase number in the active session (1-based).",
-      "type": "integer",
-      "minimum": 1
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "default": null
     },
     "version": {
       "description": "The schema version.",

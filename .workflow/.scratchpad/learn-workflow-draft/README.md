@@ -76,7 +76,7 @@ learn workflow = 独立应用 + CLI调用入口
 |:---|:---|:---|:---|
 | **learn:profile** | 个人档案管理 | ✅ **已实现 (Enhanced)** | **Simulated Agent** |
 | **learn:plan** | 学习计划生成 | ✅ **已实现 (Partial)** | **Simulated Agent** |
-| **learn:execute** | 知识点执行 | ⏳ **未开始** | N/A |
+| **learn:execute** | 知识点执行 | ✅ **已实现 (MVP)** | **Simulated Agent** |
 | **learn:ask** | 导师问答 | ⏳ **未开始** | `learn-mentor-agent` (planned) |
 | **learn:review** | 学习回顾 | ⏳ **未开始** | N/A |
 
@@ -120,12 +120,15 @@ learn workflow = 独立应用 + CLI调用入口
 
 ---
 
-#### **命令 3-5: `/learn:execute`, `/learn:ask`, `/learn:review`**
+#### **命令 3: `/learn:execute` - 知识点执行**
 
 ##### **实现状态与细节**
-- **Status**: ⏳ **未开始 (Not Started)**
-- **Implementation File**: N/A
-- **Key Implementation Details**: 这些命令的设计保留在本文档中作为未来实现的蓝图。
+- **Status**: ✅ **已实现 (MVP)**（后续可逐步增强验证与个性化）
+- **Implementation File**: `.claude/commands/learn/execute.md`
+- **Key Implementation Details**:
+    1. **Phase 约束执行**：按 `current_phase` 约束选择知识点，同阶段灵活推进。
+    2. **CLI State API**：通过 `ccw learn:*` 命令读写状态，避免直接编辑 `.workflow/learn/**`。
+    3. **向后兼容**：对 legacy plan（缺少 phases/phase）进行自动补全路径（由 `/learn:plan` 与算法模块提供）。
 
 ---
 

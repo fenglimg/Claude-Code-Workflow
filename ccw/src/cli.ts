@@ -329,7 +329,7 @@ export function run(argv: string[]): void {
   program
     .command('learn:update-state')
     .description('Update a single field in learn state (atomic + validated)')
-    .requiredOption('--field <field>', 'Field to update: active_profile_id|active_session_id')
+    .requiredOption('--field <field>', 'Field to update: active_profile_id|active_session_id|current_phase')
     .requiredOption('--value <value>', 'Value to set (use "null" to clear)')
     .option('--json', 'Output as JSON (recommended for agents)')
     .action((options) => learnUpdateStateCommand(options));
