@@ -21,7 +21,7 @@
             "items": { "type": "string", "pattern": "^KP-\\d+$" }
           },
           "description": { "type": "string" },
-          "status": { "type": "string", "enum": ["pending", "active", "completed"] }
+          "status": { "type": "string", "enum": ["locked", "pending", "active", "completed"] }
         },
         "required": ["phase_number", "phase_name", "knowledge_point_ids", "description", "status"]
       }

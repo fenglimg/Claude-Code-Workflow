@@ -279,6 +279,91 @@ Bash(`mkdir -p ${sessionFolder}/interactions/notes`);
 // - assignPhases() will be implemented with DAG-leveling (see /learn:execute design docs).
 //   Until then, keep a safe fallback so plan generation never regresses.
 
+function computeTopologicalLevels(dependencyGraph) {
+  const nodes = Array.isArray(dependencyGraph?.nodes) ? dependencyGraph.nodes : [];
+  const edges = Array.isArray(dependencyGraph?.edges) ? dependencyGraph.edges : [];
+
+  const outgoing = new Map(nodes.map((n) => [n, []]));
+  const inDegree = new Map(nodes.map((n) => [n, 0]));
+
+  for (const e of edges) {
+    if (!e || typeof e !== 'object') continue;
+    if (!outgoing.has(e.from)) outgoing.set(e.from, []);
+    if (!outgoing.has(e.to)) outgoing.set(e.to, []);
+    if (!inDegree.has(e.from)) inDegree.set(e.from, 0);
+    if (!inDegree.has(e.to)) inDegree.set(e.to, 0);
+
+    outgoing.get(e.from).push(e.to);
+    inDegree.set(e.to, (inDegree.get(e.to) || 0) + 1);
+  }
+
+  const levels = Object.create(null);
+  const queue = [];
+
+  for (const [n, deg] of inDegree.entries()) {
+    if ((deg || 0) === 0) {
+      queue.push(n);
+      levels[n] = 0;
+    }
+  }
+
+  while (queue.length > 0) {
+    const cur = queue.shift();
+    const curLevel = levels[cur] ?? 0;
+    for (const nxt of outgoing.get(cur) || []) {
+      levels[nxt] = Math.max(levels[nxt] ?? 0, curLevel + 1);
+      inDegree.set(nxt, (inDegree.get(nxt) || 0) - 1);
+      if ((inDegree.get(nxt) || 0) === 0) queue.push(nxt);
+    }
+  }
+
+  return levels;
+}
+
+function getPhaseNameByNumber(num, total) {
+  if (total <= 3) {
+    return ['Foundation', 'Building', 'Mastery'][num - 1] || `Phase ${num}`;
+  }
+  if (total === 4) {
+    return ['Foundation', 'Building', 'Advanced', 'Mastery'][num - 1] || `Phase ${num}`;
+  }
+  return `Phase ${num}`;
+}
+
+function assignPhases(knowledgePoints, dependencyGraph) {
+  const kps = Array.isArray(knowledgePoints) ? knowledgePoints : [];
+  const nodes =
+    Array.isArray(dependencyGraph?.nodes) && dependencyGraph.nodes.length
+      ? dependencyGraph.nodes
+      : kps.map((kp) => kp?.id).filter(Boolean);
+  const edges = Array.isArray(dependencyGraph?.edges) ? dependencyGraph.edges : [];
+
+  const levels = computeTopologicalLevels({ nodes, edges });
+  const maxLevel = Math.max(0, ...Object.values(levels));
+  const phaseCount = Math.min(maxLevel + 1, 5);
+  const levelsPerPhase = Math.max(1, Math.ceil((maxLevel + 1) / phaseCount));
+
+  const updated = kps.map((kp) => {
+    const level = typeof levels[kp?.id] === 'number' ? levels[kp.id] : 0;
+    const phase = Math.floor(level / levelsPerPhase) + 1;
+    return { ...kp, phase };
+  });
+
+  const phases = [];
+  for (let i = 1; i <= phaseCount; i += 1) {
+    const ids = updated.map((kp) => (kp?.phase === i ? kp?.id : null)).filter(Boolean);
+    phases.push({
+      phase_number: i,
+      phase_name: getPhaseNameByNumber(i, phaseCount),
+      knowledge_point_ids: ids,
+      description: `Auto-assigned phase ${i} of ${phaseCount} (levelsPerPhase=${levelsPerPhase})`,
+      status: i === 1 ? 'active' : 'locked'
+    });
+  }
+
+  return { knowledgePoints: updated, phases };
+}
+
 function assignPhasesFallback(knowledgePoints) {
   const kps = Array.isArray(knowledgePoints) ? knowledgePoints : [];
   const updated = kps.map((kp) => {

@@ -110,10 +110,33 @@
       "issue_id": "ISS-20260128-004",
       "solution_id": "SOL-ISS-20260128-004-e5f6",
       "task_count": 5,
-      "status": "pending",
+      "status": "completed",
       "execution_group": "P1",
       "depends_on": [],
-      "execution_order": 3
+      "execution_order": 3,
+      "started_at": "2026-01-28T15:16:31.485Z",
+      "completed_at": "2026-01-28T15:22:38.972Z",
+      "result": {
+        "summary": "实现 DAG 层级→阶段划分算法（computeTopologicalLevels/getPhaseNameByNumber/assignPhases），集成到 learn:plan 并补齐单测。",
+        "tests_passed": true,
+        "commit": {
+          "hash": null,
+          "tasks": [
+            "T1",
+            "T2",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "type": "feat"
+        },
+        "files_modified": [
+          ".claude/commands/learn/_internal/phase-assignment.js",
+          ".claude/commands/learn/plan.md",
+          ".claude/workflows/cli-templates/schemas/learn-plan.schema.json",
+          "ccw/tests/learn-phase-assignment.test.js"
+        ]
+      }
     },
     {
       "item_id": "S-4",
@@ -241,10 +264,10 @@
   "_metadata": {
     "version": "2.0",
     "total_tasks": 6,
-    "pending_count": 4,
+    "pending_count": 3,
     "executing_count": 0,
-    "completed_count": 2,
+    "completed_count": 3,
     "failed_count": 0,
-    "updated_at": "2026-01-28T15:15:24.726Z"
+    "updated_at": "2026-01-28T15:22:38.981Z"
   }
 }
