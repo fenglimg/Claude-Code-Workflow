@@ -1,0 +1,102 @@
+{
+  "concepts": [
+    {
+      "term": "lite-plan",
+      "category": "architecture",
+      "definition": "轻量级交互式规划命令，通过动态工作流适配实现任务规划，关注探索、澄清、规划、确认四个阶段，执行委托给 lite-execute。",
+      "count": 50,
+      "relationships": ["contains Phase", "produces plan.json", "invokes lite-execute"]
+    },
+    {
+      "term": "Exploration",
+      "category": "process",
+      "definition": "代码探索阶段，通过 cli-explore-agent 从多个角度（如 architecture、security、performance）分析代码库，生成上下文信息。",
+      "count": 30,
+      "relationships": ["produces exploration-{angle}.json", "part_of lite-plan"]
+    },
+    {
+      "term": "cli-explore-agent",
+      "category": "tools",
+      "definition": "只读代码探索 Agent，采用双源分析策略（Bash + Gemini CLI），执行 4 阶段工作流生成结构化探索结果。",
+      "count": 15,
+      "relationships": ["produces exploration.json", "consumes task_description"]
+    },
+    {
+      "term": "cli-lite-planning-agent",
+      "category": "tools",
+      "definition": "通用规划 Agent，执行 CLI 规划工具（Gemini/Qwen），解析结果并生成符合 schema 的 planObject。",
+      "count": 12,
+      "relationships": ["produces plan.json", "consumes exploration results"]
+    },
+    {
+      "term": "Complexity",
+      "category": "data",
+      "definition": "任务复杂度评估结果（Low/Medium/High），决定探索深度、规划策略和推荐执行方法。",
+      "count": 20,
+      "relationships": ["determines exploration_count", "determines planning_strategy"]
+    },
+    {
+      "term": "Exploration Angle",
+      "category": "data",
+      "definition": "探索视角，如 architecture、security、performance、bugfix、feature，每个 Agent 从指定角度分析代码库。",
+      "count": 18,
+      "relationships": ["assigned to cli-explore-agent", "part_of ANGLE_PRESETS"]
+    },
+    {
+      "term": "plan.json",
+      "category": "data",
+      "definition": "结构化实现计划文件，包含 summary、approach、tasks、flow_control 等字段，是 lite-plan 的核心输出。",
+      "count": 25,
+      "relationships": ["produced by Phase 3", "consumed by Phase 4/5", "schema: plan-json-schema.json"]
+    },
+    {
+      "term": "executionContext",
+      "category": "data",
+      "definition": "执行上下文对象，包含完整的规划数据（plan、explorations、clarifications、userSelection），通过全局变量传递给 lite-execute。",
+      "count": 15,
+      "relationships": ["produced by Phase 5", "consumed by lite-execute"]
+    },
+    {
+      "term": "Clarification",
+      "category": "process",
+      "definition": "澄清阶段，聚合多角度探索中的 clarification_needs，通过多轮用户交互（每轮最多 4 问）收集用户决策。",
+      "count": 12,
+      "relationships": ["consumes exploration results", "produces clarificationContext"]
+    },
+    {
+      "term": "lite-execute",
+      "category": "architecture",
+      "definition": "轻量级执行命令，接收来自 lite-plan 的 executionContext 或独立输入，协调 Agent/Codex 执行任务。",
+      "count": 10,
+      "relationships": ["consumes executionContext", "invoked by lite-plan Phase 5"]
+    },
+    {
+      "term": "Session",
+      "category": "data",
+      "definition": "工作会话，包含 id（task-slug-date）和 folder（.workflow/.lite-plan/{session-id}/），用于存储所有工作产物。",
+      "count": 10,
+      "relationships": ["contains artifacts", "identified by sessionId"]
+    },
+    {
+      "term": "Auto Mode",
+      "category": "process",
+      "definition": "自动模式（--yes 或 -y 标志），跳过所有确认步骤，使用默认值（Allow、Auto、Skip）快速执行。",
+      "count": 8,
+      "relationships": ["skips Clarification", "auto-confirms Plan"]
+    }
+  ],
+  "relationships": [
+    {"from": "lite-plan", "to": "Exploration", "type": "contains"},
+    {"from": "lite-plan", "to": "Clarification", "type": "contains"},
+    {"from": "lite-plan", "to": "plan.json", "type": "produces"},
+    {"from": "lite-plan", "to": "lite-execute", "type": "invokes"},
+    {"from": "Exploration", "to": "cli-explore-agent", "type": "uses"},
+    {"from": "Exploration", "to": "Exploration Angle", "type": "configured_by"},
+    {"from": "Complexity", "to": "Exploration", "type": "determines_depth"},
+    {"from": "Complexity", "to": "cli-lite-planning-agent", "type": "determines_usage"},
+    {"from": "cli-explore-agent", "to": "exploration.json", "type": "produces"},
+    {"from": "cli-lite-planning-agent", "to": "plan.json", "type": "produces"},
+    {"from": "Clarification", "to": "clarificationContext", "type": "produces"},
+    {"from": "executionContext", "to": "lite-execute", "type": "passed_to"}
+  ]
+}

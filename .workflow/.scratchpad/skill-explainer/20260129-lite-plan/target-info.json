@@ -1,0 +1,14 @@
+{
+  "name": "lite-plan",
+  "type": "command",
+  "path": "~/.claude/commands/workflow/lite-plan.md",
+  "frontMatter": {
+    "name": "lite-plan",
+    "description": "Lightweight interactive planning workflow with in-memory planning, code exploration, and execution execute to lite-execute after user confirmation",
+    "argument-hint": "[-y|--yes] [-e|--explore] \"task description\"|file.md",
+    "allowed-tools": "TodoWrite(*), Task(*), SlashCommand(*), AskUserQuestion(*)"
+  },
+  "triggers": ["/workflow:lite-plan", "lite-plan"],
+  "execution_mode": "sequential",
+  "phase_count": 5
+}

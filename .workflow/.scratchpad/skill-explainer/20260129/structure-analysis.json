@@ -1,0 +1,33 @@
+{
+  "skillDir": "~/.claude/skills/skill-generator",
+  "components": {
+    "entry": "SKILL.md",
+    "phases": [
+      { "id": "01-requirements-discovery", "name": "Requirements Discovery", "order": 1 },
+      { "id": "02-structure-generation", "name": "Structure Generation", "order": 2 },
+      { "id": "03-phase-generation", "name": "Phase Generation", "order": 3 },
+      { "id": "04-specs-templates", "name": "Specs & Templates", "order": 4 },
+      { "id": "05-validation", "name": "Validation & Documentation", "order": 5 }
+    ],
+    "specs": [
+      { "file": "cli-integration.md", "purpose": "CLI集成规范" },
+      { "file": "execution-modes.md", "purpose": "执行模式规范" },
+      { "file": "scripting-integration.md", "purpose": "脚本集成规范" },
+      { "file": "skill-requirements.md", "purpose": "Skill需求规范" }
+    ],
+    "templates": [
+      { "file": "autonomous-action.md", "purpose": "Autonomous动作模板" },
+      { "file": "autonomous-orchestrator.md", "purpose": "Autonomous编排器模板" },
+      { "file": "code-analysis-action.md", "purpose": "代码分析Action模板" },
+      { "file": "llm-action.md", "purpose": "LLM Action模板" },
+      { "file": "script-bash.md", "purpose": "Bash脚本模板" },
+      { "file": "script-python.md", "purpose": "Python脚本模板" },
+      { "file": "sequential-phase.md", "purpose": "Sequential Phase模板" },
+      { "file": "skill-md.md", "purpose": "SKILL.md入口文件模板" }
+    ]
+  },
+  "directoryStructure": {
+    "root": "~/.claude/skills/skill-generator/",
+    "subdirs": ["phases/", "specs/", "templates/"]
+  }
+}

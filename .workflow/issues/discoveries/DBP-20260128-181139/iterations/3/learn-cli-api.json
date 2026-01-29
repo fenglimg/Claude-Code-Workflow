@@ -1,0 +1,44 @@
+{
+  "dimension": "learn-cli-api",
+  "iteration": 3,
+  "findings": [
+    {
+      "id": "B-007",
+      "title": "No CLI State API exists to persist plan patches (e.g., add phases / update plan metadata) independent of progress updates",
+      "category": "missing-api",
+      "file": "ccw/src/cli.ts",
+      "line": 322,
+      "snippet": "// Learn workflow state commands (internal API for agents)",
+      "related_dimension": "learn-command-specs",
+      "confidence": 0.85,
+      "impact": "Docs like learn:execute cannot safely persist plan upgrades; workarounds require direct file edits (breaking the intended boundary).",
+      "recommendation": "Add ccw learn:write-plan or ccw learn:update-plan (validated + lock-protected), and update docs to use it."
+    },
+    {
+      "id": "B-008",
+      "title": "learn:update-progress writes plan.json then progress.json; partial failure can leave plan/progress inconsistent",
+      "category": "atomicity-gap",
+      "file": "ccw/src/commands/learn.ts",
+      "line": 457,
+      "snippet": "atomicWriteJson(planPath, plan, getPlanValidator()); ... atomicWriteJson(progressPath, progress, () => true);",
+      "related_dimension": "learn-command-specs",
+      "confidence": 0.7,
+      "impact": "If the second write fails (disk/full/permissions), plan status changes may persist without corresponding progress evidence.",
+      "recommendation": "Write both to temp + promote together (or record a journal entry) to preserve cross-file atomicity."
+    }
+  ],
+  "coverage": {
+    "files_explored": 2,
+    "areas_covered": [
+      "API surface completeness",
+      "cross-file atomicity"
+    ],
+    "areas_remaining": []
+  },
+  "leads": [
+    {
+      "description": "Search for any existing plan/session write helper commands",
+      "suggested_search": "write-plan|update-plan|write-session"
+    }
+  ]
+}

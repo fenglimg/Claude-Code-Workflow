@@ -1,0 +1,97 @@
+{
+  "concepts": [
+    {
+      "term": "Skill",
+      "category": "architecture",
+      "definition": "实现特定功能的可复用单元，包含完整的执行流程、规范和模板，由 SKILL.md 作为入口文件",
+      "count": 50,
+      "context": "skill-generator 生成的最终产物"
+    },
+    {
+      "term": "Phase",
+      "category": "architecture",
+      "definition": "工作流中的一个执行阶段，包含明确的输入、输出和执行步骤",
+      "count": 35,
+      "context": "Sequential 模式的核心组织单位"
+    },
+    {
+      "term": "Orchestrator",
+      "category": "architecture",
+      "definition": "编排器，协调多个组件执行的控制器，负责读取状态、选择动作、执行并更新状态",
+      "count": 15,
+      "context": "Autonomous 模式的核心决策组件"
+    },
+    {
+      "term": "Action",
+      "category": "architecture",
+      "definition": "Autonomous 模式中的独立执行单元，无固定顺序，由编排器动态选择",
+      "count": 20,
+      "context": "Autonomous 模式的可执行单元"
+    },
+    {
+      "term": "Sequential Mode",
+      "category": "process",
+      "definition": "顺序执行模式，阶段按数字前缀固定顺序线性执行，适合流水线式任务",
+      "count": 12,
+      "context": "skill-generator 支持的执行模式之一"
+    },
+    {
+      "term": "Autonomous Mode",
+      "category": "process",
+      "definition": "自主执行模式，由编排器根据状态动态选择执行路径，适合交互式任务",
+      "count": 10,
+      "context": "skill-generator 支持的执行模式之一"
+    },
+    {
+      "term": "State",
+      "category": "data",
+      "definition": "记录执行进度和上下文的状态对象，包含 status、current_action、completed_actions 等字段",
+      "count": 25,
+      "context": "Autonomous 模式的核心数据结构"
+    },
+    {
+      "term": "Context Strategy",
+      "category": "data",
+      "definition": "上下文管理策略，分为 file（文件持久化）和 memory（内存临时）两种",
+      "count": 8,
+      "context": "Phase 3 中的上下文管理配置"
+    },
+    {
+      "term": "skill-config.json",
+      "category": "data",
+      "definition": "Skill 配置文件，包含名称、执行模式、阶段定义、工具列表等元数据",
+      "count": 15,
+      "context": "Phase 1 的主要产出，驱动后续所有生成"
+    },
+    {
+      "term": "AskUserQuestion",
+      "category": "tools",
+      "definition": "用户交互工具，用于收集用户输入和选择，支持单选和多选问题",
+      "count": 10,
+      "context": "Phase 1 Requirements Discovery 的核心工具"
+    },
+    {
+      "term": "Task",
+      "category": "tools",
+      "definition": "启动子 Agent 的工具，用于执行独立任务并返回结果",
+      "count": 8,
+      "context": "Orchestrator 执行动作时使用的工具"
+    },
+    {
+      "term": "Validation",
+      "category": "process",
+      "definition": "验证生成文件的完整性和质量，检查必需文件、内容结构和质量标准",
+      "count": 12,
+      "context": "Phase 5 的核心功能"
+    }
+  ],
+  "relationships": [
+    { "from": "Skill", "relation": "contains", "to": "Phase" },
+    { "from": "Skill", "relation": "contains", "to": "Orchestrator" },
+    { "from": "Orchestrator", "relation": "coordinates", "to": "Action" },
+    { "from": "Phase", "relation": "produces", "to": "skill-config.json" },
+    { "from": "State", "relation": "consumed_by", "to": "Orchestrator" },
+    { "from": "Sequential Mode", "relation": "uses", "to": "Phase" },
+    { "from": "Autonomous Mode", "relation": "uses", "to": "Action" }
+  ]
+}

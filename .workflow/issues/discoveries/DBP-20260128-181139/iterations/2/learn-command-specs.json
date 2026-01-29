@@ -1,0 +1,60 @@
+{
+  "dimension": "learn-command-specs",
+  "iteration": 2,
+  "findings": [
+    {
+      "id": "F-005",
+      "title": "learn:execute claims phase/plan upgrades persist via learn:update-progress, but ccw learn:update-progress cannot receive in-memory plan changes",
+      "category": "persistence-gap",
+      "file": ".claude/commands/learn/execute.md",
+      "line": 112,
+      "snippet": "// Persist happens via ccw learn:update-progress when we mark KPs.",
+      "related_dimension": "learn-cli-api",
+      "confidence": 0.9,
+      "impact": "Legacy plan upgrade (adding phases) is not actually persisted; phase-gating can be unreliable or silently ineffective.",
+      "recommendation": "Move phase assignment to learn:plan (always produce phases), or add a dedicated CLI API to persist plan patches (e.g. ccw learn:write-plan)."
+    },
+    {
+      "id": "F-006",
+      "title": "learn:execute interpolates sessionId into bash command without quoting/escaping",
+      "category": "shell-injection-risk",
+      "file": ".claude/commands/learn/execute.md",
+      "line": 98,
+      "snippet": "ccw learn:read-session --session-id ${sessionId} --json",
+      "related_dimension": "learn-cli-api",
+      "confidence": 0.9,
+      "impact": "If sessionId is user-controlled and passed to a shell, it can break parsing or enable command injection before the CLI validates it.",
+      "recommendation": "Strictly validate/normalize IDs before shell interpolation and quote args; ideally avoid shell interpolation by using file-based inputs or a helper that escapes args."
+    },
+    {
+      "id": "F-007",
+      "title": "learn:plan uses non-portable bash commands (cat/mv) in doc-as-runtime code",
+      "category": "portability-gap",
+      "file": ".claude/commands/learn/plan.md",
+      "line": 511,
+      "snippet": "Bash(`mv ${draftPlanPath} ${sessionFolder}/plan.json`);",
+      "related_dimension": "learn-agents",
+      "confidence": 0.85,
+      "impact": "On non-POSIX shells (or restricted sandboxes) plan promotion can fail even if validation passes.",
+      "recommendation": "Replace cat/mv with node fs operations (rename) or write final file via Write() to avoid shell dependencies."
+    }
+  ],
+  "coverage": {
+    "files_explored": 2,
+    "areas_covered": [
+      "phase/upgrade persistence path",
+      "shell argument safety",
+      "file operation portability"
+    ],
+    "areas_remaining": [
+      "Allowed-tools surface minimization",
+      "Cross-check doc claims against tests and CLI behavior"
+    ]
+  },
+  "leads": [
+    {
+      "description": "Inspect ccw learn:update-progress interface: can it persist plan patches?",
+      "suggested_search": "export async function learnUpdateProgressCommand"
+    }
+  ]
+}

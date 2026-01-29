@@ -1,0 +1,55 @@
+{
+  "findings": [
+    {
+      "priority": "high",
+      "confidence": 0.85,
+      "snippet": "withLearnLock(...)",
+      "id": "F-001",
+      "description": "ccw/src/commands/learn.ts contains critical state mutation logic with no tests in tests/.",
+      "file": "ccw/src/commands/learn.ts",
+      "title": "No automated tests for learn state CLI (lock + atomic writes + schema validation)",
+      "line": 183,
+      "suggested_issue": "Add unit/integration tests for concurrent access, stale locks, schema failures, and recovery.",
+      "category": "coverage-gap"
+    },
+    {
+      "priority": "high",
+      "confidence": 0.8,
+      "snippet": "safeExecJson(...)",
+      "id": "F-002",
+      "description": "Helpers in .claude/commands/learn/_internal parse noisy CLI output but have no tests for edge cases.",
+      "file": ".claude/commands/learn/_internal/error-handler.js",
+      "title": "No tests for command-doc runtime helpers (safeExecJson / json parser)",
+      "line": 32,
+      "suggested_issue": "Add tests for noisy/multi-line outputs, fenced JSON, empty output, and error mapping.",
+      "category": "coverage-gap"
+    },
+    {
+      "priority": "high",
+      "confidence": 0.8,
+      "snippet": "escapeSingleQuotesForShell(...)",
+      "id": "F-003",
+      "description": "Multiple docs embed JSON in quoted shell args. Without tests, quote/newline regressions will be caught late.",
+      "file": ".claude/commands/learn/profile.md",
+      "title": "No regression tests for JSON shell-escaping used in learn docs",
+      "line": 894,
+      "suggested_issue": "Add tests with payloads containing apostrophes/newlines/unicode and ensure round-trip correctness.",
+      "category": "regression-risk"
+    },
+    {
+      "priority": "high",
+      "confidence": 0.75,
+      "snippet": "supportsPermissions = nodeMajor >= 22",
+      "id": "F-004",
+      "description": "Security depends on Node version; there are no tests ensuring older Node paths are safe or blocked.",
+      "file": ".claude/commands/learn/_internal/mcp-runner.js",
+      "title": "mcp-runner lacks tests for Node version branches and sandbox guarantees",
+      "line": 144,
+      "suggested_issue": "Add tests that assert fail-closed on unsupported Node versions and verify network/fs blocks.",
+      "category": "security-testing"
+    }
+  ],
+  "analyzed_at": "2026-01-28T18:15:42.2076652Z",
+  "files_analyzed": 21,
+  "perspective": "test"
+}

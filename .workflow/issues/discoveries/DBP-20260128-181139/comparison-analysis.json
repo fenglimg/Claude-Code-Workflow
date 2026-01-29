@@ -1,0 +1,105 @@
+{
+  "matrix": {
+    "dimension_a": "learn-command-specs",
+    "dimension_b": "learn-cli-api",
+    "comparison_points": [
+      {
+        "aspect": "phase/plan persistence",
+        "a_check": "docs claim a persistence path",
+        "b_check": "CLI provides a persistence primitive"
+      },
+      {
+        "aspect": "status semantics",
+        "a_check": "docs emit statuses (pending/in_progress/completed/skipped/optional)",
+        "b_check": "CLI validates/enforces statuses consistently"
+      },
+      {
+        "aspect": "shell boundaries",
+        "a_check": "docs interpolate variables safely",
+        "b_check": "CLI validates and resists injection"
+      },
+      {
+        "aspect": "schema alignment",
+        "a_check": "docs/agents produce schema-compliant payloads",
+        "b_check": "validators enforce expected schema"
+      }
+    ]
+  },
+  "results": [
+    {
+      "aspect": "phase/plan persistence",
+      "dimension_a_evidence": [
+        { "file": ".claude/commands/learn/execute.md", "line": 112, "note": "Claims plan upgrades persist via learn:update-progress" }
+      ],
+      "dimension_b_evidence": [
+        { "file": "ccw/src/cli.ts", "line": 322, "note": "No learn:write-plan/update-plan API exists" }
+      ],
+      "discrepancies": [
+        {
+          "type": "missing_api",
+          "doc_claim": "Persist plan upgrades via learn:update-progress",
+          "cli_reality": "update-progress cannot persist arbitrary plan patches; only reads plan.json from disk"
+        }
+      ],
+      "match_rate": 0.25
+    },
+    {
+      "aspect": "status semantics",
+      "dimension_a_evidence": [
+        { "file": ".claude/workflows/cli-templates/schemas/learn-plan.schema.json", "line": 57, "note": "KP status enum includes pending/in_progress/completed/skipped/optional" }
+      ],
+      "dimension_b_evidence": [
+        { "file": "ccw/src/commands/learn.ts", "line": 442, "note": "progress arrays only update completed/in_progress" }
+      ],
+      "discrepancies": [
+        {
+          "type": "partial_support",
+          "detail": "progress.json convenience arrays do not model skipped/optional; update-progress does not validate status early"
+        }
+      ],
+      "match_rate": 0.6
+    },
+    {
+      "aspect": "shell boundaries",
+      "dimension_a_evidence": [
+        { "file": ".claude/commands/learn/execute.md", "line": 98, "note": "Interpolates sessionId in a bash command" },
+        { "file": ".claude/commands/learn/execute.md", "line": 407, "note": "Embeds JSON evidence in single quotes" },
+        { "file": ".claude/commands/learn/profile.md", "line": 293, "note": "Embeds JSON.stringify(backgroundText) as CLI arg" }
+      ],
+      "dimension_b_evidence": [
+        { "file": "ccw/src/commands/learn.ts", "line": 244, "note": "CLI validates session id format (but only after shell parsing)" }
+      ],
+      "discrepancies": [
+        {
+          "type": "injection_surface",
+          "detail": "Shell interpolation happens before CLI validation; docs should quote/escape or avoid passing user-controlled strings directly"
+        }
+      ],
+      "match_rate": 0.2
+    },
+    {
+      "aspect": "schema alignment",
+      "dimension_a_evidence": [
+        { "file": ".claude/commands/learn/plan.md", "line": 381, "note": "Fallback phase_name not in schema enum" }
+      ],
+      "dimension_b_evidence": [
+        { "file": "ccw/src/commands/learn.ts", "line": 175, "note": "Plan writes are validated against learn-plan.schema.json" }
+      ],
+      "discrepancies": [
+        {
+          "type": "fallback_schema_violation",
+          "detail": "If fallback is used, schema validation blocks plan creation"
+        }
+      ],
+      "match_rate": 0.75
+    }
+  ],
+  "summary": {
+    "total_discrepancies": 4,
+    "overall_match_rate": 0.5,
+    "critical_mismatches": [
+      "phase/plan persistence",
+      "shell boundaries"
+    ]
+  }
+}

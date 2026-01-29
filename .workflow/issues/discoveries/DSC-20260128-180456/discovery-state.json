@@ -1,0 +1,52 @@
+{
+  "perspectives": [
+    "bug",
+    "security",
+    "test",
+    "ux",
+    "quality",
+    "performance",
+    "maintainability",
+    "best-practices"
+  ],
+  "files": {
+    "total": 21,
+    "items": [
+      ".claude/commands/learn/execute.md",
+      ".claude/commands/learn/plan.md",
+      ".claude/commands/learn/profile.md",
+      ".claude/commands/learn/_internal/agent-caller.js",
+      ".claude/commands/learn/_internal/error-handler.js",
+      ".claude/commands/learn/_internal/json-parser.js",
+      ".claude/commands/learn/_internal/learn-plan-validator.js",
+      ".claude/commands/learn/_internal/logger.js",
+      ".claude/commands/learn/_internal/mcp-runner.js",
+      ".claude/commands/learn/_internal/phase-assignment.js",
+      ".claude/commands/learn/_internal/sandbox-preload.mjs",
+      ".claude/commands/learn/_internal/fixtures/javascript-even-reduce.mjs",
+      ".claude/commands/learn/_internal/fixtures/typescript-first-element.mjs",
+      ".claude/workflows/cli-templates/schemas/learn-plan.schema.json",
+      ".claude/workflows/cli-templates/schemas/learn-profile.schema.json",
+      ".claude/workflows/cli-templates/schemas/learn-state.schema.json",
+      "ccw/src/cli.ts",
+      "ccw/src/commands/learn.ts",
+      "ccw/src/commands/learn-background.ts",
+      "ccw/src/commands/learn-adaptive.ts",
+      "ccw/src/commands/learn-questions.ts"
+    ]
+  },
+  "created_at": "2026-01-28T18:15:42.2076652Z",
+  "target_pattern": "learn:(profile|plan|execute) scope = .claude/commands/learn/** + ccw/src/commands/learn*.ts + learn schemas",
+  "discovery_id": "DSC-20260128-180456",
+  "phase": "complete",
+  "updated_at": "2026-01-28T18:16:49.4473956Z",
+  "results": {
+    "total_findings": 33,
+    "issues_generated": 11,
+    "priority_distribution": {
+      "high": 6,
+      "medium": 3,
+      "critical": 2
+    }
+  }
+}

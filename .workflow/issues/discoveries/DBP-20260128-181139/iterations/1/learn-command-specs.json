@@ -1,0 +1,72 @@
+{
+  "dimension": "learn-command-specs",
+  "iteration": 1,
+  "findings": [
+    {
+      "id": "F-001",
+      "title": "learn:plan doc flow claims Task(tool=\"learn-planning-agent\") but the implementation section uses ccw cli",
+      "category": "doc-runtime-drift",
+      "file": ".claude/commands/learn/plan.md",
+      "line": 53,
+      "snippet": "Task(tool=\"learn-planning-agent\", run_in_background=false)",
+      "related_dimension": "learn-agents",
+      "confidence": 0.9,
+      "impact": "Creates ambiguity for maintainers; readers may implement the wrong invocation path and miss retry/escaping logic.",
+      "recommendation": "Make the Execution Process match the actual invocation (ccw cli + retry helper), or implement the Task path and test it."
+    },
+    {
+      "id": "F-002",
+      "title": "ensurePhases fallback uses phase_name 'Phase 1' which violates learn-plan.schema.json enum",
+      "category": "schema-noncompliance",
+      "file": ".claude/commands/learn/plan.md",
+      "line": 381,
+      "snippet": "phase_name: 'Phase 1'",
+      "related_dimension": "learn-cli-api",
+      "confidence": 0.85,
+      "impact": "If assignPhases() import is missing or fails, the fallback produces a plan that cannot pass schema validation (blocking plan creation).",
+      "recommendation": "Map fallback phase names to schema enum values (e.g. Foundation/Core Concepts/.../Mastery)."
+    },
+    {
+      "id": "F-003",
+      "title": "learn:execute passes JSON evidence inside single quotes without escaping",
+      "category": "shell-quoting-risk",
+      "file": ".claude/commands/learn/execute.md",
+      "line": 407,
+      "snippet": "--evidence '${JSON.stringify(evidence)}'",
+      "related_dimension": "learn-cli-api",
+      "confidence": 0.95,
+      "impact": "Evidence containing a single quote or large JSON can break the command or become an injection vector in bash.",
+      "recommendation": "Pass evidence via file or base64, or escape through a shared helper (like agent-caller escapeForSingleQuotes)."
+    },
+    {
+      "id": "F-004",
+      "title": "learn:profile background parsing builds a bash command with unescaped JSON.stringify(text)",
+      "category": "shell-quoting-risk",
+      "file": ".claude/commands/learn/profile.md",
+      "line": 293,
+      "snippet": "ccw learn:parse-background --text ${JSON.stringify(backgroundText)} --json",
+      "related_dimension": "learn-cli-api",
+      "confidence": 0.85,
+      "impact": "Background text frequently contains quotes/newlines; this can break argument parsing or be exploited if shell interpolation is possible.",
+      "recommendation": "Write background to a scratch file and use --file, or properly quote/escape the --text argument."
+    }
+  ],
+  "coverage": {
+    "files_explored": 4,
+    "areas_covered": [
+      "learn:plan flow + phase assignment fallback",
+      "learn:execute CLI command composition",
+      "learn:profile background parser integration"
+    ],
+    "areas_remaining": [
+      "Portability of file operations in learn:plan",
+      "Allowed-tools minimization and policy alignment"
+    ]
+  },
+  "leads": [
+    {
+      "description": "Check learn:execute phase upgrade persistence vs available ccw learn:* APIs",
+      "suggested_search": "Persist happens via ccw learn:update-progress"
+    }
+  ]
+}

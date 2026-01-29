@@ -1,0 +1,79 @@
+{
+  "findings": [
+    {
+      "priority": "critical",
+      "confidence": 0.9,
+      "snippet": "ccw learn:update-progress --session-id <sessionId> --topic-id <kp.id> --status <nextStatus> --evidence '<JSON.stringify(evidence)>' --json",
+      "id": "F-001",
+      "description": "learn:execute embeds JSON directly inside single quotes without escaping. A single quote in evidence can break argument parsing and can become a command injection vector depending on Bash() semantics.",
+      "file": ".claude/commands/learn/execute.md",
+      "title": "Shell injection / quoting breakage when passing JSON to learn:update-progress",
+      "line": 407,
+      "suggested_issue": "Add shared escaping helper (or pass evidence via temp file/base64) and quote all args.",
+      "category": "command-injection"
+    },
+    {
+      "priority": "critical",
+      "confidence": 0.9,
+      "snippet": "ccw learn:write-profile --profile-id <profileId> --data '<JSON.stringify(profile)>' --json",
+      "id": "F-002",
+      "description": "learn:execute passes JSON.stringify(profile) inside single quotes without escaping; this is fragile and can fail or be exploitable.",
+      "file": ".claude/commands/learn/execute.md",
+      "title": "Shell injection / quoting breakage when passing profile JSON to learn:write-profile",
+      "line": 447,
+      "suggested_issue": "Reuse escapeSingleQuotesForShell or move to file-based payloads (data-file).",
+      "category": "command-injection"
+    },
+    {
+      "priority": "high",
+      "confidence": 0.85,
+      "snippet": "node .claude/commands/learn/_internal/learn-plan-validator.js <draftPlanPath> --profile <profilePath>",
+      "id": "F-003",
+      "description": "learn:plan runs node with unquoted paths and promotes plan using mv via Bash(). This is not portable and increases injection surface.",
+      "file": ".claude/commands/learn/plan.md",
+      "title": "Unquoted paths and bash-only operations in plan validation pipeline",
+      "line": 495,
+      "suggested_issue": "Quote paths; avoid mv; prefer cross-platform atomic write/rename (Node or ccw CLI).",
+      "category": "command-safety"
+    },
+    {
+      "priority": "critical",
+      "confidence": 0.8,
+      "snippet": "supportsPermissions = nodeMajor >= 22 (else: run without permission flags)",
+      "id": "F-004",
+      "description": "mcp-runner uses Node permission model only when Node >= 22; on older versions it runs without permission flags (preload blocks common network APIs but is not a complete sandbox).",
+      "file": ".claude/commands/learn/_internal/mcp-runner.js",
+      "title": "Untrusted code execution is not strongly sandboxed on Node < 22",
+      "line": 140,
+      "suggested_issue": "Fail closed on Node < 22 or add a stronger sandbox boundary.",
+      "category": "sandbox-escape"
+    },
+    {
+      "priority": "high",
+      "confidence": 0.85,
+      "snippet": "else { value = rawValue; }",
+      "id": "F-005",
+      "description": "State schema allows arbitrary strings and learn:update-state only validates current_phase. Invalid ids can later break workflows and interact poorly with shell interpolation in command docs.",
+      "file": "ccw/src/commands/learn.ts",
+      "title": "learn:update-state allows invalid active_profile_id/active_session_id values",
+      "line": 492,
+      "suggested_issue": "Validate active_profile_id and active_session_id formats at update-time; reject invalid values.",
+      "category": "input-validation"
+    },
+    {
+      "priority": "medium",
+      "confidence": 0.75,
+      "snippet": "input = text ? String(text) : readFileSync(String(file), 'utf8');",
+      "id": "F-006",
+      "description": "CLI command accepts --file and reads it directly; unlike learn state commands, it does not validate paths under project root.",
+      "file": "ccw/src/commands/learn-background.ts",
+      "title": "learn:parse-background reads arbitrary file paths without allowlist validation",
+      "line": 83,
+      "suggested_issue": "Use validatePath() allowlist for file reads (or document that this is trusted-only).",
+      "category": "file-access"
+    }
+  ],
+  "analyzed_at": "2026-01-28T18:15:42.2076652Z",
+  "files_analyzed": 21,
+  "perspective": "security"
+}

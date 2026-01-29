@@ -1,0 +1,55 @@
+{
+  "findings": [
+    {
+      "priority": "medium",
+      "confidence": 0.8,
+      "snippet": "throw new Error(\"Phase <n> is not completed yet\")",
+      "id": "F-001",
+      "description": "When next-phase cannot advance, the error does not list remaining KPs or how to complete them.",
+      "file": ".claude/commands/learn/execute.md",
+      "title": "Phase gating error lacks actionable details",
+      "line": 140,
+      "suggested_issue": "Include remaining KPs and their statuses; suggest next command to run.",
+      "category": "messaging"
+    },
+    {
+      "priority": "medium",
+      "confidence": 0.75,
+      "snippet": "url: \"https://example.com\"",
+      "id": "F-002",
+      "description": "If agent generation fails, fallback plan uses example.com and generic criteria, which provides a poor learning experience.",
+      "file": ".claude/commands/learn/plan.md",
+      "title": "Fallback plan content is low quality (placeholder URLs)",
+      "line": 478,
+      "suggested_issue": "Provide stack-appropriate defaults or require user confirmation before saving fallback plan.",
+      "category": "content-quality"
+    },
+    {
+      "priority": "high",
+      "confidence": 0.8,
+      "snippet": "{ code: 'LOCKED', message: 'Learn state is locked by another process' }",
+      "id": "F-003",
+      "description": "When lock acquisition times out, CLI returns LOCKED but does not guide users on stale lock recovery.",
+      "file": "ccw/src/commands/learn.ts",
+      "title": "LOCKED error lacks remediation guidance",
+      "line": 228,
+      "suggested_issue": "Add a user-facing hint (pid/age + suggested unlock steps) and/or auto stale-lock cleanup.",
+      "category": "error-recovery"
+    },
+    {
+      "priority": "medium",
+      "confidence": 0.75,
+      "snippet": "Write(statePath, JSON.stringify(state, null, 2));",
+      "id": "F-004",
+      "description": "learn:plan doc writes .workflow/learn/state.json directly rather than using ccw learn:read-state / learn:update-state.",
+      "file": ".claude/commands/learn/plan.md",
+      "title": "learn:plan initializes state.json directly (bypasses CLI locking/validation)",
+      "line": 118,
+      "suggested_issue": "Use CLI State API for initialization and updates so behavior is consistent and lock-protected.",
+      "category": "consistency"
+    }
+  ],
+  "analyzed_at": "2026-01-28T18:15:42.2076652Z",
+  "files_analyzed": 21,
+  "perspective": "ux"
+}

@@ -1,0 +1,60 @@
+{
+  "dimension": "learn-agents",
+  "iteration": 1,
+  "findings": [
+    {
+      "id": "A-001",
+      "title": "learn-planning-agent input contract expects learning_goal/session_folder, while learn:plan passes goal and omits session_folder",
+      "category": "contract-mismatch",
+      "file": ".claude/agents/learn-planning-agent.md",
+      "line": 41,
+      "snippet": "learning_goal: string ...\nsession_folder: string",
+      "related_dimension": "learn-command-specs",
+      "confidence": 0.9,
+      "impact": "Increases chance of the planning agent ignoring caller context or hallucinating missing fields; harder to stabilize outputs.",
+      "recommendation": "Unify the contract (rename goal->learning_goal in caller, remove session_folder from agent contract, or explicitly support both)."
+    },
+    {
+      "id": "A-002",
+      "title": "json-parser extracts only single-line JSON; multi-line JSON output would fail",
+      "category": "robustness-gap",
+      "file": ".claude/commands/learn/_internal/json-parser.js",
+      "line": 16,
+      "snippet": "Scans lines backwards; returns the last line that JSON.parse() accepts",
+      "related_dimension": "learn-command-specs",
+      "confidence": 0.75,
+      "impact": "If any invoked CLI/tool prints pretty JSON (multi-line), parsing can fail and break learn flows.",
+      "recommendation": "Upgrade parsing to handle multi-line JSON objects (brace matching) while keeping the fast path."
+    },
+    {
+      "id": "A-003",
+      "title": "Strong: agent-caller centralizes retries/backoff and escapes single quotes for ccw cli prompts",
+      "category": "strength",
+      "file": ".claude/commands/learn/_internal/agent-caller.js",
+      "line": 15,
+      "snippet": "function escapeForSingleQuotes(text) { return String(text ?? '').replace(/'/g, \"'\\\\''\"); }",
+      "related_dimension": null,
+      "confidence": 0.9,
+      "impact": "Reduces flaky agent invocation and prevents prompt quoting breakage.",
+      "recommendation": "Reuse this helper for all ccw learn:* CLI calls that embed user-controlled strings."
+    }
+  ],
+  "coverage": {
+    "files_explored": 3,
+    "areas_covered": [
+      "learn-planning-agent contract",
+      "JSON parsing helper",
+      "retry/escaping helper"
+    ],
+    "areas_remaining": [
+      "Validator coverage (prerequisites vs dependency_graph)",
+      "Agent schema drift (extra fields like estimated_effort)"
+    ]
+  },
+  "leads": [
+    {
+      "description": "Inspect learn-plan-validator coverage beyond cycles (e.g. prerequisites consistency)",
+      "suggested_search": "validateDag(" 
+    }
+  ]
+}

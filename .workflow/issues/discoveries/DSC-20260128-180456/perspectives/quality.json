@@ -1,0 +1,55 @@
+{
+  "findings": [
+    {
+      "priority": "medium",
+      "confidence": 0.85,
+      "snippet": "lastJsonObjectFromText(...)",
+      "id": "F-001",
+      "description": "learn:profile re-implements JSON extraction and command parsing while _internal/json-parser.js already exists.",
+      "file": ".claude/commands/learn/profile.md",
+      "title": "Duplicate JSON parsing logic in learn:profile instead of shared helper",
+      "line": 896,
+      "suggested_issue": "Refactor docs to import shared helpers to reduce drift.",
+      "category": "duplication"
+    },
+    {
+      "priority": "high",
+      "confidence": 0.85,
+      "snippet": "const statePath = `.workflow/learn/state.json`;",
+      "id": "F-002",
+      "description": "learn:plan directly reads/writes .workflow/learn/state.json while other components emphasize ccw learn:* APIs for locking and validation.",
+      "file": ".claude/commands/learn/plan.md",
+      "title": "Direct Read/Write in learn:plan conflicts with CLI State API design",
+      "line": 102,
+      "suggested_issue": "Standardize on CLI State API for state/session IO or enforce locks for direct writes.",
+      "category": "architecture"
+    },
+    {
+      "priority": "low",
+      "confidence": 0.7,
+      "snippet": "await fs.writeFile(tmpRunnerPath, <generated source>, \"utf8\")",
+      "id": "F-003",
+      "description": "mcp-runner writes a large JS string to a temp runner file; auditing sandbox behavior is harder than a dedicated module.",
+      "file": ".claude/commands/learn/_internal/mcp-runner.js",
+      "title": "Long inline runner string in mcp-runner is hard to audit",
+      "line": 151,
+      "suggested_issue": "Extract runner into a checked-in module and copy it into tmpDir.",
+      "category": "readability"
+    },
+    {
+      "priority": "low",
+      "confidence": 0.6,
+      "snippet": "new Ajv({ allErrors: true, strict: false })",
+      "id": "F-004",
+      "description": "Ajv configured with strict:false can hide schema mistakes.",
+      "file": "ccw/src/commands/learn.ts",
+      "title": "Ajv strict mode disabled for learn validators",
+      "line": 150,
+      "suggested_issue": "Consider strict:\"log\" during development or CI.",
+      "category": "schema-validation"
+    }
+  ],
+  "analyzed_at": "2026-01-28T18:15:42.2076652Z",
+  "files_analyzed": 21,
+  "perspective": "quality"
+}

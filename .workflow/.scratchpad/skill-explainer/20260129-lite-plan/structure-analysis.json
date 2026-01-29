@@ -1,0 +1,47 @@
+{
+  "entry_file": "~/.claude/commands/workflow/lite-plan.md",
+  "related_components": {
+    "agents": [
+      {
+        "name": "cli-explore-agent",
+        "path": "~/.claude/agents/cli-explore-agent.md",
+        "purpose": "Read-only code exploration with Bash + Gemini CLI",
+        "execution_phases": 4
+      },
+      {
+        "name": "cli-lite-planning-agent",
+        "path": "~/.claude/agents/cli-lite-planning-agent.md",
+        "purpose": "Generate structured plan JSON based on schema",
+        "execution_phases": 4
+      }
+    ],
+    "commands": [
+      {
+        "name": "lite-execute",
+        "path": "~/.claude/commands/workflow/lite-execute.md",
+        "purpose": "Execute tasks based on plan or description"
+      }
+    ],
+    "schemas": [
+      {
+        "name": "plan-json-schema",
+        "path": "~/.claude/workflows/cli-templates/schemas/plan-json-schema.json",
+        "purpose": "Implementation plan structure definition"
+      },
+      {
+        "name": "explore-json-schema",
+        "path": "~/.claude/workflows/cli-templates/schemas/explore-json-schema.json",
+        "purpose": "Exploration results structure definition"
+      }
+    ]
+  },
+  "tools_used": ["TodoWrite", "Task", "SlashCommand", "AskUserQuestion"],
+  "session_structure": {
+    "base_path": ".workflow/.lite-plan/{task-slug}-{YYYY-MM-DD}/",
+    "artifacts": [
+      "exploration-{angle}.json",
+      "explorations-manifest.json",
+      "plan.json"
+    ]
+  }
+}

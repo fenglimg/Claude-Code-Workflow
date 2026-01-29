@@ -1,0 +1,44 @@
+{
+  "dimension": "learn-agents",
+  "iteration": 3,
+  "findings": [
+    {
+      "id": "A-006",
+      "title": "Most learn command tests assert string presence rather than behavioral safety (quoting, portability, multiline JSON)",
+      "category": "test-gap",
+      "file": "ccw/tests/learn-execute.test.js",
+      "line": 1,
+      "snippet": "assert.ok(content.includes('ccw learn:update-progress --session-id'), ...)",
+      "related_dimension": "learn-command-specs",
+      "confidence": 0.8,
+      "impact": "High-risk regressions (e.g. command injection, broken mv/cat, evidence quoting) can ship undetected.",
+      "recommendation": "Add targeted tests for shell-safe arg building + portability (no mv/cat) and add parser tests for multi-line JSON outputs."
+    },
+    {
+      "id": "A-007",
+      "title": "JSON parsing helpers do not support pretty (multi-line) JSON, while some tools support --pretty output",
+      "category": "robustness-gap",
+      "file": ".claude/commands/learn/_internal/json-parser.js",
+      "line": 16,
+      "snippet": "Scans lines backwards; returns the last line that JSON.parse() accepts",
+      "related_dimension": "learn-command-specs",
+      "confidence": 0.7,
+      "impact": "If any pipeline enables pretty output (e.g. mcp-runner --pretty), command docs using lastJsonObjectFromText can fail.",
+      "recommendation": "Support multi-line JSON blocks (brace matching) and keep the single-line fast path."
+    }
+  ],
+  "coverage": {
+    "files_explored": 2,
+    "areas_covered": [
+      "test strategy",
+      "parser limitations"
+    ],
+    "areas_remaining": []
+  },
+  "leads": [
+    {
+      "description": "Review learn-doc-json-parse-robustness.test.js and extend it to cover multi-line JSON",
+      "suggested_search": "learn-doc-json-parse-robustness"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "dimension": "learn-command-specs",
+  "iteration": 3,
+  "findings": [
+    {
+      "id": "F-008",
+      "title": "learn:execute allowed-tools include Read/Write even though the command states agents should not manually edit .workflow/learn",
+      "category": "tool-surface-gap",
+      "file": ".claude/commands/learn/execute.md",
+      "line": 5,
+      "snippet": "allowed-tools: ... Bash(*), Read(*), Write(*)",
+      "related_dimension": "learn-cli-api",
+      "confidence": 0.7,
+      "impact": "Broader tool surface increases accidental state mutation risk; harder to enforce the CLI State API boundary.",
+      "recommendation": "Remove Read/Write from allowed-tools (or document the exact allowed write locations) to keep the contract enforceable."
+    },
+    {
+      "id": "F-009",
+      "title": "learn:plan uses flags.noAgent while UI/argument-hint uses --no-agent (camelCase mapping depends on the command runner)",
+      "category": "arg-parsing-risk",
+      "file": ".claude/commands/learn/plan.md",
+      "line": 446,
+      "snippet": "if (!flags.noAgent) { ... }",
+      "related_dimension": "learn-agents",
+      "confidence": 0.6,
+      "impact": "If flag normalization is not guaranteed, the agent path can be inverted (unexpected template fallback or vice-versa).",
+      "recommendation": "Normalize flags explicitly (e.g. const noAgent = flags.noAgent ?? flags['no-agent'];) and add a doc contract test for it."
+    }
+  ],
+  "coverage": {
+    "files_explored": 2,
+    "areas_covered": [
+      "tool boundary enforcement",
+      "argument normalization"
+    ],
+    "areas_remaining": []
+  },
+  "leads": [
+    {
+      "description": "Verify how the /learn:plan command runner maps --no-agent into flags (camelCase vs hyphen)",
+      "suggested_search": "flags.noAgent"
+    }
+  ]
+}

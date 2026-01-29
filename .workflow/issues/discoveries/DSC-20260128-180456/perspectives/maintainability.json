@@ -1,0 +1,55 @@
+{
+  "findings": [
+    {
+      "priority": "medium",
+      "confidence": 0.7,
+      "snippet": "\"current_phase\": { ... }",
+      "id": "F-001",
+      "description": "Global current_phase can conflict across sessions; phase is session-specific.",
+      "file": ".claude/workflows/cli-templates/schemas/learn-state.schema.json",
+      "title": "current_phase stored globally rather than per session",
+      "line": 14,
+      "suggested_issue": "Move current_phase into session progress or namespace by active_session_id.",
+      "category": "state-model"
+    },
+    {
+      "priority": "medium",
+      "confidence": 0.8,
+      "snippet": "atomicWriteJson(progressPath, progress, () => true);",
+      "id": "F-002",
+      "description": "learn:update-progress validates plan but not progress; progress shape may drift.",
+      "file": "ccw/src/commands/learn.ts",
+      "title": "Progress schema missing (progress.json written without validation)",
+      "line": 459,
+      "suggested_issue": "Add learn-progress schema and validate progress writes.",
+      "category": "schema-gap"
+    },
+    {
+      "priority": "high",
+      "confidence": 0.85,
+      "snippet": "Write(draftPlanPath, JSON.stringify(planDraft, null, 2));",
+      "id": "F-003",
+      "description": "learn:plan uses Write()/Bash() for session files directly, bypassing CLI lock and atomic write helpers.",
+      "file": ".claude/commands/learn/plan.md",
+      "title": "learn:plan bypasses lock-protected CLI APIs for session file writes",
+      "line": 493,
+      "suggested_issue": "Add CLI endpoints for session create/write (atomic + lock) and have plan use them.",
+      "category": "concurrency"
+    },
+    {
+      "priority": "medium",
+      "confidence": 0.85,
+      "snippet": "command('learn:list-profiles')",
+      "id": "F-004",
+      "description": "Duplication between CLI and docs will drift.",
+      "file": "ccw/src/cli.ts",
+      "title": "CLI provides learn:list-profiles but docs re-implement listing",
+      "line": 352,
+      "suggested_issue": "Use CLI list-profiles output everywhere.",
+      "category": "duplication"
+    }
+  ],
+  "analyzed_at": "2026-01-28T18:15:42.2076652Z",
+  "files_analyzed": 21,
+  "perspective": "maintainability"
+}

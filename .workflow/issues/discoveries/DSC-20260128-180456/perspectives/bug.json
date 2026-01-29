@@ -1,0 +1,55 @@
+{
+  "findings": [
+    {
+      "priority": "high",
+      "confidence": 0.85,
+      "snippet": "if (!plan.phases || plan.knowledge_points?.some(kp => !kp.phase)) {",
+      "id": "F-001",
+      "description": "When legacy plans lack phases, learn:execute computes phases in memory but does not write them back. Next run repeats upgrade and other tools still see legacy plan structure.",
+      "file": ".claude/commands/learn/execute.md",
+      "title": "Phase assignment upgrade in learn:execute is not persisted",
+      "line": 106,
+      "suggested_issue": "Persist upgraded phases to plan.json via CLI endpoint (lock-protected + validated).",
+      "category": "state-consistency"
+    },
+    {
+      "priority": "high",
+      "confidence": 0.9,
+      "snippet": "openSync(LOCK_PATH, 'wx')",
+      "id": "F-002",
+      "description": "If a process crashes while holding .workflow/learn/.lock, subsequent commands fail with LOCKED after 2s and do not attempt stale-lock recovery.",
+      "file": "ccw/src/commands/learn.ts",
+      "title": "Stale lock file can permanently block learn workflow",
+      "line": 194,
+      "suggested_issue": "Implement stale lock detection (pid not alive / created_at too old) and provide a safe unlock path.",
+      "category": "concurrency"
+    },
+    {
+      "priority": "high",
+      "confidence": 0.9,
+      "snippet": "Bash(\"mv <draftPlanPath> <sessionFolder>/plan.json\")",
+      "id": "F-003",
+      "description": "learn:plan uses mv via Bash() to promote the validated plan. This is not portable on Windows and can leave plan.tmp.json behind.",
+      "file": ".claude/commands/learn/plan.md",
+      "title": "Plan promotion uses mv via Bash() (non-portable)",
+      "line": 511,
+      "suggested_issue": "Replace with Write() to final path or Node rename, and verify success before continuing.",
+      "category": "cross-platform"
+    },
+    {
+      "priority": "medium",
+      "confidence": 0.9,
+      "snippet": "Bash(\"ls -1 .workflow/learn/profiles/*.json ...\")",
+      "id": "F-004",
+      "description": "learn:profile select uses ls -1 .workflow/learn/profiles/*.json. This is shell-dependent; CLI provides learn:list-profiles.",
+      "file": ".claude/commands/learn/profile.md",
+      "title": "Profile selection enumerates profiles via ls glob instead of CLI list-profiles",
+      "line": 1224,
+      "suggested_issue": "Use ccw learn:list-profiles --json to enumerate profiles.",
+      "category": "cross-platform"
+    }
+  ],
+  "analyzed_at": "2026-01-28T18:15:42.2076652Z",
+  "files_analyzed": 21,
+  "perspective": "bug"
+}

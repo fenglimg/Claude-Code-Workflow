@@ -1,0 +1,60 @@
+{
+  "dimension": "learn-cli-api",
+  "iteration": 1,
+  "findings": [
+    {
+      "id": "B-001",
+      "title": "learn:update-progress only maintains progress convenience arrays for completed/in_progress",
+      "category": "consistency-gap",
+      "file": "ccw/src/commands/learn.ts",
+      "line": 442,
+      "snippet": "if (status === 'completed') { ... } else if (status === 'in_progress') { ... }",
+      "related_dimension": "learn-command-specs",
+      "confidence": 0.8,
+      "impact": "Statuses used by learn-plan/learn-execute (skipped/optional/pending) can leave progress.json arrays stale, confusing downstream consumers.",
+      "recommendation": "Either extend progress schema to model all statuses, or remove the arrays and derive views from knowledge_point_progress."
+    },
+    {
+      "id": "B-002",
+      "title": "learn:update-state does not validate active_profile_id/active_session_id format or existence",
+      "category": "input-validation-gap",
+      "file": "ccw/src/commands/learn.ts",
+      "line": 479,
+      "snippet": "if (!['active_profile_id', 'active_session_id', 'current_phase'].includes(field)) { ... }",
+      "related_dimension": "learn-command-specs",
+      "confidence": 0.75,
+      "impact": "State can be set to invalid IDs, causing subsequent learn commands to fail in harder-to-debug ways.",
+      "recommendation": "Validate ID format (PROFILE_ID_RE/SESSION_ID_RE) and (optionally) existence when updating state."
+    },
+    {
+      "id": "B-003",
+      "title": "Strong: atomicWriteJson validates schema before write and keeps backups for recovery",
+      "category": "strength",
+      "file": "ccw/src/commands/learn.ts",
+      "line": 268,
+      "snippet": "// Validate *before* writing the final file. const ok = validate(data);",
+      "related_dimension": null,
+      "confidence": 0.9,
+      "impact": "Reduces risk of corrupt learn workflow state and improves crash safety.",
+      "recommendation": "Extend this pattern to progress.json with a dedicated schema."
+    }
+  ],
+  "coverage": {
+    "files_explored": 1,
+    "areas_covered": [
+      "CLI state API correctness (lock + atomic write + validation)",
+      "progress update semantics",
+      "state update semantics"
+    ],
+    "areas_remaining": [
+      "Lock stale recovery",
+      "Plan/schema alignment enforcement in state updates"
+    ]
+  },
+  "leads": [
+    {
+      "description": "Check learn-plan.schema.json status enums vs update-progress behavior",
+      "suggested_search": "\"status\".*\"skipped\""
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "findings": [
+    {
+      "priority": "medium",
+      "confidence": 0.8,
+      "snippet": "const existing = String(this.readFn(this.logFile) ?? \"\");",
+      "id": "F-001",
+      "description": "Each log() reads the entire log file then writes it back with an appended line; this scales poorly and can lose data under concurrency.",
+      "file": ".claude/commands/learn/_internal/logger.js",
+      "title": "Logger appends by read+overwrite (O(n) growth and race risk)",
+      "line": 65,
+      "suggested_issue": "Use append if available or keep bounded logs / separate per-entry files.",
+      "category": "io-efficiency"
+    },
+    {
+      "priority": "low",
+      "confidence": 0.65,
+      "snippet": "const cur = queue.shift();",
+      "id": "F-002",
+      "description": "queue.shift() is O(n); large DAGs could suffer.",
+      "file": ".claude/commands/learn/_internal/phase-assignment.js",
+      "title": "Topological level computation uses queue.shift() (O(n^2) worst-case)",
+      "line": 53,
+      "suggested_issue": "Use head-index queue.",
+      "category": "algorithmic"
+    },
+    {
+      "priority": "medium",
+      "confidence": 0.75,
+      "snippet": "ccw cli -p <very-large-prompt> --tool gemini --mode write --cd .",
+      "id": "F-003",
+      "description": "learn:plan passes a large cliPrompt as a single shell argument; may exceed OS limits or be slow.",
+      "file": ".claude/commands/learn/plan.md",
+      "title": "Passing large prompts via -p risks command-length limits",
+      "line": 448,
+      "suggested_issue": "Support file/stdin prompt passing.",
+      "category": "cli-limits"
+    }
+  ],
+  "analyzed_at": "2026-01-28T18:15:42.2076652Z",
+  "files_analyzed": 21,
+  "perspective": "performance"
+}

@@ -1,0 +1,82 @@
+{
+  "phases": [
+    {
+      "id": "phase-0",
+      "name": "Specification Study",
+      "description": "强制前置阶段，阅读 SKILL-DESIGN-SPEC.md 和所有模板文件",
+      "output": "内化规范要求",
+      "mandatory": true
+    },
+    {
+      "id": "phase-1",
+      "name": "Requirements Discovery",
+      "description": "收集新Skill的需求信息，包括名称、目标、执行模式、阶段定义、工具配置",
+      "input": "用户输入",
+      "output": "skill-config.json",
+      "steps": ["基本信息收集", "执行模式选择", "阶段/动作定义", "工具和输出配置", "生成配置文件"]
+    },
+    {
+      "id": "phase-2",
+      "name": "Structure Generation",
+      "description": "根据配置创建Skill目录结构和入口文件",
+      "input": "skill-config.json",
+      "output": "目录结构 + SKILL.md",
+      "steps": ["读取配置", "创建目录结构", "生成SKILL.md"]
+    },
+    {
+      "id": "phase-3",
+      "name": "Phase Generation",
+      "description": "根据执行模式生成Phase文件",
+      "input": "skill-config.json + SKILL.md",
+      "output": "phases/*.md",
+      "branches": {
+        "sequential": "生成01-xx.md, 02-xx.md等顺序阶段文件 + 声明式编排器",
+        "autonomous": "生成orchestrator.md + state-schema.md + actions/*.md"
+      }
+    },
+    {
+      "id": "phase-4",
+      "name": "Specs & Templates",
+      "description": "生成规范文件和模板文件",
+      "input": "所有前序产出",
+      "output": "specs/*.md + templates/*.md",
+      "files": ["{skill-name}-requirements.md", "quality-standards.md", "agent-base.md", "action-catalog.md (autonomous)"]
+    },
+    {
+      "id": "phase-5",
+      "name": "Validation & Documentation",
+      "description": "验证完整性并生成使用说明",
+      "input": "所有生成文件",
+      "output": "validation-report.json + README.md",
+      "checks": ["文件完整性检查", "内容质量检查", "生成验证报告", "生成README.md"]
+    }
+  ],
+  "dependencies": [
+    { "from": "phase-0", "to": "phase-1", "type": "sequential" },
+    { "from": "phase-1", "to": "phase-2", "type": "data", "artifact": "skill-config.json" },
+    { "from": "phase-2", "to": "phase-3", "type": "data", "artifact": "SKILL.md" },
+    { "from": "phase-3", "to": "phase-4", "type": "data", "artifact": "phases/*.md" },
+    { "from": "phase-4", "to": "phase-5", "type": "data", "artifact": "specs/*.md" }
+  ],
+  "dataFlow": [
+    { "artifact": "skill-config.json", "producer": "Phase 1", "consumers": ["Phase 2", "Phase 3", "Phase 4", "Phase 5"] },
+    { "artifact": "SKILL.md", "producer": "Phase 2", "consumers": ["Phase 3", "Phase 5"] },
+    { "artifact": "phases/*.md", "producer": "Phase 3", "consumers": ["Phase 4", "Phase 5"] },
+    { "artifact": "specs/*.md", "producer": "Phase 4", "consumers": ["Phase 5"] },
+    { "artifact": "templates/*.md", "producer": "Phase 4", "consumers": ["Phase 5"] },
+    { "artifact": "validation-report.json", "producer": "Phase 5", "consumers": ["用户"] },
+    { "artifact": "README.md", "producer": "Phase 5", "consumers": ["用户"] }
+  ],
+  "executionModes": {
+    "sequential": {
+      "description": "固定顺序线性执行，每个阶段的输出作为下一阶段的输入",
+      "structure": "phases/01-*.md, 02-*.md, ...",
+      "useCases": ["文档生成", "代码分析", "数据处理"]
+    },
+    "autonomous": {
+      "description": "无固定执行顺序，由编排器根据当前状态动态选择下一个动作",
+      "structure": "phases/orchestrator.md + actions/*.md",
+      "useCases": ["交互式任务", "状态机任务", "探索式任务"]
+    }
+  }
+}

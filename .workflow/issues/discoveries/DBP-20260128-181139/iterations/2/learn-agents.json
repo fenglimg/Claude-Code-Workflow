@@ -1,0 +1,47 @@
+{
+  "dimension": "learn-agents",
+  "iteration": 2,
+  "findings": [
+    {
+      "id": "A-004",
+      "title": "learn-plan-validator validates dependency_graph cycles but does not verify knowledge_points.prerequisites consistency",
+      "category": "validator-gap",
+      "file": ".claude/commands/learn/_internal/learn-plan-validator.js",
+      "line": 63,
+      "snippet": "function validateDag(dependencyGraph) { ... }",
+      "related_dimension": "learn-command-specs",
+      "confidence": 0.8,
+      "impact": "A plan can pass validation while having prerequisites that disagree with dependency_graph edges, causing execute ordering bugs.",
+      "recommendation": "Add a layer to cross-check prerequisites vs edges (bidirectional consistency) and ensure all prerequisite IDs exist."
+    },
+    {
+      "id": "A-005",
+      "title": "learn-planning-agent introduces estimated_effort fields and mixed guidance about Read/Write vs 'Do NOT write files'",
+      "category": "contract-clarity-gap",
+      "file": ".claude/agents/learn-planning-agent.md",
+      "line": 26,
+      "snippet": "Do **NOT** write files ... (but later lists Read/Write for file I/O and sets kp.estimated_effort)",
+      "related_dimension": "learn-command-specs",
+      "confidence": 0.75,
+      "impact": "Contract ambiguity increases drift and makes schema compliance harder to guarantee across models/tools.",
+      "recommendation": "Remove file I/O guidance from the agent, and either drop estimated_effort or formalize it in schema + downstream consumers."
+    }
+  ],
+  "coverage": {
+    "files_explored": 2,
+    "areas_covered": [
+      "validator behavior",
+      "agent contract drift"
+    ],
+    "areas_remaining": [
+      "Tests that simulate multi-line JSON outputs",
+      "Consolidating escaping/CLI execution helpers"
+    ]
+  },
+  "leads": [
+    {
+      "description": "Review tests coverage for portability and shell escaping",
+      "suggested_search": "learn-plan.*mv|learn:execute.*--evidence"
+    }
+  ]
+}

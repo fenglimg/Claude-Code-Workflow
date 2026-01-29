@@ -1,0 +1,157 @@
+{
+  "phases": [
+    {
+      "id": "P1",
+      "title": "Phase 1: Task Analysis & Exploration",
+      "order": 1,
+      "objectives": [
+        "Parse input (description or .md file)",
+        "Intelligent complexity assessment (Low/Medium/High)",
+        "Exploration decision (auto-detect or --explore flag)",
+        "Launch parallel cli-explore-agents (1-4 based on complexity)"
+      ],
+      "inputs": ["$ARGUMENTS (task description or file path)", "--explore flag", "--yes flag"],
+      "outputs": ["exploration-{angle}.json (1-4 files)", "explorations-manifest.json"],
+      "conditionals": {
+        "needsExploration": {
+          "true": "Launch parallel cli-explore-agents",
+          "false": "Skip to Phase 2 or Phase 3"
+        },
+        "context_protection": "File reading >= 50k chars forces cli-explore-agent"
+      },
+      "agents": ["cli-explore-agent (1-4 instances)"]
+    },
+    {
+      "id": "P2",
+      "title": "Phase 2: Clarification (Optional)",
+      "order": 2,
+      "objectives": [
+        "Aggregate clarification_needs from all exploration angles",
+        "Deduplicate similar questions",
+        "Multi-round user interaction (max 4 questions per round)"
+      ],
+      "inputs": ["exploration-{angle}.json files", "explorations-manifest.json"],
+      "outputs": ["clarificationContext (in-memory)"],
+      "conditionals": {
+        "skip_if": ["No exploration performed", "clarification_needs empty", "--yes flag set"],
+        "batch_size": 4,
+        "multi_round": true
+      },
+      "agents": []
+    },
+    {
+      "id": "P3",
+      "title": "Phase 3: Planning",
+      "order": 3,
+      "objectives": [
+        "Generate implementation plan based on complexity",
+        "Low complexity: Direct Claude planning",
+        "Medium/High complexity: cli-lite-planning-agent"
+      ],
+      "inputs": ["exploration results", "clarificationContext", "plan-json-schema.json"],
+      "outputs": ["plan.json"],
+      "conditionals": {
+        "complexity_routing": {
+          "Low": "Direct Claude planning (no agent)",
+          "Medium": "cli-lite-planning-agent",
+          "High": "cli-lite-planning-agent"
+        }
+      },
+      "agents": ["cli-lite-planning-agent (conditional)"]
+    },
+    {
+      "id": "P4",
+      "title": "Phase 4: Confirmation & Selection",
+      "order": 4,
+      "objectives": [
+        "Display plan summary",
+        "Collect user confirmation (Allow/Modify/Cancel)",
+        "Select execution method (Agent/Codex/Auto)",
+        "Select code review tool"
+      ],
+      "inputs": ["plan.json"],
+      "outputs": ["userSelection (confirmation, execution_method, code_review_tool)"],
+      "conditionals": {
+        "auto_yes": {
+          "true": "Use defaults (Allow, Auto, Skip)",
+          "false": "AskUserQuestion for all selections"
+        }
+      },
+      "agents": []
+    },
+    {
+      "id": "P5",
+      "title": "Phase 5: Execute Handoff",
+      "order": 5,
+      "objectives": [
+        "Build executionContext with complete context",
+        "Delegate to lite-execute via SlashCommand"
+      ],
+      "inputs": ["plan.json", "exploration results", "clarificationContext", "userSelection"],
+      "outputs": ["executionContext (global variable)"],
+      "conditionals": {},
+      "agents": [],
+      "handoff": "/workflow:lite-execute --in-memory"
+    }
+  ],
+  "dependencies": [
+    {"from": "START", "to": "P1", "type": "flow"},
+    {"from": "P1", "to": "P2", "type": "conditional", "condition": "needsExploration && hasClarifications"},
+    {"from": "P1", "to": "P3", "type": "conditional", "condition": "!needsExploration || noClarifications"},
+    {"from": "P2", "to": "P3", "type": "flow"},
+    {"from": "P3", "to": "P4", "type": "flow", "artifact": "plan.json"},
+    {"from": "P4", "to": "P5", "type": "conditional", "condition": "confirmation === Allow"},
+    {"from": "P4", "to": "END_CANCEL", "type": "conditional", "condition": "confirmation === Cancel"},
+    {"from": "P5", "to": "LITE_EXECUTE", "type": "handoff"}
+  ],
+  "dataFlow": [
+    {
+      "artifact": "exploration-{angle}.json",
+      "producer": "Phase 1 (cli-explore-agent)",
+      "consumers": ["Phase 2", "Phase 3", "Phase 5"],
+      "description": "Code exploration results from specific angle"
+    },
+    {
+      "artifact": "explorations-manifest.json",
+      "producer": "Phase 1",
+      "consumers": ["Phase 2", "Phase 3", "Phase 5"],
+      "description": "Index of all exploration files"
+    },
+    {
+      "artifact": "clarificationContext",
+      "producer": "Phase 2",
+      "consumers": ["Phase 3", "Phase 5"],
+      "description": "User responses to clarification questions (in-memory)"
+    },
+    {
+      "artifact": "plan.json",
+      "producer": "Phase 3",
+      "consumers": ["Phase 4", "Phase 5", "lite-execute"],
+      "description": "Structured implementation plan"
+    },
+    {
+      "artifact": "executionContext",
+      "producer": "Phase 5",
+      "consumers": ["lite-execute"],
+      "description": "Complete context for execution handoff (global variable)"
+    }
+  ],
+  "complexity_presets": {
+    "ANGLE_PRESETS": {
+      "architecture": ["architecture", "dependencies", "modularity", "integration-points"],
+      "security": ["security", "auth-patterns", "dataflow", "validation"],
+      "performance": ["performance", "bottlenecks", "caching", "data-access"],
+      "bugfix": ["error-handling", "dataflow", "state-management", "edge-cases"],
+      "feature": ["patterns", "integration-points", "testing", "dependencies"]
+    },
+    "exploration_count": {
+      "Low": 1,
+      "Medium": 3,
+      "High": 4
+    }
+  },
+  "flags": {
+    "--yes | -y": "Skip all confirmations (auto mode)",
+    "--explore | -e": "Force code exploration phase"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "dimension": "learn-cli-api",
+  "iteration": 2,
+  "findings": [
+    {
+      "id": "B-004",
+      "title": "learn:update-progress writes progress.json without schema validation",
+      "category": "validation-gap",
+      "file": "ccw/src/commands/learn.ts",
+      "line": 459,
+      "snippet": "// We don't have a dedicated progress schema yet ...\natomicWriteJson(progressPath, progress, () => true);",
+      "related_dimension": "learn-command-specs",
+      "confidence": 0.85,
+      "impact": "Progress format can drift silently; downstream tools/agents may break unexpectedly.",
+      "recommendation": "Introduce learn-progress.schema.json and validate progress writes the same way as plan/profile/state."
+    },
+    {
+      "id": "B-005",
+      "title": "Locking has no stale-lock recovery (2s timeout, no PID liveness check)",
+      "category": "resilience-gap",
+      "file": "ccw/src/commands/learn.ts",
+      "line": 186,
+      "snippet": "const timeoutMs = 2000; ... if (Date.now() - start > timeoutMs) { ... throw lockError; }",
+      "related_dimension": "learn-command-specs",
+      "confidence": 0.7,
+      "impact": "A crashed process can leave a lock file that blocks all learn:* state operations until manual cleanup.",
+      "recommendation": "Add stale-lock detection (pid not running / lock age TTL) and a safe forced unlock path."
+    },
+    {
+      "id": "B-006",
+      "title": "learn:update-progress does not validate status input early; schema failure happens later during plan write",
+      "category": "ux-gap",
+      "file": "ccw/src/commands/learn.ts",
+      "line": 384,
+      "snippet": "if (!status) fail(...); ... kp.status = status; ... atomicWriteJson(planPath, plan, getPlanValidator());",
+      "related_dimension": "learn-command-specs",
+      "confidence": 0.75,
+      "impact": "Agents get later/less-specific errors; partially mutated progress object may be written before plan validation fails (depending on execution order).",
+      "recommendation": "Validate status against allowed enum before mutating and writing, and write plan+progress in an all-or-nothing transaction."
+    }
+  ],
+  "coverage": {
+    "files_explored": 1,
+    "areas_covered": [
+      "progress validation",
+      "lock behavior",
+      "input validation ergonomics"
+    ],
+    "areas_remaining": [
+      "State update ID validation",
+      "Session/plan write APIs to support execute upgrade paths"
+    ]
+  },
+  "leads": [
+    {
+      "description": "Compare statuses in learn-plan.schema.json vs progress tracking model",
+      "suggested_search": "\"status\".*\"optional\""
+    }
+  ]
+}

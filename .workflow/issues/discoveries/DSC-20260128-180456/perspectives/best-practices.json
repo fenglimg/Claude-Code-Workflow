@@ -1,0 +1,55 @@
+{
+  "findings": [
+    {
+      "priority": "high",
+      "confidence": 0.9,
+      "snippet": "ls -1 .workflow/learn/profiles/*.json",
+      "id": "F-001",
+      "description": "Using validated CLI avoids shell differences and schema issues.",
+      "file": ".claude/commands/learn/profile.md",
+      "title": "Prefer learn:list-profiles over shell globbing in learn:profile",
+      "line": 1224,
+      "suggested_issue": "Replace with ccw learn:list-profiles --json and render.",
+      "category": "cli-consistency"
+    },
+    {
+      "priority": "high",
+      "confidence": 0.8,
+      "snippet": "ccw learn:read-session --session-id <sessionId> --json",
+      "id": "F-002",
+      "description": "Docs interpolate ids and paths into shell commands without consistent quoting.",
+      "file": ".claude/commands/learn/execute.md",
+      "title": "Escape/quote all interpolated args (defense in depth)",
+      "line": 98,
+      "suggested_issue": "Introduce quoteArg() helper and apply consistently.",
+      "category": "defense-in-depth"
+    },
+    {
+      "priority": "high",
+      "confidence": 0.8,
+      "snippet": "ccw learn:write-profile --profile-id <id> --data <json-string> --json",
+      "id": "F-003",
+      "description": "Inline JSON-in-shell is fragile (quotes, length limits).",
+      "file": ".claude/commands/learn/profile.md",
+      "title": "Use file-based payloads for large JSON/profiles",
+      "line": 915,
+      "suggested_issue": "Add data-file option and adopt in docs.",
+      "category": "robustness"
+    },
+    {
+      "priority": "high",
+      "confidence": 0.85,
+      "snippet": "LOCKED after timeout",
+      "id": "F-004",
+      "description": "Without recovery, crashes can block learn commands.",
+      "file": "ccw/src/commands/learn.ts",
+      "title": "Stale-lock recovery should be built into CLI",
+      "line": 220,
+      "suggested_issue": "Add stale-lock cleanup and/or a learn:unlock command.",
+      "category": "operability"
+    }
+  ],
+  "analyzed_at": "2026-01-28T18:15:42.2076652Z",
+  "files_analyzed": 21,
+  "perspective": "best-practices"
+}
