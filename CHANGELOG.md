@@ -5,6 +5,74 @@ All notable changes to Claude Code Workflow (CCW) will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.3.49] - 2026-01-28
+
+### ✨ New Features | 新功能
+
+#### CLI Tools & Configuration | CLI工具与配置
+- **Added**: In-memory configuration prioritization for CLI tool selection initialization | CLI工具选择初始化的内存配置优先级
+- **Added**: Codex CLI settings with toggle and refresh actions | Codex CLI设置的切换和刷新操作
+- **Added**: Codex CLI enhancement settings with API integration and UI toggle | Codex CLI增强设置，包含API集成和UI切换
+- **Added**: ccw-cli-tools skill specification with unified execution framework and configuration-driven tool selection | ccw-cli-tools技能规范，包含统一执行框架和配置驱动的工具选择
+- **Added**: Commands management feature with API endpoints and UI integration | 命令管理功能，包含API端点和UI集成
+
+#### Skills & Workflows | 技能与工作流
+- **Enhanced**: lite-skill-generator with single file output and improved validation | lite-skill-generator单文件输出和验证增强
+- **Added**: brainstorm-to-cycle adapter for converting brainstorm output to parallel-dev-cycle input | brainstorm-to-cycle适配器，用于将brainstorm输出转换为parallel-dev-cycle输入
+- **Added**: brainstorm-with-file prompt for interactive brainstorming workflow | 交互式brainstorm工作流的brainstorm-with-file提示
+- **Added**: Document consolidation, assembly, and compliance refinement phases | 文档整合、汇编和合规性细化阶段
+- **Added**: Skill enable/disable functionality with enhanced moveDirectory rollback on failure | 技能启用/禁用功能，增强的moveDirectory失败回滚
+
+#### Review & Quality | 审查与质量
+- **Updated**: Review commands to use review-cycle-fix for automated fixing | 审查命令更新为使用review-cycle-fix进行自动修复
+- **Fixed**: Changelog workflow references from review-fix to review-cycle-fix for consistency | 更改changelog工作流引用从review-fix到review-cycle-fix以保持一致性
+
+#### Documentation & CLI Integration | 文档与CLI集成
+- **Added**: CLI endpoints documentation and unified script template for Bash and Python | CLI端点文档和Bash/Python统一脚本模板
+- **Enhanced**: Skill generator documentation and templates | 技能生成器文档和模板增强
+- **Added**: Skill tuning diagnosis report for skill-generator | skill-generator的技能调优诊断报告
+
+### 🔒 Security | 安全
+
+#### Critical Fixes | 关键修复
+- **Fixed**: 3 critical security vulnerabilities | 修复3个关键安全漏洞
+
+### 🛠️ Improvements | 改进
+
+#### Core Logic | 核心逻辑
+- **Refactored**: Orchestrator logic with enhanced problem taxonomy | 重构编排器逻辑，增强问题分类
+- **Improved**: Skills enable/disable operations robustness | 改进技能启用/禁用操作的健壮性
+
+#### Planning & Context Management | 规划与上下文管理
+- **Enhanced**: Workflow commands and context management | 增强工作流命令和上下文管理
+- **Enhanced**: CLI Lite Planning Agent with mandatory quality check | 增强CLI Lite规划代理的强制性质量检查
+- **Added**: Planning notes feature for task generation and constraint management | 规划笔记功能，用于任务生成和约束管理
+
+#### Issue Management | Issue管理
+- **Added**: convert-to-plan command to convert planning documents to issue solutions | convert-to-plan命令，将规划文档转换为问题解决方案
+- **Enhanced**: Queue status validation with "merged" status | 队列状态验证，增加"merged"状态
+- **Refactored**: Issue queue management to use "archived" instead of "merged" | 重构issue队列管理，使用"archived"代替"merged"
+
+#### Multi-CLI Analysis | 多CLI分析
+- **Added**: Interactive analysis workflow with documented discussions and CLI exploration | 交互式分析工作流，包含文档化讨论和CLI探索
+- **Added**: Parent/child directory lookup for ccw cli output | ccw cli输出的父/子目录查找
+
+### 📚 Documentation | 文档
+
+- **Added**: Level 5 intelligent orchestration workflow guide to English version | 英文版添加Level 5智能编排工作流指南
+- **Added**: Level 5 workflow guide with CCW Coordinator and decision flowchart | Level 5工作流指南，包含CCW协调器和决策流程图
+- **Added**: /ccw and /ccw-coordinator as recommended commands | 添加/ccw和/ccw-coordinator作为推荐命令
+- **Removed**: Codex Subagent usage documentation | 移除Codex Subagent使用规范文档
+- **Removed**: CLI endpoints section from Codex Code Guidelines | 从Codex代码指南中移除CLI端点部分
+- **Fixed**: README_CN.md交流群二维码图片扩展名 | 修复README_CN.md交流群二维码图片扩展名
+- **Archived**: Unused test scripts and temporary documents | 归档未使用的测试脚本和临时文档
+
+### 🎨 UI & Integration | UI与集成
+
+- **Refactored**: CLI Config Manager and added Provider Model Routes | 重构CLI配置管理器并添加Provider模型路由
+
+---
+
 ## [6.3.29] - 2026-01-15
 
 ### ✨ New Features | 新功能
@@ -376,7 +444,7 @@ This release significantly enhances the code review capabilities with a new fix-
 - **Enhanced Export Notifications**: Export notifications now include detailed usage instructions and recommended file locations (`6467480`).
 
 #### 🔄 Changed
-- **Dashboard Data Integration**: `fix-dashboard.html` now consumes more JSON fields from the `review-fix` workflow for richer data display (`b000359`).
+- **Dashboard Data Integration**: `fix-dashboard.html` now consumes more JSON fields from the `review-cycle-fix` workflow for richer data display (`b000359`).
 - **Dashboard Generation**: Optimized the generation process for the review cycle dashboard and merged JSON state files for efficiency (`2cf8efe`).
 - **Agent Schema Requirements**: Added explicit JSON schema requirements to review cycle agent prompts to ensure structured output (`34a9a23`).
 - **Standardized Naming**: Standardized "Execution Flow" phase naming across commands and removed redundant `REVIEW-SUMMARY.md` output (`ef09914`).
@@ -409,7 +477,7 @@ This release introduces the new `lite-fix` workflow for streamlined bug resoluti
 - **`docs-related-cli` Command**: New command for CLI-related documentation (`7453987`).
 - **Session Artifacts**: `lite-fix` workflow now creates a dedicated session folder with artifacts like `diagnosis.json` and `fix-plan.json` (`0207677`).
 - **`review-session-cycle` Command**: A comprehensive command for multi-dimensional code analysis (`93d8e79`).
-- **`review-fix` Workflow**: Automated workflow for reviewing fixes with an enhanced exploration schema (`a6561a7`).
+- **`review-cycle-fix` Workflow**: Automated workflow for reviewing fixes with an enhanced exploration schema (`a6561a7`).
 - **JSON Schemas**: Added new JSON schemas for deep-dive results and dimension analysis to structure agent outputs (`cd206f2`).
 
 #### 🔄 Changed

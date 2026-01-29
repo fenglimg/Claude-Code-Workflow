@@ -2,51 +2,24 @@
  * Skills Routes Module
  * Handles all Skills-related API endpoints
  */
-import { readFileSync, existsSync, readdirSync, statSync, unlinkSync, promises as fsPromises } from 'fs';
+import { readFileSync, existsSync, readdirSync, statSync, unlinkSync, renameSync, promises as fsPromises } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { executeCliTool } from '../../tools/cli-executor.js';
 import { SmartContentFormatter } from '../../tools/cli-output-converter.js';
 import { validatePath as validateAllowedPath } from '../../utils/path-validator.js';
 import type { RouteContext } from './types.js';
-
-type SkillLocation = 'project' | 'user';
-
-interface ParsedSkillFrontmatter {
-  name: string;
-  description: string;
-  version: string | null;
-  allowedTools: string[];
-  content: string;
-}
-
-interface SkillSummary {
-  name: string;
-  folderName: string;
-  description: string;
-  version: string | null;
-  allowedTools: string[];
-  location: SkillLocation;
-  path: string;
-  supportingFiles: string[];
-}
-
-interface SkillsConfig {
-  projectSkills: SkillSummary[];
-  userSkills: SkillSummary[];
-}
-
-interface SkillInfo {
-  name: string;
-  description: string;
-  version: string | null;
-  allowedTools: string[];
-  supportingFiles: string[];
-}
-
-type SkillFolderValidation =
-  | { valid: true; errors: string[]; skillInfo: SkillInfo }
-  | { valid: false; errors: string[]; skillInfo: null };
+import type {
+  SkillLocation,
+  ParsedSkillFrontmatter,
+  SkillSummary,
+  SkillsConfig,
+  SkillInfo,
+  SkillFolderValidation,
+  DisabledSkillSummary,
+  ExtendedSkillsConfig,
+  SkillOperationResult
+} from '../../types/skill-types.js';
 
 type GenerationType = 'description' | 'template';
 
@@ -64,6 +37,178 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 // ========== Skills Helper Functions ==========
+
+/**
+ * Disable a skill by renaming SKILL.md to SKILL.md.disabled
+ */
+async function disableSkill(
+  skillName: string,
+  location: SkillLocation,
+  projectPath: string,
+  initialPath: string,
+  reason?: string  // Kept for API compatibility but no longer used
+): Promise<SkillOperationResult> {
+  try {
+    // Validate skill name
+    if (skillName.includes('/') || skillName.includes('\\') || skillName.includes('..')) {
+      return { success: false, message: 'Invalid skill name', status: 400 };
+    }
+
+    // Get skill directory
+    let skillsDir: string;
+    if (location === 'project') {
+      try {
+        const validatedProjectPath = await validateAllowedPath(projectPath, { mustExist: true, allowedDirectories: [initialPath] });
+        skillsDir = join(validatedProjectPath, '.claude', 'skills');
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { success: false, message: message.includes('Access denied') ? 'Access denied' : 'Invalid path', status: 403 };
+      }
+    } else {
+      skillsDir = join(homedir(), '.claude', 'skills');
+    }
+
+    const skillDir = join(skillsDir, skillName);
+    if (!existsSync(skillDir)) {
+      return { success: false, message: 'Skill not found', status: 404 };
+    }
+
+    const skillMdPath = join(skillDir, 'SKILL.md');
+    if (!existsSync(skillMdPath)) {
+      return { success: false, message: 'SKILL.md not found', status: 404 };
+    }
+
+    const disabledPath = join(skillDir, 'SKILL.md.disabled');
+    if (existsSync(disabledPath)) {
+      return { success: false, message: 'Skill already disabled', status: 409 };
+    }
+
+    // Rename: SKILL.md → SKILL.md.disabled
+    renameSync(skillMdPath, disabledPath);
+
+    return { success: true, message: 'Skill disabled', skillName, location };
+  } catch (error) {
+    return { success: false, message: (error as Error).message, status: 500 };
+  }
+}
+
+/**
+ * Enable a skill by renaming SKILL.md.disabled back to SKILL.md
+ */
+async function enableSkill(
+  skillName: string,
+  location: SkillLocation,
+  projectPath: string,
+  initialPath: string
+): Promise<SkillOperationResult> {
+  try {
+    // Validate skill name
+    if (skillName.includes('/') || skillName.includes('\\') || skillName.includes('..')) {
+      return { success: false, message: 'Invalid skill name', status: 400 };
+    }
+
+    // Get skill directory
+    let skillsDir: string;
+    if (location === 'project') {
+      try {
+        const validatedProjectPath = await validateAllowedPath(projectPath, { mustExist: true, allowedDirectories: [initialPath] });
+        skillsDir = join(validatedProjectPath, '.claude', 'skills');
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { success: false, message: message.includes('Access denied') ? 'Access denied' : 'Invalid path', status: 403 };
+      }
+    } else {
+      skillsDir = join(homedir(), '.claude', 'skills');
+    }
+
+    const skillDir = join(skillsDir, skillName);
+    if (!existsSync(skillDir)) {
+      return { success: false, message: 'Skill not found', status: 404 };
+    }
+
+    const disabledPath = join(skillDir, 'SKILL.md.disabled');
+    if (!existsSync(disabledPath)) {
+      return { success: false, message: 'Disabled skill not found', status: 404 };
+    }
+
+    const skillMdPath = join(skillDir, 'SKILL.md');
+    if (existsSync(skillMdPath)) {
+      return { success: false, message: 'Skill already enabled', status: 409 };
+    }
+
+    // Rename: SKILL.md.disabled → SKILL.md
+    renameSync(disabledPath, skillMdPath);
+
+    return { success: true, message: 'Skill enabled', skillName, location };
+  } catch (error) {
+    return { success: false, message: (error as Error).message, status: 500 };
+  }
+}
+
+/**
+ * Get list of disabled skills by checking for SKILL.md.disabled files
+ */
+function getDisabledSkillsList(location: SkillLocation, projectPath: string): DisabledSkillSummary[] {
+  const result: DisabledSkillSummary[] = [];
+
+  // Get skills directory (not a separate disabled directory)
+  let skillsDir: string;
+  if (location === 'project') {
+    skillsDir = join(projectPath, '.claude', 'skills');
+  } else {
+    skillsDir = join(homedir(), '.claude', 'skills');
+  }
+
+  if (!existsSync(skillsDir)) {
+    return result;
+  }
+
+  try {
+    const skills = readdirSync(skillsDir, { withFileTypes: true });
+    for (const skill of skills) {
+      if (skill.isDirectory()) {
+        const disabledPath = join(skillsDir, skill.name, 'SKILL.md.disabled');
+        if (existsSync(disabledPath)) {
+          const content = readFileSync(disabledPath, 'utf8');
+          const parsed = parseSkillFrontmatter(content);
+          const skillDir = join(skillsDir, skill.name);
+          const supportingFiles = getSupportingFiles(skillDir);
+
+          result.push({
+            name: parsed.name || skill.name,
+            folderName: skill.name,
+            description: parsed.description,
+            version: parsed.version,
+            allowedTools: parsed.allowedTools,
+            location,
+            path: skillDir,
+            supportingFiles,
+            disabledAt: new Date().toISOString(),  // Cannot get exact time without config file
+            reason: undefined  // No longer stored
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`[Skills] Failed to read disabled skills: ${error}`);
+  }
+
+  return result;
+}
+
+/**
+ * Get extended skills config including disabled skills
+ */
+function getExtendedSkillsConfig(projectPath: string): ExtendedSkillsConfig {
+  const baseConfig = getSkillsConfig(projectPath);
+  return {
+    ...baseConfig,
+    disabledProjectSkills: getDisabledSkillsList('project', projectPath),
+    disabledUserSkills: getDisabledSkillsList('user', projectPath)
+  };
+}
+
+// ========== Active Skills Helper Functions ==========
 
 /**
  * Parse skill frontmatter (YAML header)
@@ -128,7 +273,8 @@ function getSupportingFiles(skillDir: string): string[] {
   try {
     const entries = readdirSync(skillDir, { withFileTypes: true });
     for (const entry of entries) {
-      if (entry.name !== 'SKILL.md') {
+      // Exclude SKILL.md and SKILL.md.disabled from supporting files
+      if (entry.name !== 'SKILL.md' && entry.name !== 'SKILL.md.disabled') {
         if (entry.isFile()) {
           files.push(entry.name);
         } else if (entry.isDirectory()) {
@@ -660,15 +806,23 @@ Create a new Claude Code skill with the following specifications:
 export async function handleSkillsRoutes(ctx: RouteContext): Promise<boolean> {
   const { pathname, url, req, res, initialPath, handlePostRequest, broadcastToClients } = ctx;
 
-  // API: Get all skills (project and user)
-  if (pathname === '/api/skills') {
+  // API: Get all skills (project and user) - with optional extended format
+  if (pathname === '/api/skills' && req.method === 'GET') {
     const projectPathParam = url.searchParams.get('path') || initialPath;
+    const includeDisabled = url.searchParams.get('includeDisabled') === 'true';
 
     try {
       const validatedProjectPath = await validateAllowedPath(projectPathParam, { mustExist: true, allowedDirectories: [initialPath] });
-      const skillsData = getSkillsConfig(validatedProjectPath);
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(skillsData));
+      
+      if (includeDisabled) {
+        const extendedData = getExtendedSkillsConfig(validatedProjectPath);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(extendedData));
+      } else {
+        const skillsData = getSkillsConfig(validatedProjectPath);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(skillsData));
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const status = message.includes('Access denied') ? 403 : 400;
@@ -676,6 +830,73 @@ export async function handleSkillsRoutes(ctx: RouteContext): Promise<boolean> {
       res.writeHead(status, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: status === 403 ? 'Access denied' : 'Invalid path', projectSkills: [], userSkills: [] }));
     }
+    return true;
+  }
+
+  // API: Get disabled skills list
+  if (pathname === '/api/skills/disabled' && req.method === 'GET') {
+    const projectPathParam = url.searchParams.get('path') || initialPath;
+
+    try {
+      const validatedProjectPath = await validateAllowedPath(projectPathParam, { mustExist: true, allowedDirectories: [initialPath] });
+      const disabledProjectSkills = getDisabledSkillsList('project', validatedProjectPath);
+      const disabledUserSkills = getDisabledSkillsList('user', validatedProjectPath);
+      
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ disabledProjectSkills, disabledUserSkills }));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const status = message.includes('Access denied') ? 403 : 400;
+      res.writeHead(status, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: status === 403 ? 'Access denied' : 'Invalid path', disabledProjectSkills: [], disabledUserSkills: [] }));
+    }
+    return true;
+  }
+
+  // API: Disable a skill
+  if (pathname.match(/^\/api\/skills\/[^/]+\/disable$/) && req.method === 'POST') {
+    const pathParts = pathname.split('/');
+    const skillName = decodeURIComponent(pathParts[3]);
+
+    handlePostRequest(req, res, async (body) => {
+      if (!isRecord(body)) {
+        return { error: 'Invalid request body', status: 400 };
+      }
+
+      const locationValue = body.location;
+      const projectPathParam = typeof body.projectPath === 'string' ? body.projectPath : undefined;
+      const reason = typeof body.reason === 'string' ? body.reason : undefined;
+
+      if (locationValue !== 'project' && locationValue !== 'user') {
+        return { error: 'Location is required (project or user)' };
+      }
+
+      const projectPath = projectPathParam || initialPath;
+      return disableSkill(skillName, locationValue, projectPath, initialPath, reason);
+    });
+    return true;
+  }
+
+  // API: Enable a skill
+  if (pathname.match(/^\/api\/skills\/[^/]+\/enable$/) && req.method === 'POST') {
+    const pathParts = pathname.split('/');
+    const skillName = decodeURIComponent(pathParts[3]);
+
+    handlePostRequest(req, res, async (body) => {
+      if (!isRecord(body)) {
+        return { error: 'Invalid request body', status: 400 };
+      }
+
+      const locationValue = body.location;
+      const projectPathParam = typeof body.projectPath === 'string' ? body.projectPath : undefined;
+
+      if (locationValue !== 'project' && locationValue !== 'user') {
+        return { error: 'Location is required (project or user)' };
+      }
+
+      const projectPath = projectPathParam || initialPath;
+      return enableSkill(skillName, locationValue, projectPath, initialPath);
+    });
     return true;
   }
 

@@ -24,7 +24,7 @@ Main process orchestrator: intent analysis → workflow selection → command ch
 |-----------|---------|---------|
 | **Planning + Execution** | plan-cmd → execute-cmd | lite-plan → lite-execute |
 | **Testing** | test-gen-cmd → test-exec-cmd | test-fix-gen → test-cycle-execute |
-| **Review** | review-cmd → fix-cmd | review-session-cycle → review-fix |
+| **Review** | review-cmd → fix-cmd | review-session-cycle → review-cycle-fix |
 
 **Atomic Rules**:
 1. CCW automatically groups commands into minimum units - never splits them
@@ -67,10 +67,16 @@ function analyzeIntent(input) {
 function detectTaskType(text) {
   const patterns = {
     'bugfix-hotfix': /urgent|production|critical/ && /fix|bug/,
+    // With-File workflows (documented exploration with multi-CLI collaboration)
+    'brainstorm': /brainstorm|ideation|头脑风暴|创意|发散思维|creative thinking|multi-perspective.*think|compare perspectives|探索.*可能/,
+    'brainstorm-to-issue': /brainstorm.*issue|头脑风暴.*issue|idea.*issue|想法.*issue|从.*头脑风暴|convert.*brainstorm/,
+    'debug-file': /debug.*document|hypothesis.*debug|troubleshoot.*track|investigate.*log|调试.*记录|假设.*验证|systematic debug|深度调试/,
+    'analyze-file': /analyze.*document|explore.*concept|understand.*architecture|investigate.*discuss|collaborative analysis|分析.*讨论|深度.*理解|协作.*分析/,
+    // Standard workflows
     'bugfix': /fix|bug|error|crash|fail|debug/,
     'issue-batch': /issues?|batch/ && /fix|resolve/,
+    'issue-transition': /issue workflow|structured workflow|queue|multi-stage/,
     'exploration': /uncertain|explore|research|what if/,
-    'multi-perspective': /multi-perspective|compare|cross-verify/,
     'quick-task': /quick|simple|small/ && /feature|function/,
     'ui-design': /ui|design|component|style/,
     'tdd': /tdd|test-driven|test first/,
@@ -111,14 +117,21 @@ async function clarifyRequirements(analysis) {
 function selectWorkflow(analysis) {
   const levelMap = {
     'bugfix-hotfix':     { level: 2, flow: 'bugfix.hotfix' },
+    // With-File workflows (documented exploration with multi-CLI collaboration)
+    'brainstorm':        { level: 4, flow: 'brainstorm-with-file' },   // Multi-perspective ideation
+    'brainstorm-to-issue': { level: 4, flow: 'brainstorm-to-issue' }, // Brainstorm → Issue workflow
+    'debug-file':        { level: 3, flow: 'debug-with-file' },         // Hypothesis-driven debugging
+    'analyze-file':      { level: 3, flow: 'analyze-with-file' },       // Collaborative analysis
+    // Standard workflows
     'bugfix':            { level: 2, flow: 'bugfix.standard' },
     'issue-batch':       { level: 'Issue', flow: 'issue' },
+    'issue-transition':  { level: 2.5, flow: 'rapid-to-issue' },  // Bridge workflow
     'exploration':       { level: 4, flow: 'full' },
     'quick-task':        { level: 1, flow: 'lite-lite-lite' },
     'ui-design':         { level: analysis.complexity === 'high' ? 4 : 3, flow: 'ui' },
     'tdd':               { level: 3, flow: 'tdd' },
     'test-fix':          { level: 3, flow: 'test-fix-gen' },
-    'review':            { level: 3, flow: 'review-fix' },
+    'review':            { level: 3, flow: 'review-cycle-fix' },
     'documentation':     { level: 2, flow: 'docs' },
     'feature':           { level: analysis.complexity === 'high' ? 3 : 2, flow: analysis.complexity === 'high' ? 'coupled' : 'rapid' }
   };
@@ -145,6 +158,16 @@ function buildCommandChain(workflow, analysis) {
         { cmd: '/workflow:test-fix-gen', args: '', unit: 'test-validation' },
         { cmd: '/workflow:test-cycle-execute', args: '', unit: 'test-validation' }
       ])
+    ],
+
+    // Level 2 Bridge - Lightweight to Issue Workflow
+    'rapid-to-issue': [
+      // Unit: Quick Implementation【lite-plan → convert-to-plan】
+      { cmd: '/workflow:lite-plan', args: `"${analysis.goal}"`, unit: 'quick-impl-to-issue' },
+      { cmd: '/issue:convert-to-plan', args: '--latest-lite-plan -y', unit: 'quick-impl-to-issue' },
+      // Auto-continue to issue workflow
+      { cmd: '/issue:queue', args: '' },
+      { cmd: '/issue:execute', args: '--queue auto' }
     ],
 
     'bugfix.standard': [
@@ -179,6 +202,30 @@ function buildCommandChain(workflow, analysis) {
       { cmd: '/workflow:lite-execute', args: '--in-memory', unit: 'quick-impl' }
     ],
 
+    // With-File workflows (documented exploration with multi-CLI collaboration)
+    'brainstorm-with-file': [
+      { cmd: '/workflow:brainstorm-with-file', args: `"${analysis.goal}"` }
+      // Note: Has built-in post-completion options (create plan, create issue, deep analysis)
+    ],
+
+    // Brainstorm-to-Issue workflow (bridge from brainstorm to issue execution)
+    'brainstorm-to-issue': [
+      // Note: Assumes brainstorm session already exists, or run brainstorm first
+      { cmd: '/issue:from-brainstorm', args: `SESSION="${extractBrainstormSession(analysis)}" --auto` },
+      { cmd: '/issue:queue', args: '' },
+      { cmd: '/issue:execute', args: '--queue auto' }
+    ],
+
+    'debug-with-file': [
+      { cmd: '/workflow:debug-with-file', args: `"${analysis.goal}"` }
+      // Note: Self-contained with hypothesis-driven iteration and Gemini validation
+    ],
+
+    'analyze-with-file': [
+      { cmd: '/workflow:analyze-with-file', args: `"${analysis.goal}"` }
+      // Note: Self-contained with multi-round discussion and CLI exploration
+    ],
+
     // Level 3 - Standard
     'coupled': [
       // Unit: Verified Planning【plan → plan-verify】
@@ -186,9 +233,9 @@ function buildCommandChain(workflow, analysis) {
       { cmd: '/workflow:plan-verify', args: '', unit: 'verified-planning' },
       // Execution
       { cmd: '/workflow:execute', args: '' },
-      // Unit: Code Review【review-session-cycle → review-fix】
+      // Unit: Code Review【review-session-cycle → review-cycle-fix】
       { cmd: '/workflow:review-session-cycle', args: '', unit: 'code-review' },
-      { cmd: '/workflow:review-fix', args: '', unit: 'code-review' },
+      { cmd: '/workflow:review-cycle-fix', args: '', unit: 'code-review' },
       // Unit: Test Validation【test-fix-gen → test-cycle-execute】
       ...(analysis.constraints?.includes('skip-tests') ? [] : [
         { cmd: '/workflow:test-fix-gen', args: '', unit: 'test-validation' },
@@ -210,10 +257,10 @@ function buildCommandChain(workflow, analysis) {
       { cmd: '/workflow:test-cycle-execute', args: '', unit: 'test-validation' }
     ],
 
-    'review-fix': [
-      // Unit: Code Review【review-session-cycle → review-fix】
+    'review-cycle-fix': [
+      // Unit: Code Review【review-session-cycle → review-cycle-fix】
       { cmd: '/workflow:review-session-cycle', args: '', unit: 'code-review' },
-      { cmd: '/workflow:review-fix', args: '', unit: 'code-review' },
+      { cmd: '/workflow:review-cycle-fix', args: '', unit: 'code-review' },
       // Unit: Test Validation【test-fix-gen → test-cycle-execute】
       { cmd: '/workflow:test-fix-gen', args: '', unit: 'test-validation' },
       { cmd: '/workflow:test-cycle-execute', args: '', unit: 'test-validation' }
@@ -409,7 +456,12 @@ Phase 5: Execute Command Chain
 |-------|------|-------|-----------------------|
 | "Add API endpoint" | feature (low) | 2 |【lite-plan → lite-execute】→【test-fix-gen → test-cycle-execute】|
 | "Fix login timeout" | bugfix | 2 |【lite-fix → lite-execute】→【test-fix-gen → test-cycle-execute】|
-| "OAuth2 system" | feature (high) | 3 |【plan → plan-verify】→ execute →【review-session-cycle → review-fix】→【test-fix-gen → test-cycle-execute】|
+| "Use issue workflow" | issue-transition | 2.5 |【lite-plan → convert-to-plan】→ queue → execute |
+| "头脑风暴: 通知系统重构" | brainstorm | 4 | brainstorm-with-file → (built-in post-completion) |
+| "从头脑风暴创建 issue" | brainstorm-to-issue | 4 | from-brainstorm → queue → execute |
+| "深度调试 WebSocket 连接断开" | debug-file | 3 | debug-with-file → (hypothesis iteration) |
+| "协作分析: 认证架构优化" | analyze-file | 3 | analyze-with-file → (multi-round discussion) |
+| "OAuth2 system" | feature (high) | 3 |【plan → plan-verify】→ execute →【review-session-cycle → review-cycle-fix】→【test-fix-gen → test-cycle-execute】|
 | "Implement with TDD" | tdd | 3 |【tdd-plan → execute】→ tdd-verify |
 | "Uncertain: real-time arch" | exploration | 4 | brainstorm:auto-parallel →【plan → plan-verify】→ execute →【test-fix-gen → test-cycle-execute】|
 
@@ -452,6 +504,29 @@ todos = [
 
 ---
 
+## With-File Workflows
+
+**With-File workflows** provide documented exploration with multi-CLI collaboration. They are self-contained and generate comprehensive session artifacts.
+
+| Workflow | Purpose | Key Features | Output Folder |
+|----------|---------|--------------|---------------|
+| **brainstorm-with-file** | Multi-perspective ideation | Gemini/Codex/Claude perspectives, diverge-converge cycles | `.workflow/.brainstorm/` |
+| **debug-with-file** | Hypothesis-driven debugging | Gemini validation, understanding evolution, NDJSON logging | `.workflow/.debug/` |
+| **analyze-with-file** | Collaborative analysis | Multi-round Q&A, CLI exploration, documented discussions | `.workflow/.analysis/` |
+
+**Detection Keywords**:
+- **brainstorm**: 头脑风暴, 创意, 发散思维, multi-perspective, compare perspectives
+- **debug-file**: 深度调试, 假设验证, systematic debug, hypothesis debug
+- **analyze-file**: 协作分析, 深度理解, collaborative analysis, explore concept
+
+**Characteristics**:
+1. **Self-Contained**: Each workflow handles its own iteration loop
+2. **Documented Process**: Creates evolving documents (brainstorm.md, understanding.md, discussion.md)
+3. **Multi-CLI**: Uses Gemini/Codex/Claude for different perspectives
+4. **Built-in Post-Completion**: Offers follow-up options (create plan, issue, etc.)
+
+---
+
 ## Type Comparison: ccw vs ccw-coordinator
 
 | Aspect | ccw | ccw-coordinator |
@@ -483,4 +558,10 @@ ccw "Implement user registration with TDD"
 
 # Exploratory task
 ccw "Uncertain about architecture for real-time notifications"
+
+# With-File workflows (documented exploration with multi-CLI collaboration)
+ccw "头脑风暴: 用户通知系统重新设计"           # → brainstorm-with-file
+ccw "从头脑风暴 BS-通知系统-2025-01-28 创建 issue"  # → brainstorm-to-issue (bridge)
+ccw "深度调试: 系统随机崩溃问题"              # → debug-with-file
+ccw "协作分析: 理解现有认证架构的设计决策"     # → analyze-with-file
 ```

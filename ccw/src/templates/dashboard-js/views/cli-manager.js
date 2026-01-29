@@ -482,6 +482,18 @@ function buildToolConfigModalContent(tool, config, models, status) {
       '</div>' +
     '</div>' +
 
+    // Available Models Section - Unified input with inline models
+    '<div class="tool-config-section">' +
+      '<h4>Available Models <span class="text-muted">(shown in dropdowns below)</span></h4>' +
+      '<div class="tags-unified-input" id="modelsUnifiedInput">' +
+        (config.availableModels || models).map(function(model) {
+          return '<span class="tag-item tag-model">' + escapeHtml(model) + '<button type="button" class="tag-remove" data-model="' + escapeHtml(model) + '">&times;</button></span>';
+        }).join('') +
+        '<input type="text" id="modelInput" class="tag-inline-input" placeholder="Enter model name and press Enter" />' +
+      '</div>' +
+      '<p class="text-muted text-xs mt-1"><i data-lucide="info" class="w-3 h-3"></i> Click × to remove, type to add new models</p>' +
+    '</div>' +
+
     // Primary Model Section
     '<div class="tool-config-section">' +
       '<h4>Primary Model <span class="text-muted">(CLI endpoint calls)</span></h4>' +
@@ -855,6 +867,8 @@ function closeFileBrowserModal(selectedPath) {
 function initToolConfigModalEvents(tool, currentConfig, models) {
   // Local tags state (copy from config)
   var currentTags = (currentConfig.tags || []).slice();
+  // Local available models state (copy from config or use defaults)
+  var currentModels = (currentConfig.availableModels || models).slice();
 
   // Helper to render tags inline with input
   function renderTags() {
@@ -896,12 +910,74 @@ function initToolConfigModalEvents(tool, currentConfig, models) {
     });
   }
 
+  // Helper to render available models inline with input
+  function renderModels() {
+    var container = document.getElementById('modelsUnifiedInput');
+    var input = document.getElementById('modelInput');
+    if (!container) return;
+
+    // Remove existing model items but keep the input
+    container.querySelectorAll('.tag-item').forEach(function(el) { el.remove(); });
+
+    // Insert models before the input
+    currentModels.forEach(function(model) {
+      var modelEl = document.createElement('span');
+      modelEl.className = 'tag-item tag-model';
+      modelEl.innerHTML = escapeHtml(model) + '<button type="button" class="tag-remove" data-model="' + escapeHtml(model) + '">&times;</button>';
+      container.insertBefore(modelEl, input);
+    });
+
+    // Re-attach remove handlers
+    container.querySelectorAll('.tag-remove').forEach(function(btn) {
+      btn.onclick = function(e) {
+        e.stopPropagation();
+        var modelToRemove = this.getAttribute('data-model');
+        currentModels = currentModels.filter(function(m) { return m !== modelToRemove; });
+        renderModels();
+        updateModelSelects();
+      };
+    });
+  }
+
+  // Helper to update model select dropdowns with current model list
+  function updateModelSelects() {
+    var primarySelect = document.getElementById('primaryModelSelect');
+    var secondarySelect = document.getElementById('secondaryModelSelect');
+    if (!primarySelect || !secondarySelect) return;
+
+    var primaryValue = primarySelect.value;
+    var secondaryValue = secondarySelect.value;
+
+    // Rebuild options
+    var buildOptions = function(selectedValue) {
+      var html = '';
+      currentModels.forEach(function(m) {
+        html += '<option value="' + escapeHtml(m) + '"' + (m === selectedValue ? ' selected' : '') + '>' + escapeHtml(m) + '</option>';
+      });
+      html += '<option value="__custom__"' + (selectedValue === '__custom__' ? ' selected' : '') + '>Custom...</option>';
+      return html;
+    };
+
+    primarySelect.innerHTML = buildOptions(primaryValue);
+    secondarySelect.innerHTML = buildOptions(secondaryValue);
+  }
+
   // Click on unified input container focuses the input
   var unifiedInput = document.getElementById('tagsUnifiedInput');
   if (unifiedInput) {
     unifiedInput.onclick = function(e) {
       if (e.target === this) {
         document.getElementById('tagInput').focus();
+      }
+    };
+  }
+
+  // Click on models unified input container focuses the input
+  var modelsUnifiedInput = document.getElementById('modelsUnifiedInput');
+  if (modelsUnifiedInput) {
+    modelsUnifiedInput.onclick = function(e) {
+      if (e.target === this) {
+        document.getElementById('modelInput').focus();
       }
     };
   }
@@ -933,8 +1009,27 @@ function initToolConfigModalEvents(tool, currentConfig, models) {
     };
   });
 
+  // Model input handler
+  var modelInput = document.getElementById('modelInput');
+  if (modelInput) {
+    modelInput.onkeydown = function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        var newModel = this.value.trim();
+        if (newModel && currentModels.indexOf(newModel) === -1) {
+          currentModels.push(newModel);
+          renderModels();
+          updateModelSelects();
+        }
+        this.value = '';
+      }
+    };
+  }
+
   // Initialize tags display
   renderTags();
+  // Initialize models display
+  renderModels();
   // Initialize lucide icons for predefined buttons
   if (window.lucide) lucide.createIcons();
 
@@ -1020,6 +1115,11 @@ function initToolConfigModalEvents(tool, currentConfig, models) {
         return;
       }
 
+      if (currentModels.length === 0) {
+        showRefreshToast('At least one available model is required', 'error');
+        return;
+      }
+
       // Get envFile value (only for gemini/qwen)
       var envFileInput = document.getElementById('envFileInput');
       var envFile = envFileInput ? envFileInput.value.trim() : '';
@@ -1028,6 +1128,7 @@ function initToolConfigModalEvents(tool, currentConfig, models) {
         var updateData = {
           primaryModel: primaryModel,
           secondaryModel: secondaryModel,
+          availableModels: currentModels,
           tags: currentTags
         };
 
@@ -1512,6 +1613,9 @@ var chineseResponseEnabled = false;
 var chineseResponseLoading = false;
 var codexChineseResponseEnabled = false;
 var codexChineseResponseLoading = false;
+var codexChineseNeedsMigration = false; // Track if Codex needs migration from old @ reference
+var codexCliEnhancementEnabled = false;
+var codexCliEnhancementLoading = false;
 var windowsPlatformEnabled = false;
 var windowsPlatformLoading = false;
 
@@ -1523,12 +1627,14 @@ async function loadLanguageSettings() {
     var data = await response.json();
     chineseResponseEnabled = data.claudeEnabled || data.enabled || false;
     codexChineseResponseEnabled = data.codexEnabled || false;
+    codexChineseNeedsMigration = data.codexNeedsMigration || false; // Track migration status
     return data;
   } catch (err) {
     console.error('Failed to load language settings:', err);
     chineseResponseEnabled = false;
     codexChineseResponseEnabled = false;
-    return { claudeEnabled: false, codexEnabled: false, guidelinesExists: false };
+    codexChineseNeedsMigration = false;
+    return { claudeEnabled: false, codexEnabled: false, codexNeedsMigration: false, guidelinesExists: false };
   }
 }
 
@@ -1542,6 +1648,20 @@ async function loadWindowsPlatformSettings() {
   } catch (err) {
     console.error('Failed to load Windows platform settings:', err);
     windowsPlatformEnabled = false;
+    return { enabled: false, guidelinesExists: false };
+  }
+}
+
+async function loadCodexCliEnhancementSettings() {
+  try {
+    var response = await fetch('/api/language/codex-cli-enhancement');
+    if (!response.ok) throw new Error('Failed to load Codex CLI enhancement settings');
+    var data = await response.json();
+    codexCliEnhancementEnabled = data.enabled || false;
+    return data;
+  } catch (err) {
+    console.error('Failed to load Codex CLI enhancement settings:', err);
+    codexCliEnhancementEnabled = false;
     return { enabled: false, guidelinesExists: false };
   }
 }
@@ -1591,6 +1711,11 @@ async function toggleChineseResponse(enabled, target) {
     var data = await response.json();
     if (isCodex) {
       codexChineseResponseEnabled = data.enabled;
+      // Handle migration status
+      if (data.migrated) {
+        codexChineseNeedsMigration = false;
+        showRefreshToast('Codex: 已从 @ 引用迁移到直接文本拼接', 'success');
+      }
     } else {
       chineseResponseEnabled = data.enabled;
     }
@@ -1598,9 +1723,11 @@ async function toggleChineseResponse(enabled, target) {
     // Update UI
     renderLanguageSettingsSection();
 
-    // Show toast
+    // Show toast (skip if migration message already shown)
     var toolName = isCodex ? 'Codex' : 'Claude';
-    showRefreshToast(toolName + ': ' + (enabled ? t('lang.enableSuccess') : t('lang.disableSuccess')), 'success');
+    if (!data.migrated) {
+      showRefreshToast(toolName + ': ' + (enabled ? t('lang.enableSuccess') : t('lang.disableSuccess')), 'success');
+    }
   } catch (err) {
     console.error('Failed to toggle Chinese response:', err);
     // Error already shown in the !response.ok block
@@ -1662,6 +1789,95 @@ async function toggleWindowsPlatform(enabled) {
   }
 }
 
+async function toggleCodexCliEnhancement(enabled) {
+  if (codexCliEnhancementLoading) return;
+
+  // Pre-check: verify CCW workflows are installed (only when enabling)
+  if (enabled && typeof ccwInstallStatus !== 'undefined' && !ccwInstallStatus.installed) {
+    var missingFile = ccwInstallStatus.missingFiles.find(function(f) { return f === 'cli-tools-usage.md'; });
+    if (missingFile) {
+      showRefreshToast(t('lang.installRequired'), 'warning');
+      return;
+    }
+  }
+
+  codexCliEnhancementLoading = true;
+
+  try {
+    var response = await fetch('/api/language/codex-cli-enhancement', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: enabled, action: 'toggle' })
+    });
+
+    if (!response.ok) {
+      var errData = await response.json();
+      // Show specific error message from backend
+      var errorMsg = errData.error || 'Failed to update setting';
+      if (errorMsg.includes('not found')) {
+        showRefreshToast(t('lang.installRequired'), 'warning');
+      } else {
+        showRefreshToast((enabled ? t('lang.enableFailed') : t('lang.disableFailed')) + ': ' + errorMsg, 'error');
+      }
+      throw new Error(errorMsg);
+    }
+
+    var data = await response.json();
+    codexCliEnhancementEnabled = data.enabled;
+
+    // Update UI
+    renderLanguageSettingsSection();
+
+    // Show toast
+    showRefreshToast('Codex CLI Enhancement: ' + (enabled ? t('lang.enableSuccess') : t('lang.disableSuccess')), 'success');
+  } catch (err) {
+    console.error('Failed to toggle Codex CLI enhancement:', err);
+    // Error already shown in the !response.ok block
+  } finally {
+    codexCliEnhancementLoading = false;
+  }
+}
+
+async function refreshCodexCliEnhancement() {
+  if (codexCliEnhancementLoading) return;
+
+  codexCliEnhancementLoading = true;
+
+  try {
+    var response = await fetch('/api/language/codex-cli-enhancement', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'refresh' })
+    });
+
+    if (!response.ok) {
+      var errData = await response.json();
+      var errorMsg = errData.error || 'Failed to refresh setting';
+      if (errorMsg.includes('not found')) {
+        showRefreshToast(t('lang.installRequired'), 'warning');
+      } else if (errorMsg.includes('not enabled')) {
+        showRefreshToast('CLI 调用增强未启用', 'warning');
+      } else {
+        showRefreshToast('刷新失败: ' + errorMsg, 'error');
+      }
+      throw new Error(errorMsg);
+    }
+
+    var data = await response.json();
+
+    // Update UI
+    renderLanguageSettingsSection();
+
+    // Show toast
+    showRefreshToast('CLI 调用增强已刷新', 'success');
+  } catch (err) {
+    console.error('Failed to refresh Codex CLI enhancement:', err);
+    // Error already shown in the !response.ok block
+  } finally {
+    codexCliEnhancementLoading = false;
+  }
+}
+
 async function renderLanguageSettingsSection() {
   var container = document.getElementById('language-settings-section');
   if (!container) return;
@@ -1672,6 +1888,9 @@ async function renderLanguageSettingsSection() {
   }
   if (!windowsPlatformEnabled && !windowsPlatformLoading) {
     await loadWindowsPlatformSettings();
+  }
+  if (!codexCliEnhancementEnabled && !codexCliEnhancementLoading) {
+    await loadCodexCliEnhancementSettings();
   }
 
   var settingsHtml = '<div class="section-header">' +
@@ -1712,7 +1931,9 @@ async function renderLanguageSettingsSection() {
             (codexChineseResponseEnabled ? t('lang.enabled') : t('lang.disabled')) +
           '</span>' +
         '</div>' +
-        '<p class="cli-setting-desc">' + t('lang.chineseDescCodex') + '</p>' +
+        '<p class="cli-setting-desc">' + t('lang.chineseDescCodex') +
+          (codexChineseNeedsMigration ? '<br><span style="color: #f59e0b; font-size: 0.85em;">⚠️ 检测到旧格式（@引用），请关闭后重新启用以迁移到新格式</span>' : '') +
+        '</p>' +
       '</div>' +
       // Windows Platform
       '<div class="cli-setting-item">' +
@@ -1730,6 +1951,30 @@ async function renderLanguageSettingsSection() {
           '</span>' +
         '</div>' +
         '<p class="cli-setting-desc">' + t('lang.windowsDesc') + '</p>' +
+      '</div>' +
+      // CLI Enhancement - Codex
+      '<div class="cli-setting-item">' +
+        '<label class="cli-setting-label">' +
+          '<i data-lucide="terminal" class="w-3 h-3"></i>' +
+          'CLI 调用增强 <span class="badge badge-sm badge-secondary">Codex</span>' +
+        '</label>' +
+        '<div class="cli-setting-control">' +
+          '<label class="cli-toggle">' +
+            '<input type="checkbox"' + (codexCliEnhancementEnabled ? ' checked' : '') + ' onchange="toggleCodexCliEnhancement(this.checked)"' + (codexCliEnhancementLoading ? ' disabled' : '') + '>' +
+            '<span class="cli-toggle-slider"></span>' +
+          '</label>' +
+          '<span class="cli-setting-status ' + (codexCliEnhancementEnabled ? 'enabled' : 'disabled') + '">' +
+            (codexCliEnhancementEnabled ? t('lang.enabled') : t('lang.disabled')) +
+          '</span>' +
+          (codexCliEnhancementEnabled ?
+            '<button class="btn-icon-sm" onclick="refreshCodexCliEnhancement()" title="刷新 CLI 配置"' + (codexCliEnhancementLoading ? ' disabled' : '') + '>' +
+              '<i data-lucide="refresh-cw" class="w-3 h-3"></i>' +
+            '</button>'
+            : '') +
+        '</div>' +
+        '<p class="cli-setting-desc">为 Codex 启用多 CLI 工具调用功能，自动拼接 cli-tools-usage.md 和 cli-tools.json 配置' +
+          (codexCliEnhancementEnabled ? '<br><span style="color: var(--text-muted); font-size: 0.85em;">💡 配置文件变更后，点击刷新按钮更新内容</span>' : '') +
+        '</p>' +
       '</div>' +
     '</div>';
 

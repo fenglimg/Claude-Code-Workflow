@@ -1,5 +1,6 @@
 # Codex Code Guidelines
 
+
 ## Code Quality Standards
 
 ### Code Quality
@@ -21,10 +22,7 @@
 - Graceful degradation
 - Don't expose sensitive info
 
-
-
 ## Core Principles
-
 
 **Incremental Progress**:
 - Small, testable changes

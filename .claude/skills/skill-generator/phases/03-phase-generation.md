@@ -8,10 +8,7 @@
 - Autonomous 模式：生成编排器和动作文件
 - 支持 **文件上下文** 和 **内存上下文** 两种策略
 
-## Input
 
-- 依赖: `skill-config.json`, SKILL.md (Phase 1-2 产出)
-- 模板: `templates/sequential-phase.md`, `templates/autonomous-*.md`
 
 ## 上下文策略 (P0 增强)
 
@@ -55,66 +52,93 @@ const skillRoot = '.claude/skills/skill-generator';
 ```javascript
 if (config.execution_mode === 'sequential') {
   const phases = config.sequential_config.phases;
-  
+
   // ========== P0 增强: 生成声明式编排器 ==========
   const workflowOrchestrator = generateSequentialOrchestrator(config, phases);
   Write(`${skillDir}/phases/_orchestrator.md`, workflowOrchestrator);
-  
+
   // ========== P0 增强: 生成工作流定义 ==========
   const workflowDef = generateWorkflowDefinition(config, phases);
   Write(`${skillDir}/workflow.json`, JSON.stringify(workflowDef, null, 2));
-  
-  // 生成各阶段文件
+
+  // ========== P0 增强: 生成 Phase 0 (强制规范研读) ==========
+  const phase0Content = generatePhase0Spec(config);
+  Write(`${skillDir}/phases/00-spec-study.md`, phase0Content);
+
+  // ========== 生成用户定义的各阶段文件 ==========
   for (let i = 0; i < phases.length; i++) {
     const phase = phases[i];
     const prevPhase = i > 0 ? phases[i-1] : null;
     const nextPhase = i < phases.length - 1 ? phases[i+1] : null;
-    
+
     const content = generateSequentialPhase({
       phaseNumber: i + 1,
       phaseId: phase.id,
       phaseName: phase.name,
       phaseDescription: phase.description || `Execute ${phase.name}`,
-      input: prevPhase ? prevPhase.output : "user input",
+      input: prevPhase ? prevPhase.output : "phase 0 output", // Phase 0 为首个输入源
       output: phase.output,
       nextPhase: nextPhase ? nextPhase.id : null,
       config: config,
       contextStrategy: contextStrategy
     });
-    
+
     Write(`${skillDir}/phases/${phase.id}.md`, content);
   }
 }
 
 // ========== P0 增强: 声明式工作流定义 ==========
 function generateWorkflowDefinition(config, phases) {
+  // ========== P0: 添加强制 Phase 0 ==========
+  const phase0 = {
+    id: '00-spec-study',
+    name: 'Specification Study',
+    order: 0,
+    input: null,
+    output: 'spec-study-complete.flag',
+    description: '⚠️ MANDATORY: Read all specification documents before execution',
+    parallel: false,
+    condition: null,
+    agent: {
+      type: 'universal-executor',
+      run_in_background: false
+    }
+  };
+
   return {
     skill_name: config.skill_name,
     version: "1.0.0",
     execution_mode: "sequential",
     context_strategy: config.context_strategy || "file",
-    
-    // 声明式阶段列表 (类似 software-manual 的 agents_to_run)
-    phases_to_run: phases.map(p => p.id),
-    
-    // 阶段配置
-    phases: phases.map((p, i) => ({
-      id: p.id,
-      name: p.name,
-      order: i + 1,
-      input: i > 0 ? phases[i-1].output : null,
-      output: p.output,
-      // 可选的并行配置
-      parallel: p.parallel || false,
-      // 可选的条件执行
-      condition: p.condition || null,
-      // Agent 配置
-      agent: p.agent || {
-        type: "universal-executor",
-        run_in_background: false
-      }
-    })),
-    
+
+    // ========== P0: Phase 0 置于首位 ==========
+    phases_to_run: ['00-spec-study', ...phases.map(p => p.id)],
+
+    // ========== P0: Phase 0 + 用户定义阶段 ==========
+    phases: [
+      phase0,
+      ...phases.map((p, i) => ({
+        id: p.id,
+        name: p.name,
+        order: i + 1,
+        input: i === 0 ? phase0.output : phases[i-1].output, // 第一个阶段依赖 Phase 0
+        output: p.output,
+        parallel: p.parallel || false,
+        condition: p.condition || null,
+        // Agent 配置 (支持 LLM 集成)
+        agent: p.agent || (config.llm_integration?.enabled ? {
+          type: "llm",
+          tool: config.llm_integration.default_tool,
+          mode: config.llm_integration.mode || "analysis",
+          fallback_chain: config.llm_integration.fallback_chain || [],
+          run_in_background: false
+        } : {
+          type: "universal-executor",
+          run_in_background: false
+        })
+      }))
+    ],
+
     // 终止条件
     termination: {
       on_success: "all_phases_completed",
@@ -236,10 +260,30 @@ async function executePhase(phaseId, phaseConfig, workDir) {
 
 ## 阶段执行计划
 
+**执行流程**:
+
+\`\`\`
+START
+    ↓
+Phase 0: Specification Study
+    ↓ Output: spec-study-complete.flag
+    ↓
+Phase 1: ${phases[0]?.name || 'First Phase'}
+    ↓ Output: ${phases[0]?.output || 'phase-1.json'}
+${phases.slice(1).map((p, i) => `    ↓
+Phase ${i+2}: ${p.name}
+    ↓ Output: ${p.output}`).join('\n')}
+    ↓
+COMPLETE
+\`\`\`
+
+**阶段列表**:
+
 | Order | Phase | Input | Output | Agent |
 |-------|-------|-------|--------|-------|
-${phases.map((p, i) => 
-  `| ${i+1} | ${p.id} | ${i > 0 ? phases[i-1].output : '-'} | ${p.output} | ${p.agent?.type || 'universal-executor'} |`
+| 0 | 00-spec-study | - | spec-study-complete.flag | universal-executor |
+${phases.map((p, i) =>
+  `| ${i+1} | ${p.id} | ${i === 0 ? 'spec-study-complete.flag' : phases[i-1].output} | ${p.output} | ${p.agent?.type || 'universal-executor'} |`
 ).join('\n')}
 
 ## 错误恢复
@@ -754,6 +798,146 @@ ${actions.sort((a, b) => (b.priority || 0) - (a.priority || 0)).map(a =>
 ### Step 4: 辅助函数
 
 ```javascript
+// ========== P0: Phase 0 生成函数 ==========
+function generatePhase0Spec(config) {
+  const skillRoot = '.claude/skills/skill-generator';
+  const specsToRead = [
+    '../_shared/SKILL-DESIGN-SPEC.md',
+    `${skillRoot}/templates/*.md`
+  ];
+
+  return `# Phase 0: Specification Study
+
+⚠️ **MANDATORY PREREQUISITE** - 此阶段不可跳过
+
+## Objective
+
+在生成任何文件前，完整阅读所有规范文档，理解 Skill 设计标准。
+
+## Why This Matters
+
+**不研读规范 (❌)**:
+\`\`\`
+跳过规范
+    ├─ ✗ 不符合标准
+    ├─ ✗ 结构混乱
+    └─ ✗ 质量问题
+\`\`\`
+
+**研读规范 (✅)**:
+\`\`\`
+完整研读
+    ├─ ✓ 标准化输出
+    ├─ ✓ 高质量代码
+    └─ ✓ 易于维护
+\`\`\`
+
+## Required Reading
+
+### P0 - 核心设计规范
+
+\`\`\`javascript
+// 通用设计标准 (MUST READ)
+const designSpec = Read('.claude/skills/_shared/SKILL-DESIGN-SPEC.md');
+
+// 关键内容检查点:
+const checkpoints = {
+  structure: '目录结构约定',
+  naming: '命名规范',
+  quality: '质量标准',
+  output: '输出格式要求'
+};
+\`\`\`
+
+### P1 - 模板文件 (生成前必读)
+
+\`\`\`javascript
+// 根据执行模式加载对应模板
+const templates = {
+  all: [
+    'templates/skill-md.md'  // SKILL.md 入口文件模板
+  ],
+  sequential: [
+    'templates/sequential-phase.md'
+  ],
+  autonomous: [
+    'templates/autonomous-orchestrator.md',
+    'templates/autonomous-action.md'
+  ]
+};
+
+const mode = '${config.execution_mode}';
+const requiredTemplates = [...templates.all, ...templates[mode]];
+
+requiredTemplates.forEach(template => {
+  const content = Read(\`.claude/skills/skill-generator/\${template}\`);
+  // 理解模板结构、变量位置、生成规则
+});
+\`\`\`
+
+## Execution
+
+\`\`\`javascript
+// ========== 加载规范 ==========
+const specs = [];
+
+// 1. 设计规范 (P0)
+specs.push({
+  file: '../_shared/SKILL-DESIGN-SPEC.md',
+  content: Read('.claude/skills/_shared/SKILL-DESIGN-SPEC.md'),
+  priority: 'P0'
+});
+
+// 2. 模板文件 (P1)
+const templateFiles = Glob('.claude/skills/skill-generator/templates/*.md');
+templateFiles.forEach(file => {
+  specs.push({
+    file: file,
+    content: Read(file),
+    priority: 'P1'
+  });
+});
+
+// ========== 内化规范 ==========
+console.log('📖 Reading specifications...');
+specs.forEach(spec => {
+  console.log(\`  [\${spec.priority}] \${spec.file}\`);
+  // 理解内容（无需生成文件，仅内存处理）
+});
+
+// ========== 生成完成标记 ==========
+const result = {
+  status: 'completed',
+  specs_loaded: specs.length,
+  timestamp: new Date().toISOString()
+};
+
+Write(\`\${workDir}/spec-study-complete.flag\`, JSON.stringify(result, null, 2));
+\`\`\`
+
+## Output
+
+- **标记文件**: \`spec-study-complete.flag\` (证明已完成阅读)
+- **副作用**: 内化规范知识，后续阶段遵循标准
+
+## Success Criteria
+
+✅ **通过标准**:
+- [ ] 已阅读 SKILL-DESIGN-SPEC.md
+- [ ] 已阅读执行模式对应的模板文件
+- [ ] 理解目录结构约定
+- [ ] 理解命名规范
+- [ ] 理解质量标准
+
+## Next Phase
+
+→ [Phase 1: Requirements Discovery](01-requirements-discovery.md)
+
+**关键**: 只有完成规范研读后，Phase 1 才能正确收集需求并生成符合标准的配置。
+`;
+}
+
+// ========== 其他辅助函数 ==========
 function toPascalCase(str) {
   return str.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
 }
@@ -782,21 +966,4 @@ function getPreconditionCheck(action) {
 }
 ```
 
-## Output
 
-### Sequential 模式
-
-- `phases/_orchestrator.md` (声明式编排器)
-- `workflow.json` (工作流定义)
-- `phases/01-{step}.md`, `02-{step}.md`, ...
-
-### Autonomous 模式
-
-- `phases/orchestrator.md` (增强版编排器)
-- `phases/state-schema.md`
-- `specs/action-catalog.md` (声明式动作目录)
-- `phases/actions/action-{name}.md` (多个)
-
-## Next Phase
-
-→ [Phase 4: Specs & Templates](04-specs-templates.md)

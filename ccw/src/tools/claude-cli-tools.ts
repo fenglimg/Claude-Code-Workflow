@@ -33,6 +33,11 @@ export interface ClaudeCliTool {
   enabled: boolean;
   primaryModel?: string;
   secondaryModel?: string;
+  /**
+   * Available models for this tool (shown in UI dropdown)
+   * If not provided, defaults will be used based on tool type
+   */
+  availableModels?: string[];
   tags: string[];
   /**
    * Tool type determines routing:
@@ -99,8 +104,6 @@ export interface ClaudeCliSettingsConfig {
   recursiveQuery: boolean;
   cache: ClaudeCacheSettings;
   codeIndexMcp: 'codexlens' | 'ace' | 'none';
-  defaultModel?: string;
-  autoSyncEnabled?: boolean;
 }
 
 // Legacy combined config (for backward compatibility)
@@ -122,12 +125,13 @@ export interface ClaudeCliCombinedConfig extends ClaudeCliToolsConfig {
 // ========== Default Config ==========
 
 const DEFAULT_TOOLS_CONFIG: ClaudeCliToolsConfig = {
-  version: '3.3.0',
+  version: '3.4.0',
   tools: {
     gemini: {
       enabled: true,
       primaryModel: 'gemini-2.5-pro',
       secondaryModel: 'gemini-2.5-flash',
+      availableModels: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-thinking', 'gemini-1.5-pro'],
       tags: [],
       type: 'builtin'
     },
@@ -135,6 +139,7 @@ const DEFAULT_TOOLS_CONFIG: ClaudeCliToolsConfig = {
       enabled: true,
       primaryModel: 'coder-model',
       secondaryModel: 'coder-model',
+      availableModels: ['coder-model', 'vision-model', 'qwen-2.5-coder', 'qwen-2.5-72b'],
       tags: [],
       type: 'builtin'
     },
@@ -142,6 +147,7 @@ const DEFAULT_TOOLS_CONFIG: ClaudeCliToolsConfig = {
       enabled: true,
       primaryModel: 'gpt-5.2',
       secondaryModel: 'gpt-5.2',
+      availableModels: ['gpt-5.2', 'gpt-5', 'gpt5-codex', 'o3', 'o1'],
       tags: [],
       type: 'builtin'
     },
@@ -149,6 +155,7 @@ const DEFAULT_TOOLS_CONFIG: ClaudeCliToolsConfig = {
       enabled: true,
       primaryModel: 'sonnet',
       secondaryModel: 'haiku',
+      availableModels: ['opus', 'sonnet', 'haiku'],
       tags: [],
       type: 'builtin'
     },
@@ -156,6 +163,7 @@ const DEFAULT_TOOLS_CONFIG: ClaudeCliToolsConfig = {
       enabled: true,
       primaryModel: 'opencode/glm-4.7-free',
       secondaryModel: 'opencode/glm-4.7-free',
+      availableModels: ['opencode/glm-4.7-free', 'opencode/deepseek-v3-free'],
       tags: [],
       type: 'builtin'
     }
@@ -726,66 +734,6 @@ export function getPromptFormat(projectDir: string): 'plain' | 'yaml' | 'json' {
 }
 
 /**
- * Update default model setting
- * @param projectDir - Project directory path
- * @param model - Default model name
- * @returns Updated settings config
- */
-export function setDefaultModel(
-  projectDir: string,
-  model: string
-): ClaudeCliSettingsConfig {
-  const settings = loadClaudeCliSettings(projectDir);
-  settings.defaultModel = model;
-  saveClaudeCliSettings(projectDir, settings);
-  return settings;
-}
-
-/**
- * Get default model setting
- * @param projectDir - Project directory path
- * @returns Current default model or undefined if not set
- */
-export function getDefaultModel(projectDir: string): string | undefined {
-  try {
-    const settings = loadClaudeCliSettings(projectDir);
-    return settings.defaultModel;
-  } catch {
-    return undefined;
-  }
-}
-
-/**
- * Update auto-sync enabled setting
- * @param projectDir - Project directory path
- * @param enabled - Whether auto-sync is enabled
- * @returns Updated settings config
- */
-export function setAutoSyncEnabled(
-  projectDir: string,
-  enabled: boolean
-): ClaudeCliSettingsConfig {
-  const settings = loadClaudeCliSettings(projectDir);
-  settings.autoSyncEnabled = enabled;
-  saveClaudeCliSettings(projectDir, settings);
-  return settings;
-}
-
-/**
- * Get auto-sync enabled setting
- * @param projectDir - Project directory path
- * @returns Current auto-sync status or undefined if not set
- */
-export function getAutoSyncEnabled(projectDir: string): boolean | undefined {
-  try {
-    const settings = loadClaudeCliSettings(projectDir);
-    return settings.autoSyncEnabled;
-  } catch {
-    return undefined;
-  }
-}
-
-/**
  * Update smart context enabled setting
  * @param projectDir - Project directory path
  * @param enabled - Whether smart context is enabled
@@ -854,13 +802,15 @@ export function getNativeResume(projectDir: string): boolean {
  */
 export function addClaudeApiEndpoint(
   projectDir: string,
-  endpoint: { id: string; name: string; enabled: boolean }
+  endpoint: { id: string; name: string; enabled: boolean; model?: string }
 ): ClaudeCliToolsConfig {
   const config = loadClaudeCliTools(projectDir);
 
   // Add as a tool with type: 'api-endpoint'
   config.tools[endpoint.name] = {
     enabled: endpoint.enabled,
+    primaryModel: endpoint.model,  // Use endpoint.model as primaryModel (can be overridden via --model)
+    secondaryModel: endpoint.model,  // Same as primary for fallback
     tags: [],
     type: 'api-endpoint',
     id: endpoint.id  // Store endpoint ID for settings lookup
@@ -1098,6 +1048,7 @@ export function updateToolConfig(
     enabled: boolean;
     primaryModel: string;
     secondaryModel: string;
+    availableModels: string[];
     tags: string[];
     envFile: string | null;
   }>
@@ -1113,6 +1064,9 @@ export function updateToolConfig(
     }
     if (updates.secondaryModel !== undefined) {
       config.tools[tool].secondaryModel = updates.secondaryModel;
+    }
+    if (updates.availableModels !== undefined) {
+      config.tools[tool].availableModels = updates.availableModels;
     }
     if (updates.tags !== undefined) {
       config.tools[tool].tags = updates.tags;

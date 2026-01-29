@@ -150,378 +150,213 @@ Create internal representations (do not include raw artifacts in output):
 - Task-to-task dependencies (depends_on, blocks)
 - Requirement-level dependencies (from synthesis)
 
-### 4. Detection Passes (Token-Efficient Analysis)
+### 4. Detection Passes (Agent-Driven Multi-Dimensional Analysis)
 
-**Token Budget Strategy**:
-- **Total Limit**: 50 findings maximum (aggregate remainder in overflow summary)
-- **Priority Allocation**: CRITICAL (unlimited) → HIGH (15) → MEDIUM (20) → LOW (15)
-- **Early Exit**: If CRITICAL findings > 0 in User Intent/Requirements Coverage, skip LOW/MEDIUM priority checks
+**Execution Strategy**:
+- Single `cli-explore-agent` invocation
+- Agent executes multiple CLI analyses internally (different dimensions: A-H)
+- Token Budget: 50 findings maximum (aggregate remainder in overflow summary)
+- Priority Allocation: CRITICAL (unlimited) → HIGH (15) → MEDIUM (20) → LOW (15)
+- Early Exit: If CRITICAL findings > 0 in User Intent/Requirements Coverage, skip LOW/MEDIUM checks
 
-**Execution Order** (Process in sequence; skip if token budget exhausted):
+**Execution Order** (Agent orchestrates internally):
 
-1. **Tier 1 (CRITICAL Path)**: A, B, C - User intent, coverage, consistency (process fully)
-2. **Tier 2 (HIGH Priority)**: D, E - Dependencies, synthesis alignment (limit 15 findings total)
+1. **Tier 1 (CRITICAL Path)**: A, B, C - User intent, coverage, consistency (full analysis)
+2. **Tier 2 (HIGH Priority)**: D, E - Dependencies, synthesis alignment (limit 15 findings)
 3. **Tier 3 (MEDIUM Priority)**: F - Specification quality (limit 20 findings)
-4. **Tier 4 (LOW Priority)**: G, H - Duplication, feasibility (limit 15 findings total)
+4. **Tier 4 (LOW Priority)**: G, H - Duplication, feasibility (limit 15 findings)
 
 ---
 
-#### A. User Intent Alignment (CRITICAL - Tier 1)
+#### Phase 4.1: Launch Unified Verification Agent
 
-- **Goal Alignment**: IMPL_PLAN objectives match user's original intent
-- **Scope Drift**: Plan covers user's stated scope without unauthorized expansion
-- **Success Criteria Match**: Plan's success criteria reflect user's expectations
-- **Intent Conflicts**: Tasks contradicting user's original objectives
+```javascript
+Task(
+  subagent_type="cli-explore-agent",
+  run_in_background=false,
+  description="Multi-dimensional plan verification",
+  prompt=`
+## Plan Verification Task
 
-#### B. Requirements Coverage Analysis
+### MANDATORY FIRST STEPS
+1. Read: ~/.claude/workflows/cli-templates/schemas/plan-verify-agent-schema.json (dimensions & rules)
+2. Read: ~/.claude/workflows/cli-templates/schemas/verify-json-schema.json (output schema)
+3. Read: ${session_file} (user intent)
+4. Read: ${IMPL_PLAN} (implementation plan)
+5. Glob: ${task_dir}/*.json (task files)
+6. Glob: ${SYNTHESIS_DIR}/*/analysis.md (role analyses)
 
-- **Orphaned Requirements**: Requirements in synthesis with zero associated tasks
-- **Unmapped Tasks**: Tasks with no clear requirement linkage
-- **NFR Coverage Gaps**: Non-functional requirements (performance, security, scalability) not reflected in tasks
+### Execution Flow
 
-#### C. Consistency Validation
+**Load schema → Execute tiered CLI analysis → Aggregate findings → Write JSON**
 
-- **Requirement Conflicts**: Tasks contradicting synthesis requirements
-- **Architecture Drift**: IMPL_PLAN architecture not matching synthesis ADRs
-- **Terminology Drift**: Same concept named differently across IMPL_PLAN and tasks
-- **Data Model Inconsistency**: Tasks referencing entities/fields not in synthesis data model
+FOR each tier in [1, 2, 3, 4]:
+  - Load tier config from plan-verify-agent-schema.json
+  - Execute: ccw cli -p "PURPOSE: Verify dimensions {tier.dimensions}
+    TASK: {tier.checks from schema}
+    CONTEXT: @${session_dir}/**/*
+    EXPECTED: Findings JSON with dimension, severity, location, summary, recommendation
+    CONSTRAINTS: Limit {tier.limit} findings
+    " --tool gemini --mode analysis --rule {tier.rule}
+  - Parse findings, check early exit condition
+  - IF tier == 1 AND critical_count > 0: skip tier 3-4
 
-#### D. Dependency Integrity
+### Output
+Write: ${process_dir}/verification-findings.json (follow verify-json-schema.json)
+Return: Quality gate decision + 2-3 sentence summary
+`
+)
+```
 
-- **Circular Dependencies**: Task A depends on B, B depends on C, C depends on A
-- **Missing Dependencies**: Task requires outputs from another task but no explicit dependency
-- **Broken Dependencies**: Task depends on non-existent task ID
-- **Logical Ordering Issues**: Implementation tasks before foundational setup without dependency note
+---
 
-#### E. Synthesis Alignment
+#### Phase 4.2: Load and Organize Findings
 
-- **Priority Conflicts**: High-priority synthesis requirements mapped to low-priority tasks
-- **Success Criteria Mismatch**: IMPL_PLAN success criteria not covering synthesis acceptance criteria
-- **Risk Mitigation Gaps**: Critical risks in synthesis without corresponding mitigation tasks
+```javascript
+// Load findings (single parse for all subsequent use)
+const data = JSON.parse(Read(`${process_dir}/verification-findings.json`))
+const { session_id, timestamp, verification_tiers_completed, findings, summary } = data
+const { critical_count, high_count, medium_count, low_count, total_findings, coverage_percentage, recommendation } = summary
 
-#### F. Task Specification Quality
+// Group by severity and dimension
+const bySeverity = Object.groupBy(findings, f => f.severity)
+const byDimension = Object.groupBy(findings, f => f.dimension)
 
-- **Ambiguous Focus Paths**: Tasks with vague or missing focus_paths
-- **Underspecified Acceptance**: Tasks without clear acceptance criteria
-- **Missing Artifacts References**: Tasks not referencing relevant brainstorming artifacts in context.artifacts
-- **Weak Flow Control**: Tasks without clear implementation_approach or pre_analysis steps
-- **Missing Target Files**: Tasks without flow_control.target_files specification
+// Dimension metadata (from schema)
+const DIMS = {
+  A: "User Intent Alignment", B: "Requirements Coverage", C: "Consistency Validation",
+  D: "Dependency Integrity", E: "Synthesis Alignment", F: "Task Specification Quality",
+  G: "Duplication Detection", H: "Feasibility Assessment"
+}
+```
 
-#### G. Duplication Detection
+### 5. Generate Report
 
-- **Overlapping Task Scope**: Multiple tasks with nearly identical descriptions
-- **Redundant Requirements Coverage**: Same requirement covered by multiple tasks without clear partitioning
+```javascript
+// Helper: render dimension section
+const renderDimension = (dim) => {
+  const items = byDimension[dim] || []
+  return items.length > 0
+    ? items.map(f => `### ${f.id}: ${f.summary}\n- **Severity**: ${f.severity}\n- **Location**: ${f.location.join(', ')}\n- **Recommendation**: ${f.recommendation}`).join('\n\n')
+    : `> ✅ No ${DIMS[dim]} issues detected.`
+}
 
-#### H. Feasibility Assessment
+// Helper: render severity section
+const renderSeverity = (severity, impact) => {
+  const items = bySeverity[severity] || []
+  return items.length > 0
+    ? items.map(f => `#### ${f.id}: ${f.summary}\n- **Dimension**: ${f.dimension_name}\n- **Location**: ${f.location.join(', ')}\n- **Impact**: ${impact}\n- **Recommendation**: ${f.recommendation}`).join('\n\n')
+    : `> ✅ No ${severity.toLowerCase()}-severity issues detected.`
+}
 
-- **Complexity Misalignment**: Task marked "simple" but requires multiple file modifications
-- **Resource Conflicts**: Parallel tasks requiring same resources/files
-- **Skill Gap Risks**: Tasks requiring skills not in team capability assessment (from synthesis)
-
-### 5. Severity Assignment
-
-Use this heuristic to prioritize findings:
-
-- **CRITICAL**:
-  - Violates user's original intent (goal misalignment, scope drift)
-  - Violates synthesis authority (requirement conflict)
-  - Core requirement with zero coverage
-  - Circular dependencies
-  - Broken dependencies
-
-- **HIGH**:
-  - NFR coverage gaps
-  - Priority conflicts
-  - Missing risk mitigation tasks
-  - Ambiguous acceptance criteria
-
-- **MEDIUM**:
-  - Terminology drift
-  - Missing artifacts references
-  - Weak flow control
-  - Logical ordering issues
-
-- **LOW**:
-  - Style/wording improvements
-  - Minor redundancy not affecting execution
-
-### 6. Produce Compact Analysis Report
-
-**Report Generation**: Generate report content and save to file.
-
-Output a Markdown report with the following structure:
-
-```markdown
+// Build Markdown report
+const fullReport = `
 # Plan Verification Report
 
-**Session**: WFS-{session-id}
-**Generated**: {timestamp}
-**Artifacts Analyzed**: role analysis documents, IMPL_PLAN.md, {N} task files
-**User Intent Analysis**: {user_intent_analysis or "SKIPPED: workflow-session.json not found"}
+**Session**: WFS-${session_id} | **Generated**: ${timestamp}
+**Tiers Completed**: ${verification_tiers_completed.join(', ')}
 
 ---
 
 ## Executive Summary
 
-### Quality Gate Decision
-
 | Metric | Value | Status |
 |--------|-------|--------|
-| Overall Risk Level | CRITICAL \| HIGH \| MEDIUM \| LOW | {status_emoji} |
-| Critical Issues | {count} | 🔴 |
-| High Issues | {count} | 🟠 |
-| Medium Issues | {count} | 🟡 |
-| Low Issues | {count} | 🟢 |
+| Risk Level | ${critical_count > 0 ? 'CRITICAL' : high_count > 0 ? 'HIGH' : medium_count > 0 ? 'MEDIUM' : 'LOW'} | ${critical_count > 0 ? '🔴' : high_count > 0 ? '🟠' : medium_count > 0 ? '🟡' : '🟢'} |
+| Critical/High/Medium/Low | ${critical_count}/${high_count}/${medium_count}/${low_count} | |
+| Coverage | ${coverage_percentage}% | ${coverage_percentage >= 90 ? '🟢' : coverage_percentage >= 75 ? '🟡' : '🔴'} |
 
-### Recommendation
-
-**{RECOMMENDATION}**
-
-**Decision Rationale**:
-{brief explanation based on severity criteria}
-
-**Quality Gate Criteria**:
-- **BLOCK_EXECUTION**: Critical issues > 0 (must fix before proceeding)
-- **PROCEED_WITH_FIXES**: Critical = 0, High > 0 (fix recommended before execution)
-- **PROCEED_WITH_CAUTION**: Critical = 0, High = 0, Medium > 0 (proceed with awareness)
-- **PROCEED**: Only Low issues or None (safe to execute)
+**Recommendation**: **${recommendation}**
 
 ---
 
 ## Findings Summary
 
-| ID | Category | Severity | Location(s) | Summary | Recommendation |
-|----|----------|----------|-------------|---------|----------------|
-| C1 | Coverage | CRITICAL | synthesis:FR-03 | Requirement "User auth" has zero task coverage | Add authentication implementation task |
-| H1 | Consistency | HIGH | IMPL-1.2 vs synthesis:ADR-02 | Task uses REST while synthesis specifies GraphQL | Align task with ADR-02 decision |
-| M1 | Specification | MEDIUM | IMPL-2.1 | Missing context.artifacts reference | Add @synthesis reference |
-| L1 | Duplication | LOW | IMPL-3.1, IMPL-3.2 | Similar scope | Consider merging |
-
-(Generate stable IDs prefixed by severity initial: C/H/M/L + number)
+| ID | Dimension | Severity | Location | Summary |
+|----|-----------|----------|----------|---------|
+${findings.map(f => `| ${f.id} | ${f.dimension_name} | ${f.severity} | ${f.location.join(', ')} | ${f.summary} |`).join('\n')}
 
 ---
 
-## User Intent Alignment Analysis
+## Analysis by Dimension
 
-{IF user_intent_analysis != "SKIPPED"}
-
-### Goal Alignment
-- **User Intent**: {user_original_intent}
-- **IMPL_PLAN Objectives**: {plan_objectives}
-- **Alignment Status**: {ALIGNED/MISALIGNED/PARTIAL}
-- **Findings**: {specific alignment issues}
-
-### Scope Verification
-- **User Scope**: {user_defined_scope}
-- **Plan Scope**: {plan_actual_scope}
-- **Drift Detection**: {NONE/MINOR/MAJOR}
-- **Findings**: {specific scope issues}
-
-{ELSE}
-> ⚠️ User intent alignment analysis was skipped because workflow-session.json was not found.
-
-{END IF}
+${['A','B','C','D','E','F','G','H'].map(d => `### ${d}. ${DIMS[d]}\n\n${renderDimension(d)}`).join('\n\n---\n\n')}
 
 ---
 
-## Requirements Coverage Analysis
+## Findings by Severity
 
-### Functional Requirements
+### CRITICAL (${critical_count})
+${renderSeverity('CRITICAL', 'Blocks execution')}
 
-| Requirement ID | Requirement Summary | Has Task? | Task IDs | Priority Match | Notes |
-|----------------|---------------------|-----------|----------|----------------|-------|
-| FR-01 | User authentication | Yes | IMPL-1.1, IMPL-1.2 | Match | Complete |
-| FR-02 | Data export | Yes | IMPL-2.3 | Mismatch | High req → Med priority task |
-| FR-03 | Profile management | No | - | - | **CRITICAL: Zero coverage** |
+### HIGH (${high_count})
+${renderSeverity('HIGH', 'Fix before execution recommended')}
 
-### Non-Functional Requirements
+### MEDIUM (${medium_count})
+${renderSeverity('MEDIUM', 'Address during/after implementation')}
 
-| Requirement ID | Requirement Summary | Has Task? | Task IDs | Notes |
-|----------------|---------------------|-----------|----------|-------|
-| NFR-01 | Response time <200ms | No | - | **HIGH: No performance tasks** |
-| NFR-02 | Security compliance | Yes | IMPL-4.1 | Complete |
-
-### Business Requirements
-
-| Requirement ID | Requirement Summary | Has Task? | Task IDs | Notes |
-|----------------|---------------------|-----------|----------|-------|
-| BR-01 | Launch by Q2 | Yes | IMPL-1.* through IMPL-5.* | Timeline realistic |
-
-### Coverage Metrics
-
-| Requirement Type | Total | Covered | Coverage % |
-|------------------|-------|---------|------------|
-| Functional | {count} | {count} | {percent}% |
-| Non-Functional | {count} | {count} | {percent}% |
-| Business | {count} | {count} | {percent}% |
-| **Overall** | **{total}** | **{covered}** | **{percent}%** |
+### LOW (${low_count})
+${renderSeverity('LOW', 'Optional improvement')}
 
 ---
 
-## Dependency Integrity
+## Next Steps
 
-### Dependency Graph Analysis
+${recommendation === 'BLOCK_EXECUTION' ? '🛑 **BLOCK**: Fix critical issues → Re-verify' :
+  recommendation === 'PROCEED_WITH_FIXES' ? '⚠️ **FIX RECOMMENDED**: Address high issues → Re-verify or Execute' :
+  '✅ **READY**: Proceed to /workflow:execute'}
 
-**Circular Dependencies**: {None or List}
+Re-verify: \`/workflow:plan-verify --session ${session_id}\`
+Execute: \`/workflow:execute --resume-session="${session_id}"\`
+`
 
-**Broken Dependencies**:
-- IMPL-2.3 depends on "IMPL-2.4" (non-existent)
-
-**Missing Dependencies**:
-- IMPL-5.1 (integration test) has no dependency on IMPL-1.* (implementation tasks)
-
-**Logical Ordering Issues**:
-{List or "None detected"}
-
----
-
-## Synthesis Alignment Issues
-
-| Issue Type | Synthesis Reference | IMPL_PLAN/Task | Impact | Recommendation |
-|------------|---------------------|----------------|--------|----------------|
-| Architecture Conflict | synthesis:ADR-01 (JWT auth) | IMPL_PLAN uses session cookies | HIGH | Update IMPL_PLAN to use JWT |
-| Priority Mismatch | synthesis:FR-02 (High) | IMPL-2.3 (Medium) | MEDIUM | Elevate task priority |
-| Missing Risk Mitigation | synthesis:Risk-03 (API rate limits) | No mitigation tasks | HIGH | Add rate limiting implementation task |
-
----
-
-## Task Specification Quality
-
-### Aggregate Statistics
-
-| Quality Dimension | Tasks Affected | Percentage |
-|-------------------|----------------|------------|
-| Missing Artifacts References | {count} | {percent}% |
-| Weak Flow Control | {count} | {percent}% |
-| Missing Target Files | {count} | {percent}% |
-| Ambiguous Focus Paths | {count} | {percent}% |
-
-### Sample Issues
-
-- **IMPL-1.2**: No context.artifacts reference to synthesis
-- **IMPL-3.1**: Missing flow_control.target_files specification
-- **IMPL-4.2**: Vague focus_paths ["src/"] - needs refinement
-
----
-
-## Feasibility Concerns
-
-| Concern | Tasks Affected | Issue | Recommendation |
-|---------|----------------|-------|----------------|
-| Skill Gap | IMPL-6.1, IMPL-6.2 | Requires Kubernetes expertise not in team | Add training task or external consultant |
-| Resource Conflict | IMPL-3.1, IMPL-3.2 | Both modify src/auth/service.ts in parallel | Add dependency or serialize |
-
----
-
-## Detailed Findings by Severity
-
-### CRITICAL Issues ({count})
-
-{Detailed breakdown of each critical issue with location, impact, and recommendation}
-
-### HIGH Issues ({count})
-
-{Detailed breakdown of each high issue with location, impact, and recommendation}
-
-### MEDIUM Issues ({count})
-
-{Detailed breakdown of each medium issue with location, impact, and recommendation}
-
-### LOW Issues ({count})
-
-{Detailed breakdown of each low issue with location, impact, and recommendation}
-
----
-
-## Metrics Summary
-
-| Metric | Value |
-|--------|-------|
-| Total Requirements | {count} ({functional} functional, {nonfunctional} non-functional, {business} business) |
-| Total Tasks | {count} |
-| Overall Coverage | {percent}% ({covered}/{total} requirements with ≥1 task) |
-| Critical Issues | {count} |
-| High Issues | {count} |
-| Medium Issues | {count} |
-| Low Issues | {count} |
-| Total Findings | {total_findings} |
-
----
-
-## Remediation Recommendations
-
-### Priority Order
-
-1. **CRITICAL** - Must fix before proceeding
-2. **HIGH** - Fix before execution
-3. **MEDIUM** - Fix during or after implementation
-4. **LOW** - Optional improvements
-
-### Next Steps
-
-Based on the quality gate recommendation ({RECOMMENDATION}):
-
-{IF BLOCK_EXECUTION}
-**🛑 BLOCK EXECUTION**
-
-You must resolve all CRITICAL issues before proceeding with implementation:
-
-1. Review each critical issue in detail
-2. Determine remediation approach (modify IMPL_PLAN.md, update task.json, or add new tasks)
-3. Apply fixes systematically
-4. Re-run verification to confirm resolution
-
-{ELSE IF PROCEED_WITH_FIXES}
-**⚠️ PROCEED WITH FIXES RECOMMENDED**
-
-No critical issues detected, but HIGH issues exist. Recommended workflow:
-
-1. Review high-priority issues
-2. Apply fixes before execution for optimal results
-3. Re-run verification (optional)
-
-{ELSE IF PROCEED_WITH_CAUTION}
-**✅ PROCEED WITH CAUTION**
-
-Only MEDIUM issues detected. You may proceed with implementation:
-
-- Address medium issues during or after implementation
-- Maintain awareness of identified concerns
-
-{ELSE}
-**✅ PROCEED**
-
-No significant issues detected. Safe to execute implementation workflow.
-
-{END IF}
-
----
-
-**Report End**
+// Write report
+Write(`${process_dir}/PLAN_VERIFICATION.md`, fullReport)
+console.log(`✅ Report: ${process_dir}/PLAN_VERIFICATION.md\n📊 ${recommendation} | C:${critical_count} H:${high_count} M:${medium_count} L:${low_count} | Coverage:${coverage_percentage}%`)
 ```
 
-### 7. Save and Display Report
+### 6. Next Step Selection
 
-**Step 7.1: Save Report**:
-```bash
-report_path = ".workflow/active/WFS-{session}/.process/PLAN_VERIFICATION.md"
-Write(report_path, full_report_content)
+```javascript
+const autoYes = $ARGUMENTS.includes('--yes') || $ARGUMENTS.includes('-y')
+const canExecute = recommendation !== 'BLOCK_EXECUTION'
+
+// Auto mode
+if (autoYes) {
+  if (canExecute) {
+    SlashCommand("/workflow:execute --yes --resume-session=\"${session_id}\"")
+  } else {
+    console.log(`[--yes] BLOCK_EXECUTION - Fix ${critical_count} critical issues first.`)
+  }
+  return
+}
+
+// Interactive mode - build options based on quality gate
+const options = canExecute
+  ? [
+      { label: canExecute && recommendation === 'PROCEED_WITH_FIXES' ? "Execute Anyway" : "Execute (Recommended)",
+        description: "Proceed to /workflow:execute" },
+      { label: "Review Report", description: "Review findings before deciding" },
+      { label: "Re-verify", description: "Re-run after manual fixes" }
+    ]
+  : [
+      { label: "Review Report", description: "Review critical issues" },
+      { label: "Re-verify", description: "Re-run after fixing issues" }
+    ]
+
+const selection = AskUserQuestion({
+  questions: [{
+    question: `Quality gate: ${recommendation}. Next step?`,
+    header: "Action",
+    multiSelect: false,
+    options
+  }]
+})
+
+// Handle selection
+if (selection.includes("Execute")) {
+  SlashCommand("/workflow:execute --resume-session=\"${session_id}\"")
+} else if (selection === "Re-verify") {
+  SlashCommand("/workflow:plan-verify --session ${session_id}")
+}
 ```
-
-**Step 7.2: Display Summary to User**:
-```bash
-# Display executive summary in terminal
-echo "=== Plan Verification Complete ==="
-echo "Report saved to: {report_path}"
-echo ""
-echo "Quality Gate: {RECOMMENDATION}"
-echo "Critical: {count} | High: {count} | Medium: {count} | Low: {count}"
-echo ""
-echo "Next: Review full report for detailed findings and recommendations"
-```
-
-**Step 7.3: Completion**:
-- Report is saved to `.process/PLAN_VERIFICATION.md`
-- User can review findings and decide on remediation approach
-- No automatic modifications are made to source artifacts
-- User can manually apply fixes or use separate remediation command (if available)

@@ -6,6 +6,7 @@ import type { Server } from 'http';
 import { readFileSync, existsSync, promises as fsPromises } from 'fs';
 import { join } from 'path';
 import { resolvePath, getRecentPaths, trackRecentPath, removeRecentPath, normalizePathForDisplay } from '../../utils/path-resolver.js';
+import { validatePath as validateAllowedPath } from '../../utils/path-validator.js';
 import { scanSessions } from '../session-scanner.js';
 import { aggregateData } from '../data-aggregator.js';
 import {
@@ -285,14 +286,35 @@ export async function handleSystemRoutes(ctx: SystemRouteContext): Promise<boole
       return true;
     }
 
+    let validatedPath: string;
     try {
-      const content = await fsPromises.readFile(filePath, 'utf-8');
+      // Validate path is within allowed directories (fix: sec-001-a1b2c3d4)
+      validatedPath = await validateAllowedPath(filePath, { mustExist: true, allowedDirectories: [initialPath] });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const status = message.includes('Access denied') ? 403 : (message.includes('File not found') ? 404 : 400);
+      console.error(`[System] Path validation failed: ${message}`);
+      res.writeHead(status, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: status === 403 ? 'Access denied' : (status === 404 ? 'File not found' : 'Invalid path')
+      }));
+      return true;
+    }
+
+    try {
+      const content = await fsPromises.readFile(validatedPath, 'utf-8');
       const json = JSON.parse(content);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(json));
-    } catch (err) {
-      res.writeHead(404, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'File not found or invalid JSON' }));
+    } catch (err: unknown) {
+      const errno = typeof err === 'object' && err !== null && 'code' in err ? String((err as any).code) : null;
+      const status = err instanceof SyntaxError ? 400 : (errno === 'EACCES' ? 403 : 404);
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`[System] Failed to read JSON file: ${message}`);
+      res.writeHead(status, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: status === 403 ? 'Access denied' : (status === 400 ? 'Invalid JSON' : 'File not found')
+      }));
     }
     return true;
   }
@@ -442,6 +464,19 @@ export async function handleSystemRoutes(ctx: SystemRouteContext): Promise<boole
         targetPath = path.resolve(targetPath);
       }
 
+      // Validate path is within allowed directories (fix: sec-003-c3d4e5f6)
+      try {
+        targetPath = await validateAllowedPath(targetPath, {
+          mustExist: true,
+          allowedDirectories: [initialPath, os.homedir()]
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        const status = message.includes('Access denied') ? 403 : 400;
+        console.error(`[System] Path validation failed: ${message}`);
+        return { error: status === 403 ? 'Access denied' : 'Invalid path', status };
+      }
+
       try {
         const stat = await fs.promises.stat(targetPath);
         if (!stat.isDirectory()) {
@@ -471,7 +506,9 @@ export async function handleSystemRoutes(ctx: SystemRouteContext): Promise<boole
           homePath: os.homedir()
         };
       } catch (err) {
-        return { error: 'Cannot access directory: ' + (err as Error).message, status: 400 };
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(`[System] Failed to browse directory: ${message}`);
+        return { error: 'Cannot access directory', status: 400 };
       }
     });
     return true;
@@ -502,6 +539,19 @@ export async function handleSystemRoutes(ctx: SystemRouteContext): Promise<boole
         targetPath = path.resolve(targetPath);
       }
 
+      // Validate path is within allowed directories (fix: sec-003-c3d4e5f6)
+      try {
+        targetPath = await validateAllowedPath(targetPath, {
+          mustExist: true,
+          allowedDirectories: [initialPath, os.homedir()]
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        const status = message.includes('Access denied') ? 403 : 400;
+        console.error(`[System] Path validation failed: ${message}`);
+        return { error: status === 403 ? 'Access denied' : 'Invalid path', status };
+      }
+
       try {
         await fs.promises.access(targetPath, fs.constants.R_OK);
         const stat = await fs.promises.stat(targetPath);
@@ -512,8 +562,10 @@ export async function handleSystemRoutes(ctx: SystemRouteContext): Promise<boole
           isFile: stat.isFile(),
           isDirectory: stat.isDirectory()
         };
-      } catch {
-        return { error: 'File not accessible', status: 404 };
+      } catch (err: unknown) {
+        const errno = typeof err === 'object' && err !== null && 'code' in err ? String((err as any).code) : null;
+        const status = errno === 'EACCES' ? 403 : 404;
+        return { error: status === 403 ? 'Access denied' : 'File not accessible', status };
       }
     });
     return true;
