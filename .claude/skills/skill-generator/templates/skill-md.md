@@ -1,34 +1,34 @@
 # SKILL.md Template
 
-用于生成新 Skill 入口文件的模板。
+Template for generating new Skill entry files.
 
 ## Purpose
 
-生成新 Skill 的入口文件 (SKILL.md)，作为 Skill 的主文档和执行入口点。
+Generate the entry file (SKILL.md) for new Skills, serving as the main documentation and execution entry point for the Skill.
 
 ## Usage Context
 
 | Phase | Usage |
 |-------|-------|
-| Phase 2 (Structure Generation) | 创建 SKILL.md 入口文件 |
-| Generation Trigger | `config.execution_mode` 决定架构图样式 |
+| Phase 2 (Structure Generation) | Create SKILL.md entry file |
+| Generation Trigger | `config.execution_mode` determines architecture diagram style |
 | Output Location | `.claude/skills/{skill-name}/SKILL.md` |
 
 ---
 
-## ⚠️ 重要：YAML Front Matter 规范
+## Important: YAML Front Matter Specification
 
-> **CRITICAL**: SKILL.md 文件必须以 YAML front matter 开头，即以 `---` 作为文件第一行。
+> **CRITICAL**: The SKILL.md file MUST begin with YAML front matter, meaning `---` must be the first line of the file.
 >
-> **禁止**使用以下格式：
-> - `# Title` 然后 `## Metadata` + yaml 代码块 ❌
-> - 任何在 `---` 之前的内容 ❌
+> **Do NOT use** the following formats:
+> - `# Title` followed by `## Metadata` + yaml code block
+> - Any content before `---`
 >
-> **正确格式**：文件第一行必须是 `---`
+> **Correct format**: The first line MUST be `---`
 
-## 可直接应用的模板
+## Ready-to-use Template
 
-以下是完整的 SKILL.md 模板。生成时**直接复制应用**，将 `{{变量}}` 替换为实际值：
+The following is a complete SKILL.md template. When generating, **directly copy and apply** it, replacing `{{variables}}` with actual values:
 
 ---
 name: {{skill_name}}
@@ -52,9 +52,9 @@ allowed-tools: {{allowed_tools}}
 
 ---
 
-## ⚠️ Mandatory Prerequisites (强制前置条件)
+## Mandatory Prerequisites
 
-> **⛔ 禁止跳过**: 在执行任何操作之前，**必须**完整阅读以下文档。未阅读规范直接执行将导致输出不符合质量标准。
+> **Do NOT skip**: Before performing any operations, you **must** completely read the following documents. Proceeding without reading the specifications will result in outputs that do not meet quality standards.
 
 {{mandatory_prerequisites}}
 
@@ -80,31 +80,33 @@ Bash(\`mkdir -p "\${workDir}"\`);
 {{output_structure}}
 \`\`\`
 
-## Reference Documents
+## Reference Documents by Phase
+
+> **Important**: Reference documents should be organized by execution phase, clearly marking when and in what scenarios they are used. Avoid listing documents in a flat manner.
 
 {{reference_table}}
 
 ---
 
-## 变量说明
+## Variable Descriptions
 
-| 变量 | 类型 | 来源 |
-|------|------|------|
+| Variable | Type | Source |
+|----------|------|--------|
 | `{{skill_name}}` | string | config.skill_name |
 | `{{display_name}}` | string | config.display_name |
 | `{{description}}` | string | config.description |
 | `{{triggers}}` | string | config.triggers.join(", ") |
 | `{{allowed_tools}}` | string | config.allowed_tools.join(", ") |
-| `{{architecture_diagram}}` | string | 根据 execution_mode 生成 (包含 Phase 0) |
-| `{{design_principles}}` | string | 根据 execution_mode 生成 |
-| `{{mandatory_prerequisites}}` | string | 强制前置阅读文档列表 (specs + templates) |
-| `{{execution_flow}}` | string | 根据 phases/actions 生成 (Phase 0 在最前) |
+| `{{architecture_diagram}}` | string | Generated based on execution_mode (includes Phase 0) |
+| `{{design_principles}}` | string | Generated based on execution_mode |
+| `{{mandatory_prerequisites}}` | string | List of mandatory prerequisite reading documents (specs + templates) |
+| `{{execution_flow}}` | string | Generated from phases/actions (Phase 0 first) |
 | `{{output_location}}` | string | config.output.location |
-| `{{additional_dirs}}` | string | 根据 execution_mode 生成 |
-| `{{output_structure}}` | string | 根据配置生成 |
-| `{{reference_table}}` | string | 根据文件列表生成 |
+| `{{additional_dirs}}` | string | Generated based on execution_mode |
+| `{{output_structure}}` | string | Generated based on configuration |
+| `{{reference_table}}` | string | Generated from file list |
 
-## 生成函数
+## Generation Function
 
 ```javascript
 function generateSkillMd(config) {
@@ -116,32 +118,32 @@ function generateSkillMd(config) {
     .replace(/\{\{description\}\}/g, config.description)
     .replace(/\{\{triggers\}\}/g, config.triggers.map(t => `"${t}"`).join(", "))
     .replace(/\{\{allowed_tools\}\}/g, config.allowed_tools.join(", "))
-    .replace(/\{\{architecture_diagram\}\}/g, generateArchitecture(config))  // 包含 Phase 0
+    .replace(/\{\{architecture_diagram\}\}/g, generateArchitecture(config))  // Includes Phase 0
     .replace(/\{\{design_principles\}\}/g, generatePrinciples(config))
-    .replace(/\{\{mandatory_prerequisites\}\}/g, generatePrerequisites(config))  // 强制前置条件
-    .replace(/\{\{execution_flow\}\}/g, generateFlow(config))  // Phase 0 在最前
+    .replace(/\{\{mandatory_prerequisites\}\}/g, generatePrerequisites(config))  // Mandatory prerequisites
+    .replace(/\{\{execution_flow\}\}/g, generateFlow(config))  // Phase 0 first
     .replace(/\{\{output_location\}\}/g, config.output.location)
     .replace(/\{\{additional_dirs\}\}/g, generateAdditionalDirs(config))
     .replace(/\{\{output_structure\}\}/g, generateOutputStructure(config))
     .replace(/\{\{reference_table\}\}/g, generateReferenceTable(config));
 }
 
-// 生成强制前置条件表格
+// Generate mandatory prerequisites table
 function generatePrerequisites(config) {
   const specs = config.specs || [];
   const templates = config.templates || [];
 
-  let result = '### 规范文档 (必读)\n\n';
-  result += '| Document | Purpose | Priority |\n';
-  result += '|----------|---------|----------|\n';
+  let result = '### Specification Documents (Required Reading)\n\n';
+  result += '| Document | Purpose | When |\n';
+  result += '|----------|---------|------|\n';
 
   specs.forEach((spec, index) => {
-    const priority = index === 0 ? '**P0 - 最高**' : 'P1';
-    result += `| [${spec.path}](${spec.path}) | ${spec.purpose} | ${priority} |\n`;
+    const when = index === 0 ? '**Must read before execution**' : 'Recommended before execution';
+    result += `| [${spec.path}](${spec.path}) | ${spec.purpose} | ${when} |\n`;
   });
 
   if (templates.length > 0) {
-    result += '\n### 模板文件 (生成前必读)\n\n';
+    result += '\n### Template Files (Must read before generation)\n\n';
     result += '| Document | Purpose |\n';
     result += '|----------|---------|\n';
     templates.forEach(tmpl => {
@@ -151,9 +153,71 @@ function generatePrerequisites(config) {
 
   return result;
 }
+
+// Generate phase-by-phase reference document guide
+function generateReferenceTable(config) {
+  const phases = config.phases || config.actions || [];
+  const specs = config.specs || [];
+  const templates = config.templates || [];
+
+  let result = '';
+
+  // Generate document navigation for each execution phase
+  phases.forEach((phase, index) => {
+    const phaseNum = index + 1;
+    const phaseTitle = phase.display_name || phase.name;
+
+    result += `### Phase ${phaseNum}: ${phaseTitle}\n`;
+    result += `Documents to reference when executing Phase ${phaseNum}\n\n`;
+
+    // List documents related to this phase
+    const relatedDocs = filterDocsByPhase(specs, phase, index);
+    if (relatedDocs.length > 0) {
+      result += '| Document | Purpose | When to Use |\n';
+      result += '|----------|---------|-------------|\n';
+      relatedDocs.forEach(doc => {
+        result += `| [${doc.path}](${doc.path}) | ${doc.purpose} | ${doc.context || 'Reference content'} |\n`;
+      });
+      result += '\n';
+    }
+  });
+
+  // Troubleshooting section
+  result += '### Debugging & Troubleshooting\n';
+  result += 'Documents to reference when encountering issues\n\n';
+  result += '| Issue | Solution Document |\n';
+  result += '|-------|-------------------|\n';
+  result += `| Phase execution failed | Refer to the relevant Phase documentation |\n`;
+  result += `| Output does not meet expectations | [specs/quality-standards.md](specs/quality-standards.md) - Verify quality standards |\n`;
+  result += '\n';
+
+  // In-depth learning reference
+  result += '### Reference & Background\n';
+  result += 'For understanding the original implementation and design decisions\n\n';
+  result += '| Document | Purpose | Notes |\n';
+  result += '|----------|---------|-------|\n';
+  templates.forEach(tmpl => {
+    result += `| [${tmpl.path}](${tmpl.path}) | ${tmpl.purpose} | Reference during generation |\n`;
+  });
+
+  return result;
+}
+
+// Helper function: Get Phase emoji (removed)
+// Note: Emoji support has been removed. Consider using Phase numbers instead.
+
+// Helper function: Filter documents by Phase
+function filterDocsByPhase(specs, phase, phaseIndex) {
+  // Simple filtering logic: match phase name keywords
+  const keywords = phase.name.toLowerCase().split('-');
+  return specs.filter(spec => {
+    const specName = spec.path.toLowerCase();
+    return keywords.some(kw => specName.includes(kw));
+  });
+}
 ```
 
-## Sequential 模式示例
+## Sequential Mode Example
 
 ```markdown
 ---
@@ -169,36 +233,33 @@ Generate API documentation from source code.
 ## Architecture Overview
 
 \`\`\`
-┌─────────────────────────────────────────────────────────────────┐
-│  ⚠️ Phase 0: Specification  → 阅读并理解设计规范 (强制前置)      │
-│              Study                                               │
-│           ↓                                                      │
-│  Phase 1: Scanning        → endpoints.json                      │
-│           ↓                                                      │
-│  Phase 2: Parsing         → schemas.json                        │
-│           ↓                                                      │
-│  Phase 3: Generation      → api-docs.md                         │
-└─────────────────────────────────────────────────────────────────┘
+Phase 0: Specification Study (Mandatory prerequisite - Read and understand design specifications)
+          ↓
+Phase 1: Scanning        → endpoints.json
+         ↓
+Phase 2: Parsing         → schemas.json
+         ↓
+Phase 3: Generation      → api-docs.md
 \`\`\`
 
-## ⚠️ Mandatory Prerequisites (强制前置条件)
+## Mandatory Prerequisites
 
-> **⛔ 禁止跳过**: 在执行任何操作之前，**必须**完整阅读以下文档。
+> **Do NOT skip**: Before performing any operations, you **must** completely read the following documents.
 
-### 规范文档 (必读)
+### Specification Documents (Required Reading)
 
 | Document | Purpose | Priority |
 |----------|---------|----------|
-| [specs/api-standards.md](specs/api-standards.md) | API 文档标准规范 | **P0 - 最高** |
+| [specs/api-standards.md](specs/api-standards.md) | API documentation standards specification | **P0 - Highest** |
 
-### 模板文件 (生成前必读)
+### Template Files (Must read before generation)
 
 | Document | Purpose |
 |----------|---------|
-| [templates/endpoint-doc.md](templates/endpoint-doc.md) | 端点文档模板 |
+| [templates/endpoint-doc.md](templates/endpoint-doc.md) | Endpoint documentation template |
 ```
 
-## Autonomous 模式示例
+## Autonomous Mode Example
 
 ```markdown
 ---
@@ -214,36 +275,34 @@ Interactive task management with CRUD operations.
 ## Architecture Overview
 
 \`\`\`
-┌─────────────────────────────────────────────────────────────────┐
-│  ⚠️ Phase 0: Specification Study (强制前置)                       │
-└───────────────┬─────────────────────────────────────────────────┘
-                ↓
-┌─────────────────────────────────────────────────────────────────┐
-│           Orchestrator (状态驱动决策)                             │
-└───────────────┬─────────────────────────────────────────────────┘
-                │
-    ┌───────────┼───────────┬───────────┐
-    ↓           ↓           ↓           ↓
-┌───────┐  ┌───────┐  ┌───────┐  ┌───────┐
-│ List  │  │Create │  │ Edit  │  │Delete │
-└───────┘  └───────┘  └───────┘  └───────┘
+Phase 0: Specification Study (Mandatory prerequisite)
+         ↓
+┌────────────────────────────────────────┐
+│  Orchestrator (State-driven decision)  │
+└────────────┬───────────────────────────┘
+             │
+    ┌────────┼────────┬────────┐
+    ↓        ↓        ↓        ↓
+┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
+│ List   │ │ Create │ │ Edit   │ │ Delete │
+└────────┘ └────────┘ └────────┘ └────────┘
 \`\`\`
 
-## ⚠️ Mandatory Prerequisites (强制前置条件)
+## Mandatory Prerequisites
 
-> **⛔ 禁止跳过**: 在执行任何操作之前，**必须**完整阅读以下文档。
+> **Do NOT skip**: Before performing any operations, you **must** completely read the following documents.
 
-### 规范文档 (必读)
+### Specification Documents (Required Reading)
 
 | Document | Purpose | Priority |
 |----------|---------|----------|
-| [specs/task-schema.md](specs/task-schema.md) | 任务数据结构规范 | **P0 - 最高** |
-| [specs/action-catalog.md](specs/action-catalog.md) | 动作目录 | P1 |
+| [specs/task-schema.md](specs/task-schema.md) | Task data structure specification | **P0 - Highest** |
+| [specs/action-catalog.md](specs/action-catalog.md) | Action catalog | P1 |
 
-### 模板文件 (生成前必读)
+### Template Files (Must read before generation)
 
 | Document | Purpose |
 |----------|---------|
-| [templates/orchestrator-base.md](templates/orchestrator-base.md) | 编排器模板 |
-| [templates/action-base.md](templates/action-base.md) | 动作模板 |
+| [templates/orchestrator-base.md](templates/orchestrator-base.md) | Orchestrator template |
+| [templates/action-base.md](templates/action-base.md) | Action template |
 ```

@@ -166,7 +166,7 @@ export function buildCommand(params: {
     commit?: string;
     title?: string;
   };
-}): { command: string; args: string[]; useStdin: boolean } {
+}): { command: string; args: string[]; useStdin: boolean; outputFormat?: 'text' | 'json-lines' } {
   const { tool, prompt, mode = 'analysis', model, dir, include, nativeResume, settingsFile, reviewOptions } = params;
 
   debugLog('BUILD_CMD', `Building command for tool: ${tool}`, {
@@ -254,6 +254,8 @@ export function buildCommand(params: {
           // codex review uses -c key=value for config override, not -m
           args.push('-c', `model=${model}`);
         }
+        // Skip git repo check by default for codex (allows non-git directories)
+        args.push('--skip-git-repo-check');
         // codex review uses positional prompt argument, not stdin
         useStdin = false;
         if (prompt) {
@@ -280,6 +282,8 @@ export function buildCommand(params: {
             args.push('--add-dir', addDir);
           }
         }
+        // Skip git repo check by default for codex (allows non-git directories)
+        args.push('--skip-git-repo-check');
         // Enable JSON output for structured parsing
         args.push('--json');
         // codex resume uses positional prompt argument, not stdin
@@ -302,6 +306,8 @@ export function buildCommand(params: {
             args.push('--add-dir', addDir);
           }
         }
+        // Skip git repo check by default for codex (allows non-git directories)
+        args.push('--skip-git-repo-check');
         // Enable JSON output for structured parsing
         args.push('--json');
         args.push('-');
@@ -381,5 +387,8 @@ export function buildCommand(params: {
     fullCommand: `${command} ${args.join(' ')}${useStdin ? ' (stdin)' : ''}`,
   });
 
-  return { command, args, useStdin };
+  // Auto-detect output format: Codex uses --json flag for JSONL output
+  const outputFormat = tool.toLowerCase() === 'codex' ? 'json-lines' : 'text';
+
+  return { command, args, useStdin, outputFormat };
 }

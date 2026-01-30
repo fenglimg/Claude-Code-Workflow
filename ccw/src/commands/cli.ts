@@ -77,6 +77,10 @@ function notifyDashboard(data: Record<string, unknown>): void {
  * Uses specific event types that match frontend handlers
  */
 function broadcastStreamEvent(eventType: string, payload: Record<string, unknown>): void {
+  if (process.env.DEBUG_CLI_EVENTS) {
+    console.error(`[CLI-BROADCAST] START ${eventType} at ${Date.now()}`);
+  }
+  
   const data = JSON.stringify({
     type: eventType,
     ...payload,
@@ -107,6 +111,10 @@ function broadcastStreamEvent(eventType: string, payload: Record<string, unknown
   });
   req.write(data);
   req.end();
+  
+  if (process.env.DEBUG_CLI_EVENTS) {
+    console.error(`[CLI-BROADCAST] END ${eventType} at ${Date.now()}`);
+  }
 }
 
 interface CliExecOptions {
@@ -921,6 +929,10 @@ async function execAction(positionalPrompt: string | undefined, options: CliExec
     mode
   });
 
+  if (process.env.DEBUG) {
+    console.error(`[CLI] Generated executionId: ${executionId}`);
+  }
+
   // Buffer to accumulate output when both --stream and --to-file are specified
   let streamBuffer = '';
 
@@ -986,7 +998,7 @@ async function execAction(positionalPrompt: string | undefined, options: CliExec
       includeDirs,
       // timeout removed - controlled by external caller (bash timeout)
       resume,
-      id, // custom execution ID
+      id: executionId, // unified execution ID (matches broadcast events)
       noNative,
       stream: !!stream, // stream=true → streaming enabled (no cache), stream=false → cache output (default)
       outputFormat, // Enable JSONL parsing for tools that support it
@@ -1093,15 +1105,27 @@ async function execAction(positionalPrompt: string | undefined, options: CliExec
       });
 
       // Broadcast CLI_EXECUTION_COMPLETED for real-time streaming viewer
+      if (process.env.DEBUG_CLI_EVENTS) {
+        console.error(`[CLI-TIMING] Broadcasting CLI_EXECUTION_COMPLETED at ${Date.now()}`);
+      }
       broadcastStreamEvent('CLI_EXECUTION_COMPLETED', {
         executionId,  // Use the same executionId as started event
         success: true,
         duration: result.execution.duration_ms
       });
+      if (process.env.DEBUG_CLI_EVENTS) {
+        console.error(`[CLI-TIMING] Broadcast returned, setting timeout at ${Date.now()}`);
+      }
 
       // Ensure clean exit after successful execution
       // Delay to allow HTTP request to complete
-      setTimeout(() => process.exit(0), 150);
+      // FIX: Increased from 150ms to 500ms for long-running executions
+      setTimeout(() => {
+        if (process.env.DEBUG_CLI_EVENTS) {
+          console.error(`[CLI-TIMING] process.exit(0) at ${Date.now()}`);
+        }
+        process.exit(0);
+      }, 500);
     } else {
       if (!spinner) {
         console.log(chalk.red(`  ✗ Failed (${result.execution.status})`));
