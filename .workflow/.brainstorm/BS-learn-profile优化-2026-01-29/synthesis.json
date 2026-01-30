@@ -1,0 +1,129 @@
+{
+  "session_id": "BS-learn-profile优化-2026-01-29",
+  "topic": "learn：profile优化",
+  "completed": "2026-01-29T22:44:53+08:00",
+  "total_rounds": 9,
+  "top_ideas": [
+    {
+      "title": "Init Flow Simplification（删强制项）",
+      "description": "初始化不强制 Goal Type，不要求经验自评；仅收集基本信息 + 自述技能点 + 学习习惯/偏好。",
+      "source_perspective": "pragmatic",
+      "score": 9,
+      "novelty": 2,
+      "feasibility": 5,
+      "key_strengths": ["低风险", "直接降低流失", "立刻改善体验"],
+      "main_challenges": ["需要与既有 schema/文案/流程兼容"],
+      "next_steps": [
+        "列出现有 create/init 流程中的强制字段与依赖",
+        "定义最小必填字段（MVP）并更新对话/前端",
+        "加埋点对比改动前后完成率"
+      ]
+    },
+    {
+      "title": "Pre-Context 固定 4 问模板（版本化）",
+      "description": "在背景信息完整提供前，优先 AskUserQuestion 收集偏好（个人因素优先）；每次固定 4 问；允许“选项 + type something”并存；不包含“2-4 周结果”和 accountability（后者后置渐进采集）；模板版本化。",
+      "source_perspective": "pragmatic",
+      "score": 9,
+      "novelty": 3,
+      "feasibility": 4,
+      "key_strengths": ["采集维度稳定", "便于回归与 A/B", "个性化输入更可靠"],
+      "main_challenges": ["避免疲劳", "回答结构化抽取失败不应阻塞"],
+      "next_steps": [
+        "确定/实现 pre_context_v1.3 的 4 问文案与字段映射（raw+parsed+provenance）",
+        "实现“偏好摘要回显 + 用户纠错”",
+        "设定复用/重问策略（30 天过期 + 跳过冷却 + drift 触发重问）"
+      ]
+    },
+    {
+      "title": "Profile 结构升级（asserted vs inferred + provenance）",
+      "description": "画像中区分用户自述（asserted）与系统推断（inferred）；推断带置信度/证据/版本；采用 snapshot + append-only events 支撑可审计与回滚；inferred 走 proposed/confirmed/rejected/superseded 状态机。",
+      "source_perspective": "systematic",
+      "score": 8,
+      "novelty": 3,
+      "feasibility": 4,
+      "key_strengths": ["画像更可用且可信", "支持纠错与审计", "为评估/推荐提供基础"],
+      "main_challenges": ["inference 误判的纠错入口设计", "taxonomy/版本管理"],
+      "next_steps": [
+        "设计 profile snapshot schema + events schema（append-only）",
+        "落地最小 taxonomy（10-20 个高频簇）",
+        "实现 inferred_skills 的 proposed/confirmed/rejected/superseded 流程 + rollback_to_version"
+      ]
+    },
+    {
+      "title": "纯文本评估 + 动态难度 + 置信度评分",
+      "description": "评估题只允许自由文本输入；采用 4-level 难度模型（L1-L4）+ 可执行 rubric（正确性/机制/边界/权衡/诊断/结构）+ 保守跳级策略；覆盖率依赖版本化 taxonomy；写入 assessment_* events 并仅产出 inferred proposed/updated（不自动 confirmed）。",
+      "source_perspective": "pragmatic",
+      "score": 7,
+      "novelty": 4,
+      "feasibility": 3,
+      "key_strengths": ["更真实反映掌握程度", "可提升评估效率"],
+      "main_challenges": ["评分可解释性", "自适应误判挫败", "回归集与阈值策略"],
+      "next_steps": [
+        "把 assessment pack generator 接入 learn:profile update：输入 topic -> 生成/读取 taxonomy+题库+回归集骨架",
+        "实现评估运行时：按 L1-L4 调度、评分、跳级，并写入 assessment_* events（只 propose/updated inferred）",
+        "为高频 topic 维护最小回归集（JSONL），并持续用真实回答补全/校准阈值（已生成 game_dev_core/cocos_dev_core 样例包）"
+      ]
+    },
+    {
+      "title": "删除 KeywordDictionary.json 并替代",
+      "description": "确认主流程不再依赖 KeywordDictionary；以版本化 taxonomy 为主、embedding 召回为辅替代。",
+      "source_perspective": "pragmatic",
+      "score": 7,
+      "novelty": 2,
+      "feasibility": 4,
+      "key_strengths": ["降低维护成本", "减少过时误判"],
+      "main_challenges": ["替代机制需要回归验证"],
+      "next_steps": [
+        "全局扫描对 KeywordDictionary 的读取依赖",
+        "落地最小 taxonomy 并接入覆盖率计算",
+        "删除文件并加回归测试防复活"
+      ]
+    }
+  ],
+  "parked_ideas": [
+    {
+      "title": "Skill Constellation（技能星图）",
+      "reason_parked": "需要 UI/可视化与产品打磨，优先级低于 schema 与流程改造",
+      "potential_future_trigger": "inferred skills 机制稳定后，需要更强可解释呈现"
+    }
+  ],
+  "key_insights": [
+    "先降摩擦再提精度：初始化强制项的删除带来立刻的体验收益",
+    "固定 4 问模板是稳定信号收集的关键杠杆，且适合版本化迭代",
+    "inferred skills 必须 provenance + 可回滚，否则容易破坏信任",
+    "评估从‘可猜’转向‘可解释’是方向，但需要回归集与保守自适应"
+  ],
+  "recommendations": {
+    "primary": "按‘删强制项 → pre_context_v1.3 → profile(snapshot+events) → 评估引擎（rubric+taxonomy+回归集）→ assessment pack generator + topic packs → 删除 KeywordDictionary 并用 taxonomy 替代’的顺序落地。",
+    "alternatives": [
+      {
+        "title": "先做评估引擎",
+        "when_to_consider": "团队更关注‘评估准确度’且已有稳定题库与回归集",
+        "tradeoff": "短期投入大，且初始化摩擦问题仍存在"
+      },
+      {
+        "title": "先做 inferred skills + taxonomy",
+        "when_to_consider": "当前推荐质量主要受画像维度不足影响",
+        "tradeoff": "对话体验改善不如删强制项立竿见影"
+      }
+    ],
+    "not_recommended": [
+      "继续依赖 KeywordDictionary.json 作为主知识来源（维护与过时风险过高）",
+      "在没有回归集的情况下激进跳级（高概率误判）"
+    ]
+  },
+  "follow_up": [
+    {
+      "type": "implementation",
+      "summary": "把 pre_context_v1.3（固定 4 问 + 选项+type + 个人因素）与 profile snapshot+events（asserted/inferred/provenance/rollback）固化为可测试结构，并接入评估运行时的 events 写入。"
+    },
+    {
+      "type": "research",
+      "summary": "定义覆盖率的知识点集合（taxonomy/subpoints）与版本策略；用回归集（JSONL）校准阈值策略，并沉淀 assessment pack generator 作为通用能力。"
+    },
+    {
+      "type": "validation",
+      "summary": "增加埋点：初始化完成率、模板回答率、推断确认率、评估轮次/满意度，并做前后对比。"
+    }
+  ]
+}

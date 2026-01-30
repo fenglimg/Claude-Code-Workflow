@@ -1,0 +1,10 @@
+{
+  "sessions": [
+    {
+      "session_id": "LS-20260129-001",
+      "learning_goal": "学习渲染知识，shader编写，在cocos creator实践渲染优化",
+      "created_at": "2026-01-29T12:30:00.000Z",
+      "status": "planned"
+    }
+  ]
+}

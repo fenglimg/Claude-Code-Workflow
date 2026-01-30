@@ -1,0 +1,104 @@
+{
+  "taxonomy_version": "tax_v0.1",
+  "topic_id": "cocos_dev_core",
+  "taxonomy_id": "tax_cocos_dev_core",
+  "name": "Cocos Development Core (Cocos Creator)",
+  "description": "Cocos Creator development fundamentals for assessment, coverage, and inferred skill proposals.",
+  "subpoints": [
+    {
+      "id": "sp_cc_node_component",
+      "name": "Node vs Component mental model",
+      "description": "What nodes are, what components are, and how they compose behavior."
+    },
+    {
+      "id": "sp_cc_lifecycle",
+      "name": "Component lifecycle",
+      "description": "Key lifecycle hooks (e.g., onLoad/start/update/onEnable/onDisable/onDestroy) and when to use them."
+    },
+    {
+      "id": "sp_cc_scripting_ts",
+      "name": "TypeScript scripting basics",
+      "description": "Writing scripts/components in TS, typing, and common pitfalls."
+    },
+    {
+      "id": "sp_cc_scene_prefab",
+      "name": "Scene & prefab workflow",
+      "description": "Scene composition, prefabs, instantiation, and overrides."
+    },
+    {
+      "id": "sp_cc_events_input",
+      "name": "Event & input handling",
+      "description": "UI events, touch/mouse/keyboard input, and event propagation basics."
+    },
+    {
+      "id": "sp_cc_ui_layout",
+      "name": "UI layout fundamentals",
+      "description": "Common UI layout strategies (widgets/anchors), resolution adaptation, and pitfalls."
+    },
+    {
+      "id": "sp_cc_animation",
+      "name": "Animation basics",
+      "description": "Animation clips, timelines/state, and controlling animation from scripts."
+    },
+    {
+      "id": "sp_cc_physics_collision",
+      "name": "Physics & collision",
+      "description": "Collider/rigidbody basics, trigger vs collision, layers, and stability."
+    },
+    {
+      "id": "sp_cc_coordinate_camera",
+      "name": "Coordinate space & camera",
+      "description": "World/local/screen coordinates and common conversions for UI/gameplay."
+    },
+    {
+      "id": "sp_cc_assets_resources",
+      "name": "Asset loading & resource lifecycle",
+      "description": "Loading assets, caching, releasing/unloading, and avoiding memory leaks."
+    },
+    {
+      "id": "sp_cc_bundles",
+      "name": "Asset bundles (basic)",
+      "description": "Why/when to use bundles, loading strategy, and dependency considerations."
+    },
+    {
+      "id": "sp_cc_render_perf",
+      "name": "Rendering performance levers",
+      "description": "Draw calls, batching, overdraw (especially UI), and practical mitigation."
+    },
+    {
+      "id": "sp_cc_update_perf",
+      "name": "Update performance levers",
+      "description": "Avoid per-frame allocations, reduce node/component counts, and optimize hot paths."
+    },
+    {
+      "id": "sp_cc_profiling",
+      "name": "Profiling workflow",
+      "description": "How to profile, interpret CPU/GPU bottlenecks, and verify improvements."
+    },
+    {
+      "id": "sp_cc_build_release",
+      "name": "Build & release basics",
+      "description": "Build targets, common release issues, and minimal sanity checks."
+    },
+    {
+      "id": "sp_cc_debug_strategy",
+      "name": "Debug strategy",
+      "description": "Repro steps, instrumentation, hypothesis-driven debugging for engine/game issues."
+    }
+  ],
+  "inferred_skills_map": [
+    {
+      "taxonomy_subpoints": ["sp_cc_node_component", "sp_cc_lifecycle", "sp_cc_scene_prefab"],
+      "skill": { "name": "Cocos component workflow fundamentals", "taxonomy_id": "tax_cocos_dev_core" }
+    },
+    {
+      "taxonomy_subpoints": ["sp_cc_assets_resources", "sp_cc_bundles"],
+      "skill": { "name": "Cocos asset loading & lifecycle fundamentals", "taxonomy_id": "tax_cocos_dev_core" }
+    },
+    {
+      "taxonomy_subpoints": ["sp_cc_render_perf", "sp_cc_update_perf", "sp_cc_profiling"],
+      "skill": { "name": "Cocos performance profiling & optimization fundamentals", "taxonomy_id": "tax_cocos_dev_core" }
+    }
+  ]
+}
+

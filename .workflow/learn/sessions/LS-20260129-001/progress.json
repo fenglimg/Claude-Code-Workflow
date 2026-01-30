@@ -1,0 +1,15 @@
+{
+  "session_id": "LS-20260129-001",
+  "current_knowledge_point_id": null,
+  "completed_knowledge_points": [],
+  "in_progress_knowledge_points": [],
+  "knowledge_point_progress": {},
+  "overall_metrics": {
+    "total_time_spent_minutes": 0,
+    "resources_consumed": 0,
+    "questions_asked": 0
+  },
+  "_metadata": {
+    "last_updated": "2026-01-29T12:30:00.000Z"
+  }
+}

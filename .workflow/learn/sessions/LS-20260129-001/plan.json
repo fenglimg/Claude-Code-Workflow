@@ -1,0 +1,468 @@
+{
+  "session_id": "LS-20260129-001",
+  "learning_goal": "学习渲染知识，shader编写，在cocos creator实践渲染优化",
+  "profile_id": "profile-1738161600000",
+  "knowledge_points": [
+    {
+      "id": "KP-1",
+      "title": "GPU渲染管线基础",
+      "description": "理解现代GPU渲染管线的核心概念：顶点处理、图元装配、光栅化、片段着色、输出合并。了解渲染管线各阶段的作用和数据流向。",
+      "prerequisites": [],
+      "topic_refs": ["rendering-pipeline", "gpu-basics"],
+      "phase": 1,
+      "resources": [
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/zh/render-pipeline/write-render-pipeline.html",
+          "summary": "Cocos Creator官方渲染管线文档，介绍如何编写和理解渲染管线",
+          "quality": "gold",
+          "quality_score": 0.95
+        },
+        {
+          "type": "tutorial",
+          "url": "https://learnopengl-cn.github.io/01%20Getting%20started/04%20Hello%20Triangle/",
+          "summary": "LearnOpenGL中文版-渲染管线基础讲解",
+          "quality": "gold",
+          "quality_score": 0.9
+        }
+      ],
+      "assessment": {
+        "type": "multiple_choice",
+        "description": "能够清晰描述GPU渲染管线的各个阶段及其作用",
+        "acceptance_criteria": [
+          "能说出渲染管线的5个主要阶段",
+          "理解顶点着色器和片段着色器的职责",
+          "了解光栅化的作用"
+        ]
+      },
+      "estimated_effort": "medium",
+      "status": "pending"
+    },
+    {
+      "id": "KP-2",
+      "title": "GLSL基础语法",
+      "description": "学习GLSL着色器语言的基础语法：数据类型(vec2/vec3/vec4/mat4)、内置函数、uniform/attribute/varying变量、纹理采样。",
+      "prerequisites": ["KP-1"],
+      "topic_refs": ["glsl", "shader-language"],
+      "phase": 1,
+      "resources": [
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/en/shader/glsl.html",
+          "summary": "Cocos Creator GLSL语法官方文档，介绍GLSL基础数据类型和语法",
+          "quality": "gold",
+          "quality_score": 0.95
+        },
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/zh/shader/effect-syntax.html",
+          "summary": "Cocos Effect着色器语法详解",
+          "quality": "gold",
+          "quality_score": 0.92
+        },
+        {
+          "type": "interactive",
+          "url": "https://thebookofshaders.com/",
+          "summary": "The Book of Shaders - 交互式GLSL学习网站",
+          "quality": "gold",
+          "quality_score": 0.9
+        }
+      ],
+      "assessment": {
+        "type": "practical_task",
+        "description": "编写一个简单的片段着色器，实现颜色渐变效果",
+        "acceptance_criteria": [
+          "正确使用vec4定义颜色",
+          "使用mix函数实现颜色插值",
+          "理解uv坐标的含义"
+        ]
+      },
+      "estimated_effort": "medium",
+      "status": "pending"
+    },
+    {
+      "id": "KP-3",
+      "title": "Cocos Effect文件结构",
+      "description": "掌握Cocos Creator特有的Effect文件格式：CCEffect YAML声明、CCProgram着色器代码块、techniques/passes配置、properties属性定义。",
+      "prerequisites": ["KP-2"],
+      "topic_refs": ["cocos-effect", "shader-framework"],
+      "phase": 2,
+      "resources": [
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/en/shader/effect-syntax.html",
+          "summary": "Cocos Shader语法官方文档 - 完整的Effect文件结构说明",
+          "quality": "gold",
+          "quality_score": 0.98
+        },
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/en/shader/write-effect-overview.html",
+          "summary": "自定义Effect概述 - 如何创建和组织Effect文件",
+          "quality": "gold",
+          "quality_score": 0.92
+        }
+      ],
+      "assessment": {
+        "type": "practical_task",
+        "description": "创建一个完整的Cocos Effect文件，包含基本的顶点和片段着色器",
+        "acceptance_criteria": [
+          "正确的CCEffect YAML结构",
+          "定义至少一个technique和pass",
+          "使用properties暴露可调参数"
+        ]
+      },
+      "estimated_effort": "medium",
+      "status": "pending"
+    },
+    {
+      "id": "KP-4",
+      "title": "2D Sprite着色器实战",
+      "description": "学习Cocos Creator内置的2D Sprite着色器结构，实现常见的2D效果：灰度、渐变、溶解、描边等。",
+      "prerequisites": ["KP-3"],
+      "topic_refs": ["2d-shader", "sprite-effect"],
+      "phase": 2,
+      "resources": [
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/en/shader/write-effect-2d-sprite-gradient.html",
+          "summary": "官方2D Sprite渐变效果教程 - 完整的Shader代码示例",
+          "quality": "gold",
+          "quality_score": 0.95
+        },
+        {
+          "type": "tutorial",
+          "url": "https://codeinterstellar.medium.com/creating-dynamic-filter-effect-in-cocos-creator-a-three-mode-shader-guide-e29b32fab5a9",
+          "summary": "Cocos Creator动态滤镜效果 - 三模式Shader指南(灰度/反色/正常)",
+          "quality": "silver",
+          "quality_score": 0.75
+        }
+      ],
+      "assessment": {
+        "type": "practical_task",
+        "description": "实现一个2D Sprite溶解效果Shader",
+        "acceptance_criteria": [
+          "使用噪声纹理控制溶解",
+          "支持溶解进度参数调节",
+          "边缘有颜色过渡效果"
+        ]
+      },
+      "estimated_effort": "hard",
+      "status": "pending"
+    },
+    {
+      "id": "KP-5",
+      "title": "Surface Shader架构",
+      "description": "学习Cocos Creator 3.7+的Surface Shader架构：表面材质数据、光照模型、PBR材质参数。理解Surface Shader与传统Shader的区别。",
+      "prerequisites": ["KP-3"],
+      "topic_refs": ["surface-shader", "pbr"],
+      "phase": 2,
+      "resources": [
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/en/shader/surface-shader/builtin-surface-shader.html",
+          "summary": "内置Surface Shader指南 - 详细的架构和使用说明",
+          "quality": "gold",
+          "quality_score": 0.95
+        },
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/en/shader/surface-shader/shader-code-flow.html",
+          "summary": "Surface Shader执行流程 - GBuffer输出和着色器代码组织",
+          "quality": "gold",
+          "quality_score": 0.9
+        },
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/en/shader/surface-shader/customize-surface-shader.html",
+          "summary": "自定义Surface Shader - 修改光照结果和材质数据",
+          "quality": "gold",
+          "quality_score": 0.88
+        }
+      ],
+      "assessment": {
+        "type": "practical_task",
+        "description": "基于Surface Shader创建一个自定义材质效果",
+        "acceptance_criteria": [
+          "理解SurfacesMaterialData结构",
+          "能够修改光照计算结果",
+          "实现自定义的材质表现"
+        ]
+      },
+      "estimated_effort": "hard",
+      "status": "pending"
+    },
+    {
+      "id": "KP-6",
+      "title": "DrawCall与批处理优化",
+      "description": "深入理解DrawCall概念、批处理原理、动态合批/静态合批条件、图集使用最佳实践。",
+      "prerequisites": ["KP-1"],
+      "topic_refs": ["drawcall", "batching", "rendering-optimization"],
+      "phase": 3,
+      "resources": [
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/zh/ui-system/components/engine/ui-batch.html",
+          "summary": "Cocos UI批处理文档 - 官方批处理机制说明",
+          "quality": "gold",
+          "quality_score": 0.9
+        },
+        {
+          "type": "tutorial",
+          "url": "https://forum.cocos.org/t/cocos-creator-drawcall/95677",
+          "summary": "Cocos论坛DrawCall优化专题讨论",
+          "quality": "silver",
+          "quality_score": 0.7
+        }
+      ],
+      "assessment": {
+        "type": "practical_task",
+        "description": "对一个UI场景进行DrawCall优化",
+        "acceptance_criteria": [
+          "使用图集减少DrawCall",
+          "正确配置批处理条件",
+          "DrawCall数量减少50%以上"
+        ]
+      },
+      "estimated_effort": "medium",
+      "status": "pending"
+    },
+    {
+      "id": "KP-7",
+      "title": "纹理压缩与内存优化",
+      "description": "学习不同平台的纹理压缩格式(ASTC/ETC2/PVRTC)、mipmap使用、纹理尺寸优化策略。",
+      "prerequisites": ["KP-6"],
+      "topic_refs": ["texture-compression", "memory-optimization"],
+      "phase": 3,
+      "resources": [
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/zh/asset/compress-texture.html",
+          "summary": "Cocos纹理压缩官方文档 - 各平台格式支持和配置",
+          "quality": "gold",
+          "quality_score": 0.92
+        },
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/zh/asset/texture.html",
+          "summary": "纹理资源文档 - 纹理参数和优化设置",
+          "quality": "gold",
+          "quality_score": 0.88
+        }
+      ],
+      "assessment": {
+        "type": "practical_task",
+        "description": "为一个项目配置多平台纹理压缩方案",
+        "acceptance_criteria": [
+          "iOS使用ASTC格式",
+          "Android使用ETC2格式",
+          "验证内存占用减少"
+        ]
+      },
+      "estimated_effort": "medium",
+      "status": "pending"
+    },
+    {
+      "id": "KP-8",
+      "title": "后处理效果",
+      "description": "学习Cocos Creator后处理管线：Bloom、色调映射、抗锯齿、景深等效果的原理和使用。",
+      "prerequisites": ["KP-5"],
+      "topic_refs": ["post-processing", "render-pipeline"],
+      "phase": 3,
+      "resources": [
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/zh/render-pipeline/use-post-process.html",
+          "summary": "使用后处理效果官方文档 - 完整的后处理配置指南",
+          "quality": "gold",
+          "quality_score": 0.93
+        },
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/zh/render-pipeline/write-render-pipeline.html",
+          "summary": "编写渲染管线 - 自定义后处理Pass",
+          "quality": "gold",
+          "quality_score": 0.88
+        }
+      ],
+      "assessment": {
+        "type": "practical_task",
+        "description": "为3D场景添加Bloom和色调映射后处理",
+        "acceptance_criteria": [
+          "正确配置后处理Volume",
+          "实现Bloom发光效果",
+          "理解HDR和色调映射关系"
+        ]
+      },
+      "estimated_effort": "hard",
+      "status": "pending"
+    },
+    {
+      "id": "KP-9",
+      "title": "光照与阴影优化",
+      "description": "掌握Cocos Creator的光照系统：光源类型、阴影贴图、级联阴影(CSM)、光照烘焙基础。",
+      "prerequisites": ["KP-5", "KP-6"],
+      "topic_refs": ["lighting", "shadow", "optimization"],
+      "phase": 3,
+      "resources": [
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/zh/concepts/scene/light.html",
+          "summary": "光照系统官方文档 - 光源类型和配置",
+          "quality": "gold",
+          "quality_score": 0.9
+        },
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/zh/concepts/scene/shadow.html",
+          "summary": "阴影系统文档 - 阴影配置和性能优化",
+          "quality": "gold",
+          "quality_score": 0.88
+        }
+      ],
+      "assessment": {
+        "type": "practical_task",
+        "description": "优化一个3D场景的光照和阴影性能",
+        "acceptance_criteria": [
+          "合理配置阴影分辨率",
+          "使用级联阴影优化远景",
+          "帧率提升或保持稳定"
+        ]
+      },
+      "estimated_effort": "hard",
+      "status": "pending"
+    },
+    {
+      "id": "KP-10",
+      "title": "渲染性能分析与调试",
+      "description": "学习使用Cocos Creator的性能分析工具、Chrome DevTools、GPU Profiler进行渲染瓶颈分析。",
+      "prerequisites": ["KP-6", "KP-7"],
+      "topic_refs": ["profiling", "debugging", "performance"],
+      "phase": 4,
+      "resources": [
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/zh/editor/preview/browser-debugging.html",
+          "summary": "浏览器调试文档 - 使用DevTools分析性能",
+          "quality": "gold",
+          "quality_score": 0.85
+        },
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/zh/advanced-topics/profiler.html",
+          "summary": "性能分析器文档 - Cocos内置分析工具使用",
+          "quality": "gold",
+          "quality_score": 0.88
+        }
+      ],
+      "assessment": {
+        "type": "practical_task",
+        "description": "分析并优化一个存在性能问题的场景",
+        "acceptance_criteria": [
+          "使用Profiler定位瓶颈",
+          "识别是CPU还是GPU bound",
+          "提出并实施优化方案"
+        ]
+      },
+      "estimated_effort": "medium",
+      "status": "pending"
+    },
+    {
+      "id": "KP-11",
+      "title": "综合项目：自定义渲染效果",
+      "description": "综合运用所学知识，实现一个完整的自定义渲染效果（如：卡通渲染、水面效果、或粒子特效增强）。",
+      "prerequisites": ["KP-4", "KP-5", "KP-8", "KP-9"],
+      "topic_refs": ["comprehensive", "custom-rendering"],
+      "phase": 4,
+      "resources": [
+        {
+          "type": "documentation",
+          "url": "https://docs.cocos.com/creator/3.8/manual/en/shader/index.html",
+          "summary": "Cocos Shader完整文档索引",
+          "quality": "gold",
+          "quality_score": 0.95
+        },
+        {
+          "type": "example",
+          "url": "https://github.com/cocos/cocos-example-render-pipeline",
+          "summary": "Cocos官方渲染管线示例项目",
+          "quality": "gold",
+          "quality_score": 0.9
+        }
+      ],
+      "assessment": {
+        "type": "practical_task",
+        "description": "完成一个自定义渲染效果的完整实现",
+        "acceptance_criteria": [
+          "效果视觉表现符合预期",
+          "性能在目标设备上达标",
+          "代码结构清晰可维护"
+        ]
+      },
+      "estimated_effort": "hard",
+      "status": "pending"
+    }
+  ],
+  "phases": [
+    {
+      "phase_number": 1,
+      "phase_name": "Foundation",
+      "knowledge_point_ids": ["KP-1", "KP-2"],
+      "description": "建立渲染和着色器语言的基础概念",
+      "status": "active"
+    },
+    {
+      "phase_number": 2,
+      "phase_name": "Core Concepts",
+      "knowledge_point_ids": ["KP-3", "KP-4", "KP-5"],
+      "description": "掌握Cocos Creator特有的Shader框架和实际编写",
+      "status": "locked"
+    },
+    {
+      "phase_number": 3,
+      "phase_name": "Advanced Topics",
+      "knowledge_point_ids": ["KP-6", "KP-7", "KP-8", "KP-9"],
+      "description": "深入渲染优化技术和高级效果",
+      "status": "locked"
+    },
+    {
+      "phase_number": 4,
+      "phase_name": "Mastery",
+      "knowledge_point_ids": ["KP-10", "KP-11"],
+      "description": "性能分析和综合项目实践",
+      "status": "locked"
+    }
+  ],
+  "dependency_graph": {
+    "nodes": ["KP-1", "KP-2", "KP-3", "KP-4", "KP-5", "KP-6", "KP-7", "KP-8", "KP-9", "KP-10", "KP-11"],
+    "edges": [
+      {"from": "KP-1", "to": "KP-2"},
+      {"from": "KP-2", "to": "KP-3"},
+      {"from": "KP-3", "to": "KP-4"},
+      {"from": "KP-3", "to": "KP-5"},
+      {"from": "KP-1", "to": "KP-6"},
+      {"from": "KP-6", "to": "KP-7"},
+      {"from": "KP-5", "to": "KP-8"},
+      {"from": "KP-5", "to": "KP-9"},
+      {"from": "KP-6", "to": "KP-9"},
+      {"from": "KP-6", "to": "KP-10"},
+      {"from": "KP-7", "to": "KP-10"},
+      {"from": "KP-4", "to": "KP-11"},
+      {"from": "KP-5", "to": "KP-11"},
+      {"from": "KP-8", "to": "KP-11"},
+      {"from": "KP-9", "to": "KP-11"}
+    ]
+  },
+  "_metadata": {
+    "created_at": "2026-01-29T12:30:00.000Z",
+    "updated_at": "2026-01-29T12:30:00.000Z",
+    "total_knowledge_points": 11,
+    "generation_method": "learn-planning-agent",
+    "profile_fingerprint": {
+      "profile_id": "profile-1738161600000",
+      "known_topics_count": 5,
+      "generated_at": "2026-01-29T12:30:00.000Z"
+    },
+    "learning_order": ["KP-1", "KP-2", "KP-6", "KP-3", "KP-7", "KP-4", "KP-5", "KP-10", "KP-8", "KP-9", "KP-11"]
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "topic_id": "cocos_dev_core",
+  "taxonomy_version": "tax_v0.1",
+  "taxonomy_id": "tax_cocos_dev_core",
+  "notes": {
+    "input_policy": "text_only",
+    "no_multiple_choice": true,
+    "levels_are_internal": true
+  },
+  "questions": [
+    {
+      "question_id": "cc-L1-001",
+      "level": "L1",
+      "question_type": "explain",
+      "question": "在 Cocos Creator 里，Node 和 Component 分别是什么？它们之间是什么关系？",
+      "expected_subpoints": ["sp_cc_node_component"]
+    },
+    {
+      "question_id": "cc-L1-002",
+      "level": "L1",
+      "question_type": "explain",
+      "question": "简要解释一个组件的生命周期（例如 onLoad/start/update/onEnable/onDisable/onDestroy）大概在什么时候触发，各自适合做什么。",
+      "expected_subpoints": ["sp_cc_lifecycle"]
+    },
+    {
+      "question_id": "cc-L1-003",
+      "level": "L1",
+      "question_type": "explain",
+      "question": "Prefab 是什么？你通常会在什么场景下用 prefab？",
+      "expected_subpoints": ["sp_cc_scene_prefab"]
+    },
+
+    {
+      "question_id": "cc-L2-001",
+      "level": "L2",
+      "question_type": "derive",
+      "question": "如果你要在组件里让一个节点以固定速度移动（与帧率无关），你会怎么写 update 逻辑？请给出关键公式/伪代码并说明注意点。",
+      "expected_subpoints": ["sp_cc_lifecycle", "sp_cc_coordinate_camera"],
+      "inferred_skills_proposals": ["Cocos component workflow fundamentals"]
+    },
+    {
+      "question_id": "cc-L2-002",
+      "level": "L2",
+      "question_type": "explain",
+      "question": "你会把“事件注册/解绑”（例如 input/自定义事件）放在生命周期的哪个阶段？为什么？如果不解绑会发生什么问题？",
+      "expected_subpoints": ["sp_cc_lifecycle", "sp_cc_events_input"],
+      "inferred_skills_proposals": ["Cocos component workflow fundamentals"]
+    },
+    {
+      "question_id": "cc-L2-003",
+      "level": "L2",
+      "question_type": "compare",
+      "question": "比较“场景里直接搭节点”与“用 prefab + instantiate”的优缺点，并举一个你会选择 prefab 的理由。",
+      "expected_subpoints": ["sp_cc_scene_prefab"],
+      "inferred_skills_proposals": ["Cocos component workflow fundamentals"]
+    },
+
+    {
+      "question_id": "cc-L3-001",
+      "level": "L3",
+      "question_type": "explain",
+      "question": "UI 适配里 anchors/widgets 常见会踩哪些坑？在不同分辨率下，你会如何验证布局没有问题？",
+      "expected_subpoints": ["sp_cc_ui_layout"],
+      "inferred_skills_proposals": []
+    },
+    {
+      "question_id": "cc-L3-002",
+      "level": "L3",
+      "question_type": "compare",
+      "question": "资源加载与释放该如何设计，才能避免卡顿和内存泄漏？请说明至少一个 tradeoff（例如：缓存 vs 内存）。",
+      "expected_subpoints": ["sp_cc_assets_resources", "sp_cc_update_perf", "sp_cc_bundles"],
+      "inferred_skills_proposals": ["Cocos asset loading & lifecycle fundamentals"]
+    },
+    {
+      "question_id": "cc-L3-003",
+      "level": "L3",
+      "question_type": "explain",
+      "question": "渲染性能里 draw calls / overdraw / batching 各意味着什么？在 Cocos 的 UI 场景里你会优先怎么排查与优化？",
+      "expected_subpoints": ["sp_cc_render_perf", "sp_cc_profiling"],
+      "inferred_skills_proposals": ["Cocos performance profiling & optimization fundamentals"]
+    },
+
+    {
+      "question_id": "cc-L4-001",
+      "level": "L4",
+      "question_type": "debug",
+      "question": "现象：进入/退出某个界面多次后越来越卡，内存也持续上涨。请给出一个可执行的排查路径（复现、观测点、可能原因、验证修复）。",
+      "expected_subpoints": ["sp_cc_debug_strategy", "sp_cc_assets_resources", "sp_cc_profiling"],
+      "inferred_skills_proposals": ["Cocos asset loading & lifecycle fundamentals", "Cocos performance profiling & optimization fundamentals"]
+    },
+    {
+      "question_id": "cc-L4-002",
+      "level": "L4",
+      "question_type": "debug",
+      "question": "现象：某些设备上点击按钮偶尔无响应。你会如何定位是事件没触发、被遮挡、还是逻辑阻塞？请给出排查步骤。",
+      "expected_subpoints": ["sp_cc_debug_strategy", "sp_cc_events_input", "sp_cc_ui_layout"],
+      "inferred_skills_proposals": []
+    },
+    {
+      "question_id": "cc-L4-003",
+      "level": "L4",
+      "question_type": "derive",
+      "question": "假设你要做“分包/按需加载”，请说明你会如何组织 bundles 与加载策略，并说明一个可能的风险与缓解方式。",
+      "expected_subpoints": ["sp_cc_bundles", "sp_cc_assets_resources", "sp_cc_build_release"],
+      "inferred_skills_proposals": ["Cocos asset loading & lifecycle fundamentals"]
+    }
+  ]
+}
+

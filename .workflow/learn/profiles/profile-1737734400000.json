@@ -1,61 +1,39 @@
 {
   "$schema": "./schemas/learn-profile.schema.json",
   "profile_id": "profile-1737734400000",
-  "experience_level": "intermediate",
-  "known_topics": [
-    {
-      "topic_id": "typescript",
-      "proficiency": 0.7,
-      "confidence": 0.7,
-      "last_updated": "2025-01-24T12:00:00.000Z",
-      "evidence": [
-        "Conceptual check: correct - identified 'type' keyword purpose",
-        "Depth verification: good understanding of type vs interface (interface=capabilities, type=composition)"
-      ]
-    },
-    {
-      "topic_id": "git",
-      "proficiency": 0.6,
-      "confidence": 0.7,
-      "last_updated": "2025-01-24T12:00:00.000Z",
-      "evidence": [
-        "Conceptual check: correct - 'git checkout -b' creates and switches new branch"
-      ]
-    },
-    {
-      "topic_id": "node.js",
-      "proficiency": 0.6,
-      "confidence": 0.7,
-      "last_updated": "2025-01-24T12:00:00.000Z",
-      "evidence": [
-        "Conceptual check: correct - identified fs module for file operations"
-      ]
-    },
-    {
-      "topic_id": "javascript",
-      "proficiency": 0.3,
-      "confidence": 0.5,
-      "last_updated": "2025-01-24T12:00:00.000Z",
-      "evidence": [
-        "Conceptual check: incorrect - confused closures with async/promises (needs review)"
-      ]
-    }
-  ],
+  "known_topics": [],
+  "experience_level": null,
   "learning_preferences": {
-    "style": "practical",
-    "preferred_sources": [
-      "official-docs",
-      "interactive-tutorials",
-      "video-courses",
-      "books-articles"
-    ]
+    "style": "mixed",
+    "preferred_sources": ["official-docs", "interactive"]
+  },
+  "pre_context": {
+    "raw": {
+      "pre_q1_style": "mixed",
+      "pre_q2_sources": ["official-docs", "interactive"],
+      "pre_q3_time": "2-5",
+      "pre_q4_context": "project"
+    },
+    "parsed": {
+      "learning_style": "mixed",
+      "preferred_sources": ["official-docs", "interactive"],
+      "time_budget": "2-5",
+      "learning_context": "project"
+    },
+    "provenance": {
+      "template_version": "pre_context_v1.3",
+      "captured_at": "2026-01-29T00:00:00.000Z",
+      "asked_vs_reused": "asked",
+      "gating_reason": "sample"
+    }
   },
   "feedback_journal": [],
   "_metadata": {
-    "created_at": "2025-01-24T12:00:00.000Z",
-    "updated_at": "2025-01-24T12:00:00.000Z",
+    "created_at": "2026-01-29T00:00:00.000Z",
+    "updated_at": "2026-01-29T00:00:00.000Z",
     "version": "1.0.0",
-    "goal_type": "skill",
-    "assessment_method": "evidence-based"
+    "goal_type": null,
+    "assessment_method": "minimal",
+    "completion_percent": 60
   }
 }

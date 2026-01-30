@@ -1,0 +1,153 @@
+{
+  "$schema": "./schemas/learn-profile.schema.json",
+  "profile_id": "profile-1738161600000",
+  "is_minimal": false,
+  "experience_level": "intermediate",
+  "known_topics": [
+    {
+      "topic_id": "typescript",
+      "proficiency": 0.7,
+      "confidence": 0.5,
+      "last_updated": "2026-01-29T12:00:00.000Z",
+      "evidence": [
+        {
+          "evidence_type": "self-report",
+          "kind": "background_inference",
+          "timestamp": "2026-01-29T12:00:00.000Z",
+          "summary": "从背景描述中推断: Cocos开发程序员，1年工作经验，主要使用 TypeScript",
+          "data": { "source": "background_description", "usage_frequency": "often" }
+        }
+      ]
+    },
+    {
+      "topic_id": "cocos-creator",
+      "proficiency": 0.7,
+      "confidence": 0.5,
+      "last_updated": "2026-01-29T12:00:00.000Z",
+      "evidence": [
+        {
+          "evidence_type": "self-report",
+          "kind": "background_inference",
+          "timestamp": "2026-01-29T12:00:00.000Z",
+          "summary": "从背景描述中推断: 可以熟练使用Cocos引擎进行游戏开发，但对引擎实现细节不清",
+          "data": { "source": "background_description", "usage_frequency": "often" }
+        }
+      ]
+    },
+    {
+      "topic_id": "game-development-fundamentals",
+      "proficiency": 0.48,
+      "confidence": 0.6,
+      "last_updated": "2026-01-29T12:30:00.000Z",
+      "evidence": [
+        {
+          "evidence_type": "self-report",
+          "kind": "background_inference",
+          "timestamp": "2026-01-29T12:00:00.000Z",
+          "summary": "从背景描述中推断: 游戏开发知识整体向不足，设计模式、游戏循环等接触过",
+          "data": { "source": "background_description", "usage_frequency": "touched" }
+        },
+        {
+          "evidence_type": "conceptual",
+          "kind": "detailed_assessment",
+          "timestamp": "2026-01-29T12:30:00.000Z",
+          "summary": "详细子领域评估: 游戏循环(60%)、设计模式(55%)、物理系统(45%)、渲染优化(40%)、AI寻路(40%)、资源管理(45%)、UI系统(50%)",
+          "data": {
+            "sub_topics": {
+              "game_loop": {
+                "proficiency": 0.6,
+                "notes": "理解逻辑帧/渲染帧、deltaTime、固定物理步长概念"
+              },
+              "design_patterns": {
+                "proficiency": 0.55,
+                "notes": "能清晰解释状态机、观察者、组件、对象池的核心用途"
+              },
+              "physics_system": {
+                "proficiency": 0.45,
+                "notes": "用过Cocos基本碰撞和刚体类型（静态/动态/动画态）"
+              },
+              "rendering_optimization": {
+                "proficiency": 0.4,
+                "notes": "理解DrawCall、图集概念；Shader不了解"
+              },
+              "ai_pathfinding": {
+                "proficiency": 0.4,
+                "notes": "理解行为树概念（节点/BlackList）；FSM印象模糊；A*/导航网格概念了解"
+              },
+              "resource_management": {
+                "proficiency": 0.45,
+                "notes": "了解AB包基本使用和分包概念；热更新未实践"
+              },
+              "ui_system": {
+                "proficiency": 0.5,
+                "notes": "使用过现成架构；事件系统清楚；列表优化实践过但未自己设计"
+              }
+            },
+            "assessment_method": "conceptual_questions",
+            "weak_areas": ["渲染管线原理", "Shader编写", "热更新实践", "FSM细节"],
+            "strong_areas": ["游戏循环概念", "设计模式理解", "事件系统"]
+          }
+        }
+      ]
+    },
+    {
+      "topic_id": "wechat-minigame",
+      "proficiency": 0.4,
+      "confidence": 0.4,
+      "last_updated": "2026-01-29T12:00:00.000Z",
+      "evidence": [
+        {
+          "evidence_type": "self-report",
+          "kind": "background_inference",
+          "timestamp": "2026-01-29T12:00:00.000Z",
+          "summary": "从背景描述中推断: 微信小游戏开发经验不够",
+          "data": { "source": "background_description", "usage_frequency": "touched" }
+        }
+      ]
+    },
+    {
+      "topic_id": "vibe-coding",
+      "proficiency": 0.7,
+      "confidence": 0.5,
+      "last_updated": "2026-01-29T12:00:00.000Z",
+      "evidence": [
+        {
+          "evidence_type": "self-report",
+          "kind": "background_inference",
+          "timestamp": "2026-01-29T12:00:00.000Z",
+          "summary": "从背景描述中推断: 可能存在Vibe Coding能力（AI辅助编程）",
+          "data": { "source": "background_description", "usage_frequency": "often" }
+        }
+      ]
+    }
+  ],
+  "background": {
+    "work_experience": [
+      {
+        "role": "Cocos开发程序员",
+        "technologies": ["TypeScript", "Cocos Creator"],
+        "duration_years": 1
+      }
+    ]
+  },
+  "learning_preferences": {
+    "style": "practical",
+    "preferred_sources": ["interactive-tutorials"],
+    "focus": "depth",
+    "approach": "practice-first"
+  },
+  "career_context": {
+    "current_role": "Cocos游戏开发程序员",
+    "career_change_intent": "none"
+  },
+  "feedback_journal": [],
+  "_metadata": {
+    "created_at": "2026-01-29T12:00:00.000Z",
+    "updated_at": "2026-01-29T12:30:00.000Z",
+    "version": "1.0.0",
+    "goal_type": "skill",
+    "assessment_method": "conceptual",
+    "completion_percent": 75,
+    "notes": "处于需要进阶的阶段，对Cocos引擎熟练但对引擎实现细节不清，游戏开发知识整体向不足。已完成游戏开发基础详细评估。"
+  }
+}

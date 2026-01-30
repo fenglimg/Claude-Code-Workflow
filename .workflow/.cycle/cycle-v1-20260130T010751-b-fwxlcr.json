@@ -1,0 +1,272 @@
+{
+  "cycle_id": "cycle-v1-20260130T010751-b-fwxlcr",
+  "title": "Milestone B: profile snapshot + events + rollback",
+  "description": "Source TASK: .workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-task-milestone-b.md\n\nObjective: Introduce profile_snapshot read model + append-only profile_events audit log with fold/rebuild, inferred skill state machine, and rollback_to_version.\n\nNOTE: This cycle run produced requirements/plan artifacts only (no code changes executed in this cycle run).",
+  "task_history": [
+    "Milestone B: profile snapshot + events + rollback"
+  ],
+  "status": "completed",
+  "created_at": "2026-01-30T01:07:51+08:00",
+  "updated_at": "2026-01-30T01:09:54+08:00",
+  "completed_at": "2026-01-30T01:09:54+08:00",
+  "max_iterations": 5,
+  "current_iteration": 1,
+  "agents": {
+    "ra": {
+      "status": "completed",
+      "started_at": "2026-01-30T01:10:10+08:00",
+      "completed_at": "2026-01-30T01:10:55+08:00",
+      "output_files": [
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/ra/requirements.md",
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/ra/changes.log"
+      ],
+      "iterations_completed": 1
+    },
+    "ep": {
+      "status": "completed",
+      "started_at": "2026-01-30T01:10:55+08:00",
+      "completed_at": "2026-01-30T01:11:30+08:00",
+      "output_files": [
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/ep/exploration.md",
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/ep/architecture.md",
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/ep/plan.json",
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/ep/changes.log"
+      ],
+      "iterations_completed": 1
+    },
+    "cd": {
+      "status": "completed",
+      "started_at": "2026-01-30T01:11:30+08:00",
+      "completed_at": "2026-01-30T01:11:50+08:00",
+      "output_files": [
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/cd/implementation.md",
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/cd/issues.md",
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/cd/changes.log",
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/cd/debug-log.ndjson"
+      ],
+      "iterations_completed": 1
+    },
+    "vas": {
+      "status": "completed",
+      "started_at": "2026-01-30T01:11:50+08:00",
+      "completed_at": "2026-01-30T01:12:10+08:00",
+      "output_files": [
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/vas/validation.md",
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/vas/test-results.json",
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/vas/coverage.md",
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/vas/summary.md",
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/vas/changes.log"
+      ],
+      "iterations_completed": 1
+    }
+  },
+  "current_phase": "complete",
+  "completed_phases": [
+    "ra",
+    "ep",
+    "cd",
+    "vas",
+    "aggregation",
+    "complete"
+  ],
+  "phase_errors": [],
+  "requirements": {
+    "version": "1.0.0",
+    "specification": "See requirements.md",
+    "edge_cases": [
+      "event immutability",
+      "fold determinism/idempotency",
+      "rollback does not delete history",
+      "inferred state transitions + cooldown/new evidence"
+    ],
+    "last_updated": "2026-01-30T01:10:55+08:00"
+  },
+  "exploration": {
+    "version": "1.0.0",
+    "architecture_summary": "See exploration.md/architecture.md",
+    "integration_points": [
+      "ccw/src/commands/learn.ts (profile read/write, locking, atomicWriteJson)",
+      ".claude/workflows/cli-templates/schemas/learn-profile.schema.json (schema)",
+      ".claude/commands/learn/_internal/logger.js (JSONL append pattern)"
+    ],
+    "identified_risks": [
+      "Choosing event storage format and ensuring atomic append",
+      "Backwards compatibility migration from existing profile JSON",
+      "Potential event stream growth and rebuild performance"
+    ],
+    "last_updated": "2026-01-30T01:11:30+08:00"
+  },
+  "plan": {
+    "version": "1.0.0",
+    "tasks": [
+      {
+        "id": "TASK-001",
+        "description": "Define profile_snapshot schema",
+        "effort": "medium",
+        "depends_on": [],
+        "status": "pending",
+        "assigned_to": "ra",
+        "files": [
+          ".claude/workflows/cli-templates/schemas/learn-profile.schema.json",
+          "ccw/src/commands/learn.ts"
+        ]
+      },
+      {
+        "id": "TASK-002",
+        "description": "Define append-only profile_events types + payloads",
+        "effort": "medium",
+        "depends_on": [],
+        "status": "pending",
+        "assigned_to": "ep",
+        "files": [
+          "ccw/src/commands/learn.ts",
+          "ccw/src/learn/*"
+        ]
+      },
+      {
+        "id": "TASK-003",
+        "description": "Implement append_event write interface + version strategy",
+        "effort": "large",
+        "depends_on": [
+          "TASK-002"
+        ],
+        "status": "pending",
+        "assigned_to": "cd",
+        "files": [
+          "ccw/src/commands/learn.ts",
+          "ccw/src/learn/*"
+        ]
+      },
+      {
+        "id": "TASK-004",
+        "description": "Implement fold/rebuild snapshot strategy (target_version supported)",
+        "effort": "large",
+        "depends_on": [
+          "TASK-001",
+          "TASK-003"
+        ],
+        "status": "pending",
+        "assigned_to": "cd",
+        "files": [
+          "ccw/src/learn/*",
+          "ccw/src/commands/learn.ts"
+        ]
+      },
+      {
+        "id": "TASK-005",
+        "description": "Implement inferred state machine + user confirm/reject",
+        "effort": "large",
+        "depends_on": [
+          "TASK-001",
+          "TASK-002",
+          "TASK-003"
+        ],
+        "status": "pending",
+        "assigned_to": "cd",
+        "files": [
+          ".claude/commands/learn/profile.md",
+          "ccw/src/learn/*"
+        ]
+      },
+      {
+        "id": "TASK-006",
+        "description": "Implement rollback_to_version (event + rebuild)",
+        "effort": "medium",
+        "depends_on": [
+          "TASK-004"
+        ],
+        "status": "pending",
+        "assigned_to": "cd",
+        "files": [
+          "ccw/src/learn/*",
+          "ccw/src/commands/learn.ts"
+        ]
+      },
+      {
+        "id": "TASK-007",
+        "description": "Metrics + explainability (evidence/provenance minimum closure)",
+        "effort": "medium",
+        "depends_on": [
+          "TASK-003",
+          "TASK-005",
+          "TASK-006"
+        ],
+        "status": "pending",
+        "assigned_to": "vas",
+        "files": [
+          "ccw/src/learn/*",
+          "ccw/src/commands/learn.ts"
+        ]
+      }
+    ],
+    "total_estimated_effort": "Large",
+    "critical_path": [
+      "TASK-002",
+      "TASK-003",
+      "TASK-001",
+      "TASK-004",
+      "TASK-006"
+    ],
+    "last_updated": "2026-01-30T01:11:30+08:00"
+  },
+  "changes": {
+    "total_files": 0,
+    "changes": [],
+    "iteration_markers": {
+      "1": "2026-01-30T01:09:54+08:00"
+    }
+  },
+  "test_results": {
+    "version": "1.0.0",
+    "pass_rate": 0,
+    "coverage": 0,
+    "failed_tests": [],
+    "total_tests": 0,
+    "last_run": "2026-01-30T01:12:10+08:00"
+  },
+  "iterations": [
+    {
+      "number": 1,
+      "started_at": "2026-01-30T01:07:51+08:00",
+      "completed_at": "2026-01-30T01:12:10+08:00",
+      "agent_results": {
+        "ra": {
+          "status": "completed",
+          "files_modified": 2
+        },
+        "ep": {
+          "status": "completed",
+          "files_modified": 4
+        },
+        "cd": {
+          "status": "completed",
+          "files_modified": 4
+        },
+        "vas": {
+          "status": "completed",
+          "files_modified": 5
+        }
+      },
+      "issues_found": [
+        "Decision needed: event storage format (JSONL file vs per-event JSON)"
+      ],
+      "resolved": false
+    }
+  ],
+  "coordination": {
+    "feedback_log": [],
+    "pending_decisions": [
+      {
+        "id": "DEC-101",
+        "description": "profile_events storage format + atomicity strategy",
+        "options": [
+          "JSONL append file per profile (reuse Logger/issue JSONL patterns)",
+          "One JSON per event file + directory ordering",
+          "Single events.json array (not recommended: update costs and corruption risk)"
+        ],
+        "status": "pending"
+      }
+    ],
+    "blockers": []
+  }
+}

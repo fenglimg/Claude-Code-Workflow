@@ -1,0 +1,41 @@
+{
+  "topic_id": "{{topic_id}}",
+  "taxonomy_version": "tax_v0.1",
+  "taxonomy_id": "tax_{{topic_id}}",
+  "notes": {
+    "input_policy": "text_only",
+    "no_multiple_choice": true,
+    "levels_are_internal": true
+  },
+  "questions": [
+    {
+      "question_id": "{{topic_short}}-L1-001",
+      "level": "L1",
+      "question_type": "explain",
+      "question": "用自己的话解释 {{core_concept_1}} 是什么？",
+      "expected_subpoints": ["sp_{{topic_id}}_core_1"]
+    },
+    {
+      "question_id": "{{topic_short}}-L2-001",
+      "level": "L2",
+      "question_type": "derive",
+      "question": "给定 {{scenario}}, 你会怎么做？请写出关键步骤/公式，并说明注意点。",
+      "expected_subpoints": ["sp_{{topic_id}}_workflow_1", "sp_{{topic_id}}_core_1"]
+    },
+    {
+      "question_id": "{{topic_short}}-L3-001",
+      "level": "L3",
+      "question_type": "compare",
+      "question": "比较 A 与 B：分别适用场景与代价是什么？请至少说明一个 tradeoff/边界条件。",
+      "expected_subpoints": ["sp_{{topic_id}}_tradeoff_1"]
+    },
+    {
+      "question_id": "{{topic_short}}-L4-001",
+      "level": "L4",
+      "question_type": "debug",
+      "question": "现象：{{symptom}}。请给出一个可执行的排查路径（复现/观测/假设/验证）。",
+      "expected_subpoints": ["sp_{{topic_id}}_diagnose_1", "sp_{{topic_id}}_pitfall_1"]
+    }
+  ]
+}
+

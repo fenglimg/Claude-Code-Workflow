@@ -1,0 +1,112 @@
+{
+  "topic_id": "game_dev_core",
+  "taxonomy_version": "tax_v0.1",
+  "taxonomy_id": "tax_game_dev_core",
+  "notes": {
+    "input_policy": "text_only",
+    "no_multiple_choice": true,
+    "levels_are_internal": true
+  },
+  "questions": [
+    {
+      "question_id": "gd-L1-001",
+      "level": "L1",
+      "question_type": "explain",
+      "question": "用自己的话解释什么是 game loop，它在一帧里通常要做哪些事情？",
+      "expected_subpoints": ["sp_game_loop"],
+      "inferred_skills_proposals": ["Gameplay loop & timestep fundamentals"]
+    },
+    {
+      "question_id": "gd-L1-002",
+      "level": "L1",
+      "question_type": "explain",
+      "question": "delta time 是什么？为什么游戏逻辑通常需要用到它？",
+      "expected_subpoints": ["sp_delta_time"],
+      "inferred_skills_proposals": ["Gameplay loop & timestep fundamentals"]
+    },
+    {
+      "question_id": "gd-L1-003",
+      "level": "L1",
+      "question_type": "explain",
+      "question": "世界坐标、局部坐标、屏幕坐标分别是什么？它们大概用在什么地方？",
+      "expected_subpoints": ["sp_coordinate_spaces"],
+      "inferred_skills_proposals": []
+    },
+
+    {
+      "question_id": "gd-L2-001",
+      "level": "L2",
+      "question_type": "derive",
+      "question": "如果你要让角色以 3 m/s 匀速移动，给定每帧 dt，你会怎么更新位置？请说明关键公式与注意点。",
+      "expected_subpoints": ["sp_delta_time", "sp_game_loop"],
+      "inferred_skills_proposals": ["Gameplay loop & timestep fundamentals"]
+    },
+    {
+      "question_id": "gd-L2-002",
+      "level": "L2",
+      "question_type": "compare",
+      "question": "解释 Update（每帧）与 fixed-step（固定步长）模拟的区别，并举一个为什么要用固定步长的例子。",
+      "expected_subpoints": ["sp_update_vs_fixedupdate", "sp_delta_time", "sp_physics_stability"],
+      "inferred_skills_proposals": ["Gameplay loop & timestep fundamentals", "Collision & physics fundamentals"]
+    },
+    {
+      "question_id": "gd-L2-003",
+      "level": "L2",
+      "question_type": "explain",
+      "question": "什么是场景树/父子节点变换？当父节点移动或缩放时，子节点的世界变换如何受影响？",
+      "expected_subpoints": ["sp_transforms_scene_graph"],
+      "inferred_skills_proposals": []
+    },
+
+    {
+      "question_id": "gd-L3-001",
+      "level": "L3",
+      "question_type": "compare",
+      "question": "物理模拟为什么更适合固定步长？使用可变 dt 会带来哪些稳定性问题？你会怎么缓解？",
+      "expected_subpoints": ["sp_update_vs_fixedupdate", "sp_physics_stability", "sp_delta_time"],
+      "inferred_skills_proposals": ["Collision & physics fundamentals"]
+    },
+    {
+      "question_id": "gd-L3-002",
+      "level": "L3",
+      "question_type": "explain",
+      "question": "渲染性能里 draw call、overdraw、culling 各自代表什么？它们通常如何影响帧率？",
+      "expected_subpoints": ["sp_render_performance"],
+      "inferred_skills_proposals": ["Rendering performance fundamentals"]
+    },
+    {
+      "question_id": "gd-L3-003",
+      "level": "L3",
+      "question_type": "explain",
+      "question": "资源加载/卸载的生命周期应该怎么设计才能避免卡顿与内存暴涨？请说出你会关注的关键点与权衡。",
+      "expected_subpoints": ["sp_asset_pipeline", "sp_resource_lifecycle", "sp_update_performance"],
+      "inferred_skills_proposals": []
+    },
+
+    {
+      "question_id": "gd-L4-001",
+      "level": "L4",
+      "question_type": "debug",
+      "question": "现象：角色偶尔会“穿墙”。请给出一个可执行的排查路径（从复现、日志/可视化、到可能原因与验证方法）。",
+      "expected_subpoints": ["sp_debug_strategy", "sp_collision_basics", "sp_physics_stability"],
+      "inferred_skills_proposals": ["Collision & physics fundamentals"]
+    },
+    {
+      "question_id": "gd-L4-002",
+      "level": "L4",
+      "question_type": "debug",
+      "question": "现象：场景中单位数从 200 增加到 500 后 FPS 从 60 掉到 25。你会如何区分是 CPU 还是 GPU 瓶颈，并给出下一步定位策略？",
+      "expected_subpoints": ["sp_profiling_workflow", "sp_update_performance", "sp_render_performance"],
+      "inferred_skills_proposals": ["Rendering performance fundamentals"]
+    },
+    {
+      "question_id": "gd-L4-003",
+      "level": "L4",
+      "question_type": "derive",
+      "question": "多人游戏中如果出现明显延迟，你如何解释“客户端预测/插值/服务器权威”的关系？你会怎么选择权衡点？",
+      "expected_subpoints": ["sp_network_latency_basics", "sp_determinism_tradeoffs"],
+      "inferred_skills_proposals": []
+    }
+  ]
+}
+

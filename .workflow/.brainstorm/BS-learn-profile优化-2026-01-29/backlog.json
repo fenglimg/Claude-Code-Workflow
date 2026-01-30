@@ -1,0 +1,467 @@
+{
+  "session_id": "BS-learn-profile优化-2026-01-29",
+  "updated_at": "2026-01-29T22:44:53+08:00",
+  "scope_note": "Engineering backlog derived from brainstorm artifacts. Interface/table names are placeholders to be mapped to the actual codebase.",
+  "shared": {
+    "policies": {
+      "assessment_input": "text_only",
+      "assessment_no_multiple_choice": true,
+      "inferred_auto_confirmed": false,
+      "rejected_repropose_cooldown_days": 30,
+      "pre_context_stale_days": 30,
+      "pre_context_skip_cooldown_days": 7,
+      "adaptive_max_level_delta_per_question": 1,
+      "adaptive_max_questions_per_topic": 6
+    },
+    "core_data_entities": [
+      { "name": "profile_snapshot", "purpose": "Read model for plan/recommendation/UI" },
+      { "name": "profile_events", "purpose": "Append-only audit log + rollback/fold source" },
+      { "name": "assessment_pack", "purpose": "taxonomy + question bank + regression set for a topic" }
+    ],
+    "event_type_catalog": {
+      "profile": [
+        "PROFILE_CREATED",
+        "PRECONTEXT_CAPTURED",
+        "FIELD_SET",
+        "ASSERTED_SKILL_ADDED",
+        "ASSERTED_SKILL_REMOVED",
+        "INFERRED_SKILL_PROPOSED",
+        "INFERRED_SKILL_UPDATED",
+        "INFERRED_SKILL_CONFIRMED",
+        "INFERRED_SKILL_REJECTED",
+        "INFERRED_SKILL_SUPERSEDED",
+        "ROLLBACK_TO_VERSION"
+      ],
+      "assessment": [
+        "ASSESSMENT_SESSION_STARTED",
+        "ASSESSMENT_QUESTION_ASKED",
+        "ASSESSMENT_ANSWER_RECORDED",
+        "ASSESSMENT_SCORED",
+        "ASSESSMENT_LEVEL_CHANGED",
+        "ASSESSMENT_SESSION_SUMMARIZED"
+      ]
+    }
+  },
+  "milestones": [
+    {
+      "id": "A",
+      "title": "pre_context_v1.3 rollout",
+      "priority": "P0",
+      "items": [
+        {
+          "id": "A1",
+          "title": "Freeze pre_context_v1.3 copy + option granularity",
+          "status": "todo",
+          "artifacts": [
+            ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/ideas/idea-pre-context-4q-template.md"
+          ],
+          "interfaces": [
+            { "name": "AskUserQuestion", "contract": "Must ask exactly 4 questions; allows options + free text (type something)." }
+          ],
+          "data_tables": [],
+          "event_types": [],
+          "acceptance_tests": [
+            "Template version is exactly pre_context_v1.3.",
+            "Exactly 4 questions; each question supports options and free text.",
+            "Does NOT ask for 2-4 week outcomes; does NOT ask accountability in these 4 questions."
+          ],
+          "metrics": []
+        },
+        {
+          "id": "A2",
+          "title": "Persist raw+parsed+provenance (non-blocking parse)",
+          "status": "todo",
+          "interfaces": [
+            { "name": "profile.write_pre_context", "contract": "Input: template_version, raw(q1-q4), parsed(optional), captured_at. Output: profile_version." }
+          ],
+          "data_tables": [
+            { "name": "profile_snapshot.data.pre_context", "change": "Add raw+parsed+provenance; keep raw as source of truth." },
+            { "name": "profile_events", "change": "Append PRECONTEXT_CAPTURED event." }
+          ],
+          "event_types": ["PRECONTEXT_CAPTURED"],
+          "acceptance_tests": [
+            "If parsing fails, raw(q1-q4) is still persisted and the flow continues.",
+            "template_version and captured_at are always persisted.",
+            "profile_snapshot reflects the latest pre_context; profile_events contains the immutable capture event."
+          ],
+          "metrics": [
+            "pre_context_capture_success_rate",
+            "pre_context_parse_failure_rate"
+          ]
+        },
+        {
+          "id": "A3",
+          "title": "Preference summary + user correction path (evented)",
+          "status": "todo",
+          "interfaces": [
+            { "name": "profile.read_preference_summary", "contract": "Return a 1-3 sentence summary derived from snapshot.parsed." },
+            { "name": "profile.apply_user_correction", "contract": "User free text -> set one or more preference fields (FIELD_SET events)." }
+          ],
+          "data_tables": [
+            { "name": "profile_snapshot.data.pre_context.parsed", "change": "Allow user-corrected values; do not overwrite raw evidence." },
+            { "name": "profile_events", "change": "Append FIELD_SET events for corrections." }
+          ],
+          "event_types": ["FIELD_SET"],
+          "acceptance_tests": [
+            "User correction updates parsed fields but does not delete/overwrite raw evidence.",
+            "Corrections are fully traceable via events (path + value + actor=user)."
+          ],
+          "metrics": [
+            "preference_correction_rate",
+            "correction_followup_questions_count"
+          ]
+        },
+        {
+          "id": "A4",
+          "title": "Reuse policy: stale/drift/skip cooldown",
+          "status": "todo",
+          "interfaces": [
+            { "name": "pre_context.gating", "contract": "Decide ask vs reuse based on last_capture_at, drift signals, skip cooldown." }
+          ],
+          "data_tables": [
+            { "name": "profile_snapshot.data.pre_context.provenance", "change": "Store captured_at for stale checks; store per-question skip markers if needed." }
+          ],
+          "event_types": [],
+          "acceptance_tests": [
+            "If last_capture_at older than pre_context_stale_days -> must ask 4 questions (allows 'no change').",
+            "If drift signal appears (user says preference mismatch) -> must ask 4 questions immediately.",
+            "If user answered 'skip' for a question -> do not ask that same question again within pre_context_skip_cooldown_days unless drift is explicit."
+          ],
+          "metrics": [
+            "pre_context_reuse_rate",
+            "pre_context_stale_trigger_rate",
+            "pre_context_drift_trigger_rate"
+          ]
+        },
+        {
+          "id": "A5",
+          "title": "Metrics: completion/skip/correction",
+          "status": "todo",
+          "interfaces": [
+            { "name": "telemetry.emit", "contract": "Emit structured events for funnel analysis." }
+          ],
+          "data_tables": [],
+          "event_types": [],
+          "acceptance_tests": [
+            "Metrics emitted include template_version and whether asked vs reused.",
+            "Skip/correction can be computed from telemetry and/or profile_events."
+          ],
+          "metrics": [
+            "pre_context_completion_rate",
+            "pre_context_skip_rate_per_question",
+            "pre_context_correction_rate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "profile snapshot + events + rollback",
+      "priority": "P0",
+      "items": [
+        {
+          "id": "B1",
+          "title": "Define profile_snapshot schema",
+          "status": "todo",
+          "artifacts": [
+            ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/ideas/idea-profile-schema-state-machine.md"
+          ],
+          "interfaces": [
+            { "name": "profile.read_snapshot", "contract": "Return the latest profile_snapshot by user_id." }
+          ],
+          "data_tables": [
+            { "name": "profile_snapshot", "change": "Create/extend; includes pre_context, asserted/inferred skills, learning_profile (gradual fields)." }
+          ],
+          "event_types": [],
+          "acceptance_tests": [
+            "Snapshot contains pre_context(raw+parsed+provenance) and skills(asserted/inferred).",
+            "Snapshot has monotonically increasing version and updated_at."
+          ],
+          "metrics": []
+        },
+        {
+          "id": "B2",
+          "title": "Define append-only profile_events types + payloads",
+          "status": "todo",
+          "interfaces": [
+            { "name": "profile.append_event", "contract": "Append-only write; returns new version." }
+          ],
+          "data_tables": [
+            { "name": "profile_events", "change": "Create/extend: event_id, profile_id, version, type, actor, created_at, payload." }
+          ],
+          "event_types": [
+            "PROFILE_CREATED",
+            "PRECONTEXT_CAPTURED",
+            "FIELD_SET",
+            "ASSERTED_SKILL_ADDED",
+            "ASSERTED_SKILL_REMOVED",
+            "INFERRED_SKILL_*",
+            "ROLLBACK_TO_VERSION"
+          ],
+          "acceptance_tests": [
+            "Events are immutable (no update/delete).",
+            "Every snapshot change is explainable by one or more events."
+          ],
+          "metrics": [
+            "profile_event_write_latency_ms",
+            "profile_event_write_error_rate"
+          ]
+        },
+        {
+          "id": "B3",
+          "title": "Implement fold/rebuild snapshot strategy",
+          "status": "todo",
+          "interfaces": [
+            { "name": "profile.rebuild_snapshot", "contract": "Input: profile_id + target_version(optional). Output: snapshot at version." }
+          ],
+          "data_tables": [
+            { "name": "profile_snapshot", "change": "Rebuilt from events; may be recomputed in background." }
+          ],
+          "event_types": [],
+          "acceptance_tests": [
+            "Given a deterministic event stream, fold produces the same snapshot (idempotent).",
+            "Rollback to a version produces correct snapshot view without deleting history."
+          ],
+          "metrics": [
+            "snapshot_rebuild_duration_ms",
+            "snapshot_rebuild_failure_rate"
+          ]
+        },
+        {
+          "id": "B4",
+          "title": "Implement inferred state machine + user confirm/reject",
+          "status": "todo",
+          "interfaces": [
+            { "name": "profile.propose_inferred_skill", "contract": "Create inferred skill with status=proposed + evidence." },
+            { "name": "profile.user_confirm_inferred_skill", "contract": "User explicit confirmation -> status=confirmed." },
+            { "name": "profile.user_reject_inferred_skill", "contract": "User explicit rejection -> status=rejected + reason_text(optional)." }
+          ],
+          "data_tables": [
+            { "name": "profile_snapshot.data.skills.inferred", "change": "Store status/provenance/evidence; keep history via superseded." }
+          ],
+          "event_types": [
+            "INFERRED_SKILL_PROPOSED",
+            "INFERRED_SKILL_UPDATED",
+            "INFERRED_SKILL_CONFIRMED",
+            "INFERRED_SKILL_REJECTED",
+            "INFERRED_SKILL_SUPERSEDED"
+          ],
+          "acceptance_tests": [
+            "All inferred skills start as proposed; never auto-confirm.",
+            "Confirmed can only be produced from explicit user confirmation.",
+            "Rejected cannot be re-proposed until rejected_repropose_cooldown_days AND new evidence exists."
+          ],
+          "metrics": [
+            "inferred_proposed_count",
+            "inferred_confirm_rate",
+            "inferred_reject_rate",
+            "inferred_repropose_rate"
+          ]
+        },
+        {
+          "id": "B5",
+          "title": "Implement rollback_to_version (event + rebuild)",
+          "status": "todo",
+          "interfaces": [
+            { "name": "profile.rollback_to_version", "contract": "Append ROLLBACK_TO_VERSION + rebuild snapshot view." }
+          ],
+          "data_tables": [
+            { "name": "profile_events", "change": "Append ROLLBACK_TO_VERSION." },
+            { "name": "profile_snapshot", "change": "Rebuilt to a new version representing rollback view." }
+          ],
+          "event_types": ["ROLLBACK_TO_VERSION"],
+          "acceptance_tests": [
+            "Rollback does not delete or mutate historical events.",
+            "After rollback, plan reads the rolled-back snapshot consistently."
+          ],
+          "metrics": [
+            "rollback_request_rate",
+            "rollback_failure_rate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "assessment runtime + pack generator",
+      "priority": "P1",
+      "items": [
+        {
+          "id": "C1",
+          "title": "Rubric + thresholds + stop rules (L1-L4, conservative)",
+          "status": "todo",
+          "artifacts": [
+            ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/ideas/idea-assessment-text-only-adaptive-scoring.md"
+          ],
+          "interfaces": [
+            { "name": "assessment.score_answer", "contract": "Input: question + expected_subpoints + answer_text. Output: rubric_breakdown + confidence + decision(promote/hold/demote)." }
+          ],
+          "data_tables": [],
+          "event_types": ["ASSESSMENT_SCORED", "ASSESSMENT_LEVEL_CHANGED"],
+          "acceptance_tests": [
+            "Max level change per question is 1.",
+            "Stop rule: 2 consecutive promote => conclude; 2 consecutive demote => drill down; max questions per topic = 6.",
+            "Explainability: output must include correct points, missing points, and decision rationale referencing rubric dimensions."
+          ],
+          "metrics": [
+            "assessment_questions_per_topic_avg",
+            "assessment_promote_rate",
+            "assessment_demote_rate"
+          ]
+        },
+        {
+          "id": "C2",
+          "title": "Coverage extraction from answer -> matched_subpoints",
+          "status": "todo",
+          "interfaces": [
+            { "name": "assessment.extract_subpoints", "contract": "Input: answer_text + taxonomy_subpoints. Output: matched_subpoints[] + evidence_snippets." }
+          ],
+          "data_tables": [
+            { "name": "assessment_pack.taxonomy", "change": "Requires taxonomy_versioned subpoints for coverage ground truth." }
+          ],
+          "event_types": ["ASSESSMENT_SCORED"],
+          "acceptance_tests": [
+            "coverage is computed as |matched_subpoints| / |expected_subpoints| per question.",
+            "matched_subpoints must include evidence snippet(s) for explainability."
+          ],
+          "metrics": [
+            "coverage_avg",
+            "coverage_zero_rate"
+          ]
+        },
+        {
+          "id": "C3",
+          "title": "Write assessment_* events + inferred proposed/updated",
+          "status": "todo",
+          "interfaces": [
+            { "name": "assessment.run_session", "contract": "Runs a topic assessment session; writes events for asked/answered/scored/level changes; returns summary." }
+          ],
+          "data_tables": [
+            { "name": "profile_events", "change": "Append assessment_* events; append inferred skill proposed/updated with evidence.type=assessment_signal." }
+          ],
+          "event_types": [
+            "ASSESSMENT_SESSION_STARTED",
+            "ASSESSMENT_QUESTION_ASKED",
+            "ASSESSMENT_ANSWER_RECORDED",
+            "ASSESSMENT_SCORED",
+            "ASSESSMENT_LEVEL_CHANGED",
+            "ASSESSMENT_SESSION_SUMMARIZED",
+            "INFERRED_SKILL_PROPOSED",
+            "INFERRED_SKILL_UPDATED"
+          ],
+          "acceptance_tests": [
+            "Assessment never emits INFERRED_SKILL_CONFIRMED automatically.",
+            "Assessment events include taxonomy_version for reproducibility.",
+            "Session summary includes strengths/gaps/next steps for plan."
+          ],
+          "metrics": [
+            "assessment_session_completion_rate",
+            "assessment_event_write_error_rate"
+          ]
+        },
+        {
+          "id": "C4",
+          "title": "Generic assessment pack generator (topic -> taxonomy/qbank/regression skeleton)",
+          "status": "todo",
+          "artifacts": [
+            ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/ideas/idea-assessment-pack-generator.md",
+            ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/ideas/assessment-pack-template-taxonomy.json",
+            ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/ideas/assessment-pack-template-question-bank.json",
+            ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/ideas/assessment-pack-template-regression.jsonl"
+          ],
+          "interfaces": [
+            { "name": "assessment_pack.generate", "contract": "Input: topic_name + scope -> outputs versioned taxonomy + question bank + regression skeleton." },
+            { "name": "assessment_pack.get_or_create", "contract": "Input: topic_id -> returns cached pack or generates new pack." }
+          ],
+          "data_tables": [
+            { "name": "assessment_pack_store", "change": "Persist generated packs by topic_id + taxonomy_version." }
+          ],
+          "event_types": [],
+          "acceptance_tests": [
+            "Generated question bank has exactly 12 questions (3 per level) and each expected_subpoints exists in taxonomy.",
+            "Generated regression skeleton has 24 cases (6 per level) and is valid JSONL.",
+            "topic packs can be cached and reused to avoid regenerating each run."
+          ],
+          "metrics": [
+            "pack_generation_latency_ms",
+            "pack_generation_failure_rate",
+            "pack_cache_hit_rate"
+          ]
+        },
+        {
+          "id": "C5",
+          "title": "Regression set harness + process to maintain",
+          "status": "todo",
+          "interfaces": [
+            { "name": "regression.run", "contract": "Run scoring/decision on JSONL cases; compare against expected thresholds/decisions; output diff." }
+          ],
+          "data_tables": [
+            { "name": "assessment_regression_sets", "change": "Store/track JSONL cases per topic + taxonomy_version." }
+          ],
+          "event_types": [],
+          "acceptance_tests": [
+            "Any change to thresholds/extraction requires regression run.",
+            "Regression failure blocks release of scoring logic changes."
+          ],
+          "metrics": [
+            "regression_pass_rate",
+            "regression_cases_count"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D",
+      "title": "remove KeywordDictionary.json",
+      "priority": "P1",
+      "items": [
+        {
+          "id": "D1",
+          "title": "Dependency scan for KeywordDictionary.json",
+          "status": "todo",
+          "interfaces": [
+            { "name": "repo.scan_dependency", "contract": "Find reads/imports/references of KeywordDictionary.json." }
+          ],
+          "data_tables": [],
+          "event_types": [],
+          "acceptance_tests": [
+            "All direct and indirect dependencies are listed with file paths and usage purpose."
+          ],
+          "metrics": []
+        },
+        {
+          "id": "D2",
+          "title": "Replace with taxonomy-based mechanisms",
+          "status": "todo",
+          "interfaces": [
+            { "name": "taxonomy.lookup", "contract": "Replace keyword dictionary usage with versioned taxonomy/subpoints retrieval." }
+          ],
+          "data_tables": [
+            { "name": "assessment_pack_store", "change": "Becomes the source for subpoints/coverage instead of KeywordDictionary." }
+          ],
+          "event_types": [],
+          "acceptance_tests": [
+            "Coverage and inferred proposals work without KeywordDictionary.json.",
+            "taxonomy_version is persisted in events wherever needed."
+          ],
+          "metrics": []
+        },
+        {
+          "id": "D3",
+          "title": "Delete file + add regression test to prevent reintroduction",
+          "status": "todo",
+          "interfaces": [
+            { "name": "ci.check_no_keyword_dictionary", "contract": "Fail build if KeywordDictionary.json is reintroduced or referenced." }
+          ],
+          "data_tables": [],
+          "event_types": [],
+          "acceptance_tests": [
+            "KeywordDictionary.json removed from repo/resources.",
+            "CI regression test fails on any reference."
+          ],
+          "metrics": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "taxonomy_version": "tax_v0.1",
+  "topic_id": "{{topic_id}}",
+  "taxonomy_id": "tax_{{topic_id}}",
+  "name": "{{topic_name}}",
+  "description": "{{one_sentence_scope}}",
+  "subpoints": [
+    { "id": "sp_{{topic_id}}_core_1", "name": "Core concept 1", "description": "..." },
+    { "id": "sp_{{topic_id}}_core_2", "name": "Core concept 2", "description": "..." },
+    { "id": "sp_{{topic_id}}_workflow_1", "name": "Workflow / steps 1", "description": "..." },
+    { "id": "sp_{{topic_id}}_workflow_2", "name": "Workflow / steps 2", "description": "..." },
+    { "id": "sp_{{topic_id}}_pitfall_1", "name": "Pitfall / failure mode 1", "description": "..." },
+    { "id": "sp_{{topic_id}}_tradeoff_1", "name": "Tradeoff / boundary 1", "description": "..." },
+    { "id": "sp_{{topic_id}}_diagnose_1", "name": "Diagnosis / debugging 1", "description": "..." }
+  ],
+  "inferred_skills_map": [
+    {
+      "taxonomy_subpoints": ["sp_{{topic_id}}_core_1", "sp_{{topic_id}}_workflow_1"],
+      "skill": { "name": "{{topic_name}} fundamentals", "taxonomy_id": "tax_{{topic_id}}" }
+    }
+  ]
+}
+

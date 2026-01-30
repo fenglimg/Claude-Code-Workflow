@@ -1,0 +1,104 @@
+{
+  "taxonomy_version": "tax_v0.1",
+  "topic_id": "game_dev_core",
+  "taxonomy_id": "tax_game_dev_core",
+  "name": "Game Development Core (Engine-Agnostic)",
+  "description": "Engine-agnostic game development fundamentals for assessment, coverage, and inferred skills proposal.",
+  "subpoints": [
+    {
+      "id": "sp_game_loop",
+      "name": "Game loop responsibilities",
+      "description": "Update/input/physics/render ordering and responsibilities."
+    },
+    {
+      "id": "sp_delta_time",
+      "name": "Delta time and frame rate independence",
+      "description": "Using dt correctly; fixed vs variable timestep."
+    },
+    {
+      "id": "sp_update_vs_fixedupdate",
+      "name": "Update vs fixed-step simulation",
+      "description": "Decoupling simulation from rendering; determinism and stability."
+    },
+    {
+      "id": "sp_coordinate_spaces",
+      "name": "Coordinate spaces",
+      "description": "World/local/screen coordinates; conversions and camera transforms."
+    },
+    {
+      "id": "sp_transforms_scene_graph",
+      "name": "Transforms and scene graph",
+      "description": "Parent-child transforms; hierarchy costs and update propagation."
+    },
+    {
+      "id": "sp_input_model",
+      "name": "Input model",
+      "description": "Polling vs events; debouncing; mapping actions."
+    },
+    {
+      "id": "sp_collision_basics",
+      "name": "Collision basics",
+      "description": "Broadphase/narrowphase; triggers vs collisions; layers."
+    },
+    {
+      "id": "sp_physics_stability",
+      "name": "Physics stability",
+      "description": "Tunneling, CCD, fixed timestep, solver iterations."
+    },
+    {
+      "id": "sp_asset_pipeline",
+      "name": "Asset pipeline basics",
+      "description": "Importing, formats, dependencies, loading, caching."
+    },
+    {
+      "id": "sp_resource_lifecycle",
+      "name": "Resource lifecycle",
+      "description": "Reference counting, unloading, memory vs performance tradeoffs."
+    },
+    {
+      "id": "sp_render_performance",
+      "name": "Render performance levers",
+      "description": "Draw calls, batching, overdraw, culling, LOD."
+    },
+    {
+      "id": "sp_update_performance",
+      "name": "Update performance levers",
+      "description": "Avoiding per-frame allocations, spatial partitioning, cache-friendly loops."
+    },
+    {
+      "id": "sp_profiling_workflow",
+      "name": "Profiling workflow",
+      "description": "CPU/GPU profiling, measuring, isolating bottlenecks, verifying fixes."
+    },
+    {
+      "id": "sp_debug_strategy",
+      "name": "Debug strategy",
+      "description": "Repro steps, instrumentation, hypothesis-driven debugging."
+    },
+    {
+      "id": "sp_network_latency_basics",
+      "name": "Network latency basics",
+      "description": "Client prediction, interpolation, server authority (high-level)."
+    },
+    {
+      "id": "sp_determinism_tradeoffs",
+      "name": "Determinism and tradeoffs",
+      "description": "Determinism goals, floating-point issues, lockstep constraints."
+    }
+  ],
+  "inferred_skills_map": [
+    {
+      "taxonomy_subpoints": ["sp_game_loop", "sp_delta_time", "sp_update_vs_fixedupdate"],
+      "skill": { "name": "Gameplay loop & timestep fundamentals", "taxonomy_id": "tax_game_dev_core" }
+    },
+    {
+      "taxonomy_subpoints": ["sp_render_performance", "sp_profiling_workflow"],
+      "skill": { "name": "Rendering performance fundamentals", "taxonomy_id": "tax_game_dev_core" }
+    },
+    {
+      "taxonomy_subpoints": ["sp_collision_basics", "sp_physics_stability"],
+      "skill": { "name": "Collision & physics fundamentals", "taxonomy_id": "tax_game_dev_core" }
+    }
+  ]
+}
+

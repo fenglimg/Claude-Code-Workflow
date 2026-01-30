@@ -1,0 +1,224 @@
+{
+  "session_id": "BS-learn-profile优化-2026-01-29",
+  "timestamp": "2026-01-29T22:44:53+08:00",
+  "topic": "learn：profile优化",
+  "dimensions": ["technical", "ux", "feasibility", "scalability"],
+  "user_suggestions": [
+    "初始化流程简化：取消强制 Goal Type；移除经验介绍",
+    "学习偏好深度挖掘：前置调研优先 AskUserQuestion；固定全面问题模板；每次固定 4 个问题",
+    "画像初始化与技能联想：只收集基本信息/自述技能点/学习习惯偏好；Agent 根据技能点智能联想并记录；create 阶段允许选择立即深评或暂时结束",
+    "评估机制升级：仅支持纯文本输入，严禁选择题；动态难度调整；置信度=语义相似度×知识点覆盖率（强调逻辑严密性）",
+    "资源文件清理：停用并删除 KeywordDictionary.json"
+  ],
+  "creative": {
+    "ideas": [
+      {
+        "id": "C1",
+        "title": "Shadow Assessment（无感评估）",
+        "description": "将评估题融入对话（讲述项目/解释概念/debug 思路），避免“考试感”；输出可解释的评分结论。",
+        "novelty": 4,
+        "impact": 5,
+        "assumptions": [
+          "对话中的自然表达足够区分能力层级",
+          "用户愿意提供真实案例/解释"
+        ],
+        "signals_to_collect": ["表达结构", "边界条件", "反例意识", "推理链完整性"]
+      },
+      {
+        "id": "C2",
+        "title": "Skill Constellation（技能星图 + 可编辑推断）",
+        "description": "把 asserted skills 映射到相关知识簇并可视化/文本化展示为“系统推断”，让用户确认/否认以校准 inferred skills。",
+        "novelty": 4,
+        "impact": 4,
+        "assumptions": ["用户愿意快速纠错", "推断解释足够清晰"],
+        "signals_to_collect": ["用户确认率", "纠错率", "推断漂移"]
+      },
+      {
+        "id": "C3",
+        "title": "Goal Type 自动推断 + 轻量确认",
+        "description": "不直接问 Goal Type，而问最近要解决的具体问题/项目；系统推断目标类型并用一句话让用户确认。",
+        "novelty": 3,
+        "impact": 5,
+        "assumptions": ["从问题描述可稳定推断目标类型"],
+        "signals_to_collect": ["确认/否认分布", "推断准确率"]
+      },
+      {
+        "id": "C4",
+        "title": "时间与注意力驱动的学习模式",
+        "description": "通过固定 4 问模板收集学习时间块、注意力阈值、内容形式偏好，直接决定输出节奏（微任务/长文/练习）。",
+        "novelty": 3,
+        "impact": 4,
+        "assumptions": ["偏好对学习效果影响显著"],
+        "signals_to_collect": ["完成率", "中断率", "回访频率"]
+      },
+      {
+        "id": "C5",
+        "title": "Provenance-first Profile（可回滚画像）",
+        "description": "画像字段带来源证据（用户原话/评估片段）、时间与版本；支持撤销某次推断。",
+        "novelty": 3,
+        "impact": 4,
+        "assumptions": ["用户/系统需要可审计性", "可解释性能提升信任"],
+        "signals_to_collect": ["撤销次数", "纠错后稳定性"]
+      }
+    ],
+    "insights": [
+      "降低摩擦的同时提高信号密度：把‘强制问卷’变成‘固定 4 问模板’+ 轻量确认",
+      "评估体验可从‘题目’转向‘叙事/解释’，提高真实性",
+      "inferred skills 必须可解释/可回滚，否则会削弱信任"
+    ],
+    "challenges": [
+      "需要把‘推断’表达成用户能理解的语言",
+      "要避免过度推断导致推荐偏航"
+    ]
+  },
+  "pragmatic": {
+    "approaches": [
+      {
+        "id": "P1",
+        "title": "Init Flow Simplification（删强制项）",
+        "description": "初始化仅收集：基本信息 + 自述技能点 + 学习习惯/偏好；移除 Goal Type 强制与经验自评。",
+        "effort": 2,
+        "risk": 2,
+        "reuse_potential": 5,
+        "quick_wins": ["降低流失", "减少对话轮次"],
+        "dependencies": ["profile schema", "对话脚本/前端字段"]
+      },
+      {
+        "id": "P2",
+        "title": "Pre-Context 固定 4 问模板（版本化）",
+        "description": "每次 AskUserQuestion 固定 4 问，覆盖：学习时间、专注/中断、内容形式、学习约束与偏好；模板可版本化便于 A/B。",
+        "effort": 3,
+        "risk": 3,
+        "reuse_potential": 4,
+        "quick_wins": ["偏好信号稳定", "更易个性化"],
+        "dependencies": ["问题模板管理", "回答结构化解析", "会话状态"]
+      },
+      {
+        "id": "P3",
+        "title": "Profile 结构升级（asserted vs inferred）",
+        "description": "区分用户自述与系统推断；推断带置信度、证据与可回滚机制；支持用户确认/否认。",
+        "effort": 4,
+        "risk": 3,
+        "reuse_potential": 4,
+        "quick_wins": ["画像可用维度扩大", "减少误解"],
+        "dependencies": ["inference 逻辑", "存储 schema", "确认/纠错 UI 或对话路径"]
+      },
+      {
+        "id": "P4",
+        "title": "纯文本评估 + 动态难度 + 语义评分",
+        "description": "评估题仅允许文本作答；基于结构评分、语义相似度与知识点覆盖率计算置信度，并动态跳级/降级。",
+        "effort": 5,
+        "risk": 4,
+        "reuse_potential": 3,
+        "quick_wins": ["更真实区分水平"],
+        "dependencies": ["评分 rubric", "知识点集合来源", "评估日志与可解释输出"]
+      },
+      {
+        "id": "P5",
+        "title": "删除 KeywordDictionary.json 并落地替代机制",
+        "description": "用可配置 taxonomy 或 embedding 召回替代静态字典；覆盖率计算基于版本化的知识点集合。",
+        "effort": 3,
+        "risk": 2,
+        "reuse_potential": 4,
+        "quick_wins": ["降低维护成本"],
+        "dependencies": ["替代知识点来源", "迁移/兼容策略"]
+      }
+    ],
+    "blockers": [
+      "语义评分的可解释性与稳定性",
+      "动态难度误判导致挫败感",
+      "inferred skills 的纠错成本与入口设计"
+    ],
+    "recommendations": [
+      "先做 P1 + P2（低风险高收益），再做 P3（提高画像可用性），最后迭代 P4（评估引擎）",
+      "评分先保守：宁可多问一轮也不要轻易跳级",
+      "inference 必须记录证据并提供用户纠错路径"
+    ]
+  },
+  "systematic": {
+    "decomposition": {
+      "pre_context": ["固定 4 问模板", "结构化解析", "偏好落库"],
+      "profile_init": ["最小必填字段", "asserted skills", "inferred skills（证据+置信度+版本）"],
+      "assessment": ["纯文本题型库", "动态难度控制", "置信度计算（相似度×覆盖率×结构）"],
+      "lifecycle": ["create 阶段选择深评或暂停", "learn:profile update 入口", "渐进更新"],
+      "maintenance": ["删除 KeywordDictionary", "taxonomy/embedding 替代", "日志与回归测试"]
+    },
+    "architectures": [
+      {
+        "id": "S1",
+        "pattern": "State Machine Pipeline",
+        "pros": ["流程清晰", "易测试", "节点可插拔"],
+        "cons": ["状态设计不当会僵化"],
+        "best_for": "明确产品流程并需要稳定回归"
+      },
+      {
+        "id": "S2",
+        "pattern": "Event-Sourced Profile",
+        "pros": ["可追溯", "可回滚", "可审计"],
+        "cons": ["实现复杂度高"],
+        "best_for": "画像可信度要求高、需要解释/回滚"
+      },
+      {
+        "id": "S3",
+        "pattern": "Tool-Orchestrated LLM Flow",
+        "pros": ["迭代快", "策略可动态调整"],
+        "cons": ["需要强约束输出与日志"],
+        "best_for": "对话型快速试错与策略迭代"
+      }
+    ],
+    "risk_matrix": [
+      {
+        "risk": "语义评分误判导致错误画像",
+        "impact": "high",
+        "likelihood": "high",
+        "mitigation": "保守跳级策略 + 可解释输出 + 人工/用户纠错入口"
+      },
+      {
+        "risk": "inferred skills 过度推断",
+        "impact": "high",
+        "likelihood": "medium",
+        "mitigation": "provenance + 低置信度默认不写入核心画像 + 用户确认"
+      },
+      {
+        "risk": "固定 4 问模板导致疲劳",
+        "impact": "medium",
+        "likelihood": "high",
+        "mitigation": "优化文案与节奏；允许“稍后再答”；回答可复用"
+      },
+      {
+        "risk": "移除 KeywordDictionary 后覆盖率不稳定",
+        "impact": "medium",
+        "likelihood": "medium",
+        "mitigation": "版本化 taxonomy 为主，embedding 召回为辅；回归集验证"
+      }
+    ]
+  },
+  "synthesis": {
+    "convergent_themes": [
+      "减少初始化摩擦",
+      "固定模板稳定收集偏好",
+      "asserted/inferred 分离与可追溯",
+      "纯文本评估更真实",
+      "移除静态字典降低维护成本"
+    ],
+    "conflicting_views": [
+      {
+        "topic": "技能联想的激进程度",
+        "creative": "更大胆联想并用星图让用户确认",
+        "pragmatic": "先保守联想减少纠错成本",
+        "systematic": "允许大胆但必须 provenance + 回滚"
+      },
+      {
+        "topic": "覆盖率知识点集合来源",
+        "creative": "embedding 动态召回",
+        "pragmatic": "小而稳定的 taxonomy 配置",
+        "systematic": "taxonomy 为主，embedding 为辅且版本化"
+      }
+    ],
+    "unique_contributions": [
+      {"source": "creative", "insight": "Shadow Assessment 降低考试感提升配合度"},
+      {"source": "pragmatic", "insight": "固定 4 问模板版本化便于 A/B 与回归"},
+      {"source": "systematic", "insight": "Event-sourcing 支撑画像可追溯与回滚"}
+    ]
+  }
+}
