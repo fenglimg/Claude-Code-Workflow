@@ -77,6 +77,7 @@ const PROJECT_ROOT = (() => {
 })();
 const LEARN_ROOT = join(PROJECT_ROOT, '.workflow', 'learn');
 const STATE_PATH = join(LEARN_ROOT, 'state.json');
+const STATE_PATH_FALLBACK = join(LEARN_ROOT, 'state.v2.json');
 const PROFILES_DIR = join(LEARN_ROOT, 'profiles');
 const SESSIONS_DIR = join(LEARN_ROOT, 'sessions');
 const LOCK_PATH = join(LEARN_ROOT, '.lock');
@@ -130,6 +131,31 @@ async function ensureLearnDirs(): Promise<void> {
 
 function loadJsonFile(filePath: string): any {
   return JSON.parse(readFileSync(filePath, 'utf8'));
+}
+
+function isAccessDenied(err: any): boolean {
+  return err?.code === 'EPERM' || err?.code === 'EACCES';
+}
+
+function resolveStatePathForRead(): string {
+  // Some environments may deny access to state.json due to external locks/ACLs.
+  // Prefer state.json, but fall back to state.v2.json when access is denied.
+  if (existsSync(STATE_PATH)) {
+    try {
+      readFileSync(STATE_PATH, 'utf8');
+      return STATE_PATH;
+    } catch (err: any) {
+      if (isAccessDenied(err)) return STATE_PATH_FALLBACK;
+      throw err;
+    }
+  }
+  return STATE_PATH;
+}
+
+function resolveStatePathForWrite(primaryPath: string, err: any): string | null {
+  // If we failed to write state.json due to access restrictions, retry with the fallback path.
+  if (primaryPath === STATE_PATH && isAccessDenied(err)) return STATE_PATH_FALLBACK;
+  return null;
 }
 
 function formatAjvErrors(errors: ErrorObject[] | null | undefined): any[] {
@@ -269,6 +295,15 @@ function atomicWriteJson(targetPath: string, data: any, validate: (d: any) => bo
   const dir = dirname(targetPath);
   mkdirSync(dir, { recursive: true });
 
+  const sleepSync = (ms: number) => {
+    // Best-effort sync sleep for short Windows retry windows (Atomics.wait is available in Node).
+    try {
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+    } catch {
+      // ignore
+    }
+  };
+
   const tmpPath = `${targetPath}.${process.pid}.${Date.now()}.tmp`;
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
   const fileName = targetPath.split(/[/\\\\]/).pop();
@@ -289,7 +324,35 @@ function atomicWriteJson(targetPath: string, data: any, validate: (d: any) => bo
     writeFileSync(tmpPath, JSON.stringify(data, null, 2), 'utf8');
     // Basic verification: tmp parses as JSON.
     JSON.parse(readFileSync(tmpPath, 'utf8'));
-    renameSync(tmpPath, targetPath);
+    // Windows can fail to replace an existing file due to transient locks (EPERM/EBUSY) OR restrictive ACLs
+    // that allow in-place writes but deny rename/unlink. Retry briefly, then fall back to in-place write.
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        renameSync(tmpPath, targetPath);
+        break;
+      } catch (err: any) {
+        const code = err?.code;
+        const isWin = process.platform === 'win32';
+        const isWinRetryable = isWin && (code === 'EPERM' || code === 'EBUSY' || code === 'EEXIST');
+        if (!isWinRetryable) throw err;
+
+        if (attempt >= 10) {
+          // Last resort: write content directly to targetPath (non-atomic) for environments where rename is denied.
+          writeFileSync(targetPath, readFileSync(tmpPath, 'utf8'), 'utf8');
+          break;
+        }
+
+        // Try to remove the destination if it exists (some environments block replace-existing).
+        if (existsSync(targetPath)) {
+          try {
+            unlinkSync(targetPath);
+          } catch {
+            // ignore (file may be transiently locked / ACL denies delete)
+          }
+        }
+        sleepSync(25);
+      }
+    }
     return { backupPath };
   } catch (err) {
     // Best-effort recovery.
@@ -311,13 +374,20 @@ function atomicWriteJson(targetPath: string, data: any, validate: (d: any) => bo
 export async function learnReadStateCommand(options: BaseOptions): Promise<void> {
   try {
     const state = await withLearnLock(async () => {
-      if (!existsSync(STATE_PATH)) {
+      const statePath = resolveStatePathForRead();
+      if (!existsSync(statePath)) {
         const st = defaultState();
-        atomicWriteJson(STATE_PATH, st, getStateValidator());
+        try {
+          atomicWriteJson(statePath, st, getStateValidator());
+        } catch (err: any) {
+          const fallback = resolveStatePathForWrite(statePath, err);
+          if (fallback) atomicWriteJson(fallback, st, getStateValidator());
+          else throw err;
+        }
         return st;
       }
 
-      const st = loadJsonFile(STATE_PATH);
+      const st = loadJsonFile(statePath);
       const ok = getStateValidator()(st);
       if (!ok) {
         throw Object.assign(new Error('State schema validation failed'), {
@@ -495,12 +565,19 @@ export async function learnUpdateStateCommand(options: UpdateStateOptions): Prom
 
   try {
     const updated = await withLearnLock(async () => {
-      const current = existsSync(STATE_PATH) ? loadJsonFile(STATE_PATH) : defaultState();
+      const statePath = resolveStatePathForRead();
+      const current = existsSync(statePath) ? loadJsonFile(statePath) : defaultState();
       current[field] = value;
       current._metadata = current._metadata || {};
       current._metadata.last_updated = nowIso();
 
-      atomicWriteJson(STATE_PATH, current, getStateValidator());
+      try {
+        atomicWriteJson(statePath, current, getStateValidator());
+      } catch (err: any) {
+        const fallback = resolveStatePathForWrite(statePath, err);
+        if (fallback) atomicWriteJson(fallback, current, getStateValidator());
+        else throw err;
+      }
       return current;
     });
 
@@ -571,9 +648,7 @@ export async function learnWriteProfileCommand(options: WriteProfileOptions): Pr
 
       // Ensure required fields exist for a minimally valid profile.
       if (!Array.isArray(data.known_topics)) data.known_topics = [];
-      if (!data.experience_level) {
-        throw Object.assign(new Error('Missing required field: experience_level'), { code: 'INVALID_ARGS' });
-      }
+      // experience_level is optional (may be omitted/null) to avoid forcing a self-rating during init.
 
       atomicWriteJson(profilePath, data, getProfileValidator());
       return data;
@@ -616,7 +691,7 @@ export async function learnListProfilesCommand(options: BaseOptions): Promise<vo
 
       return {
         profile_id: profile.profile_id ?? profileId,
-        experience_level: profile.experience_level,
+        experience_level: profile?.experience_level ?? null,
         known_topics_count: knownTopicsCount,
         updated_at: profile?._metadata?.updated_at ?? null
       };
@@ -650,12 +725,19 @@ export async function learnSetActiveProfileCommand(options: SetActiveProfileOpti
         });
       }
 
-      const current = existsSync(STATE_PATH) ? loadJsonFile(STATE_PATH) : defaultState();
+      const statePath = resolveStatePathForRead();
+      const current = existsSync(statePath) ? loadJsonFile(statePath) : defaultState();
       current.active_profile_id = id;
       current._metadata = current._metadata || {};
       current._metadata.last_updated = nowIso();
 
-      atomicWriteJson(STATE_PATH, current, getStateValidator());
+      try {
+        atomicWriteJson(statePath, current, getStateValidator());
+      } catch (err: any) {
+        const fallback = resolveStatePathForWrite(statePath, err);
+        if (fallback) atomicWriteJson(fallback, current, getStateValidator());
+        else throw err;
+      }
       return current;
     });
 

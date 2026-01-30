@@ -141,6 +141,32 @@ describe('ccw learn:* state commands', () => {
     }
   });
 
+  it('learn:write-profile allows omitting experience_level (optional)', () => {
+    const cwd = setupSandboxProject();
+    try {
+      const payload = {
+        known_topics: []
+      };
+
+      const { res: r1, out: o1 } = runCcw(
+        ['learn:write-profile', '--profile-id', 'p1', '--data', JSON.stringify(payload), '--json'],
+        cwd
+      );
+      assert.equal(r1.status, 0);
+      assert.equal(o1.ok, true);
+      assert.equal(o1.data.profile_id, 'p1');
+
+      const { res: r2, out: o2 } = runCcw(['learn:read-profile', '--profile-id', 'p1', '--json'], cwd);
+      assert.equal(r2.status, 0);
+      assert.equal(o2.ok, true);
+      assert.equal(o2.data.profile_id, 'p1');
+      // experience_level may be omitted or null depending on caller.
+      assert.ok(!('experience_level' in o2.data) || o2.data.experience_level === null);
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
   it('learn:list-profiles returns validated summaries', () => {
     const cwd = setupSandboxProject();
     try {
@@ -263,10 +289,21 @@ describe('ccw learn:* state commands', () => {
     const learnDir = path.join(repoRoot, '.workflow', 'learn');
     const profilesDir = path.join(learnDir, 'profiles');
     const statePath = path.join(learnDir, 'state.json');
+    const statePathFallback = path.join(learnDir, 'state.v2.json');
 
     const hadLearnDir = existsSync(learnDir);
     const hadProfilesDir = existsSync(profilesDir);
-    const prevState = existsSync(statePath) ? readFileSync(statePath, 'utf8') : null;
+    const tryRead = (p) => {
+      try {
+        return existsSync(p) ? readFileSync(p, 'utf8') : null;
+      } catch {
+        return null;
+      }
+    };
+    const prevStatePrimary = tryRead(statePath);
+    const prevStateFallback = prevStatePrimary === null ? tryRead(statePathFallback) : null;
+    const prevState = prevStatePrimary ?? prevStateFallback;
+    const prevStatePath = prevStatePrimary !== null ? statePath : prevStateFallback !== null ? statePathFallback : null;
 
     rmSync(nestedWorkflowDir, { recursive: true, force: true });
 
@@ -281,14 +318,20 @@ describe('ccw learn:* state commands', () => {
       assert.equal(res.status, 0);
       assert.equal(out.ok, true);
 
-      const persisted = JSON.parse(readFileSync(statePath, 'utf8'));
+      const persistedRaw = tryRead(statePath) ?? tryRead(statePathFallback);
+      assert.ok(persistedRaw, 'Expected a persisted state file (state.json or state.v2.json)');
+      const persisted = JSON.parse(persistedRaw);
       assert.equal(persisted.active_session_id, unique);
       assert.equal(existsSync(nestedWorkflowDir), false);
     } finally {
-      if (prevState !== null) {
-        writeFileSync(statePath, prevState, 'utf8');
+      if (prevState !== null && prevStatePath) {
+        try {
+          writeFileSync(prevStatePath, prevState, 'utf8');
+        } catch {
+          // ignore (may be locked/permission-restricted in some environments)
+        }
       } else {
-        rmSync(statePath, { force: true });
+        rmSync(statePathFallback, { force: true });
       }
 
       if (!hadProfilesDir) {

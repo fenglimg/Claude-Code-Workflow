@@ -104,141 +104,12 @@ Phase 5: Profile Display Flow (show)
 #### Step 1: Basic Information
 
 ```javascript
-// 学习目标类型
-const GOAL_TYPE_KEY = 'goal_type';
-const goalTypeAnswer = AskUserQuestion({
-  questions: [{
-    key: GOAL_TYPE_KEY,
-    question: "What is your primary learning goal?",
-    header: "Goal Type",
-    multiSelect: false,
-    options: [
-      {value: "project", label: "Build Projects", description: "Learn by building real applications"},
-      {value: "skill", label: "Master Skills", description: "Deep dive into specific technologies"},
-      {value: "role", label: "Career Role", description: "Prepare for a specific job role"},
-      {value: "exploration", label: "Explore & Discover", description: "Broad exploration of new areas"}
-    ]
-  }]
-});
+// 初始化阶段不强制收集 goal_type（降低摩擦）；后续可渐进采集。
+// （保留字段位于 _metadata.goal_type 以兼容旧结构，但此处不要求用户回答）
+const goalType = null;
 
-const goalType = goalTypeAnswer[GOAL_TYPE_KEY];
-
-// Dynamic Tech Stack Detection (for role-based goals)
+// Optional seed topics (may be populated by background parsing below).
 let initialKnownTopics = [];
-
-if (goalType === 'role') {
-  console.log('\n## Role-Based Tech Stack Detection\n');
-
-  const ROLE_DESC_KEY = 'role_description';
-  const roleDescAnswer = AskUserQuestion({
-    questions: [{
-      key: ROLE_DESC_KEY,
-      question: "Describe your current or desired role (e.g., 'Frontend Developer working with React and TypeScript')",
-      header: "Role Description",
-      multiSelect: false,
-      options: [
-        {value: "manual", label: "Type Description", description: "Enter your role description manually"},
-        {value: "skip", label: "Skip Detection", description: "Continue without tech stack inference"}
-      ]
-    }]
-  });
-
-  if (roleDescAnswer[ROLE_DESC_KEY] === 'manual') {
-    // Collect role description
-    console.log('\nPlease provide your role description:');
-    console.log('Example: "Full Stack Developer with experience in React, Node.js, and PostgreSQL"');
-    // In real implementation, would use Read tool to collect multi-line input
-    console.log('ℹ️  For now, we will proceed with a general assessment.');
-  }
-
-  // Load keyword dictionary and infer tech stack
-  const keywordDictPath = '.workflow/learn/tech-stack/KeywordDictionary.json';
-  let inferredTopics = [];
-
-  function lastJsonObjectFromText(text) {
-    const raw = String(text ?? '').trim();
-    if (!raw) throw new Error('Empty command output');
-    const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-    for (let i = lines.length - 1; i >= 0; i--) {
-      try {
-        return JSON.parse(lines[i]);
-      } catch {
-        // keep scanning
-      }
-    }
-    const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (m) return JSON.parse(m[1].trim());
-    throw new Error('Failed to parse JSON from command output');
-  }
-
-  try {
-    const keywordDict = lastJsonObjectFromText(Bash(`cat ${keywordDictPath}`));
-
-    // Extract technology keywords from all categories
-    const allTechKeywords = [];
-    Object.values(keywordDict.categories).forEach(category => {
-      Object.values(category).forEach(items => {
-        if (Array.isArray(items)) {
-          allTechKeywords.push(...items);
-        }
-      });
-    });
-
-    // In a real implementation, would parse user's role description
-    // and match against allTechKeywords
-    // For now, demonstrate with common technologies
-    inferredTopics = ['javascript', 'typescript', 'react', 'node'];
-
-  } catch (e) {
-    console.log('⚠️  Could not load keyword dictionary. Proceeding with manual topic entry.');
-  }
-
-  // User confirmation of inferred tech stack
-  if (inferredTopics.length > 0) {
-    const CONFIRM_KEY = 'confirm_topics';
-    const confirmAnswer = AskUserQuestion({
-      questions: [{
-        key: CONFIRM_KEY,
-        question: `We detected the following technologies in your role: ${inferredTopics.join(', ')}. Please confirm or modify:`,
-        header: "Confirm Tech Stack",
-        multiSelect: true,
-        options: inferredTopics.map(topic => ({
-          value: topic,
-          label: topic.charAt(0).toUpperCase() + topic.slice(1),
-          description: `Include ${topic} in your profile`
-        }))
-      }]
-    });
-
-    const confirmedTopics = Object.keys(confirmAnswer).filter(k => confirmAnswer[k] === true);
-
-    // Seed known_topics with low proficiency for assessment
-    initialKnownTopics = confirmedTopics.map(topic => ({
-      topic_id: topic.toLowerCase(),
-      proficiency: 0.3,  // Low initial proficiency
-      confidence: 0.3,   // Low initial confidence (minimal profile default)
-      last_updated: new Date().toISOString(),
-      evidence: [
-        {
-          evidence_type: 'self-report',
-          kind: 'inferred_topic',
-          timestamp: new Date().toISOString(),
-          summary: 'Inferred from role description (seed topic)',
-          data: { source: 'role_description' }
-        },
-        {
-          evidence_type: 'self-report',
-          kind: 'confirmed_topic',
-          timestamp: new Date().toISOString(),
-          summary: 'Confirmed by user (seed topic)',
-          data: { source: 'user_confirmation' }
-        }
-      ]
-    }));
-
-    console.log(`\n✅ Seeded ${initialKnownTopics.length} topics for assessment.\n`);
-  }
-}
 
 // Optional: Background-driven topic seeding (independent of goal type)
 // Users can paste a short background or provide a local file path.
@@ -353,60 +224,106 @@ if (backgroundText) {
   }
 }
 
-// 经验水平（初步）
-const EXP_LEVEL_KEY = 'experience_level';
-const expLevelAnswer = AskUserQuestion({
-  questions: [{
-    key: EXP_LEVEL_KEY,
-    question: "What is your overall programming experience?",
-    header: "Experience",
-    multiSelect: false,
-    options: [
-      {value: "beginner", label: "Beginner", description: "< 1 year, learning fundamentals"},
-      {value: "intermediate", label: "Intermediate", description: "1-3 years, comfortable with basics"},
-      {value: "advanced", label: "Advanced", description: "3-5 years, deep expertise in some areas"},
-      {value: "expert", label: "Expert", description: "5+ years, can architect complex systems"}
-    ]
-  }]
-});
+// 初始化阶段不要求用户陈述整体编程经验水平（可后置/推断）
+const experienceLevel = null;
 
-const experienceLevel = expLevelAnswer[EXP_LEVEL_KEY];
+// Pre-Context (pre_context_v1.3): 固定 4 问模板（每次用满 AskUserQuestion 负载）
+const PRE_CONTEXT_VERSION = 'pre_context_v1.3';
+const PRE_Q1_STYLE_KEY = 'pre_q1_style';
+const PRE_Q2_SOURCES_KEY = 'pre_q2_sources';
+const PRE_Q3_TIME_KEY = 'pre_q3_time';
+const PRE_Q4_CONTEXT_KEY = 'pre_q4_context';
 
-// 学习偏好
-const STYLE_KEY = 'learning_style';
-const SOURCES_KEY = 'preferred_sources';
-
-const preferencesAnswer = AskUserQuestion({
+const preContextAnswer = AskUserQuestion({
   questions: [
     {
-      key: STYLE_KEY,
-      question: "What is your preferred learning style?",
+      key: PRE_Q1_STYLE_KEY,
+      question: "How do you prefer to learn (choose or type)?",
       header: "Style",
       multiSelect: false,
       options: [
-        {value: "practical", label: "Practical", description: "Learn by doing, hands-on exercises"},
-        {value: "theoretical", label: "Theoretical", description: "Understand concepts deeply first"},
-        {value: "visual", label: "Visual", description: "Diagrams, videos, visual explanations"}
+        { value: "practical", label: "Hands-on", description: "Learn by doing / build small things" },
+        { value: "theoretical", label: "Concept-first", description: "Understand concepts deeply first" },
+        { value: "mixed", label: "Mixed", description: "Balance concept + practice" },
+        { value: "visual", label: "Visual", description: "Diagrams/videos help a lot" },
+        { value: "skip", label: "Skip", description: "Skip this for now" }
       ]
     },
     {
-      key: SOURCES_KEY,
-      question: "Which learning resources do you prefer?",
-      header: "Resources",
+      key: PRE_Q2_SOURCES_KEY,
+      question: "Preferred resources (choose or type)?",
+      header: "Sources",
       multiSelect: true,
       options: [
-        {value: "official-docs", label: "Official Docs", description: "Documentation from creators"},
-        {value: "interactive-tutorials", label: "Interactive Tutorials", description: "Step-by-step guided learning"},
-        {value: "video-courses", label: "Video Courses", description: "Video-based instruction"},
-        {value: "books", label: "Books", description: "In-depth written content"},
-        {value: "blogs", label: "Blogs & Articles", description: "Community-written guides"}
+        { value: "official-docs", label: "Official docs", description: "Creator documentation" },
+        { value: "interactive", label: "Interactive", description: "Guided tutorials / sandboxes" },
+        { value: "video", label: "Videos", description: "Video courses / talks" },
+        { value: "books", label: "Books", description: "Deep written content" },
+        { value: "articles", label: "Articles", description: "Blogs / community guides" },
+        { value: "skip", label: "Skip", description: "Skip this for now" }
+      ]
+    },
+    {
+      key: PRE_Q3_TIME_KEY,
+      question: "How much time can you consistently spend per week (choose or type)?",
+      header: "Time",
+      multiSelect: false,
+      options: [
+        { value: "lt2", label: "<2h/week", description: "Very limited time" },
+        { value: "2-5", label: "2-5h/week", description: "Light pace" },
+        { value: "5-10", label: "5-10h/week", description: "Steady pace" },
+        { value: "10plus", label: "10h+/week", description: "Fast pace" },
+        { value: "variable", label: "Variable", description: "Some weeks busy, some free" },
+        { value: "skip", label: "Skip", description: "Skip this for now" }
+      ]
+    },
+    {
+      key: PRE_Q4_CONTEXT_KEY,
+      question: "Where will you mostly apply this learning (choose or type)?",
+      header: "Context",
+      multiSelect: false,
+      options: [
+        { value: "work", label: "Work tasks", description: "Apply directly on the job" },
+        { value: "project", label: "Personal project", description: "Build something you care about" },
+        { value: "interview", label: "Interview prep", description: "Prepare for technical interviews" },
+        { value: "hobby", label: "Hobby", description: "Curiosity / fun learning" },
+        { value: "unsure", label: "Not sure", description: "Exploring possibilities" },
+        { value: "skip", label: "Skip", description: "Skip this for now" }
       ]
     }
   ]
 });
 
-const learningStyle = preferencesAnswer[STYLE_KEY];
-const preferredSources = preferencesAnswer[SOURCES_KEY];
+const preContextCapturedAt = new Date().toISOString();
+const normalizeSkipValue = (v) => (v === 'skip' ? null : v);
+const normalizeSkipMulti = (v) => {
+  if (!Array.isArray(v)) return normalizeSkipValue(v);
+  const filtered = v.filter((x) => x !== 'skip');
+  return filtered.length > 0 ? filtered : null;
+};
+const pre_context = {
+  raw: {
+    [PRE_Q1_STYLE_KEY]: preContextAnswer[PRE_Q1_STYLE_KEY],
+    [PRE_Q2_SOURCES_KEY]: preContextAnswer[PRE_Q2_SOURCES_KEY],
+    [PRE_Q3_TIME_KEY]: preContextAnswer[PRE_Q3_TIME_KEY],
+    [PRE_Q4_CONTEXT_KEY]: preContextAnswer[PRE_Q4_CONTEXT_KEY]
+  },
+  parsed: {
+    learning_style: normalizeSkipValue(preContextAnswer[PRE_Q1_STYLE_KEY]),
+    preferred_sources: normalizeSkipMulti(preContextAnswer[PRE_Q2_SOURCES_KEY]),
+    time_budget: normalizeSkipValue(preContextAnswer[PRE_Q3_TIME_KEY]),
+    learning_context: normalizeSkipValue(preContextAnswer[PRE_Q4_CONTEXT_KEY])
+  },
+  provenance: {
+    template_version: PRE_CONTEXT_VERSION,
+    captured_at: preContextCapturedAt,
+    asked_vs_reused: 'asked',
+    gating_reason: 'create'
+  }
+};
+
+const learningStyle = pre_context.parsed.learning_style;
+const preferredSources = pre_context.parsed.preferred_sources;
 ```
 
 #### Step 2: Evidence-Based Assessment
@@ -875,6 +792,7 @@ const profile = {
   "is_minimal": isMinimal,
   "experience_level": experienceLevel,
   "known_topics": knownTopics,
+  "pre_context": pre_context,
   "learning_preferences": {
     "style": learningStyle,
     "preferred_sources": preferredSources
@@ -929,8 +847,8 @@ console.log(`
 ## Profile Created Successfully
 
 **Profile ID**: ${profileId}
-**Experience Level**: ${experienceLevel}
-**Learning Style**: ${learningStyle}
+**Experience Level**: ${experienceLevel ?? 'unknown'}
+**Learning Style**: ${learningStyle ?? 'unspecified'}
 **Known Topics**: ${knownTopics.length}
 **Profile Completion**: ${completionPercent}% (${isMinimal ? 'minimal' : 'full'})
 
@@ -1024,7 +942,7 @@ if (flags.goal) {
   goalKeywords.forEach(keyword => {
     const keywordLower = keyword.toLowerCase();
 
-    // Simple keyword matching (in production, would use KeywordDictionary.json)
+    // Simple keyword mapping (avoid static dictionaries in the main flow)
     const techMapping = {
       'react': 'react',
       'vue': 'vue',
@@ -1354,7 +1272,7 @@ knownTopics
 Before completing profile creation, verify:
 
 - [ ] `profile.json` follows `learn-profile.schema.json`
-- [ ] All required fields present (profile_id, experience_level, known_topics)
+- [ ] All required fields present (profile_id, known_topics) — experience_level is optional
 - [ ] Proficiency scores in valid range (0.0-1.0)
 - [ ] Evidence array populated for assessed topics
 - [ ] Confidence scores included (if evidence-based)

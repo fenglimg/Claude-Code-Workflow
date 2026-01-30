@@ -411,8 +411,8 @@ function ensurePhases(plan) {
 
 **Phase 1.5: JIT Assessment Triggers (Progressive Profiling)**:
 
-> JIT Assessment removed to avoid interrupting the `/learn:plan` flow.  
-> Ref: `.workflow/.analysis/ANL-learn-plan-optimization-2026-01-27/implementation-plan.md` Phase 2.1  
+> JIT Assessment removed to avoid interrupting the `/learn:plan` flow.
+> Ref: `.workflow/.analysis/ANL-learn-plan-optimization-2026-01-27/implementation-plan.md` Phase 2.1
 > Future: move to `/learn:execute` as on-demand preflight checks before each knowledge point.
 
 #### Option A: Agent-Driven Planning (默认)

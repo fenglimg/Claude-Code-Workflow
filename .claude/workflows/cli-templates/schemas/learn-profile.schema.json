@@ -5,7 +5,13 @@
   "type": "object",
   "properties": {
     "profile_id": { "type": "string" },
-    "experience_level": { "type": "string", "enum": ["beginner", "intermediate", "advanced", "expert"] },
+    "experience_level": {
+      "description": "Optional; may be null/omitted when not collected during initialization.",
+      "anyOf": [
+        { "type": "string", "enum": ["beginner", "intermediate", "advanced", "expert"] },
+        { "type": "null" }
+      ]
+    },
     "known_topics": {
       "type": "array",
       "items": {
@@ -97,10 +103,29 @@
       "description": "Extension point for user-defined profile fields.",
       "additionalProperties": true
     },
+    "pre_context": {
+      "type": "object",
+      "description": "Versioned preference capture (raw + parsed + provenance).",
+      "properties": {
+        "raw": { "type": "object", "additionalProperties": true },
+        "parsed": { "type": "object", "additionalProperties": true },
+        "provenance": {
+          "type": "object",
+          "properties": {
+            "template_version": { "type": "string" },
+            "captured_at": { "type": "string", "format": "date-time" },
+            "asked_vs_reused": { "type": "string", "enum": ["asked", "reused"] },
+            "gating_reason": { "type": "string" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
     "learning_preferences": {
       "type": "object",
       "properties": {
-        "style": { "type": "string", "enum": ["practical", "theoretical", "visual"] },
+        "style": { "type": "string", "enum": ["practical", "theoretical", "mixed", "visual"] },
         "preferred_sources": { "type": "array", "items": { "type": "string" } },
         "focus": { "type": "string", "enum": ["depth", "breadth", "balanced"] },
         "approach": { "type": "string", "enum": ["theory-first", "practice-first", "mixed"] }
@@ -236,5 +261,5 @@
       "additionalProperties": true
     }
   },
-  "required": ["profile_id", "experience_level", "known_topics"]
+  "required": ["profile_id", "known_topics"]
 }
