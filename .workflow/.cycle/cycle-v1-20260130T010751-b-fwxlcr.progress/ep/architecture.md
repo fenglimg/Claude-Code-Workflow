@@ -1,60 +1,107 @@
-# Architecture Design - v1.1.0
+# Architecture Design - v1.2.0
 
 ## Document Status
 | Field | Value |
 |-------|-------|
-| Version | 1.1.0 |
-| Iteration | 2 |
-| Updated | 2026-01-31T14:37:10+08:00 |
+| Version | 1.2.0 |
+| Iteration | 3 |
+| Updated | 2026-01-31T15:11:06+08:00 |
 | Cycle | cycle-v1-20260130T010751-b-fwxlcr |
 
 ---
 
-## Iteration 2 Delta
+## Overview
 
-- 事件存储：JSONL per profile（DEC-101）
-- fold/rebuild + rollback 已落地（append-only；不删除历史）
-- snapshot schema 已补齐（运行时可验证）
+Milestone B uses event sourcing style:
+- `profile_events` (append-only NDJSON) is the source of truth.
+- `profile_snapshot` is a derived read model folded deterministically from events.
+- Rollback is implemented by appending a new event that changes the *current view* (without deleting history).
 
-## Proposed Model
-
-### Storage Split
-- `profile_snapshot`: 业务读取用（快速、当前态）
-- `profile_events`: append-only（审计、回放、回滚）
-
-### Event Stream
-- 单条 event（建议 JSONL 一行一事件）：
-  - event_id, profile_id, version, type, actor, created_at, payload
-
-### Fold/Rebuild
-- `rebuild_snapshot(profile_id, target_version?)`:
-  - 读取 event stream（到 target_version）
-  - fold 成 snapshot（确定性）
-  - 写 snapshot（atomicWriteJson）
-
-### inferred 技能状态机
-- proposed -> confirmed/rejected -> superseded
-- confirmed 仅 user 显式确认。
-- rejected 再提必须 cooldown + new evidence。
-
-### rollback
-- 追加 ROLLBACK_TO_VERSION 事件
-- rebuild 到目标 version 并生成“回滚视图”的新 version snapshot
+Iteration 3 adds an inferred-skill state machine on top of the same event log + fold engine.
 
 ---
 
-## Migration Strategy (from existing profile JSON)
+## Inferred Skills State Machine
 
-- 首次启用 events：
-  - 写 PROFILE_CREATED（或 PROFILE_IMPORTED）
-  - 将旧 snapshot 的关键字段转为一组 FIELD_SET / ASSERTED_SKILL_ADDED / PRECONTEXT_CAPTURED 事件（保持可回放）
-  - 再生成新 snapshot
+### States
+
+- `proposed`
+- `confirmed`
+- `rejected`
+- `superseded`
+
+### Allowed transitions (MVP)
+
+- `proposed -> confirmed` (only by explicit user action)
+- `proposed -> rejected` (only by explicit user action)
+- `confirmed -> superseded` (system/agent can mark old entry inactive when taxonomy/wording changes)
+- `rejected -> proposed` (only with cooldown + new evidence)
+
+### Actor rules
+
+- `INFERRED_SKILL_CONFIRMED` and `INFERRED_SKILL_REJECTED` MUST have `actor=user`.
+- No auto-confirm: inferred proposals never become confirmed without an explicit confirm event.
 
 ---
 
-## Observability
+## Event Catalog (subset for TASK-005)
 
-- event 写入：latency / error rate
-- rebuild：duration / failure rate
-- inferred：proposed/confirm/reject/repropose
-- rollback：request rate / failure rate
+### INFERRED_SKILL_PROPOSED
+
+- actor: `agent|system|user`
+- payload:
+  - `topic_id` (normalized to lowercase)
+  - `proficiency` (0..1)
+  - `confidence` (0..1 or null)
+  - `evidence` (array, stored as provided; fold treats it as immutable)
+  - `evidence_hash` (sha256 over `--evidence` text for gating)
+
+### INFERRED_SKILL_CONFIRMED
+
+- actor: `user` only
+- payload:
+  - `topic_id`
+
+### INFERRED_SKILL_REJECTED
+
+- actor: `user` only
+- payload:
+  - `topic_id`
+  - `reason` (optional)
+  - `rejected_evidence_hash` (captured from current proposed/confirmed entry for re-propose gating)
+
+### INFERRED_SKILL_SUPERSEDED
+
+- actor: any (MVP: accept, fold it)
+- payload:
+  - `topic_id`
+  - `superseded_by_topic_id` (optional)
+
+---
+
+## Fold Strategy (Deterministic)
+
+Implemented inside `applyEventToSnapshot()` and persisted via `foldSnapshotFromEvents()`:
+
+- Maintain `snapshot.skills.inferred` as an array of objects keyed by `topic_id`.
+- On every relevant inferred event, rebuild the inferred array deterministically:
+  - convert array -> map keyed by `topic_id`
+  - apply state transition
+  - write back to array sorted by `topic_id`
+- Confirm/reject events from non-user actors are ignored for safety.
+- Special case: if a new proposal arrives when a skill is already `confirmed`, do not override the confirmed entry; store a deterministic `_metadata.pending_proposal` for review.
+
+---
+
+## Re-propose Gating (cooldown + new evidence)
+
+Enforced in the *write path* (`learn:propose-inferred-skill`):
+- If current folded view shows `status=rejected` for `topic_id`:
+  - block until `now - rejected_at >= 30 days`
+  - require new evidence (`evidence_hash != rejected_evidence_hash`)
+
+### Deterministic time for tests
+
+- `CCW_NOW_ISO` overrides the clock used by event creation and cooldown gating.
+- Production behavior unchanged when env var is not set.
+

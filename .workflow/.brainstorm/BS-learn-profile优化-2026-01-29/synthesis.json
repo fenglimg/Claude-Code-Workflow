@@ -125,5 +125,231 @@
       "type": "validation",
       "summary": "增加埋点：初始化完成率、模板回答率、推断确认率、评估轮次/满意度，并做前后对比。"
     }
+  ],
+  "updated_at": "2026-01-31T21:20:17+08:00",
+  "addenda": [
+    {
+      "timestamp": "2026-01-31T17:46:08+08:00",
+      "type": "execution_feedback",
+      "summary": "新增执行反馈聚焦 learn:profile 交互突兀、中英混杂、测试 profile 污染、create 默认 full-assessment 语义变更，以及 topic-level full assessment 闭环缺失。",
+      "high_priority_changes": [
+        "AskUserQuestion 全面中文化（保留 value 作为稳定枚举）",
+        "背景推断确认加入过渡说明 + Top-N 确认 + 一键跳过/稍后",
+        "隔离/过滤 p-e2e-* 测试 profiles，避免出现在真实交互",
+        "明确 full-assessment 的语义并补齐 topic-level assessment 闭环（更推荐落在 /learn:execute preflight 或新增 /learn:assess）"
+      ],
+      "open_questions": [
+        "create 默认 full-assessment 是否包含“必须答题评估”，还是仅代表“更完整采集+topic 自动扩展”？",
+        "p-e2e-* 是否应永远隐藏，还是允许显式开启显示？",
+        "Add Topic 手工录入是否完全移除（保留一次性补充），还是仅挪到 update 的高级入口？"
+      ]
+    },
+    {
+      "timestamp": "2026-01-31T17:54:13+08:00",
+      "type": "decision_lock",
+      "summary": "已确认 learn:profile 的 3 个关键产品决策：create 默认 full-assessment（含题目评估闭环）、p-e2e-* 永远隔离、Add Topic 完全移除（改为 Agent 联想 + 用户确认）。",
+      "decisions": {
+        "create_default_full_assessment": "更完整采集 + topic 自动扩展 + is_minimal=false/metadata + 必须进入题目评估（闭环）",
+        "hide_e2e_profiles": "p-e2e-* 永远隐藏/隔离，不应进入真实交互也不应污染 active_profile_id",
+        "remove_add_topic": "完全移除手工 Add Topic；topics 仅由用户描述 + Agent 联想生成，并通过 AskUserQuestion 确认/纠错"
+      }
+    },
+    {
+      "timestamp": "2026-01-31T18:43:31+08:00",
+      "type": "review_needed",
+      "summary": "在新流程图确认后，仍需拍板的关键规格点（不改变方向，主要是把 default、stop conditions、id/versioning、落点等细节定稿）。",
+      "discussion_points": [
+        "full-assessment 默认评估范围：默认评估几个 topic、每个 topic 默认几题/几轮？",
+        "topic_id 的 source of truth：taxonomy 优先还是允许动态生成？同义词/别名映射如何版本化？",
+        "assessment pack 的生成与缓存策略：运行时生成 vs 预生成；cache key 与存储位置",
+        "评估结果落库策略：写 asserted 还是 inferred（是否需要用户二次确认把 proposed -> confirmed）",
+        "Topic 覆盖校验 loop 的交互与兜底：Top-N、max iterations、允许跳过/稍后再说",
+        "评估闭环落点：内置到 profile create/update 还是抽成 /learn:assess 供复用与测试"
+      ]
+    },
+    {
+      "timestamp": "2026-01-31T18:52:52+08:00",
+      "type": "decision_lock",
+      "summary": "full-assessment 默认评估范围已锁定：默认一次只评估一个 topic；评估策略由该 topic 的 assessment pack（taxonomy+题库+rubric）驱动；评估完成后立即记录，并询问是否继续评估下一个 topic。",
+      "decisions": {
+        "topics_assessed_default": 1,
+        "questions_per_topic_default": "pack-driven",
+        "post_topic_prompt": "AskUserQuestion: 继续评估下一个 topic / 结束并保存"
+      }
+    },
+    {
+      "timestamp": "2026-01-31T19:47:15+08:00",
+      "type": "decision_lock",
+      "summary": "assessment pack 生成/缓存策略关键参数已锁定：language 进入 pack_key；provisional topic 允许最小包（3题）快速生成并后续补全；question_bank_version 与 taxonomy_version 强绑定。",
+      "decisions": {
+        "pack_key_fields": ["topic_id", "taxonomy_version", "rubric_version", "question_bank_version", "language"],
+        "provisional_minimal_pack": true,
+        "minimal_pack_question_count": 3,
+        "question_bank_taxonomy_strong_binding": true
+      }
+    },
+    {
+      "timestamp": "2026-01-31T19:51:52+08:00",
+      "type": "decision_lock",
+      "summary": "评估后确认策略已锁定：每个 topic 评估结束必须询问轻量确认（允许跳过/稍后）；confirmed 仅在用户明确确认“准确/确认”后发生，否则保持 proposed。",
+      "decisions": {
+        "post_assessment_confirmation_required": true,
+        "post_assessment_confirmation_has_skip_later": true,
+        "confirmed_requires_explicit_user_confirmation": true,
+        "default_status_after_assessment": "proposed"
+      }
+    },
+    {
+      "timestamp": "2026-01-31T20:12:58+08:00",
+      "type": "decision_override",
+      "summary": "评估后不再进行“轻量确认/二次确认”。评估准确性由 assessment pack 完整性 + 评分/自适应流程保证；评估结束后仅询问是否继续评估下一个 topic 或结束保存。",
+      "overrides": {
+        "overridden_timestamp": "2026-01-31T19:51:52+08:00",
+        "post_assessment_confirmation_required": false,
+        "confirmed_requires_explicit_user_confirmation": false
+      },
+      "decisions": {
+        "post_assessment_confirmation_step": "removed",
+        "post_topic_prompt": "AskUserQuestion: 继续评估下一个 topic / 结束并保存"
+      }
+    },
+    {
+      "timestamp": "2026-01-31T20:19:03+08:00",
+      "type": "decision_lock",
+      "summary": "覆盖校验 loop 的 topic 选择方式与评估结果权威来源已锁定：topic 选择单选；不新增 assessment_confirmed 状态，UI/逻辑以最新 assessment events 为权威。",
+      "decisions": {
+        "coverage_loop_topic_selection": "single_select",
+        "assessment_confirmation_step": "removed",
+        "assessment_status_model": "keep_existing_statuses",
+        "assessment_result_source_of_truth": "latest_assessment_events"
+      }
+    },
+    {
+      "timestamp": "2026-01-31T20:29:10+08:00",
+      "type": "decision_lock",
+      "summary": "pre_context_vNext 的批量提问策略与语言/范围已锁定：每次 AskUserQuestion 最多 4 题分批询问；输出语言强制中文不再询问；pre_context 聚焦个人学习画像（不涉及目标/环境）。",
+      "decisions": {
+        "pre_context_max_questions_per_ask": 4,
+        "pre_context_output_language": "zh",
+        "pre_context_output_language_asked": false,
+        "pre_context_scope": "personal_only",
+        "pre_context_collect_all_in_create": true,
+        "pre_context_include_motivation_type": true,
+        "pre_context_include_accountability": false
+      }
+    },
+    {
+      "timestamp": "2026-01-31T20:45:35+08:00",
+      "type": "decision_lock",
+      "summary": "/learn:assess 合同已锁定补充：支持 noop 短路输出；当同 pack_key 已评估完成时不写新的 assessment_* events，直接返回已有 summary 引用。",
+      "decisions": {
+        "learn_assess_noop_supported": true,
+        "learn_assess_noop_condition": "pack_key_equal",
+        "learn_assess_noop_writes_events": false,
+        "pack_key_fields": ["topic_id", "taxonomy_version", "rubric_version", "question_bank_version", "language"]
+      }
+    },
+    {
+      "timestamp": "2026-01-31T19:56:26+08:00",
+      "type": "decision_lock",
+      "summary": "评估闭环落点已锁定：新增 /learn:assess，但仅供 /learn:profile 内部调用（对用户不暴露为主要入口）。",
+      "decisions": {
+        "assessment_loop_command": "/learn:assess",
+        "assessment_loop_visibility": "internal_only",
+        "caller_command": "/learn:profile"
+      }
+    },
+    {
+      "timestamp": "2026-01-31T20:49:53+08:00",
+      "type": "decision_override",
+      "summary": "评估闭环不再以 slash command 形式存在；改为 shared internal JS 模块供 profile 读取复用：.claude/commands/learn/_internal/assess.js。交互仍由 /learn:profile 发起。",
+      "overrides": {
+        "overridden_timestamp": "2026-01-31T19:56:26+08:00",
+        "assessment_loop_command": "/learn:assess"
+      },
+      "decisions": {
+        "assessment_loop_implementation": "shared_js_module",
+        "assessment_loop_module_path": ".claude/commands/learn/_internal/assess.js",
+        "assessment_loop_visibility": "internal_only",
+        "assessment_loop_caller": "/learn:profile",
+        "assessment_loop_user_entrypoint": "/learn:profile"
+      }
+    },
+    {
+      "timestamp": "2026-01-31T20:59:57+08:00",
+      "type": "decision_lock",
+      "summary": "评估算法保守默认值已锁定：单 topic 最大 20 题；停止条件更严格；must-cover 标注采用 4 档证据强度；must 默认至少 2 题证据。",
+      "decisions": {
+        "assessment_max_questions_per_topic": 20,
+        "assessment_stop_requires_all": [
+          "level_converged",
+          "must_cover_100_passed",
+          "overall_coverage_ratio>=0.85",
+          "overall_confidence>=0.90",
+          "last4_stable"
+        ],
+        "subpoint_min_evidence_levels": ["see", "explain", "apply", "debug"],
+        "must_min_questions_default": 2
+      }
+    }
+    ,
+    {
+      "timestamp": "2026-01-31T21:03:37+08:00",
+      "type": "decision_lock",
+      "summary": "profile 加载 internal assess 模块的工具权限与方式已锁定：profile 增加 Read(*)；暂不增加 Write(*)；assess 采用函数工厂模式注入 AskUserQuestion/Bash 等依赖。",
+      "decisions": {
+        "learn_profile_allowed_tools_add": ["Read(*)"],
+        "learn_profile_allowed_tools_add_write": false,
+        "assessment_loop_module_path": ".claude/commands/learn/_internal/assess.js",
+        "assessment_loop_module_load_pattern": "factory_injection"
+      }
+    }
+    ,
+    {
+      "timestamp": "2026-01-31T21:06:10+08:00",
+      "type": "decision_lock",
+      "summary": "pack 最小包(3题)与完整生成的衔接策略已锁定：3题仅作为同一 pack 生成过程的 seed questions；在允许结束本 topic 评估前必须补全到 full pack completeness（至少覆盖 must/core 的出题需要，并写入回归骨架结构）。",
+      "decisions": {
+        "provisional_seed_questions_count": 3,
+        "seed_questions_are_part_of_same_pack_version": true,
+        "full_pack_required_before_topic_exit": true,
+        "full_pack_completeness_minimum": [
+          "taxonomy_complete_with_must_core_nice_metadata",
+          "question_bank_complete_for_must_and_core_coverage",
+          "regression_skeleton_written"
+        ]
+      }
+    }
+    ,
+    {
+      "timestamp": "2026-01-31T21:13:03+08:00",
+      "type": "decision_lock",
+      "summary": "后端 CLI 最小能力已锁定：pack 存储路径固定；write-pack 先做整包覆盖；ASSESSMENT_* event types 采用显式白名单扩展；P0 提供 read/write/resolve-pack-key。",
+      "decisions": {
+        "pack_storage_root": ".workflow/learn/packs",
+        "write_pack_mode": "overwrite",
+        "append_profile_event_type_policy": "explicit_whitelist",
+        "p0_cli_commands": [
+          "learn:read-pack",
+          "learn:write-pack",
+          "learn:resolve-pack-key"
+        ],
+        "p1_cli_commands": [
+          "learn:resolve-topic",
+          "learn:pack-status"
+        ]
+      }
+    }
+    ,
+    {
+      "timestamp": "2026-01-31T21:16:41+08:00",
+      "type": "decision_lock",
+      "summary": "taxonomy index 落盘与治理关键参数已锁定：index 路径固定；topic_id 冲突使用后缀并二次确认；provisional->active 的 promote 需要 regression>=30。",
+      "decisions": {
+        "taxonomy_index_path": ".workflow/learn/taxonomy/index.json",
+        "topic_id_conflict_strategy": "suffix_increment_with_confirmation",
+        "promotion_regression_min_count": 30
+      }
+    }
   ]
 }

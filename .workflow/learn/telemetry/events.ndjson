@@ -1,0 +1,2 @@
+{"event_id":"telemetry-20260131T093305-c9804057","event":"PROFILE_CREATED","profile_id":"p-e2e-001","session_id":null,"created_at":"2026-01-31T09:33:05.624Z","payload":{"is_minimal":true,"known_topics_count":0}}
+{"event_id":"telemetry-20260131T093835-3c8c3638","event":"PROFILE_CREATED","profile_id":"profile-1738310445678","session_id":null,"created_at":"2026-01-31T09:38:35.387Z","payload":{"is_minimal":false,"known_topics_count":1}}

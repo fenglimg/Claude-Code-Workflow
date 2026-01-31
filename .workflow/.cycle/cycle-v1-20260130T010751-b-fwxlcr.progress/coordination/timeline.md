@@ -9,3 +9,6 @@
 - 2026-01-31T14:23:17+08:00 ITER-2: resume + decide DEC-101 + implement TASK-003/004/006 + add golden tests
 - 2026-01-31T14:37:10+08:00 ITER-2: VAS ran npm test (199/199 pass)
 - 2026-01-31T14:37:10+08:00 ITER-2: COMPLETE
+- 2026-01-31T15:11:06+08:00 ITER-3: implement TASK-005 (inferred events fold + propose/confirm/reject CLI + cooldown/new evidence gating)
+- 2026-01-31T15:11:06+08:00 ITER-3: VAS ran npm test (202/202 pass)
+- 2026-01-31T15:11:06+08:00 ITER-3: COMPLETE

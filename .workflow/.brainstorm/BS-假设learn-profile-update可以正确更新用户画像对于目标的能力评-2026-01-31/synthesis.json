@@ -1,15 +1,33 @@
 {
   "session_id": "BS-假设learn-profile-update可以正确更新用户画像对于目标的能力评-2026-01-31",
   "topic": "优化learn:plan闭环（profile gap→profile update→handoff learn-planning-agent→Gemini review+AskUserQuestion迭代→exa enrich+verify→finalize）并修复schema枚举错误，评估learn-planning-agent执行粒度。",
-  "status": "completed",
+  "status": "reopened",
   "started": "2026-01-31T14:37:59+08:00",
-  "last_updated": "2026-01-31T14:51:56+08:00",
-  "completed": "2026-01-31T14:51:56+08:00",
-  "total_rounds": 4,
+  "last_updated": "2026-01-31T17:25:06+08:00",
+  "total_rounds": 17,
   "decisions": {
     "schema_unmappable_policy": "ask_user",
     "auto_heal_audit": "required",
-    "phase_state_storage": "file_persisted"
+    "phase_state_storage": "file_persisted",
+    "phase_inference_owner": "learn-planning-agent",
+    "target_phase_name_determination": "inferred_by_planning_agent_optional_confirm",
+    "planning_granularity": "phase_module_task",
+    "module_cutting_rule": "by_capability",
+    "capability_points_range": "15-25",
+    "assessment_requirement": "defer_optional_future",
+    "exit_criteria_style": "artifact_plus_capability",
+    "tasks_per_capability_point_default": 3,
+    "tasks_per_capability_point_optional": [
+      "debug_or_refactor",
+      "setup_or_tooling"
+    ],
+    "exit_criteria_per_capability_point_default": 3,
+    "exit_criteria_per_capability_point_simple": 2,
+    "exit_criteria_per_capability_point_complex": "4-5",
+    "exit_criteria_distribution": {
+      "artifact": 2,
+      "capability_in_constraints": 1
+    }
   },
   "recommendations": {
     "primary": "以 Phase State Machine 编排 learn:plan，并将 SchemaNormalize+PreValidate+Auto-Heal 作为质量关卡（独立phase或横切hook），实现可回滚/可重跑/可观测的闭环主干。",
@@ -23,6 +41,60 @@
       "exa enrich/verify（依赖计划结构稳定后更易绑定与验证）"
     ]
   },
+  "revisions": [
+    {
+      "timestamp": "2026-01-31T15:29:07+08:00",
+      "change": "Orchestration V2: GoalClarify moved to the front; merged ProfileGapCheck+ProfileUpdateGate into ProfileCapabilityCheck; if capability evidence missing/low confidence -> generate learn:profile eval/update command and STOP (needs_user). Simplified schema handling for test stage."
+    },
+    {
+      "timestamp": "2026-01-31T15:34:47+08:00",
+      "change": "Clarified phase_name semantics: it is a coarse enum label for capability progression; measurability should come from per-phase entry/exit criteria + assessments + confidence fields, while keeping enum stable for schema validation."
+    },
+    {
+      "timestamp": "2026-01-31T15:40:08+08:00",
+      "change": "Decided phase_name should be a contiguous subrange (current->target) rather than always outputting all five. For capability validity/confidence, use test results as primary evidence signal (MVV: score+recency)."
+    },
+    {
+      "timestamp": "2026-01-31T16:14:25+08:00",
+      "change": "Deferred test-field/algorithm details to later iteration. Locked phase_name semantics as the measurable stage standard for current->target capability progression; capability evidence remains test-agnostic and should rely on whatever assessment outputs profile provides (current_phase_name + confidence + evidence_summary)."
+    },
+    {
+      "timestamp": "2026-01-31T16:15:53+08:00",
+      "change": "Decided target_phase_name should be suggested by the system from goal_spec and confirmed/edited via AskUserQuestion before entering the capability gate."
+    },
+    {
+      "timestamp": "2026-01-31T16:25:21+08:00",
+      "change": "Decided planning granularity for learn-planning-agent: phase -> module -> task (no week-level scheduling for now)."
+    },
+    {
+      "timestamp": "2026-01-31T16:28:55+08:00",
+      "change": "Decided modules should be cut by capability points (not by chapters/topics)."
+    },
+    {
+      "timestamp": "2026-01-31T16:31:43+08:00",
+      "change": "Decided capability points extraction should default to a comprehensive range (15-25)."
+    },
+    {
+      "timestamp": "2026-01-31T16:34:02+08:00",
+      "change": "Decided to defer assessments; for now each capability point/module only needs an exit_criteria (measurable description)."
+    },
+    {
+      "timestamp": "2026-01-31T16:42:45+08:00",
+      "change": "Decided exit_criteria should be a hybrid of artifact-based and capability-in-constraints statements (reviewable and verifiable)."
+    },
+    {
+      "timestamp": "2026-01-31T16:47:31+08:00",
+      "change": "Decided each capability point/module should default to 3 tasks (learn/practice/produce), with optional expansion for debug/refactor or setup/tooling when needed."
+    },
+    {
+      "timestamp": "2026-01-31T16:52:37+08:00",
+      "change": "Decided each capability point/module should default to 3 exit_criteria (2 artifact-based + 1 capability-in-constraints), with flexibility for simple (2) and complex/high-risk (4-5) capability points."
+    },
+    {
+      "timestamp": "2026-01-31T17:25:06+08:00",
+      "change": "Reassigned phase inference: current_phase_name/target_phase_name should be inferred by learn-planning-agent from profile+goal (not predetermined in GoalClarify nor required as inputs). ProfileCapabilityCheck becomes evidence gate; if insufficient evidence -> build learn:profile_update command and STOP (needs_user). Also clarified two intents for learn:profile_update: assessment-oriented vs lightweight descriptive update."
+    }
+  ],
   "current_top_ideas": [
     {
       "title": "Phase State Machine + Gates",
@@ -66,8 +138,9 @@
     }
   ],
   "next_actions": [
-    "（如果进入落地实现）在代码库中定位 learn:plan 的入口与 schema validator/写盘点，插入 phase runner 与 PreValidate",
-    "补齐测试：enum 映射（命中/歧义/未知）、auto-heal 审计记录、rerun/rollback 行为",
-    "再迭代：将规划细节下沉到 learn-planning-agent，并引入 Gemini Review diff + AskUserQuestion 收敛循环"
+    "锁定 ProfileCapabilityCheck 的最小 gate 输入/输出字段（domain/confidence/evidence_summary，current_phase_name 可选），算法细节后续迭代",
+    "明确 learn-planning-agent 的规划策略：如何从 profile_evidence + goal_spec 推导 current/target phase，并构造 phase 子区间 + modules + tasks + exit_criteria（assessments 可选后续）",
+    "将 schema 步骤保持最小：enum normalize + pre-validate + 结构化错误（测试阶段不做版本迁移）",
+    "定义 ExaVerify 的质量评分与 retry 策略（query改写/来源切换/去重/过期）"
   ]
 }

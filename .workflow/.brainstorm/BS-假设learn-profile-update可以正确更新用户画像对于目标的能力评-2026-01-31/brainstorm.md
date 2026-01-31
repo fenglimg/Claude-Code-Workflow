@@ -234,6 +234,316 @@
 ## Synthesis & Conclusions (2026-01-31T14:51:56+08:00)
 
 ### Primary Recommendation
-以 **Phase State Machine** 作为 learn:plan 主干编排；并将 **SchemaNormalize + PreValidate + Auto-Heal** 作为质量关卡（独立phase或横切hook）。\n\n在本轮已锁定策略：\n- enum 无法映射 → `ask_user`\n- auto-heal 审计 → 必须记录\n- phase 状态 → 文件落盘（起步方案）\n\n### Quick Start Path (落地顺序)
-1. 先做 phase runner + run state 文件落盘（提供 rerun/rollback 的数据基础）。\n2. 接入 PreValidate：在写出/交接结构化结果前统一校验。\n3. 加入 enum Normalize+Mapping：命中则 auto-heal 并记录审计；未命中则 AskUserQuestion。\n\n### What This Solves (映射到原问题)
-- 解决「缺闭环」：phase runner 提供可插拔与可重跑骨架。\n+- 解决「schema硬失败」：PreValidate + Auto-Heal 把 Exit code 1 变成可修复/可交互。\n+- 为后续（handoff、Gemini review、exa enrich/verify）提供稳定插入点。\n*** End Patch 왜?! ***!
+以 **Phase State Machine** 作为 learn:plan 主干编排；并将 **SchemaNormalize + PreValidate + Auto-Heal** 作为质量关卡（独立phase或横切hook）。
+
+在本轮已锁定策略：
+- enum 无法映射 → `ask_user`
+- auto-heal 审计 → 必须记录
+- phase 状态 → 文件落盘（起步方案）
+
+### Quick Start Path (落地顺序)
+1. 先做 phase runner + run state 文件落盘（提供 rerun/rollback 的数据基础）。
+2. 接入 PreValidate：在写出/交接结构化结果前统一校验。
+3. 加入 enum Normalize+Mapping：命中则 auto-heal 并记录审计；未命中则 AskUserQuestion。
+
+### What This Solves (映射到原问题)
+- 解决「缺闭环」：phase runner 提供可插拔与可重跑骨架。
+- 解决「schema硬失败」：PreValidate + Auto-Heal 把 Exit code 1 变成可修复/可交互。
+- 为后续（handoff、Gemini review、exa enrich/verify）提供稳定插入点。
+
+---
+
+### Round 5 - User Feedback & Flow Re-Design (2026-01-31T15:29:07+08:00)
+
+#### User Feedback (Summary)
+1) `GoalClarify` 应提前到最前，先让用户确认真实目标追求。
+2) `ProfileGapCheck` 与 `ProfileUpdateGate` 可合并：基于明确目标去 profile 中查对应领域评估、有效性与置信度。
+3) 若该目标领域能力未检测或置信度不足：构建 learn:profile 相关命令（领域 + 具体目标），让用户执行评估；后续流程不继续。
+4) 需要明确 `learn-planning-agent` 的规划策略与逻辑。
+5) SchemaNormalize/PreValidate/Auto-Heal 先做“最小处理”，测试阶段不考虑版本迁移。
+6) GeminiReview 只需 Review “当前 Plan 是否合理”，必须考虑 Goal + Profile。
+7) AskUserQuestion：每次修改后询问是否达到预期（迭代收敛）。
+8) ExaVerify：需要资源质量衡量算法 + query切换/重生成等策略保证质量。
+
+---
+
+#### Revised Orchestration Flow (V2, ASCII)
+
+```
+learn:plan (V2)
+
+[O0] GoalClarify (AskUserQuestion loop)
+     - 目标具体化/可评估化/约束对齐/成功标准
+        |
+        v
+[O1] ProfileCapabilityCheck (merge of gap-check + update gate)
+     - 在 current_profile 中查找「目标领域」能力评估
+     - 校验：是否存在？是否过期？是否覆盖该目标？置信度够不够？
+        |
+        +--> (NOT OK)  [O1a] Build learn:profile_eval command + AskUserQuestion
+        |                 - 给用户执行评估/补证据
+        |                 - 状态: needs_user -> STOP (不进入后续规划)
+        |
+        +--> (OK)      [O2] Handoff -> learn-planning-agent
+                           - 用 goal_spec + profile_evidence 生成 plan_draft
+                              |
+                              v
+                        [O3] Minimal PreValidate (+Enum Normalize) + Audit
+                              |
+                              v
+                        [O4] GeminiReview (review_diff + verdict)
+                              |
+                              v
+                        [O5] AskUserQuestion (accept/edit/rerun)
+                              |
+                              v
+                        [O6] PlanLock
+                              |
+                              v
+                        [O7] ExaEnrich
+                              |
+                              v
+                        [O8] ExaVerify (quality scoring + retry strategy)
+                              |
+                              v
+                        [O9] Finalize
+```
+
+---
+
+#### What We Need To Define Next (to make V2 implementable)
+
+1) **Profile 能力评估“置信度/有效性”怎么衡量（最小可用）？**
+- 建议先做一个简单 score（0-1）由以下信号组成（可逐步扩展）：
+  - `has_assessment`（是否存在该领域评估记录）
+  - `recency_days`（距离上次评估的天数，越新越高）
+  - `coverage`（评估是否覆盖目标关键能力点：从 goal_spec 拆解出来）
+  - `evidence_type`（自评 < 项目作品/代码仓库 < 标准化测验/挑战）
+  - `consistency`（历史结果是否一致/是否与近期产出一致）
+- 阈值示例：`score >= 0.7` 认为 OK；否则触发 [O1a]。
+
+2) **[O1a] learn:profile 相关命令长什么样？（你提到“领域+具体目标”）**
+- 需要明确：是 `learn:profile_update` 还是一个更“评估导向”的命令（如 profile_evaluate / capability_assess）？
+- 需要明确输出：返回哪些字段能被 [O2] 可靠消费（尤其是 evidence + confidence）？
+
+3) **learn-planning-agent 的规划策略（[O2]）**
+- 最小策略建议：基于 `goal_spec` 生成“能力阶梯”并映射到 `phase_name`（Foundation...Mastery），再在每个阶段内生成 tasks + assessments（type枚举合法）。
+- 需要确定：计划颗粒度（阶段→周→任务？还是阶段→模块→任务？）与可迭代修改点（哪些字段允许 GeminiReview 改？）。
+
+4) **SchemaNormalize/PreValidate/Auto-Heal 在测试阶段的“最小版本”**
+- 只做两件事即可（避免版本迁移复杂度）：
+  - enum 正规化与映射：`phase_name`、`assessment.type`
+  - 结构化错误输出：不可映射 -> AskUserQuestion（不硬退出）
+- Audit 也先最小化：记录 `field_path/before/after/rule_id/timestamp`。
+
+5) **GeminiReview 的 Review 范围（[O4]）**
+- 仅评审：计划是否满足 `goal_spec`、是否与 `profile_evidence` 匹配（难度/节奏/评估方式是否合理），并输出 diff 建议。
+- 不越权：不擅自改变目标本身；涉及目标变化必须通过 AskUserQuestion。
+
+6) **ExaVerify 的质量衡量算法（[O8]）**
+- 最小可用：对每条资源打分 `0-1`，综合：
+  - 可访问性（HTTP/可打开）
+  - 相关性（与 task/关键词相似度）
+  - 可信度（域名信誉/官方文档/作者/引用）
+  - 时效性（发布时间/更新时间）
+  - 去重（相同内容/镜像降权）
+- Retry 策略：低分资源触发 query 改写（加限定词/换同义词/加“official/docs/tutorial”），或切换资源类型（文档/教程/视频/书籍章节）。
+
+---
+
+### Round 6 - Clarify `phase_name` Semantics (2026-01-31T15:34:47+08:00)
+
+#### What `phase_name` Means (User Intent)
+`phase_name` 作为“从当前能力到目标能力”的**可衡量阶段标准**：让后续 Review / 测验 / 进度跟踪都有一个统一标尺，而不是纯叙事描述。
+
+#### Key Conclusion
+`phase_name` 本身是**粗粒度枚举标签**（Foundation...Mastery），真正“可衡量”的部分需要由额外字段承载（例如 success criteria、evidence、assessment plan）。
+
+因此建议：
+- `phase_name` 保持枚举稳定（便于 schema 校验与跨组件消费）。
+- 每个 phase 附带：
+  - `entry_criteria`（当前应具备的可验证能力/证据）
+  - `exit_criteria`（完成该阶段的可验证能力/证据）
+  - `assessments`（用哪种 assessment.type 来验证 exit）
+  - `confidence`（基于 profile_evidence 的置信度，用于 Review 判断“是否规划过度/不足”）
+
+---
+
+### Round 7 - Decisions: Phase Subrange + Evidence Signal (2026-01-31T15:40:08+08:00)
+
+#### User Decisions
+1) `phase_name` 输出策略：允许只输出「当前能力所在阶段 → 目标阶段」的**连续子区间**（不强制输出全五段）。
+2) 能力有效性信号：优先以 **测验结果** 作为 profile_evidence 的核心依据。
+
+#### Implications (Design Updates)
+1) learn-planning-agent 需要先判断 `current_phase_name` 与 `target_phase_name`，再只生成该区间 `phases[]`。
+2) ProfileCapabilityCheck 的最小置信度算法可先简化为：`test_score` + `recency` 两个信号（测试阶段不引入更复杂证据）。
+
+#### Minimal Capability Confidence (MVV, Test-based)
+- `has_test_result`: 0/1（该目标领域是否有测验结果）
+- `test_score_norm`: 0..1（将测验分数/通过率正规化）
+- `recency_norm`: 0..1（最近测验越新越高，例：clamp(1 - days/90, 0, 1)）
+- `confidence = 0.7*test_score_norm + 0.3*recency_norm`（若无测验结果则 confidence=0）
+- Gate 阈值建议：`confidence >= 0.7` 才进入规划；否则走 [O1a] 生成评估命令并 STOP。
+
+#### Open Question (Small)
+测验结果在 profile 里大概长什么样？（选一个即可）
+- A. 只有“通过/不通过”
+- B. 分数（0-100/0-1）+ 日期
+- C. 分项能力得分（多个维度）+ 日期
+
+---
+
+### Round 8 - Defer Test Details; Lock Stage Meaning (2026-01-31T16:14:25+08:00)
+
+#### User Clarification
+暂时不纠结“测验结果字段/算法”，后续迭代再补。
+
+当前只锁定：`phase_name` 的阶段划分含义 = **当前能力 → 目标能力** 的阶段标准（用于 Review / 评估 / 进度对齐的统一标尺）。
+
+#### Updated Contract Direction (Test-Agnostic)
+- ProfileCapabilityCheck 不绑定“测验”这一单一证据类型，而是消费 profile 中已有的**能力评估结果**（来源可多样）。
+- Gate 的最小要求：profile 能提供 `current_phase_name`（或可推断）+ `confidence`（或可推断）；否则走 [O1a] 让用户先评估/补证据并 STOP。
+
+建议 learn:profile_update 产物至少包含：
+- `domain`
+- `current_phase_name`（enum）
+- `confidence`（0..1）
+- `evidence_summary`（一段可读摘要 + 可选引用）
+
+#### Planning Output (What Review/Assessment Can Anchor On)
+- phases[] 仍按「current -> target」连续子区间输出。
+- 每个 phase 提供可衡量字段：`entry_criteria` / `exit_criteria` / `assessments[]`（type枚举合法）。
+- GeminiReview 只需基于 `goal_spec + profile_evidence` 检查这些 criteria 是否合理。
+
+---
+
+### Round 9 - Decide How To Determine `target_phase_name` (2026-01-31T16:15:53+08:00)
+
+#### Decision
+采用「系统先给建议 + AskUserQuestion 让用户确认」：
+1) 在 GoalClarify 结束时，系统根据 `goal_spec` 推断一个 `target_phase_name_suggestion`（并给出理由）。
+2) 通过 AskUserQuestion 让用户确认/修改 target phase。
+3) 用户确认后锁定 `target_phase_name`，再进入 ProfileCapabilityCheck gate。
+
+#### Implication
+learn-planning-agent 的输入应包含已确认的：
+- `current_phase_name`（来自 profile_evidence）
+- `target_phase_name`（来自 GoalClarify 确认）
+
+从而稳定生成 contiguous subrange phases[]。
+
+---
+
+### Round 10 - Planning Granularity (2026-01-31T16:25:21+08:00)
+
+#### Decision
+learn-planning-agent 的计划粒度采用：**阶段 → 模块 → 任务**（暂不做周计划）。
+
+#### Implications
+- `phases[]`（current→target 子区间）下包含 `modules[]`；每个 module 下包含 `tasks[]`。
+- 后续若需要排期（周计划），应作为可选后处理（不影响核心能力阶段结构）。
+
+---
+
+### Round 11 - Module Cutting Rule (2026-01-31T16:28:55+08:00)
+
+#### Decision
+模块按 **能力点** 切分（不是按知识章节/主题）。
+
+#### Implications
+- learn-planning-agent 需要从 `goal_spec` 抽取能力点列表，并将能力点映射到 `modules[]`（每个 module 对应一个可验证能力点）。
+- 每个 module 下的 `tasks[]` 应围绕该能力点产出“学习/练习/产出”，并给出可验证的 `exit_criteria` 与 `assessments[]`。
+- GeminiReview 的主要检查点之一：能力点覆盖是否完整、是否与 profile_evidence 的短板对齐、是否存在多余/偏离能力点。
+
+---
+
+### Round 12 - Capability Points Count (2026-01-31T16:31:43+08:00)
+
+#### Decision
+能力点抽取默认规模：**15-25**（更全面）。
+
+#### Implications
+- learn-planning-agent 需要提供能力点去重/合并策略，避免“同义重复”撑大数量。
+- GeminiReview 需检查：能力点是否过细导致不可执行，或过多导致路径冗长。
+- AskUserQuestion 可提供“精简/保留/扩展”的开关（默认按 15-25 输出）。
+
+---
+
+### Round 13 - Verification Output Minimalism (2026-01-31T16:34:02+08:00)
+
+#### Decision
+暂时每个能力点只要求写 `exit_criteria`（assessment 后续迭代再补齐）。
+
+#### Implications
+- learn-planning-agent 输出 schema 可先不包含 `assessments[]`（或留空）。
+- GeminiReview 的检查重点先放在：能力点覆盖、阶段划分合理性、以及每个能力点的 exit_criteria 是否清晰可验证。
+- Schema 校验的枚举压力下降（assessment.type 可后置），当前只需保证 `phase_name` 枚举合法。
+
+---
+
+### Round 14 - `exit_criteria` Style Guide (2026-01-31T16:42:45+08:00)
+
+#### Decision
+`exit_criteria` 默认采用“产出物 + 行为能力”混合（可验证、可 review）。
+
+#### Minimal Template (per capability point)
+每个能力点建议输出 2-5 条 exit criteria，覆盖两类：
+1) **Artifact（产出物）**：必须能展示/提交/运行/复现（例如：实现一个XX、提交一个PR、交付一个demo）。
+2) **Capability（行为能力）**：必须能在约束下完成（例如：在XX限制下完成YY，并能解释 tradeoff）。
+
+#### Anti-Patterns (avoid)
+- 仅使用模糊动词：理解/掌握/熟悉（不可验证）
+- 只写“看完/学完某课程”（过程不等于能力）
+
+---
+
+### Round 15 - Tasks Per Capability Point (2026-01-31T16:47:31+08:00)
+
+#### Decision
+每个能力点（module）默认输出 **3 条 tasks**（Learn/Practice/Produce 各 1 条），并提供可选扩展到 4-5 条的规则。
+
+#### Default Task Set (per module)
+1) **Learn**：获取关键概念/方法（避免过长的资源清单）。  
+2) **Practice**：最小练习把方法跑通。  
+3) **Produce**：产出一个可展示成果/片段（支撑 exit_criteria）。
+
+#### Optional Expansion (only when needed)
+- **Debug/Refactor**：能力点复杂或易踩坑时加 1 条。  
+- **Setup/Tooling**：强依赖工具链时加 1 条（尽量避免每个 module 都重复）。
+
+---
+
+### Round 16 - Exit Criteria Count Per Capability Point (2026-01-31T16:52:37+08:00)
+
+#### Decision
+每个能力点（module）默认写 **3 条 `exit_criteria`**：
+- 建议分布：2 条偏“产出物（Artifact）”，1 条偏“行为能力/约束（Capability-in-constraints）”。
+- 简单能力点可降到 2 条；复杂/高风险能力点可升到 4-5 条（尽量不超过 5）。
+
+---
+
+### Round 17 - Fix Phase Inference Ownership + Profile Update Requirements (2026-01-31T17:25:06+08:00)
+
+#### User Feedback (Key Points)
+1) `target_phase_name_suggestion` 不应在 GoalClarify 阶段由“系统”给出；phase 划分应由 learn-planning-agent 结合 profile+goal 自主推导。
+2) `current_phase_name` / `target_phase_name` 不应作为 learn-planning-agent 的必填输入，更像其输出推导结果。
+3) 可以考虑补全 `assessments`（后续迭代或可选）。
+4) 当前已有 `learn:profile` 的 update 接口：希望能满足「构建评估/补证据」的 needs_user STOP 方案；同时还希望有轻量级 update（只更新描述/字段）能力。
+
+#### Resolution (Flow V3 Adjustments)
+1) **GoalClarify**：只负责把 goal_spec/约束/成功标准澄清到可规划，不负责给 target phase 定论。
+2) **ProfileCapabilityCheck**：只做“证据门禁”——判断 profile 是否具备该领域的能力评估证据（domain/evidence/confidence/evidence_summary）。
+   - 不足则构建 `learn:profile_update`（评估导向）命令 + AskUserQuestion，并 **STOP**。
+3) **learn-planning-agent**：负责推导并输出：
+   - `current_phase_name`（推导）+ `target_phase_name`（推导）
+   - phases 子区间 + 15-25 能力点 modules + tasks + exit_criteria
+   - 推导理由（why/rationale）+ 置信度（confidence）
+4) **AskUserQuestion**：若 learn-planning-agent 对 current/target phase 推导置信度不够，则在输出时触发一次确认（可覆盖默认推导）。
+
+#### learn:profile_update Usage (Two Intent Modes)
+1) **Assessment-oriented update（评估/补证据）**：
+   - 输入包含：domain + clarified goal + requested evidence/questions
+   - 输出至少包含：domain, confidence, evidence_summary（以及可选 current_phase_name）
+2) **Lightweight update（轻量更新描述）**：
+   - 仅更新 profile 的描述/字段（不做评估），用于用户主动维护画像

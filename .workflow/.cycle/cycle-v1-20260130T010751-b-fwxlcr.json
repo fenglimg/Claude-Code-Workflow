@@ -1,16 +1,16 @@
 {
   "cycle_id": "cycle-v1-20260130T010751-b-fwxlcr",
   "title": "Milestone B: profile snapshot + events + rollback",
-  "description": "Source TASK: .workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-task-milestone-b.md\n\nObjective: Introduce profile_snapshot read model + append-only profile_events audit log with fold/rebuild, inferred skill state machine, and rollback_to_version.\n\nNOTE: Iteration 1 produced planning artifacts only; Iteration 2 implemented events/snapshot/rollback and executed validation/tests.\n\n--- ITERATION 2 ---\nDecide DEC-101: JSONL append per profile. Implement TASK-003/004/006 (append_event+versioning, fold/rebuild snapshot with target_version, rollback_to_version) with golden determinism tests. Defer TASK-005.",
+  "description": "Source TASK: .workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-task-milestone-b.md\n\nObjective: Introduce profile_snapshot read model + append-only profile_events audit log with fold/rebuild, inferred skill state machine, and rollback_to_version.\n\nNOTE: Iteration 1 produced planning artifacts only; Iteration 2 implemented events/snapshot/rollback and executed validation/tests.\n\n--- ITERATION 2 ---\nDecide DEC-101: JSONL append per profile. Implement TASK-003/004/006 (append_event+versioning, fold/rebuild snapshot with target_version, rollback_to_version) with golden determinism tests. Defer TASK-005.\n\n--- ITERATION 3 ---\nDecide DEC-102: inferred state machine (events + fold + dedicated CLI commands) with cooldown(30d)+new evidence gating and deterministic clock injection (CCW_NOW_ISO). Implement TASK-005 and run validation/tests.",
   "task_history": [
     "Milestone B: profile snapshot + events + rollback"
   ],
   "status": "completed",
   "created_at": "2026-01-30T01:07:51+08:00",
-  "updated_at": "2026-01-31T14:37:10+08:00",
-  "completed_at": "2026-01-31T14:37:10+08:00",
+  "updated_at": "2026-01-31T15:11:06+08:00",
+  "completed_at": "2026-01-31T15:11:06+08:00",
   "max_iterations": 5,
-  "current_iteration": 2,
+  "current_iteration": 3,
   "agents": {
     "ra": {
       "status": "completed",
@@ -71,7 +71,7 @@
   ],
   "phase_errors": [],
   "requirements": {
-    "version": "1.1.0",
+    "version": "1.2.0",
     "specification": "See requirements.md",
     "edge_cases": [
       "event immutability",
@@ -79,10 +79,10 @@
       "rollback does not delete history",
       "inferred state transitions + cooldown/new evidence"
     ],
-    "last_updated": "2026-01-31T14:37:10+08:00"
+    "last_updated": "2026-01-31T15:11:06+08:00"
   },
   "exploration": {
-    "version": "1.0.0",
+    "version": "1.2.0",
     "architecture_summary": "See exploration.md/architecture.md",
     "integration_points": [
       "ccw/src/commands/learn.ts (profile read/write, locking, atomicWriteJson)",
@@ -94,10 +94,10 @@
       "Backwards compatibility migration from existing profile JSON",
       "Potential event stream growth and rebuild performance"
     ],
-    "last_updated": "2026-01-30T01:11:30+08:00"
+    "last_updated": "2026-01-31T15:11:06+08:00"
   },
   "plan": {
-    "version": "1.1.0",
+    "version": "1.2.0",
     "tasks": [
       {
         "id": "TASK-001",
@@ -161,11 +161,12 @@
           "TASK-002",
           "TASK-003"
         ],
-        "status": "pending",
+        "status": "completed",
         "assigned_to": "cd",
         "files": [
-          ".claude/commands/learn/profile.md",
-          "ccw/src/learn/*"
+          "ccw/src/commands/learn.ts",
+          "ccw/src/cli.ts",
+          "ccw/tests/learn-inferred-skill-cli.test.js"
         ]
       },
       {
@@ -207,54 +208,40 @@
       "TASK-004",
       "TASK-006"
     ],
-    "last_updated": "2026-01-31T14:37:10+08:00"
+    "last_updated": "2026-01-31T15:11:06+08:00"
   },
   "changes": {
-    "total_files": 6,
+    "total_files": 3,
     "changes": [
       {
-        "lines_removed": 0,
-        "file": ".claude/workflows/cli-templates/schemas/learn-profile-snapshot.schema.json",
-        "lines_added": 1
-      },
-      {
-        "lines_removed": 0,
-        "file": ".workflow/learn/profiles/schemas/learn-profile-snapshot.schema.json",
-        "lines_added": 1
-      },
-      {
-        "lines_removed": 0,
-        "file": "ccw/src/cli.ts",
-        "lines_added": 1
-      },
-      {
-        "lines_removed": 0,
+        "lines_removed": 1,
         "file": "ccw/src/commands/learn.ts",
-        "lines_added": 1
+        "lines_added": 442
+      },
+      {
+        "file": "ccw/src/cli.ts",
+        "lines_removed": 25,
+        "lines_added": 59
       },
       {
         "lines_removed": 0,
-        "file": "ccw/tests/learn-profile-events-cli.test.js",
-        "lines_added": 1
-      },
-      {
-        "lines_removed": 0,
-        "file": "ccw/tests/learn-profile-snapshot-cli.test.js",
-        "lines_added": 1
+        "file": "ccw/tests/learn-inferred-skill-cli.test.js",
+        "lines_added": 265
       }
     ],
     "iteration_markers": {
       "1": "2026-01-30T01:09:54+08:00",
-      "2": "2026-01-31T14:37:10+08:00"
+      "2": "2026-01-31T14:37:10+08:00",
+      "3": "2026-01-31T15:11:06+08:00"
     }
   },
   "test_results": {
-    "version": "1.1.0",
+    "version": "1.2.0",
     "pass_rate": 1,
     "coverage": 0,
     "failed_tests": [],
-    "total_tests": 199,
-    "last_run": "2026-01-31T14:37:10+08:00"
+    "total_tests": 202,
+    "last_run": "2026-01-31T15:11:06+08:00"
   },
   "iterations": [
     {
@@ -305,6 +292,19 @@
           "status": "completed",
           "files_modified": 2
         }
+      },
+      "issues_found": [],
+      "resolved": true
+    },
+    {
+      "number": 3,
+      "started_at": "2026-01-31T15:11:06+08:00",
+      "completed_at": "2026-01-31T15:11:06+08:00",
+      "agent_results": {
+        "vas": { "status": "completed", "files_modified": 4 },
+        "ep": { "status": "completed", "files_modified": 3 },
+        "cd": { "status": "completed", "files_modified": 3 },
+        "ra": { "status": "completed", "files_modified": 2 }
       },
       "issues_found": [],
       "resolved": true

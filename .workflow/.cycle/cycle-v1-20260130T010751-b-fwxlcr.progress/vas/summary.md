@@ -1,26 +1,43 @@
-# Cycle Summary - v1.1.0
+# Summary - v1.2.0
 
-## What We Shipped (This Iteration)
+## Document Status
+| Field | Value |
+|-------|-------|
+| Version | 1.2.0 |
+| Iteration | 3 |
+| Updated | 2026-01-31T15:11:06+08:00 |
+| Cycle | cycle-v1-20260130T010751-b-fwxlcr |
 
-- DEC-101 resolved: events storage = JSONL per profile（append-only）
-- Snapshot schema added (learn-profile-snapshot.schema.json)
-- CLI added for snapshot view:
-  - `learn:read-profile-snapshot`
-  - `learn:rebuild-profile-snapshot` (supports `--target-version`, `--no-persist`)
-  - `learn:rollback-profile` (append-only rollback)
-- Golden determinism tests added (fold/rebuild/rollback)
+---
 
-## Key Outputs
+## What Changed (Iteration 3)
 
-- Requirements: `.workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/ra/requirements.md`
-- Plan: `.workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/ep/plan.json`
-- Implementation: `.workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/cd/implementation.md`
-- Validation: `.workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/vas/validation.md`
+- Implemented TASK-005 inferred skill state machine:
+  - New inferred events folded into `snapshot.skills.inferred`
+  - Dedicated CLI commands for propose/confirm/reject with strict actor enforcement
+  - Re-propose gating: cooldown (30d) + new evidence (sha256) after rejection
+  - Deterministic tests with `CCW_NOW_ISO` time injection
 
-## Validation Result
+---
 
-- `npm test`: 199/199 passed (`.workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/vas/test-results.json`)
+## Key Files Modified / Added
 
-## Next Step
+- `ccw/src/commands/learn.ts`
+- `ccw/src/cli.ts`
+- `ccw/tests/learn-inferred-skill-cli.test.js`
 
-Implement TASK-005 (inferred state machine) on top of the now-stable event/snapshot/rollback foundation.
+---
+
+## Validation
+
+- `npm test`: PASS (202/202)
+
+---
+
+## Remaining Work
+
+- TASK-007 (pending): metrics + explainability closure (evidence/provenance enforcement + observability hooks).
+- Optional follow-ups:
+  - add a dedicated `supersede` CLI command
+  - migrate `.claude/commands/learn/profile.md` to the new inferred event commands
+

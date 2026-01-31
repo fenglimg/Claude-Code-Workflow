@@ -220,5 +220,277 @@
       {"source": "pragmatic", "insight": "固定 4 问模板版本化便于 A/B 与回归"},
       {"source": "systematic", "insight": "Event-sourcing 支撑画像可追溯与回滚"}
     ]
-  }
+  },
+  "continuations": [
+    {
+      "timestamp": "2026-01-31T17:46:08+08:00",
+      "topic": "learn:profile 执行反馈（Round 12）",
+      "issues": [
+        "背景描述后出现英文确认句（突兀）",
+        "交互提问/选项中英混杂",
+        "p-e2e-001 等测试 profile 混入真实流程",
+        "create 默认 full-assessment 的需求变更",
+        "背景解析需要 Agent 联想扩展技术栈",
+        "full assessment 的 Add Topic 录入流程突兀",
+        "topic-level full assessment 流程缺失（计划/执行链路断点）",
+        "怀疑 profile.md 更新导致退化/失效"
+      ],
+      "creative": {
+        "ideas": [
+          {
+            "id": "C12-1",
+            "title": "背景推断“先解释后确认”（低打扰）",
+            "description": "把 inferred topics 变成一段中文摘要 + Top-3 快速确认，其余默认 proposed，提供稍后批量编辑。",
+            "novelty": 3,
+            "impact": 5
+          },
+          {
+            "id": "C12-2",
+            "title": "Topic 自动补全（生态联想）",
+            "description": "从一个主技能（如 cocos_creator）联想出其生态技能栈（ts/js、构建工具、渲染/性能、资源管线），并标注原因。",
+            "novelty": 4,
+            "impact": 4
+          }
+        ],
+        "insights": ["突兀感本质是“系统意图未解释 + 强制逐条确认”", "联想必须可解释，否则会被当成胡猜"],
+        "challenges": ["避免联想过度导致噪声", "需要可回滚与纠错入口"]
+      },
+      "pragmatic": {
+        "approaches": [
+          {
+            "id": "P12-1",
+            "title": "全量中文化 + 过渡文案（止痛）",
+            "description": "统一 AskUserQuestion 文案为中文，增加背景推断过渡说明；Top-N 确认 + 跳过。",
+            "effort": 2,
+            "risk": 1,
+            "reuse_potential": 5
+          },
+          {
+            "id": "P12-2",
+            "title": "隔离/过滤 e2e profiles",
+            "description": "把 p-e2e-* 从真实 list/select 流程隐藏或迁移到测试目录，避免污染 active_profile_id。",
+            "effort": 2,
+            "risk": 2,
+            "reuse_potential": 4
+          },
+          {
+            "id": "P12-3",
+            "title": "明确 full-assessment 定义并补齐闭环",
+            "description": "决定 full-assessment 是“更多采集+自动扩展”还是“必须评估题目”；并选定落点（/learn:execute preflight 或新增 /learn:assess）。",
+            "effort": 4,
+            "risk": 3,
+            "reuse_potential": 4
+          }
+        ],
+        "blockers": ["full-assessment 语义未定会导致实现反复", "topic-level assessment 缺少稳定的 pack/rubric/回归集"],
+        "recommendations": ["先把体验稳定（中文化+过渡+过滤测试数据），再做能力补齐（联想+评估闭环）"]
+      },
+      "systematic": {
+        "decomposition": {
+          "localization": ["AskUserQuestion 文案统一规范", "value/label 分离策略"],
+          "profile_identity": ["测试数据隔离", "state 防污染", "list/select 过滤策略"],
+          "background_inference": ["deterministic parse", "agent expansion", "provenance", "confirmation policy"],
+          "assessment_loop": ["topic packs", "runtime", "events", "snapshot fold", "regression"]
+        },
+        "architectures": [
+          {
+            "id": "S12-1",
+            "pattern": "Two-stage Inference (parse -> expand -> propose)",
+            "pros": ["可控", "可解释", "能逐步替换 KeywordDictionary"],
+            "cons": ["需要额外实现与日志/回归"],
+            "best_for": "减少突兀 + 提升自动补全质量"
+          }
+        ],
+        "risk_matrix": [
+          {
+            "risk": "联想层引入噪声导致 topic 列表膨胀",
+            "impact": "medium",
+            "likelihood": "high",
+            "mitigation": "Top-N 展示 + 低置信度默认 proposed + 批量编辑/撤销"
+          },
+          {
+            "risk": "测试数据污染导致错误 profile 被激活",
+            "impact": "high",
+            "likelihood": "medium",
+            "mitigation": "fixture 隔离 + 过滤 + state 写入保护"
+          }
+        ]
+      },
+      "synthesis": {
+        "convergent_themes": [
+          "中文化与过渡文案是第一优先级",
+          "测试数据必须与真实数据隔离",
+          "背景解析需要 provenance + 低打扰确认策略",
+          "full assessment 需要明确语义并补齐闭环"
+        ],
+        "conflicting_views": [
+          {
+            "topic": "create 默认 full-assessment 的含义",
+            "creative": "尽量自动化，不强制答题，用联想+轻确认",
+            "pragmatic": "先定义清楚再改默认，否则引发新困惑",
+            "systematic": "把 full-assessment 拆成 capability flags，避免一个开关承载多个语义"
+          }
+        ],
+        "unique_contributions": [
+          {"source": "creative", "insight": "先解释系统意图再确认，能显著降低突兀感"},
+          {"source": "pragmatic", "insight": "先过滤 e2e 污染与中文化，能快速恢复可用性"},
+          {"source": "systematic", "insight": "将 full-assessment 拆为可组合能力标志，降低语义歧义"}
+        ]
+      }
+    }
+    ,
+    {
+      "timestamp": "2026-01-31T17:54:13+08:00",
+      "topic": "Round 13 决策锁定",
+      "decisions": [
+        "create 默认 full-assessment = 更完整采集 + topic 自动扩展 + is_minimal=false/metadata + 必须进入题目评估（闭环）",
+        "p-e2e-* 永远隐藏/隔离（不进入真实交互、不污染 active_profile_id）",
+        "Add Topic 完全移除（topics 仅由用户描述 + Agent 联想生成，并通过 AskUserQuestion 确认/纠错）"
+      ],
+      "immediate_implications": [
+        "当前 createFlow 的 runFullAssessment 只影响 metadata（assessment_method/completion_percent），但没有题目评估闭环，需要补齐",
+        "当前 selectFlow 直接展示 list-profiles 结果，需要增加对 p-e2e-* 的过滤/隔离",
+        "当前 create/update 仍存在 Add Topic 录入，需要删除并替换为“联想 topics + 确认”流程"
+      ]
+    },
+    {
+      "timestamp": "2026-01-31T18:43:31+08:00",
+      "topic": "Round 15 流程图已确认：待讨论点清单",
+      "creative": {
+        "ideas": [
+          {
+            "id": "C15-1",
+            "title": "Topic 覆盖校验以“摘要确认”替代逐条确认",
+            "description": "先展示 Top-N topics + 为什么推断，用户只需回答：缺什么/不对/够了；必要时再展开逐条。",
+            "novelty": 3,
+            "impact": 5
+          },
+          {
+            "id": "C15-2",
+            "title": "评估疲劳管理：每 topic 一页结论 + 继续/结束",
+            "description": "每完成一个 topic 评估，输出简短可解释结论，再 AskUserQuestion 选择继续评估下一个或结束。",
+            "novelty": 2,
+            "impact": 4
+          }
+        ],
+        "insights": [
+          "full-assessment 默认 true 时，交互必须“可快进/可跳过/可分段”，否则 create 会变得过重",
+          "推断+评估的解释性比准确性更先影响信任"
+        ],
+        "challenges": ["topic 列表过长导致用户决策困难", "循环确认需要防止无限迭代"]
+      },
+      "pragmatic": {
+        "approaches": [
+          {
+            "id": "P15-1",
+            "title": "定义 full-assessment 的完成条件 + completion_percent 计算方式",
+            "description": "把 completion_percent 从固定值改为评估闭环完成度（topics_assessed/targets），并明确默认评估多少 topic/多少题。",
+            "effort": 2,
+            "risk": 2,
+            "reuse_potential": 5
+          },
+          {
+            "id": "P15-2",
+            "title": "Agent 联想输出 schema + loop guardrails",
+            "description": "约束输出字段（topic_id/label/confidence/reason/provenance），限制 Top-N 与 loop 次数，提供兜底跳过。",
+            "effort": 3,
+            "risk": 3,
+            "reuse_potential": 4
+          },
+          {
+            "id": "P15-3",
+            "title": "p-e2e-* 双层隔离（数据迁移 + 运行时保护）",
+            "description": "将 fixture 从真实 profiles 目录迁出；同时在 list/state 写入处硬过滤。",
+            "effort": 2,
+            "risk": 2,
+            "reuse_potential": 4
+          }
+        ],
+        "blockers": [
+          "topic_id 来源/同义词映射不清会导致评估包生成与回归集失效",
+          "评估 pack 运行时生成可能导致 create 变慢，需要缓存策略"
+        ],
+        "recommendations": [
+          "先锁定 topic_id 体系与 pack 缓存策略，再补齐评估闭环",
+          "full-assessment 默认 true 时，必须给用户明确“预计耗时/可稍后继续”"
+        ]
+      },
+      "systematic": {
+        "decomposition": {
+          "topic_identity": ["taxonomy 版本", "normalize/alias", "mapping contract"],
+          "assessment": ["pack versioning", "question ids", "rubric versioning", "event schema", "snapshot fold"],
+          "loops": ["coverage loop guardrails", "assessment loop stop conditions", "resume capability"]
+        },
+        "architectures": [
+          {
+            "id": "S15-1",
+            "pattern": "Extract /learn:assess as a reusable sub-flow",
+            "pros": ["可复用", "更易测试", "profile/create/update 只做编排"],
+            "cons": ["命令面增多，需要一致的状态/恢复策略"],
+            "best_for": "把 topic-level 评估做成稳定能力（并可被 execute/preflight 复用）"
+          }
+        ],
+        "risk_matrix": [
+          {
+            "risk": "full-assessment 默认 true 导致 create 过长、用户中途退出",
+            "impact": "high",
+            "likelihood": "high",
+            "mitigation": "明确默认评估范围 + 可跳过/可稍后继续 + 进度持久化"
+          },
+          {
+            "risk": "topic_id 不稳定导致回归集与历史评估不可比",
+            "impact": "high",
+            "likelihood": "medium",
+            "mitigation": "taxonomy 作为 source of truth + 版本化 + alias 映射"
+          }
+        ]
+      },
+      "synthesis": {
+        "convergent_themes": [
+          "需要定义 full-assessment 的完成条件与默认评估范围",
+          "topic_id/taxonomy/pack 需要版本化与稳定映射",
+          "需要 loop 防发散（Top-N + max iterations + 兜底跳过）",
+          "评估闭环更适合抽成可复用子流程（可选 /learn:assess）"
+        ],
+        "conflicting_views": [
+          {
+            "topic": "评估闭环落点",
+            "creative": "尽量在 profile 里一气呵成，体验完整",
+            "pragmatic": "尽快补齐闭环即可，落点可先简化",
+            "systematic": "抽成 /learn:assess 便于复用与测试"
+          }
+        ],
+        "unique_contributions": [
+          { "source": "creative", "insight": "用摘要确认替代逐条确认，降低突兀和疲劳" },
+          { "source": "pragmatic", "insight": "completion_percent 应该反映评估闭环完成度" },
+          { "source": "systematic", "insight": "topic_id 稳定性是评估可迭代的前提" }
+        ]
+      },
+      "open_questions": [
+        "create 默认评估多少个 topic、每个 topic 多少题/多少轮？",
+        "topic_id 必须来自 taxonomy 还是允许动态生成？动态生成如何回收为 taxonomy？",
+        "评估结果写到 asserted 还是 inferred（是否需要用户二次确认）？",
+        "是否新增 /learn:assess 作为可复用命令？"
+      ]
+    }
+    ,
+    {
+      "timestamp": "2026-01-31T20:12:58+08:00",
+      "topic": "Round 27 流程修订：去轻量确认 + update 目标驱动 + 覆盖校验推荐列表",
+      "issues": [
+        "topic 覆盖校验 loop 需要“推荐 topics + type something”",
+        "/learn:assess 结束后不做轻量确认，只保留继续/结束",
+        "update 不做背景联想，改为 goal 驱动并检测是否已评估",
+        "保存步骤在流程图层面合并（profile + events 视为同一保存）",
+        "评估闭环需要完整 pack + 评分/自适应 loop（类似二分收敛）"
+      ],
+      "pragmatic": {
+        "recommendations": [
+          "覆盖校验 UI 用 Top-N 列表 + ‘其他（请输入）’",
+          "update 先做 goal->topic resolution，再查 pack_key 是否已完成评估",
+          "评估闭环不要依赖用户确认，改为通过题库/回归集/自适应策略保证准确性"
+        ]
+      }
+    }
+  ]
 }

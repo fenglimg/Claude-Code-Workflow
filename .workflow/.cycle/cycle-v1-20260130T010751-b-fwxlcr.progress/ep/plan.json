@@ -1,8 +1,8 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "cycle_id": "cycle-v1-20260130T010751-b-fwxlcr",
   "source_task": ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-task-milestone-b.md",
-  "scope": "Milestone B: profile snapshot + events + rollback",
+  "scope": "Milestone B: profile snapshot + events + rollback + inferred state machine",
   "total_tasks": 7,
   "estimated_duration": "Large",
   "tasks": [
@@ -14,26 +14,26 @@
       "estimated_hours": 3,
       "depends_on": [],
       "files": [
-        ".claude/workflows/cli-templates/schemas/learn-profile.schema.json",
-        "ccw/src/commands/learn.ts"
+        ".claude/workflows/cli-templates/schemas/learn-profile-snapshot.schema.json",
+        ".workflow/learn/profiles/schemas/learn-profile-snapshot.schema.json"
       ],
-      "success_criteria": "Schema supports snapshot fields and remains backward compatible.",
-      "status": "pending"
+      "success_criteria": "Snapshot schema supports required fields and is forward compatible.",
+      "status": "completed"
     },
     {
       "id": "TASK-002",
       "title": "Define profile_events types + payload catalog",
-      "description": "Specify event types and payload shapes; finalize DEC-101 storage format choice.",
+      "description": "Specify event types and payload shapes; finalize storage format decision.",
       "effort": "medium",
       "estimated_hours": 3,
       "depends_on": [],
       "files": [
         "ccw/src/commands/learn.ts",
-        ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/backlog.json"
+        ".workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/coordination/decisions.log"
       ],
-      "success_criteria": "Event catalog complete and enforceable by code.",
-      "notes": "Includes DEC-101 decision.",
-      "status": "pending"
+      "success_criteria": "Event catalog complete enough to implement write + fold + rollback + inferred state machine.",
+      "notes": "Includes DEC-101 and DEC-102.",
+      "status": "completed"
     },
     {
       "id": "TASK-003",
@@ -41,13 +41,10 @@
       "description": "Implement append-only event write with locking, version assignment, and atomic append (format per DEC-101).",
       "effort": "large",
       "estimated_hours": 6,
-      "depends_on": [
-        "TASK-002"
-      ],
+      "depends_on": ["TASK-002"],
       "files": [
         "ccw/src/commands/learn.ts",
-        "ccw/src/learn/*",
-        ".claude/commands/learn/_internal/logger.js"
+        "ccw/src/cli.ts"
       ],
       "success_criteria": "Events are immutable and versioned; concurrent appends are safe.",
       "status": "completed"
@@ -58,13 +55,10 @@
       "description": "Implement deterministic fold and rebuild snapshot; support building snapshot at target_version.",
       "effort": "large",
       "estimated_hours": 6,
-      "depends_on": [
-        "TASK-001",
-        "TASK-003"
-      ],
+      "depends_on": ["TASK-001", "TASK-003"],
       "files": [
-        "ccw/src/learn/*",
-        "ccw/src/commands/learn.ts"
+        "ccw/src/commands/learn.ts",
+        "ccw/tests/learn-profile-snapshot-cli.test.js"
       ],
       "success_criteria": "Idempotent rebuild produces identical snapshot for same event stream.",
       "status": "completed"
@@ -75,17 +69,14 @@
       "description": "Implement inferred skills lifecycle: proposed/confirmed/rejected/superseded; confirmed only via user explicit action; cooldown+new evidence for re-propose.",
       "effort": "large",
       "estimated_hours": 6,
-      "depends_on": [
-        "TASK-001",
-        "TASK-002",
-        "TASK-003"
-      ],
+      "depends_on": ["TASK-001", "TASK-002", "TASK-003"],
       "files": [
-        ".claude/commands/learn/profile.md",
-        "ccw/src/learn/*"
+        "ccw/src/commands/learn.ts",
+        "ccw/src/cli.ts",
+        "ccw/tests/learn-inferred-skill-cli.test.js"
       ],
-      "success_criteria": "State transitions are enforced and fully evented.",
-      "status": "pending"
+      "success_criteria": "State transitions are enforced and fully evented; rollback combinations work; tests are deterministic.",
+      "status": "completed"
     },
     {
       "id": "TASK-006",
@@ -93,12 +84,10 @@
       "description": "Implement rollback by appending ROLLBACK_TO_VERSION and rebuilding snapshot view; no event deletion.",
       "effort": "medium",
       "estimated_hours": 4,
-      "depends_on": [
-        "TASK-004"
-      ],
+      "depends_on": ["TASK-004"],
       "files": [
-        "ccw/src/learn/*",
-        "ccw/src/commands/learn.ts"
+        "ccw/src/commands/learn.ts",
+        "ccw/tests/learn-profile-snapshot-cli.test.js"
       ],
       "success_criteria": "Rollback produces correct view and remains auditable.",
       "status": "completed"
@@ -109,35 +98,29 @@
       "description": "Add evidence/provenance enforcement and metrics emission for events/rebuild/inferred/rollback.",
       "effort": "medium",
       "estimated_hours": 3,
-      "depends_on": [
-        "TASK-003",
-        "TASK-005",
-        "TASK-006"
-      ],
+      "depends_on": ["TASK-003", "TASK-005", "TASK-006"],
       "files": [
-        "ccw/src/learn/*",
-        "ccw/src/commands/learn.ts"
+        "ccw/src/commands/learn.ts",
+        ".claude/commands/learn/profile.md"
       ],
-      "success_criteria": "Every inferred has evidence; metrics dashboards can be built.",
+      "success_criteria": "Every inferred has evidence/provenance minimum closure; observability hooks exist.",
       "status": "pending"
     }
   ],
-  "critical_path": [
-    "TASK-003",
-    "TASK-004",
-    "TASK-006"
-  ],
+  "critical_path": ["TASK-003", "TASK-004", "TASK-006", "TASK-005"],
   "notes": {
-    "issue_source": ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-issues-milestone-b.md",
     "pending_decisions": [],
     "hard_constraints": [
       "append-only events (no update/delete)",
       "inferred never auto-confirm",
+      "confirm/reject must be actor=user",
       "rollback does not delete history"
     ],
     "decisions": [
-      "DEC-101: events storage format = JSONL per profile (.workflow/learn/profiles/events/{profileId}.ndjson)"
+      "DEC-101: events storage format = JSONL per profile (.workflow/learn/profiles/events/{profileId}.ndjson)",
+      "DEC-102: inferred state machine + cooldown/new evidence gating + CCW_NOW_ISO time injection"
     ],
-    "iteration_focus": "Implement TASK-003/004/006 first; defer inferred state machine (TASK-005) to next iteration."
+    "iteration_focus": "Implement TASK-005 inferred state machine end-to-end (events + fold + CLI + tests)."
   }
 }
+

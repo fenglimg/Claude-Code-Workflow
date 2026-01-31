@@ -1,27 +1,35 @@
-# Development Issues - v1.1.0
+# Development Issues - v1.2.0
 
 ## Document Status
 | Field | Value |
 |-------|-------|
-| Version | 1.1.0 |
-| Iteration | 2 |
-| Updated | 2026-01-31T14:37:10+08:00 |
-| Cycle | cycle-v1-20260130T010751-b-fwxlcr |
+| Version | 1.2.0 |
+| Iteration | 3 |
+| Updated | 2026-01-31T15:11:06+08:00 |
 
 ---
 
-## Issues / Decisions
+## Resolved in Iteration 3
 
-### Issue 1 (Resolved): DEC-101 events 存储格式
-- Status: Resolved via DEC-101
-- Decision: JSONL per profile + strict line-per-event append; reader ignores bad lines.
+- Implemented inferred skill state machine events + fold + CLI enforcement + deterministic tests (TASK-005).
 
-### Issue 2: 迁移策略
-- Severity: Medium
-- Impact: 旧 profile JSON 如何转为 events/snapshot，避免破坏兼容。
-- Recommendation: PROFILE_IMPORTED + FIELD_SET/ASSERTED_SKILL_* 导入事件。
+---
 
-### Issue 3: rebuild 性能与 checkpoint
-- Severity: Medium
-- Impact: event stream 增长后 rebuild 可能变慢。
-- Recommendation: 定期 snapshot checkpoint 或增量 fold。
+## Open Issues / Follow-ups
+
+1) Supersede write path
+- `INFERRED_SKILL_SUPERSEDED` is supported in fold, but there is no dedicated CLI command yet.
+- If needed, add `learn:supersede-inferred-skill` with explicit payload + validation.
+
+2) Confirming updates when already confirmed
+- Current behavior does not override confirmed skills on new proposals; it stores a deterministic `_metadata.pending_proposal`.
+- If product needs \"re-confirm\" flow, add explicit event(s) (e.g. `INFERRED_SKILL_REOPENED` / `INFERRED_SKILL_UPDATED`) and CLI support.
+
+3) Schema tightening (optional)
+- Snapshot schema intentionally allows additional properties.
+- If consumers need stricter guarantees, add a specific schema for `skills.inferred[]` items (status/proficiency/confidence/evidence shapes).
+
+4) Profile command integration
+- `.claude/commands/learn/profile.md` still uses older direct inference confirmation flow.
+- Consider migrating it to use the new `learn:propose-inferred-skill` + `learn:confirm-inferred-skill` + `learn:reject-inferred-skill`.
+

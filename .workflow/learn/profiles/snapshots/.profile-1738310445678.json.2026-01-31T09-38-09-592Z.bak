@@ -1,0 +1,34 @@
+{
+  "$schema": "../schemas/learn-profile-snapshot.schema.json",
+  "profile_id": "profile-1738310445678",
+  "version": 1,
+  "updated_at": "2026-01-31T09:38:04.600Z",
+  "pre_context": null,
+  "skills": {
+    "asserted": [],
+    "inferred": [
+      {
+        "topic_id": "typescript",
+        "status": "proposed",
+        "proficiency": 0.7,
+        "confidence": 0.4,
+        "evidence": [
+          {
+            "evidence_type": "text",
+            "kind": "inferred_skill_proposal",
+            "timestamp": "2026-01-31T09:38:04.600Z",
+            "summary": "Background inferred skill proposal (user confirmed=often): typescript",
+            "data": {
+              "topic_id": "typescript"
+            }
+          }
+        ],
+        "evidence_hash": "c0f04a2991cc34fa0916f3b0e9469770fa17446bf51adbde1b62bb875b702659",
+        "last_updated": "2026-01-31T09:38:04.600Z"
+      }
+    ]
+  },
+  "_metadata": {
+    "schema_version": "1.0.0"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "$schema": "./schemas/learn-profile.schema.json",
+  "profile_id": "profile-1738310445678",
+  "is_minimal": false,
+  "experience_level": null,
+  "known_topics": [
+    {
+      "topic_id": "cocos_creator",
+      "proficiency": 0.7,
+      "confidence": 0.4,
+      "last_updated": "2026-01-31T09:34:45.678Z",
+      "evidence": [
+        {
+          "evidence_type": "self-report",
+          "kind": "profile_init",
+          "timestamp": "2026-01-31T09:34:45.678Z",
+          "summary": "User self-reported familiarity: often",
+          "data": {
+            "source": "learn:profile"
+          }
+        }
+      ]
+    }
+  ],
+  "pre_context": {
+    "raw": {
+      "pre_q1_style": "practical",
+      "pre_q2_sources": [
+        "official-docs"
+      ],
+      "pre_q3_time": "lt2",
+      "pre_q4_context": "work"
+    },
+    "parsed": {
+      "learning_style": "practical",
+      "preferred_sources": [
+        "official-docs"
+      ],
+      "time_budget": "lt2",
+      "learning_context": "work"
+    },
+    "provenance": {
+      "template_version": "pre_context_v1.3",
+      "captured_at": "2026-01-31T09:34:45.678Z",
+      "asked_vs_reused": "asked",
+      "gating_reason": "create",
+      "skipped": {}
+    }
+  },
+  "learning_preferences": {
+    "style": "practical",
+    "preferred_sources": [
+      "official-docs"
+    ]
+  },
+  "feedback_journal": [],
+  "_metadata": {
+    "created_at": "2026-01-31T09:34:45.678Z",
+    "updated_at": "2026-01-31T09:34:45.678Z",
+    "version": "1.0.0",
+    "goal_type": "general",
+    "goal_text": null,
+    "assessment_method": "evidence-based",
+    "completion_percent": 100
+  }
+}

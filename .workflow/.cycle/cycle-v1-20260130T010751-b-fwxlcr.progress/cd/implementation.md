@@ -1,63 +1,62 @@
-# Implementation Progress - v1.1.0
+# Implementation Progress - v1.2.0
 
 ## Document Status
 | Field | Value |
 |-------|-------|
-| Version | 1.1.0 |
-| Iteration | 2 |
-| Updated | 2026-01-31T14:37:10+08:00 |
-| Cycle | cycle-v1-20260130T010751-b-fwxlcr |
+| Version | 1.2.0 |
+| Iteration | 3 |
+| Updated | 2026-01-31T15:11:06+08:00 |
+| Focus | TASK-005 inferred skill state machine (events + fold + CLI + gating + tests) |
 
 ---
 
-## Summary
+## Implemented (Iteration 3)
 
-本次迭代优先把 Milestone B 的“可回放基础设施”闭环（事件/快照/回滚），并先决定 DEC-101：
+### 1) Deterministic clock injection for tests
 
-- DEC-101（已决定）：每个 profile 一份 JSONL 事件文件（append-only）
-- 已实现：append_event + monotonic version（lock-protected）
-- 已实现：snapshot fold/rebuild（支持 target_version）+ 持久化 snapshot
-- 已实现：rollback_to_version（通过追加 ROLLBACK_TO_VERSION 事件，不删除历史）
-- 已增加：golden determinism tests（同一事件流 -> 同一 snapshot）
+- `ccw/src/commands/learn.ts`
+  - `nowIso()` now supports override via `CCW_NOW_ISO`.
+  - `nowMs()` added for cooldown gating, validating `CCW_NOW_ISO` when used.
 
-本次迭代不包含 inferred state machine（TASK-005），留到下一轮。
+### 2) Inferred skill event folding into snapshot
 
----
+- `ccw/src/commands/learn.ts`
+  - Added fold handlers in `applyEventToSnapshot()` for:
+    - `INFERRED_SKILL_PROPOSED`
+    - `INFERRED_SKILL_CONFIRMED` (ignored unless `actor=user`)
+    - `INFERRED_SKILL_REJECTED` (ignored unless `actor=user`)
+    - `INFERRED_SKILL_SUPERSEDED`
+  - Added helpers:
+    - `safeInferredSkillTopicId()` (payload normalization + validation)
+    - `inferredMapFromSnapshot()` / `writeInferredMapToSnapshot()` (stable ordering by `topic_id`)
+  - Special-case behavior: proposals do not override already-confirmed skills; instead they are stored in `_metadata.pending_proposal` deterministically.
 
-## Implemented CLI Surface
+### 3) Dedicated CLI commands enforcing state machine rules
 
-- `ccw learn:append-profile-event`（NDJSON, append-only）
-- `ccw learn:read-profile-snapshot`
-- `ccw learn:rebuild-profile-snapshot --target-version <n> [--no-persist]`
-- `ccw learn:rollback-profile --target-version <n>`（append-only rollback event）
+- `ccw/src/commands/learn.ts`
+  - New commands (append events + best-effort snapshot update):
+    - `learnProposeInferredSkillCommand`
+    - `learnConfirmInferredSkillCommand`
+    - `learnRejectInferredSkillCommand`
+  - Rules enforced:
+    - confirm/reject require `actor=user`
+    - re-propose after rejection requires cooldown (30 days) AND new evidence (sha256 differs)
+  - Evidence hashing:
+    - `sha256Hex()` added; proposal `evidence_hash` derived from `--evidence` text.
 
----
-
-## Files Changed (Implementation Surface)
-
-- `ccw/src/commands/learn.ts`（events/snapshot/rebuild/rollback commands）
-- `ccw/src/cli.ts`（new CLI command registrations）
-- `.claude/workflows/cli-templates/schemas/learn-profile-snapshot.schema.json`（snapshot schema）
-- `.workflow/learn/profiles/schemas/learn-profile-snapshot.schema.json`（runtime copy for $schema reference）
-- `ccw/tests/learn-profile-events-cli.test.js`（assert snapshot is updated）
-- `ccw/tests/learn-profile-snapshot-cli.test.js`（rebuild/rollback + determinism tests）
-
----
-
-## Task Status
-
-- TASK-001 Define profile_snapshot schema: DONE（新增 snapshot schema）
-- TASK-002 Define profile_events catalog (DEC-101): PARTIAL（仅完成 DEC-101；catalog 细化留后续）
-- TASK-003 Implement append_event + versioning strategy: DONE
-- TASK-004 Implement fold/rebuild snapshot (target_version supported): DONE
-- TASK-005 inferred state machine + user confirm/reject: DEFERRED
-- TASK-006 rollback_to_version: DONE
-- TASK-007 metrics + explainability: PARTIAL（本轮覆盖事件/回滚路径的基础指标入口；完整闭环留后续）
+- `ccw/src/cli.ts`
+  - Registered new commands:
+    - `learn:propose-inferred-skill`
+    - `learn:confirm-inferred-skill`
+    - `learn:reject-inferred-skill`
 
 ---
 
-## Follow-ups
+## Tests Added/Updated
 
-- 统一事件类型 catalog（强校验/枚举）与 payload schema（避免 drift）
-- inferred 状态机：proposed/confirmed/rejected/superseded + cooldown/new evidence
-- 给 snapshot/rebuild 增加性能基线（N events rebuild duration）
+- `ccw/tests/learn-inferred-skill-cli.test.js`
+  - propose -> confirm flow
+  - actor enforcement for confirm
+  - reject -> cooldown + new-evidence gating
+  - rollback restores view
+
