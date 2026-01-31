@@ -1,0 +1,265 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Learn Workflow User Profile",
+  "description": "Represents a user's learning profile, including skills, preferences, time availability, career context, and history.",
+  "type": "object",
+  "properties": {
+    "profile_id": { "type": "string" },
+    "experience_level": {
+      "description": "Optional; may be null/omitted when not collected during initialization.",
+      "anyOf": [
+        { "type": "string", "enum": ["beginner", "intermediate", "advanced", "expert"] },
+        { "type": "null" }
+      ]
+    },
+    "known_topics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "topic_id": { "type": "string" },
+          "proficiency": { "type": "number", "minimum": 0, "maximum": 1 },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "last_updated": { "type": "string", "format": "date-time" },
+          "evidence": {
+            "type": "array",
+            "description": "Evidence items backing proficiency/confidence. Supports legacy string entries for backward compatibility.",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Legacy evidence entry (deprecated): JSON-stringified objects or free-form strings."
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "evidence_type": {
+                      "type": "string",
+                      "enum": ["self-report", "conceptual", "tool-verified", "adaptive-assessment"],
+                      "description": "Provenance tier used for confidence calibration."
+                    },
+                    "kind": {
+                      "type": "string",
+                      "description": "Concrete evidence kind (e.g. self_assessment, conceptual_check, real_mcp)."
+                    },
+                    "timestamp": { "type": "string", "format": "date-time" },
+                    "summary": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "description": "Arbitrary evidence payload (stored for auditability)."
+                    },
+                    "verification_metadata": {
+                      "type": "object",
+                      "description": "Present only for tool-verified evidence.",
+                      "properties": {
+                        "method": { "type": "string" },
+                        "timestamp": { "type": "string", "format": "date-time" },
+                        "test_results": {
+                          "type": "object",
+                          "properties": {
+                            "tests_passed": { "type": "integer", "minimum": 0 },
+                            "tests_total": { "type": "integer", "minimum": 0 },
+                            "score": { "type": "number", "minimum": 0, "maximum": 1 },
+                            "execution_time_ms": { "type": "integer", "minimum": 0 }
+                          }
+                        },
+                        "confidence_source": { "type": "string" }
+                      }
+                    }
+                  },
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": { "evidence_type": { "const": "adaptive-assessment" } },
+                        "required": ["evidence_type"]
+                      },
+                      "then": {
+                        "properties": { "data": { "$ref": "#/definitions/adaptive_assessment_data" } },
+                        "required": ["data"]
+                      }
+                    }
+                  ],
+                  "required": ["evidence_type", "kind", "timestamp"]
+                }
+              ]
+            }
+          }
+        },
+        "required": ["topic_id", "proficiency"]
+      }
+    },
+    "background": {
+      "type": "object",
+      "description": "Optional background context used to seed planning and topic inference.",
+      "properties": {
+        "work_experience": { "type": "array", "items": { "$ref": "#/definitions/background_item" } },
+        "personal_projects": { "type": "array", "items": { "$ref": "#/definitions/background_item" } },
+        "education": { "type": "array", "items": { "$ref": "#/definitions/background_item" } }
+      },
+      "additionalProperties": true
+    },
+    "custom_fields": {
+      "type": "object",
+      "description": "Extension point for user-defined profile fields.",
+      "additionalProperties": true
+    },
+    "pre_context": {
+      "type": "object",
+      "description": "Versioned preference capture (raw + parsed + provenance).",
+      "properties": {
+        "raw": { "type": "object", "additionalProperties": true },
+        "parsed": { "type": "object", "additionalProperties": true },
+        "provenance": {
+          "type": "object",
+          "properties": {
+            "template_version": { "type": "string" },
+            "captured_at": { "type": "string", "format": "date-time" },
+            "asked_vs_reused": { "type": "string", "enum": ["asked", "reused"] },
+            "gating_reason": { "type": "string" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "learning_preferences": {
+      "type": "object",
+      "properties": {
+        "style": { "type": "string", "enum": ["practical", "theoretical", "mixed", "visual"] },
+        "preferred_sources": { "type": "array", "items": { "type": "string" } },
+        "focus": { "type": "string", "enum": ["depth", "breadth", "balanced"] },
+        "approach": { "type": "string", "enum": ["theory-first", "practice-first", "mixed"] }
+      }
+    },
+    "time_availability": {
+      "type": "object",
+      "properties": {
+        "hours_per_week": { "type": "integer", "minimum": 0, "maximum": 168 },
+        "schedule": {
+          "type": "object",
+          "properties": {
+            "preferred_time_of_day": { "type": "string", "enum": ["morning", "afternoon", "evening", "night"] },
+            "preferred_days": { "type": "array", "items": { "type": "string", "enum": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] } },
+            "availability_consistency": { "type": "string", "enum": ["consistent", "variable", "irregular"] }
+          }
+        }
+      }
+    },
+    "career_context": {
+      "type": "object",
+      "properties": {
+        "current_role": { "type": "string" },
+        "target_role": { "type": "string" },
+        "industry": { "type": "string" },
+        "transition_timeline_months": { "type": "integer", "minimum": 0 },
+        "career_change_intent": { "type": "string", "enum": ["none", "exploring", "planning", "active"] }
+      }
+    },
+    "learning_history": {
+      "type": "object",
+      "properties": {
+        "completed_courses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "course_name": { "type": "string" },
+              "provider": { "type": "string" },
+              "completion_date": { "type": "string", "format": "date" },
+              "certification_earned": { "type": "boolean" }
+            }
+          }
+        },
+        "completed_projects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "project_name": { "type": "string" },
+              "description": { "type": "string" },
+              "technologies_used": { "type": "array", "items": { "type": "string" } },
+              "completion_date": { "type": "string", "format": "date" },
+              "source_url": { "type": "string", "format": "uri" }
+            }
+          }
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "monthly_learning_budget_usd": { "type": "number", "minimum": 0 },
+        "resource_access": {
+          "type": "object",
+          "properties": {
+            "has_paid_resources_access": { "type": "boolean" },
+            "has_internet_restriction": { "type": "boolean" },
+            "preferred_free_resources_only": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "feedback_journal": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "session_id": { "type": "string" },
+          "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "notes": { "type": "string" }
+        },
+        "required": ["date", "session_id", "rating"]
+      }
+    }
+  },
+  "definitions": {
+    "background_item": {
+      "type": "object",
+      "properties": {
+        "role": { "type": "string" },
+        "company": { "type": "string" },
+        "name": { "type": "string" },
+        "degree": { "type": "string" },
+        "focus": { "type": "string" },
+        "technologies": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "difficulty_range": {
+      "type": "object",
+      "properties": {
+        "min": { "type": "number", "minimum": 0, "maximum": 1 },
+        "max": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["min", "max"],
+      "additionalProperties": false
+    },
+    "adaptive_assessment_round": {
+      "type": "object",
+      "properties": {
+        "round_index": { "type": "integer", "minimum": 1 },
+        "target_difficulty": { "type": "number", "minimum": 0, "maximum": 1 },
+        "question_count": { "const": 4 },
+        "score_mean": { "type": "number", "minimum": 0, "maximum": 1 },
+        "consistency": { "type": "number", "minimum": 0, "maximum": 1 },
+        "range_after": { "$ref": "#/definitions/difficulty_range" },
+        "confidence_after": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["round_index", "target_difficulty", "question_count", "score_mean", "consistency", "range_after", "confidence_after"],
+      "additionalProperties": true
+    },
+    "adaptive_assessment_data": {
+      "type": "object",
+      "properties": {
+        "rounds": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/adaptive_assessment_round" } },
+        "range_after": { "$ref": "#/definitions/difficulty_range" },
+        "confidence_after": { "type": "number", "minimum": 0, "maximum": 1 },
+        "target_difficulty": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["rounds"],
+      "additionalProperties": true
+    }
+  },
+  "required": ["profile_id", "known_topics"]
+}

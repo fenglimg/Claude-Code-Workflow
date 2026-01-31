@@ -1,0 +1,27 @@
+{
+  "$schema": "../schemas/learn-profile-snapshot.schema.json",
+  "profile_id": "p1",
+  "version": 2,
+  "updated_at": "2026-01-31T06:35:00.845Z",
+  "pre_context": {
+    "raw": {
+      "pre_q1_style": "mixed"
+    },
+    "parsed": {
+      "learning_style": "theoretical"
+    },
+    "provenance": {
+      "template_version": "pre_context_v1.3",
+      "captured_at": "2026-01-01T00:00:00.000Z",
+      "asked_vs_reused": "asked",
+      "gating_reason": "test"
+    }
+  },
+  "skills": {
+    "asserted": [],
+    "inferred": []
+  },
+  "_metadata": {
+    "schema_version": "1.0.0"
+  }
+}

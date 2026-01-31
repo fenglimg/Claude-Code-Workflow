@@ -45,10 +45,10 @@ Phase 1: Operation Routing
    └─ show → Profile Display Flow
 
 Phase 2: Profile Creation Flow (create)
-   ├─ Step 1: Basic Information
-   │  ├─ AskUserQuestion: 学习目标类型
-   │  ├─ AskUserQuestion: 经验水平（初步）
-   │  └─ AskUserQuestion: 学习偏好
+   ├─ Step 1: Minimal Init (Low Friction)
+   │  ├─ (No forced goal_type / experience_level prompts)
+   │  ├─ Optional: Background text to seed known topics
+   │  └─ AskUserQuestion: pre_context_v1.3（固定 4 问）
    ├─ Step 2: Evidence-Based Assessment (unless --no-assessment)
    │  ├─ Conceptual Checks（理论探针）
    │  │  ├─ 多选题验证基础概念
@@ -105,8 +105,9 @@ Phase 5: Profile Display Flow (show)
 
 ```javascript
 // 初始化阶段不强制收集 goal_type（降低摩擦）；后续可渐进采集。
-// （保留字段位于 _metadata.goal_type 以兼容旧结构，但此处不要求用户回答）
-const goalType = null;
+// goalType 仅用于“完整评估”时的权重启发，不来自强制问答。
+// （保留字段位于 _metadata.goal_type 以兼容旧结构）
+const goalType = 'general';
 
 // Optional seed topics (may be populated by background parsing below).
 let initialKnownTopics = [];
@@ -295,6 +296,16 @@ const preContextAnswer = AskUserQuestion({
 });
 
 const preContextCapturedAt = new Date().toISOString();
+// Track per-question skips for cooldown logic (best-effort; schema allows extra provenance fields).
+const skipped = {};
+if (preContextAnswer[PRE_Q1_STYLE_KEY] === 'skip') skipped[PRE_Q1_STYLE_KEY] = preContextCapturedAt;
+{
+  const v = preContextAnswer[PRE_Q2_SOURCES_KEY];
+  if ((Array.isArray(v) && v.includes('skip')) || v === 'skip') skipped[PRE_Q2_SOURCES_KEY] = preContextCapturedAt;
+}
+if (preContextAnswer[PRE_Q3_TIME_KEY] === 'skip') skipped[PRE_Q3_TIME_KEY] = preContextCapturedAt;
+if (preContextAnswer[PRE_Q4_CONTEXT_KEY] === 'skip') skipped[PRE_Q4_CONTEXT_KEY] = preContextCapturedAt;
+
 const normalizeSkipValue = (v) => (v === 'skip' ? null : v);
 const normalizeSkipMulti = (v) => {
   if (!Array.isArray(v)) return normalizeSkipValue(v);
@@ -318,12 +329,13 @@ const pre_context = {
     template_version: PRE_CONTEXT_VERSION,
     captured_at: preContextCapturedAt,
     asked_vs_reused: 'asked',
-    gating_reason: 'create'
+    gating_reason: 'create',
+    skipped
   }
 };
 
-const learningStyle = pre_context.parsed.learning_style;
-const preferredSources = pre_context.parsed.preferred_sources;
+let learningStyle = pre_context.parsed.learning_style;
+let preferredSources = pre_context.parsed.preferred_sources;
 ```
 
 #### Step 2: Evidence-Based Assessment
@@ -785,6 +797,130 @@ const runFullAssessment = Boolean(flags.fullAssessment) && !flags.noAssessment;
 const isMinimal = !runFullAssessment;
 const completionPercent = runFullAssessment ? 100 : 60;
 
+// User correction path: allow correcting derived preferences without overwriting raw evidence.
+// Corrections are recorded as FIELD_SET events later (append-only).
+const fieldSetCorrections = [];
+const PREF_CORRECT_KEY = 'pre_context_correction';
+while (true) {
+  const correctionAnswer = AskUserQuestion({
+    questions: [{
+      key: PREF_CORRECT_KEY,
+      question: "Anything to correct in your preferences? (Optional)",
+      header: "Confirm",
+      multiSelect: false,
+      options: [
+        { value: "ok", label: "Looks good", description: "No changes" },
+        { value: "style", label: "Learning style", description: "Adjust Hands-on / Concept-first / Mixed / Visual" },
+        { value: "sources", label: "Preferred resources", description: "Adjust docs / interactive / video / books / articles" },
+        { value: "time", label: "Weekly time budget", description: "Adjust how much time you can spend" },
+        { value: "context", label: "Learning context", description: "Adjust where you apply this learning" }
+      ]
+    }]
+  });
+
+  const choice = correctionAnswer[PREF_CORRECT_KEY];
+  if (choice === 'ok') break;
+
+  if (choice === 'style') {
+    const ans = AskUserQuestion({
+      questions: [{
+        key: PRE_Q1_STYLE_KEY,
+        question: "Update your learning style (choose or type)?",
+        header: "Style",
+        multiSelect: false,
+        options: [
+          { value: "practical", label: "Hands-on", description: "Learn by doing / build small things" },
+          { value: "theoretical", label: "Concept-first", description: "Understand concepts deeply first" },
+          { value: "mixed", label: "Mixed", description: "Balance concept + practice" },
+          { value: "visual", label: "Visual", description: "Diagrams/videos help a lot" },
+          { value: "skip", label: "Skip", description: "Skip this for now" }
+        ]
+      }]
+    });
+
+    const next = normalizeSkipValue(ans[PRE_Q1_STYLE_KEY]);
+    const prev = learningStyle ?? null;
+    if (next !== prev) fieldSetCorrections.push({ field_path: 'pre_context.parsed.learning_style', old_value: prev, new_value: next });
+    learningStyle = next;
+    pre_context.parsed.learning_style = next;
+  }
+
+  if (choice === 'sources') {
+    const ans = AskUserQuestion({
+      questions: [{
+        key: PRE_Q2_SOURCES_KEY,
+        question: "Update preferred resources (choose or type)?",
+        header: "Sources",
+        multiSelect: true,
+        options: [
+          { value: "official-docs", label: "Official docs", description: "Creator documentation" },
+          { value: "interactive", label: "Interactive", description: "Guided tutorials / sandboxes" },
+          { value: "video", label: "Videos", description: "Video courses / talks" },
+          { value: "books", label: "Books", description: "Deep written content" },
+          { value: "articles", label: "Articles", description: "Blogs / community guides" },
+          { value: "skip", label: "Skip", description: "Skip this for now" }
+        ]
+      }]
+    });
+
+    const next = normalizeSkipMulti(ans[PRE_Q2_SOURCES_KEY]);
+    const prev = preferredSources ?? null;
+    if (JSON.stringify(next) !== JSON.stringify(prev)) {
+      fieldSetCorrections.push({ field_path: 'pre_context.parsed.preferred_sources', old_value: prev, new_value: next });
+    }
+    preferredSources = next;
+    pre_context.parsed.preferred_sources = next;
+  }
+
+  if (choice === 'time') {
+    const ans = AskUserQuestion({
+      questions: [{
+        key: PRE_Q3_TIME_KEY,
+        question: "Update weekly time budget (choose or type)?",
+        header: "Time",
+        multiSelect: false,
+        options: [
+          { value: "lt2", label: "<2h/week", description: "Very limited time" },
+          { value: "2-5", label: "2-5h/week", description: "Light pace" },
+          { value: "5-10", label: "5-10h/week", description: "Steady pace" },
+          { value: "10plus", label: "10h+/week", description: "Fast pace" },
+          { value: "variable", label: "Variable", description: "Some weeks busy, some free" },
+          { value: "skip", label: "Skip", description: "Skip this for now" }
+        ]
+      }]
+    });
+
+    const next = normalizeSkipValue(ans[PRE_Q3_TIME_KEY]);
+    const prev = pre_context.parsed.time_budget ?? null;
+    if (next !== prev) fieldSetCorrections.push({ field_path: 'pre_context.parsed.time_budget', old_value: prev, new_value: next });
+    pre_context.parsed.time_budget = next;
+  }
+
+  if (choice === 'context') {
+    const ans = AskUserQuestion({
+      questions: [{
+        key: PRE_Q4_CONTEXT_KEY,
+        question: "Update learning context (choose or type)?",
+        header: "Context",
+        multiSelect: false,
+        options: [
+          { value: "work", label: "Work tasks", description: "Apply directly on the job" },
+          { value: "project", label: "Personal project", description: "Build something you care about" },
+          { value: "interview", label: "Interview prep", description: "Prepare for technical interviews" },
+          { value: "hobby", label: "Hobby", description: "Curiosity / fun learning" },
+          { value: "unsure", label: "Not sure", description: "Exploring possibilities" },
+          { value: "skip", label: "Skip", description: "Skip this for now" }
+        ]
+      }]
+    });
+
+    const next = normalizeSkipValue(ans[PRE_Q4_CONTEXT_KEY]);
+    const prev = pre_context.parsed.learning_context ?? null;
+    if (next !== prev) fieldSetCorrections.push({ field_path: 'pre_context.parsed.learning_context', old_value: prev, new_value: next });
+    pre_context.parsed.learning_context = next;
+  }
+}
+
 // Create profile object
 const profile = {
   "$schema": "./schemas/learn-profile.schema.json",
@@ -836,10 +972,71 @@ if (!writeProfileResp.ok) {
   throw new Error(writeProfileResp.error?.message || 'Profile write failed');
 }
 
+// Best-effort telemetry + immutable events (append-only). Do not block profile creation on failures.
+try {
+  const preContextEventPayload = JSON.stringify({
+    template_version: PRE_CONTEXT_VERSION,
+    pre_context
+  });
+  const escapedPreContextEventPayload = escapeSingleQuotesForShell(preContextEventPayload);
+  const ev = lastJsonObjectFromText(Bash(
+    `ccw learn:append-profile-event --profile-id ${profileId} --type PRECONTEXT_CAPTURED --actor user --payload '${escapedPreContextEventPayload}' --json`
+  ));
+  if (!ev.ok) console.warn('⚠️ Failed to append PRECONTEXT_CAPTURED event:', ev.error);
+} catch (e) {
+  console.warn('⚠️ Failed to append PRECONTEXT_CAPTURED event:', e?.message || e);
+}
+
+try {
+  for (const change of fieldSetCorrections) {
+    const payload = JSON.stringify(change);
+    const escapedPayload = escapeSingleQuotesForShell(payload);
+    const ev = lastJsonObjectFromText(Bash(
+      `ccw learn:append-profile-event --profile-id ${profileId} --type FIELD_SET --actor user --payload '${escapedPayload}' --json`
+    ));
+    if (!ev.ok) console.warn('⚠️ Failed to append FIELD_SET event:', ev.error);
+  }
+} catch (e) {
+  console.warn('⚠️ Failed to append FIELD_SET events:', e?.message || e);
+}
+
+try {
+  const telemetryPayload = JSON.stringify({
+    template_version: PRE_CONTEXT_VERSION,
+    asked_vs_reused: pre_context?.provenance?.asked_vs_reused ?? null,
+    gating_reason: pre_context?.provenance?.gating_reason ?? null,
+    skipped_keys: Object.keys(pre_context?.provenance?.skipped || {}),
+    corrections_count: Array.isArray(fieldSetCorrections) ? fieldSetCorrections.length : 0
+  });
+  const escapedTelemetryPayload = escapeSingleQuotesForShell(telemetryPayload);
+  const tel = lastJsonObjectFromText(Bash(
+    `ccw learn:append-telemetry-event --event PRECONTEXT_CAPTURED --profile-id ${profileId} --payload '${escapedTelemetryPayload}' --json`
+  ));
+  if (!tel.ok) console.warn('⚠️ Failed to append telemetry event PRECONTEXT_CAPTURED:', tel.error);
+} catch (e) {
+  console.warn('⚠️ Failed to append telemetry event PRECONTEXT_CAPTURED:', e?.message || e);
+}
+
 const updateStateResp = lastJsonObjectFromText(Bash(`ccw learn:update-state --field active_profile_id --value ${profileId} --json`));
 if (!updateStateResp.ok) {
   console.error('❌ Failed to update learn state:', updateStateResp.error);
   throw new Error(updateStateResp.error?.message || 'State update failed');
+}
+
+// Telemetry: init completion (best-effort).
+try {
+  const initTelemetryPayload = JSON.stringify({
+    is_minimal: isMinimal,
+    completion_percent: completionPercent,
+    known_topics_count: Array.isArray(knownTopics) ? knownTopics.length : 0
+  });
+  const escapedInitTelemetryPayload = escapeSingleQuotesForShell(initTelemetryPayload);
+  const tel = lastJsonObjectFromText(Bash(
+    `ccw learn:append-telemetry-event --event PROFILE_CREATED --profile-id ${profileId} --payload '${escapedInitTelemetryPayload}' --json`
+  ));
+  if (!tel.ok) console.warn('⚠️ Failed to append telemetry event PROFILE_CREATED:', tel.error);
+} catch (e) {
+  console.warn('⚠️ Failed to append telemetry event PROFILE_CREATED:', e?.message || e);
 }
 
 // Display summary

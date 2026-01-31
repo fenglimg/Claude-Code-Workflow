@@ -1,0 +1,113 @@
+{
+  "version": "1.0.0",
+  "cycle_id": "cycle-v1-20260130T010750-p0-aicdpz",
+  "source_task": ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-task.md",
+  "scope": "P0: init friction down + pre_context_v1.3",
+  "total_tasks": 7,
+  "estimated_duration": "Large",
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "title": "Init Flow 强制项盘点 + MVP 最小必填字段",
+      "description": "Inventory create/init forced fields and define MVP minimal required fields (goal_type/experience removed as forced).",
+      "effort": "medium",
+      "estimated_hours": 2,
+      "depends_on": [],
+      "files": [
+        ".claude/commands/learn/profile.md",
+        "ccw/src/commands/learn.ts",
+        ".claude/workflows/cli-templates/schemas/learn-profile.schema.json"
+      ],
+      "success_criteria": "MVP field list + dependency map + compatibility notes."
+    },
+    {
+      "id": "TASK-002",
+      "title": "Init Flow 改造：删除强制项 + 流程/文案同步",
+      "description": "Remove forced prompts for goal_type and experience self-rating; ensure create/init succeeds without them.",
+      "effort": "large",
+      "estimated_hours": 6,
+      "depends_on": ["TASK-001"],
+      "files": [
+        ".claude/commands/learn/profile.md",
+        "ccw/src/commands/learn.ts"
+      ],
+      "success_criteria": "Create/init succeeds without goal_type/experience prompt; errors are non-blocking where appropriate."
+    },
+    {
+      "id": "TASK-003",
+      "title": "冻结 pre_context_v1.3 固定 4 问模板（版本化）",
+      "description": "Define and freeze the exact 4 questions for pre_context_v1.3 (options + free text) and ensure it is always asked as 4Q batch.",
+      "effort": "small",
+      "estimated_hours": 1,
+      "depends_on": [],
+      "files": [
+        ".claude/commands/learn/profile.md"
+      ],
+      "success_criteria": "Template version = pre_context_v1.3; exactly 4 questions; no banned questions."
+    },
+    {
+      "id": "TASK-004",
+      "title": "持久化 raw+parsed+provenance（非阻塞解析）+ PRECONTEXT_CAPTURED",
+      "description": "Persist pre_context raw(q1-q4) + parsed(optional) + provenance; parsing failures must not block; append PRECONTEXT_CAPTURED event.",
+      "effort": "large",
+      "estimated_hours": 6,
+      "depends_on": ["TASK-003"],
+      "files": [
+        "ccw/src/commands/learn.ts",
+        ".claude/workflows/cli-templates/schemas/learn-profile.schema.json"
+      ],
+      "success_criteria": "Raw always persisted; template_version/captured_at persisted; capture event appended; flow continues on parse failure."
+    },
+    {
+      "id": "TASK-005",
+      "title": "偏好摘要回显 + 用户纠错入口（FIELD_SET）",
+      "description": "Generate a short preference summary and allow user correction via free text; corrections append FIELD_SET without overwriting raw.",
+      "effort": "medium",
+      "estimated_hours": 3,
+      "depends_on": ["TASK-004"],
+      "files": [
+        ".claude/commands/learn/profile.md",
+        "ccw/src/commands/learn.ts"
+      ],
+      "success_criteria": "Corrections update parsed fields, preserve raw evidence, and are traceable via events."
+    },
+    {
+      "id": "TASK-006",
+      "title": "复用/重问策略：stale/drift/skip cooldown",
+      "description": "Implement pre_context gating decisions based on last capture, drift signals, and skip cooldown.",
+      "effort": "medium",
+      "estimated_hours": 3,
+      "depends_on": ["TASK-004"],
+      "files": [
+        ".claude/commands/learn/profile.md",
+        "ccw/src/commands/learn.ts"
+      ],
+      "success_criteria": "Stale/drift/skip cooldown behaviors match policies and are testable with injected clock."
+    },
+    {
+      "id": "TASK-007",
+      "title": "埋点：completion/skip/correction/reuse（init + pre_context）",
+      "description": "Emit structured telemetry to compute funnel metrics; include template_version and asked vs reused.",
+      "effort": "medium",
+      "estimated_hours": 2,
+      "depends_on": ["TASK-002", "TASK-004", "TASK-005", "TASK-006"],
+      "files": [
+        ".claude/commands/learn/profile.md",
+        "ccw/src/commands/learn.ts"
+      ],
+      "success_criteria": "Metrics can be computed reliably; telemetry contract covered by tests."
+    }
+  ],
+  "critical_path": ["TASK-001", "TASK-002", "TASK-004", "TASK-005", "TASK-007"],
+  "notes": {
+    "issue_source": ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-issues-p0.md",
+    "pending_decisions": ["DEC-001 experience_level handling"],
+    "hard_constraints": [
+      "AskUserQuestion fixed 4Q for pre_context",
+      "no 2-4 week outcome question in pre_context",
+      "no accountability question in pre_context",
+      "parse failure non-blocking",
+      "correction is evented; raw not overwritten"
+    ]
+  }
+}

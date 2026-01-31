@@ -1,9 +1,9 @@
-# Coverage Report - v1.0.0
+# Coverage Report - v1.1.0
 
 ## Overall Coverage: N/A
 
-Planning-only cycle: no tests executed, so coverage is not available.
+Tests executed in v1.1.0, but coverage is not collected by default in this repository's `npm test` flow.
 
 ## Next
 
-After implementation, generate coverage and ensure target >= 80% for public functions touched.
+If/when coverage is enabled, ensure target >= 80% for public functions touched.

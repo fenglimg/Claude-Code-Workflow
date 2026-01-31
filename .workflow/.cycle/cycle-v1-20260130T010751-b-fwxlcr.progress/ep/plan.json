@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "cycle_id": "cycle-v1-20260130T010751-b-fwxlcr",
   "source_task": ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-task-milestone-b.md",
   "scope": "Milestone B: profile snapshot + events + rollback",
@@ -17,7 +17,8 @@
         ".claude/workflows/cli-templates/schemas/learn-profile.schema.json",
         "ccw/src/commands/learn.ts"
       ],
-      "success_criteria": "Schema supports snapshot fields and remains backward compatible."
+      "success_criteria": "Schema supports snapshot fields and remains backward compatible.",
+      "status": "pending"
     },
     {
       "id": "TASK-002",
@@ -31,7 +32,8 @@
         ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/backlog.json"
       ],
       "success_criteria": "Event catalog complete and enforceable by code.",
-      "notes": "Includes DEC-101 decision."
+      "notes": "Includes DEC-101 decision.",
+      "status": "pending"
     },
     {
       "id": "TASK-003",
@@ -39,13 +41,16 @@
       "description": "Implement append-only event write with locking, version assignment, and atomic append (format per DEC-101).",
       "effort": "large",
       "estimated_hours": 6,
-      "depends_on": ["TASK-002"],
+      "depends_on": [
+        "TASK-002"
+      ],
       "files": [
         "ccw/src/commands/learn.ts",
         "ccw/src/learn/*",
         ".claude/commands/learn/_internal/logger.js"
       ],
-      "success_criteria": "Events are immutable and versioned; concurrent appends are safe."
+      "success_criteria": "Events are immutable and versioned; concurrent appends are safe.",
+      "status": "completed"
     },
     {
       "id": "TASK-004",
@@ -53,12 +58,16 @@
       "description": "Implement deterministic fold and rebuild snapshot; support building snapshot at target_version.",
       "effort": "large",
       "estimated_hours": 6,
-      "depends_on": ["TASK-001", "TASK-003"],
+      "depends_on": [
+        "TASK-001",
+        "TASK-003"
+      ],
       "files": [
         "ccw/src/learn/*",
         "ccw/src/commands/learn.ts"
       ],
-      "success_criteria": "Idempotent rebuild produces identical snapshot for same event stream."
+      "success_criteria": "Idempotent rebuild produces identical snapshot for same event stream.",
+      "status": "completed"
     },
     {
       "id": "TASK-005",
@@ -66,12 +75,17 @@
       "description": "Implement inferred skills lifecycle: proposed/confirmed/rejected/superseded; confirmed only via user explicit action; cooldown+new evidence for re-propose.",
       "effort": "large",
       "estimated_hours": 6,
-      "depends_on": ["TASK-001", "TASK-002", "TASK-003"],
+      "depends_on": [
+        "TASK-001",
+        "TASK-002",
+        "TASK-003"
+      ],
       "files": [
         ".claude/commands/learn/profile.md",
         "ccw/src/learn/*"
       ],
-      "success_criteria": "State transitions are enforced and fully evented."
+      "success_criteria": "State transitions are enforced and fully evented.",
+      "status": "pending"
     },
     {
       "id": "TASK-006",
@@ -79,12 +93,15 @@
       "description": "Implement rollback by appending ROLLBACK_TO_VERSION and rebuilding snapshot view; no event deletion.",
       "effort": "medium",
       "estimated_hours": 4,
-      "depends_on": ["TASK-004"],
+      "depends_on": [
+        "TASK-004"
+      ],
       "files": [
         "ccw/src/learn/*",
         "ccw/src/commands/learn.ts"
       ],
-      "success_criteria": "Rollback produces correct view and remains auditable."
+      "success_criteria": "Rollback produces correct view and remains auditable.",
+      "status": "completed"
     },
     {
       "id": "TASK-007",
@@ -92,22 +109,35 @@
       "description": "Add evidence/provenance enforcement and metrics emission for events/rebuild/inferred/rollback.",
       "effort": "medium",
       "estimated_hours": 3,
-      "depends_on": ["TASK-003", "TASK-005", "TASK-006"],
+      "depends_on": [
+        "TASK-003",
+        "TASK-005",
+        "TASK-006"
+      ],
       "files": [
         "ccw/src/learn/*",
         "ccw/src/commands/learn.ts"
       ],
-      "success_criteria": "Every inferred has evidence; metrics dashboards can be built."
+      "success_criteria": "Every inferred has evidence; metrics dashboards can be built.",
+      "status": "pending"
     }
   ],
-  "critical_path": ["TASK-002", "TASK-003", "TASK-001", "TASK-004", "TASK-006"],
+  "critical_path": [
+    "TASK-003",
+    "TASK-004",
+    "TASK-006"
+  ],
   "notes": {
     "issue_source": ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-issues-milestone-b.md",
-    "pending_decisions": ["DEC-101 events storage format"],
+    "pending_decisions": [],
     "hard_constraints": [
       "append-only events (no update/delete)",
       "inferred never auto-confirm",
       "rollback does not delete history"
-    ]
+    ],
+    "decisions": [
+      "DEC-101: events storage format = JSONL per profile (.workflow/learn/profiles/events/{profileId}.ndjson)"
+    ],
+    "iteration_focus": "Implement TASK-003/004/006 first; defer inferred state machine (TASK-005) to next iteration."
   }
 }

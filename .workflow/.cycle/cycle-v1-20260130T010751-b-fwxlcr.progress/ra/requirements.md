@@ -1,14 +1,14 @@
-# Requirements Specification - v1.0.0
+# Requirements Specification - v1.1.0
 
 ## Document Status
 | Field | Value |
 |-------|-------|
-| **Version** | 1.0.0 |
-| **Iteration** | 1 |
-| **Updated** | 2026-01-30T01:10:55+08:00 |
+| **Version** | 1.1.0 |
+| **Iteration** | 2 |
+| **Updated** | 2026-01-31T14:37:10+08:00 |
 | **Source Task** | `.workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-task-milestone-b.md` |
 | **Scope** | Cycle 2 (Milestone B): profile_snapshot + profile_events + rollback |
-| **Mode** | Planning artifacts only (no code changes executed in this cycle run) |
+| **Mode** | Implemented (partial) + validated: events/snapshot/rollback CLI + golden determinism tests (inferred state machine deferred) |
 
 ---
 
@@ -91,8 +91,7 @@
 
 ## Decisions Needed
 
-### DEC-101: profile_events 的存储格式
-候选方案：
-1) 每个 profile 一份 JSONL（复用现有 Logger/issue JSONL append 模式）（推荐）。
-2) 每个 event 一个 JSON 文件（文件数量多，但易于原子写）。
-3) 单个 JSON 数组文件（不推荐：需要重写整文件，且更易损坏）。
+### DEC-101 (DECIDED): profile_events 的存储格式 = JSONL per profile
+结论：
+1) 每个 profile 一份 JSONL（`.workflow/learn/profiles/events/{profileId}.ndjson`），按行 append（append-only）。
+2) version 在 lock 内单调递增分配；读取时忽略坏行并排序（deterministic fold 基于 version）。

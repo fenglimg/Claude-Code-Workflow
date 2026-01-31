@@ -1,21 +1,20 @@
-# Development Issues - v1.0.0
+# Development Issues - v1.1.0
 
 ## Document Status
 | Field | Value |
 |-------|-------|
-| Version | 1.0.0 |
-| Iteration | 1 |
-| Updated | 2026-01-30T01:11:50+08:00 |
+| Version | 1.1.0 |
+| Iteration | 2 |
+| Updated | 2026-01-31T14:37:10+08:00 |
 | Cycle | cycle-v1-20260130T010751-b-fwxlcr |
 
 ---
 
-## Open Issues / Decisions
+## Issues / Decisions
 
-### Issue 1: DEC-101 events 存储格式
-- Severity: High
-- Impact: 决定 append 原子性、恢复策略、读取性能。
-- Recommendation: JSONL per profile + 严格一行一事件 + 读取跳过坏行并报警。
+### Issue 1 (Resolved): DEC-101 events 存储格式
+- Status: Resolved via DEC-101
+- Decision: JSONL per profile + strict line-per-event append; reader ignores bad lines.
 
 ### Issue 2: 迁移策略
 - Severity: Medium

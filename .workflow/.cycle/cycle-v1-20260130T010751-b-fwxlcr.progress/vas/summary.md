@@ -1,15 +1,26 @@
-# Cycle Summary - v1.0.0
+# Cycle Summary - v1.1.0
 
-## What We Produced
+## What We Shipped (This Iteration)
+
+- DEC-101 resolved: events storage = JSONL per profile（append-only）
+- Snapshot schema added (learn-profile-snapshot.schema.json)
+- CLI added for snapshot view:
+  - `learn:read-profile-snapshot`
+  - `learn:rebuild-profile-snapshot` (supports `--target-version`, `--no-persist`)
+  - `learn:rollback-profile` (append-only rollback)
+- Golden determinism tests added (fold/rebuild/rollback)
+
+## Key Outputs
 
 - Requirements: `.workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/ra/requirements.md`
-- Exploration/Plan: `.workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/ep/plan.json`
-- Issues list (issue-like breakdown): `.workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-issues-milestone-b.md`
+- Plan: `.workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/ep/plan.json`
+- Implementation: `.workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/cd/implementation.md`
+- Validation: `.workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/vas/validation.md`
 
-## Key Decision Needed
+## Validation Result
 
-- DEC-101: event storage format + atomicity strategy.
+- `npm test`: 199/199 passed (`.workflow/.cycle/cycle-v1-20260130T010751-b-fwxlcr.progress/vas/test-results.json`)
 
 ## Next Step
 
-Decide DEC-101, then implement TASK-001..TASK-007 and run validation suite.
+Implement TASK-005 (inferred state machine) on top of the now-stable event/snapshot/rollback foundation.

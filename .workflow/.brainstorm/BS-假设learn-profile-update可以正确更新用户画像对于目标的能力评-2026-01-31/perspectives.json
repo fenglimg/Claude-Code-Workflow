@@ -1,0 +1,176 @@
+{
+  "session_id": "BS-假设learn-profile-update可以正确更新用户画像对于目标的能力评-2026-01-31",
+  "timestamp": "2026-01-31T14:37:59+08:00",
+  "topic": "假设learn:profile update可以正确更新用户画像对于目标的能力评估的前提下，优化当前learn:plan的闭环与learn-planning-agent执行粒度，并补齐Gemini Review、AskUserQuestion迭代、exa资源生成/验证以及schema枚举修复。",
+  "creative": {
+    "ideas": [
+      {
+        "title": "Plan-as-Conversation Contract（计划即对话）",
+        "description": "把计划输出转成可迭代的变更提案：每轮3-5条修改建议+收益/代价，用户确认后再应用并继续收敛。",
+        "novelty": 4,
+        "potential_impact": 5,
+        "assumptions_challenged": [
+          "一次输出完整计划更高效"
+        ]
+      },
+      {
+        "title": "Profile Gap Radar（画像缺口雷达）",
+        "description": "用目标→能力图谱→证据链反推画像缺口字段，缺口越大越先触发profile update/ask-user。",
+        "novelty": 4,
+        "potential_impact": 4,
+        "assumptions_challenged": [
+          "只有读取当前简介就足够规划"
+        ]
+      },
+      {
+        "title": "Schema Auto-Heal（schema自愈层）",
+        "description": "schema校验失败时输出可执行修复补丁（enum映射+重试），把硬失败变成可恢复流程。",
+        "novelty": 3,
+        "potential_impact": 5,
+        "assumptions_challenged": [
+          "schema失败只能退出"
+        ]
+      },
+      {
+        "title": "Two-Lane Planning（双车道规划）",
+        "description": "先出最小可用计划让用户确认方向，再补齐细粒度任务与资源，降低首次输出成本。",
+        "novelty": 3,
+        "potential_impact": 4,
+        "assumptions_challenged": [
+          "越细越好（从一开始）"
+        ]
+      }
+    ],
+    "insights": [
+      "把‘用户确认’变成协议（diff + verdict）比把它当作一次性提问更可靠",
+      "schema与资源质量问题都适合做成可恢复闭环（auto-heal / verify / fallback）"
+    ],
+    "challenges": [
+      "过多轮询会打扰用户；需要终止条件与批量确认机制",
+      "auto-heal需要严格的可追踪性，避免悄悄改错造成偏差"
+    ]
+  },
+  "pragmatic": {
+    "approaches": [
+      {
+        "title": "显式Phase编排 + 强制Gate",
+        "description": "在learn:plan内部引入phase runner：ProfileGapCheck → (optional) ProfileUpdate → GoalGen → HandoffPlanningAgent → GeminiReview → UserConfirmLoop → ExaEnrich → ExaVerify → Finalize。",
+        "effort": 3,
+        "risk": 2,
+        "reuse_potential": 5
+      },
+      {
+        "title": "learn-planning-agent 合约最小化",
+        "description": "主Agent只做编排与数据准备；规划细节交给learn-planning-agent，输出统一schema。",
+        "effort": 2,
+        "risk": 2,
+        "reuse_potential": 4
+      },
+      {
+        "title": "Gemini Review产物标准化为Diff",
+        "description": "Gemini输出 {verdict, changes:[{path,before,after,reason}]}；主Agent把diff变成AskUserQuestion并应用。",
+        "effort": 3,
+        "risk": 3,
+        "reuse_potential": 4
+      },
+      {
+        "title": "SchemaNormalize + PreValidate（生成前预防枚举错误）",
+        "description": "在写入schema前执行正规化：phase_name与assessment.type做映射与校验，失败给出结构化修复建议。",
+        "effort": 2,
+        "risk": 2,
+        "reuse_potential": 5
+      }
+    ],
+    "blockers": [
+      "是否已有统一schema validator与错误输出格式（若无，需要先建立最小版本）",
+      "跨agent上下文长度与消息大小限制（需要summary/引用策略）"
+    ],
+    "recommendations": [
+      "先落地Phase编排+schema预校验（最少改动即可减少失败率）",
+      "第二步实现‘review diff + ask-user迭代协议’（闭环收敛的关键）",
+      "最后补齐exa enrich/verify（依赖计划结构稳定后收益最大）"
+    ]
+  },
+  "systematic": {
+    "decomposition": [
+      "Input理解层：profile/goal/context读取 + ProfileGapCheck",
+      "规划层：GoalGen + PlanningDraft(learn-planning-agent)",
+      "评审对齐层：GeminiReview + UserConfirmLoop",
+      "资源层：ExaEnrich + ExaVerify",
+      "质量层：SchemaNormalize + PreValidate + ErrorContract"
+    ],
+    "patterns": [
+      {
+        "name": "Phase State Machine",
+        "why": "支持回滚/重跑/迭代确认；每phase有明确输入输出与可观测性",
+        "tradeoffs": "需要phase状态存储与schema版本管理"
+      },
+      {
+        "name": "Pipeline + Hooks",
+        "why": "侵入小、落地快",
+        "tradeoffs": "复杂迭代与重跑会逐渐失控"
+      }
+    ],
+    "tradeoffs": [
+      {
+        "topic": "用户确认频率",
+        "option_a": "每次小步确认（风险低但打扰大）",
+        "option_b": "批量确认（打扰小但单次改动大）",
+        "suggestion": "默认批量确认，遇到高风险改动再单独确认"
+      },
+      {
+        "topic": "schema严格性",
+        "option_a": "严格失败（质量高但易中断）",
+        "option_b": "自愈重试（连续性好但需审计）",
+        "suggestion": "自愈+审计日志；超过阈值则转人工/AskUserQuestion"
+      }
+    ],
+    "risk_matrix": [
+      {
+        "risk": "AskUserQuestion循环不可收敛（无限迭代/用户疲劳）",
+        "probability": "medium",
+        "impact": "high",
+        "mitigation": "设置最大轮次+终止条件；采用diff合并与批量确认"
+      },
+      {
+        "risk": "enum映射缺失导致schema持续失败",
+        "probability": "high",
+        "impact": "medium",
+        "mitigation": "SchemaNormalize内置映射表+预校验+结构化修复建议"
+      },
+      {
+        "risk": "exa资源质量不稳定（不可访问/不相关/过期）",
+        "probability": "medium",
+        "impact": "medium",
+        "mitigation": "ExaVerify评分+抽样校验+失败回退到更通用资源"
+      }
+    ]
+  },
+  "synthesis": {
+    "convergent_themes": [
+      "把learn:plan做成可编排phase并形成闭环（含重跑/回滚）",
+      "以contract驱动主/子agent职责切分",
+      "Gemini Review需要结构化产物并接入AskUserQuestion迭代",
+      "exa应后置补充并加入验证闭环",
+      "schema枚举问题应前置正规化并提供可修复错误"
+    ],
+    "conflicting_views": [
+      {
+        "topic": "先做资源还是先做闭环",
+        "creative": "两者都能做成闭环（资源也可自愈）",
+        "pragmatic": "先闭环与schema，资源依赖稳定计划结构",
+        "systematic": "先确立phase模型再决定资源挂载点"
+      }
+    ],
+    "unique_contributions": [
+      {
+        "source": "creative",
+        "insight": "Plan-as-Conversation把‘确认’从UI行为升级为协议"
+      },
+      {
+        "source": "systematic",
+        "insight": "把质量与安全（schema/verify）作为横切层而非单独步骤"
+      }
+    ]
+  }
+}

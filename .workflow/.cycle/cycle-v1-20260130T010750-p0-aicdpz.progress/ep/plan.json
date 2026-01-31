@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "cycle_id": "cycle-v1-20260130T010750-p0-aicdpz",
   "source_task": ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-task.md",
   "scope": "P0: init friction down + pre_context_v1.3",
@@ -26,7 +26,9 @@
       "description": "Remove forced prompts for goal_type and experience self-rating; ensure create/init succeeds without them.",
       "effort": "large",
       "estimated_hours": 6,
-      "depends_on": ["TASK-001"],
+      "depends_on": [
+        "TASK-001"
+      ],
       "files": [
         ".claude/commands/learn/profile.md",
         "ccw/src/commands/learn.ts"
@@ -51,7 +53,9 @@
       "description": "Persist pre_context raw(q1-q4) + parsed(optional) + provenance; parsing failures must not block; append PRECONTEXT_CAPTURED event.",
       "effort": "large",
       "estimated_hours": 6,
-      "depends_on": ["TASK-003"],
+      "depends_on": [
+        "TASK-003"
+      ],
       "files": [
         "ccw/src/commands/learn.ts",
         ".claude/workflows/cli-templates/schemas/learn-profile.schema.json"
@@ -64,7 +68,9 @@
       "description": "Generate a short preference summary and allow user correction via free text; corrections append FIELD_SET without overwriting raw.",
       "effort": "medium",
       "estimated_hours": 3,
-      "depends_on": ["TASK-004"],
+      "depends_on": [
+        "TASK-004"
+      ],
       "files": [
         ".claude/commands/learn/profile.md",
         "ccw/src/commands/learn.ts"
@@ -77,10 +83,12 @@
       "description": "Implement pre_context gating decisions based on last capture, drift signals, and skip cooldown.",
       "effort": "medium",
       "estimated_hours": 3,
-      "depends_on": ["TASK-004"],
+      "depends_on": [
+        "TASK-004"
+      ],
       "files": [
-        ".claude/commands/learn/profile.md",
-        "ccw/src/commands/learn.ts"
+        ".claude/commands/learn/plan.md",
+        ".claude/commands/learn/profile.md"
       ],
       "success_criteria": "Stale/drift/skip cooldown behaviors match policies and are testable with injected clock."
     },
@@ -90,24 +98,43 @@
       "description": "Emit structured telemetry to compute funnel metrics; include template_version and asked vs reused.",
       "effort": "medium",
       "estimated_hours": 2,
-      "depends_on": ["TASK-002", "TASK-004", "TASK-005", "TASK-006"],
+      "depends_on": [
+        "TASK-002",
+        "TASK-004",
+        "TASK-005",
+        "TASK-006"
+      ],
       "files": [
         ".claude/commands/learn/profile.md",
+        ".claude/commands/learn/plan.md",
         "ccw/src/commands/learn.ts"
       ],
       "success_criteria": "Metrics can be computed reliably; telemetry contract covered by tests."
     }
   ],
-  "critical_path": ["TASK-001", "TASK-002", "TASK-004", "TASK-005", "TASK-007"],
+  "critical_path": [
+    "TASK-001",
+    "TASK-002",
+    "TASK-004",
+    "TASK-005",
+    "TASK-007"
+  ],
   "notes": {
     "issue_source": ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-issues-p0.md",
-    "pending_decisions": ["DEC-001 experience_level handling"],
+    "pending_decisions": [],
     "hard_constraints": [
       "AskUserQuestion fixed 4Q for pre_context",
       "no 2-4 week outcome question in pre_context",
       "no accountability question in pre_context",
       "parse failure non-blocking",
       "correction is evented; raw not overwritten"
+    ],
+    "decisions": [
+      "DEC-001: experience_level optional/null in schema/validator; init/create does not force prompt"
+    ],
+    "implemented_in_iteration": 2,
+    "validated_with": [
+      "npm test"
     ]
   }
 }

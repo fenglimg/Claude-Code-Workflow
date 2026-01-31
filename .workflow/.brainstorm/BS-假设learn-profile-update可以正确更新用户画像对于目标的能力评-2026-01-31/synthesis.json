@@ -1,0 +1,73 @@
+{
+  "session_id": "BS-假设learn-profile-update可以正确更新用户画像对于目标的能力评-2026-01-31",
+  "topic": "优化learn:plan闭环（profile gap→profile update→handoff learn-planning-agent→Gemini review+AskUserQuestion迭代→exa enrich+verify→finalize）并修复schema枚举错误，评估learn-planning-agent执行粒度。",
+  "status": "completed",
+  "started": "2026-01-31T14:37:59+08:00",
+  "last_updated": "2026-01-31T14:51:56+08:00",
+  "completed": "2026-01-31T14:51:56+08:00",
+  "total_rounds": 4,
+  "decisions": {
+    "schema_unmappable_policy": "ask_user",
+    "auto_heal_audit": "required",
+    "phase_state_storage": "file_persisted"
+  },
+  "recommendations": {
+    "primary": "以 Phase State Machine 编排 learn:plan，并将 SchemaNormalize+PreValidate+Auto-Heal 作为质量关卡（独立phase或横切hook），实现可回滚/可重跑/可观测的闭环主干。",
+    "quick_start_path": [
+      "实现最小 phase runner（run/rerun/rollback）+ 文件落盘 run state",
+      "实现 enum 正规化与映射（phase_name、assessment.type），并输出结构化错误（可自愈则自动修复重试，不可自愈则 ask_user）",
+      "把现有 learn:plan 产物统一走 PreValidate（先挡住 Exit code 1），再逐步接入后续 phase（handoff、review、exa）"
+    ],
+    "not_now": [
+      "Gemini Review + AskUserQuestion 迭代协议（依赖 phase runner 骨架稳定后收益最大）",
+      "exa enrich/verify（依赖计划结构稳定后更易绑定与验证）"
+    ]
+  },
+  "current_top_ideas": [
+    {
+      "title": "Phase State Machine + Gates",
+      "why": "建立可回滚/可重跑/可迭代确认的闭环主干",
+      "open_decisions": [
+        "phase边界与终止条件",
+        "状态存储/版本化策略"
+      ]
+    },
+    {
+      "title": "Contract-first Handoff to learn-planning-agent",
+      "why": "把规划细节下沉，主Agent只负责编排与对话",
+      "open_decisions": [
+        "最小输入输出schema字段",
+        "上下文摘要策略"
+      ]
+    },
+    {
+      "title": "Gemini Review Diff + AskUserQuestion Iteration Protocol",
+      "why": "让review可执行、可确认、可收敛",
+      "open_decisions": [
+        "diff格式与应用规则",
+        "用户确认频率与批量策略"
+      ]
+    },
+    {
+      "title": "Exa Enrich then Verify",
+      "why": "资源补充放到计划稳定后，并用验证闭环保证质量",
+      "open_decisions": [
+        "验证评分信号",
+        "失败回退策略"
+      ]
+    },
+    {
+      "title": "Schema Normalize + Auto-Heal",
+      "why": "提前消除enum不合法，必要时提供可修复错误而非硬失败",
+      "open_decisions": [
+        "枚举映射表来源",
+        "自愈重试的审计策略"
+      ]
+    }
+  ],
+  "next_actions": [
+    "（如果进入落地实现）在代码库中定位 learn:plan 的入口与 schema validator/写盘点，插入 phase runner 与 PreValidate",
+    "补齐测试：enum 映射（命中/歧义/未知）、auto-heal 审计记录、rerun/rollback 行为",
+    "再迭代：将规划细节下沉到 learn-planning-agent，并引入 Gemini Review diff + AskUserQuestion 收敛循环"
+  ]
+}

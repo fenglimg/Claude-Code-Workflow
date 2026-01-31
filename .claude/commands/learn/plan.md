@@ -149,6 +149,247 @@ console.log(`Using profile: ${state.active_profile_id}`);
 console.log(`Experience level: ${profile.experience_level}`);
 console.log(`Known topics: ${profile.known_topics.map(t => t.topic_id).join(', ')}`);
 
+// Step 3.5: pre_context gating (P0)
+// - stale: >30 days -> re-ask fixed 4Q (pre_context_v1.3)
+// - missing: no pre_context -> ask fixed 4Q
+// - skip cooldown: if any question was skipped in last 7 days, do not re-ask (unless user explicitly triggers drift)
+// - drift: ask user explicitly; if they say "update", re-ask fixed 4Q with gating_reason=drift
+const PRE_CONTEXT_VERSION = 'pre_context_v1.3';
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const STALE_DAYS = 30;
+const COOLDOWN_DAYS = 7;
+
+const now = new Date();
+const capturedAtIso = profile?.pre_context?.provenance?.captured_at ?? null;
+const capturedAt = capturedAtIso ? new Date(capturedAtIso) : null;
+const ageDays = capturedAt && !Number.isNaN(capturedAt.getTime()) ? Math.floor((now.getTime() - capturedAt.getTime()) / MS_PER_DAY) : null;
+
+const escapeSingleQuotesForShell = (s) => s.replace(/'/g, "'\\''");
+const lastJsonObjectFromText = (text) => {
+  const raw = String(text ?? '').trim();
+  if (!raw) throw new Error('Empty command output');
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  for (let i = lines.length - 1; i >= 0; i--) {
+    try {
+      return JSON.parse(lines[i]);
+    } catch {
+      // keep scanning
+    }
+  }
+  throw new Error('Failed to parse JSON from command output');
+};
+
+const capturePreContext = (reason) => {
+  console.log(`\n## Preference Capture (pre_context_v1.3)\nReason: ${reason}\n`);
+
+  const PRE_Q1_STYLE_KEY = 'pre_q1_style';
+  const PRE_Q2_SOURCES_KEY = 'pre_q2_sources';
+  const PRE_Q3_TIME_KEY = 'pre_q3_time';
+  const PRE_Q4_CONTEXT_KEY = 'pre_q4_context';
+
+  const preContextAnswer = AskUserQuestion({
+    questions: [
+      {
+        key: PRE_Q1_STYLE_KEY,
+        question: "How do you prefer to learn (choose or type)?",
+        header: "Style",
+        multiSelect: false,
+        options: [
+          { value: "practical", label: "Hands-on", description: "Learn by doing / build small things" },
+          { value: "theoretical", label: "Concept-first", description: "Understand concepts deeply first" },
+          { value: "mixed", label: "Mixed", description: "Balance concept + practice" },
+          { value: "visual", label: "Visual", description: "Diagrams/videos help a lot" },
+          { value: "skip", label: "Skip", description: "Skip this for now" }
+        ]
+      },
+      {
+        key: PRE_Q2_SOURCES_KEY,
+        question: "Preferred resources (choose or type)?",
+        header: "Sources",
+        multiSelect: true,
+        options: [
+          { value: "official-docs", label: "Official docs", description: "Creator documentation" },
+          { value: "interactive", label: "Interactive", description: "Guided tutorials / sandboxes" },
+          { value: "video", label: "Videos", description: "Video courses / talks" },
+          { value: "books", label: "Books", description: "Deep written content" },
+          { value: "articles", label: "Articles", description: "Blogs / community guides" },
+          { value: "skip", label: "Skip", description: "Skip this for now" }
+        ]
+      },
+      {
+        key: PRE_Q3_TIME_KEY,
+        question: "How much time can you consistently spend per week (choose or type)?",
+        header: "Time",
+        multiSelect: false,
+        options: [
+          { value: "lt2", label: "<2h/week", description: "Very limited time" },
+          { value: "2-5", label: "2-5h/week", description: "Light pace" },
+          { value: "5-10", label: "5-10h/week", description: "Steady pace" },
+          { value: "10plus", label: "10h+/week", description: "Fast pace" },
+          { value: "variable", label: "Variable", description: "Some weeks busy, some free" },
+          { value: "skip", label: "Skip", description: "Skip this for now" }
+        ]
+      },
+      {
+        key: PRE_Q4_CONTEXT_KEY,
+        question: "Where will you mostly apply this learning (choose or type)?",
+        header: "Context",
+        multiSelect: false,
+        options: [
+          { value: "work", label: "Work tasks", description: "Apply directly on the job" },
+          { value: "project", label: "Personal project", description: "Build something you care about" },
+          { value: "interview", label: "Interview prep", description: "Prepare for technical interviews" },
+          { value: "hobby", label: "Hobby", description: "Curiosity / fun learning" },
+          { value: "unsure", label: "Not sure", description: "Exploring possibilities" },
+          { value: "skip", label: "Skip", description: "Skip this for now" }
+        ]
+      }
+    ]
+  });
+
+  const capturedAt = new Date().toISOString();
+  const skipped = {};
+  if (preContextAnswer[PRE_Q1_STYLE_KEY] === 'skip') skipped[PRE_Q1_STYLE_KEY] = capturedAt;
+  {
+    const v = preContextAnswer[PRE_Q2_SOURCES_KEY];
+    if ((Array.isArray(v) && v.includes('skip')) || v === 'skip') skipped[PRE_Q2_SOURCES_KEY] = capturedAt;
+  }
+  if (preContextAnswer[PRE_Q3_TIME_KEY] === 'skip') skipped[PRE_Q3_TIME_KEY] = capturedAt;
+  if (preContextAnswer[PRE_Q4_CONTEXT_KEY] === 'skip') skipped[PRE_Q4_CONTEXT_KEY] = capturedAt;
+
+  const normalizeSkipValue = (v) => (v === 'skip' ? null : v);
+  const normalizeSkipMulti = (v) => {
+    if (!Array.isArray(v)) return normalizeSkipValue(v);
+    const filtered = v.filter((x) => x !== 'skip');
+    return filtered.length > 0 ? filtered : null;
+  };
+
+  const pre_context = {
+    raw: {
+      [PRE_Q1_STYLE_KEY]: preContextAnswer[PRE_Q1_STYLE_KEY],
+      [PRE_Q2_SOURCES_KEY]: preContextAnswer[PRE_Q2_SOURCES_KEY],
+      [PRE_Q3_TIME_KEY]: preContextAnswer[PRE_Q3_TIME_KEY],
+      [PRE_Q4_CONTEXT_KEY]: preContextAnswer[PRE_Q4_CONTEXT_KEY]
+    },
+    parsed: {
+      learning_style: normalizeSkipValue(preContextAnswer[PRE_Q1_STYLE_KEY]),
+      preferred_sources: normalizeSkipMulti(preContextAnswer[PRE_Q2_SOURCES_KEY]),
+      time_budget: normalizeSkipValue(preContextAnswer[PRE_Q3_TIME_KEY]),
+      learning_context: normalizeSkipValue(preContextAnswer[PRE_Q4_CONTEXT_KEY])
+    },
+    provenance: {
+      template_version: PRE_CONTEXT_VERSION,
+      captured_at: capturedAt,
+      asked_vs_reused: 'asked',
+      gating_reason: reason,
+      skipped
+    }
+  };
+
+  profile.pre_context = pre_context;
+  profile._metadata = profile._metadata || {};
+  profile._metadata.updated_at = new Date().toISOString();
+
+  // Persist + append event + telemetry: best-effort (do not block plan generation).
+  try {
+    const profilePayload = JSON.stringify(profile);
+    const escapedProfilePayload = escapeSingleQuotesForShell(profilePayload);
+    const writeRes = lastJsonObjectFromText(Bash(
+      `ccw learn:write-profile --profile-id ${state.active_profile_id} --data '${escapedProfilePayload}' --json`
+    ));
+    if (!writeRes.ok) console.warn('⚠️ Failed to persist pre_context update:', writeRes.error);
+  } catch (e) {
+    console.warn('⚠️ Failed to persist pre_context update:', e?.message || e);
+  }
+
+  try {
+    const preContextEventPayload = JSON.stringify({ template_version: PRE_CONTEXT_VERSION, pre_context });
+    const escapedPreContextEventPayload = escapeSingleQuotesForShell(preContextEventPayload);
+    const ev = lastJsonObjectFromText(Bash(
+      `ccw learn:append-profile-event --profile-id ${state.active_profile_id} --type PRECONTEXT_CAPTURED --actor user --payload '${escapedPreContextEventPayload}' --json`
+    ));
+    if (!ev.ok) console.warn('⚠️ Failed to append PRECONTEXT_CAPTURED event:', ev.error);
+  } catch (e) {
+    console.warn('⚠️ Failed to append PRECONTEXT_CAPTURED event:', e?.message || e);
+  }
+
+  try {
+    const telemetryPayload = JSON.stringify({
+      template_version: PRE_CONTEXT_VERSION,
+      asked_vs_reused: 'asked',
+      gating_reason: reason,
+      skipped_keys: Object.keys(pre_context?.provenance?.skipped || {})
+    });
+    const escapedTelemetryPayload = escapeSingleQuotesForShell(telemetryPayload);
+    const tel = lastJsonObjectFromText(Bash(
+      `ccw learn:append-telemetry-event --event PRECONTEXT_CAPTURED --profile-id ${state.active_profile_id} --payload '${escapedTelemetryPayload}' --json`
+    ));
+    if (!tel.ok) console.warn('⚠️ Failed to append telemetry event PRECONTEXT_CAPTURED:', tel.error);
+  } catch (e) {
+    console.warn('⚠️ Failed to append telemetry event PRECONTEXT_CAPTURED:', e?.message || e);
+  }
+};
+
+let shouldAskPreContext = false;
+let gatingReason = 'fresh';
+if (!capturedAt || Number.isNaN(capturedAt.getTime())) {
+  shouldAskPreContext = true;
+  gatingReason = 'missing';
+} else if (ageDays !== null && ageDays > STALE_DAYS) {
+  shouldAskPreContext = true;
+  gatingReason = 'stale';
+} else {
+  const skipped = profile?.pre_context?.provenance?.skipped || {};
+  const hasRecentSkip = Object.values(skipped).some((ts) => {
+    const t = ts ? new Date(String(ts)) : null;
+    if (!t || Number.isNaN(t.getTime())) return false;
+    const days = Math.floor((now.getTime() - t.getTime()) / MS_PER_DAY);
+    return days >= 0 && days < COOLDOWN_DAYS;
+  });
+  if (hasRecentSkip) gatingReason = 'cooldown';
+}
+
+if (!shouldAskPreContext) {
+  console.log(`pre_context gating: ${gatingReason} (age_days=${ageDays ?? 'unknown'}). Reusing.`);
+
+  // Explicit drift trigger: let user choose to update preferences now.
+  const PREF_STILL_OK_KEY = 'pre_context_still_ok';
+  const prefOkAnswer = AskUserQuestion({
+    questions: [{
+      key: PREF_STILL_OK_KEY,
+      question: "Do these learning preferences still match you? (choose or type)",
+      header: "Preferences Check",
+      multiSelect: false,
+      options: [
+        { value: "yes", label: "Yes, keep", description: "Reuse existing preferences" },
+        { value: "update", label: "Update now", description: "Re-ask the 4 preference questions" }
+      ]
+    }]
+  });
+
+  if (prefOkAnswer[PREF_STILL_OK_KEY] === 'update') {
+    capturePreContext('drift');
+  } else {
+    try {
+      const telemetryPayload = JSON.stringify({
+        template_version: PRE_CONTEXT_VERSION,
+        asked_vs_reused: 'reused',
+        gating_reason: gatingReason,
+        age_days: ageDays ?? null
+      });
+      const escapedTelemetryPayload = escapeSingleQuotesForShell(telemetryPayload);
+      const tel = lastJsonObjectFromText(Bash(
+        `ccw learn:append-telemetry-event --event PRECONTEXT_REUSED --profile-id ${state.active_profile_id} --payload '${escapedTelemetryPayload}' --json`
+      ));
+      if (!tel.ok) console.warn('⚠️ Failed to append telemetry event PRECONTEXT_REUSED:', tel.error);
+    } catch (e) {
+      console.warn('⚠️ Failed to append telemetry event PRECONTEXT_REUSED:', e?.message || e);
+    }
+  }
+} else {
+  capturePreContext(gatingReason);
+}
+
 // Step 4: Profile Update Check (Simplified)
 // Only trigger when the profile is empty (no known topics). Avoid time-based heuristics and keyword guessing.
 const { Logger } = await import('./_internal/logger.js');

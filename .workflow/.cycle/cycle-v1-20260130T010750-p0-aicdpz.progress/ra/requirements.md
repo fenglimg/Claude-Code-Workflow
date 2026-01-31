@@ -1,14 +1,14 @@
-# Requirements Specification - v1.0.0
+# Requirements Specification - v1.1.0
 
 ## Document Status
 | Field | Value |
 |-------|-------|
-| **Version** | 1.0.0 |
-| **Iteration** | 1 |
-| **Updated** | 2026-01-30T01:08:40+08:00 |
+| **Version** | 1.1.0 |
+| **Iteration** | 2 |
+| **Updated** | 2026-01-31T14:07:44+08:00 |
 | **Source Task** | `.workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-task.md` |
-| **Scope** | Cycle 1 (P0): init friction down + pre_context_v1.3 |
-| **Mode** | Planning artifacts only (no code changes executed in this cycle run) |
+| **Scope** | Cycle 2 (P0): init friction down + pre_context_v1.3 |
+| **Mode** | Implemented + validated (code/docs updated; tests executed) |
 
 ---
 
@@ -92,13 +92,12 @@
 
 ---
 
-## Decisions Needed
+## Decision Log
 
-### DEC-001: experience_level 如何处理（不强制问，但写入/校验仍要求）
-候选方案：
-1) 让 `experience_level` 在 schema/validator 中变为可选（推荐，最贴合“不强制问”）。
-2) 保持必填但设默认（例如 beginner）并新增单独的 confidence 字段（需要 schema 扩展）。
-3) 只在有 background/assessment 信号后写入 experience_level（会让 create/init 更复杂）。
+### DEC-001 (DECIDED): experience_level 不强制问，schema/validator 允许可选/null
+结论：
+1) `experience_level` 允许 omitted / null（不阻塞 profile create/init）。
+2) init/create 不再强制问 experience；如后续有 evidence/assessment 再逐步写入。
 
 ---
 

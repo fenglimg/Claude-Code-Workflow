@@ -1,14 +1,20 @@
-# Codebase Exploration - v1.0.0
+# Codebase Exploration - v1.1.0
 
 ## Document Status
 | Field | Value |
 |-------|-------|
-| Version | 1.0.0 |
-| Iteration | 1 |
-| Updated | 2026-01-30T01:11:30+08:00 |
+| Version | 1.1.0 |
+| Iteration | 2 |
+| Updated | 2026-01-31T14:37:10+08:00 |
 | Cycle | cycle-v1-20260130T010751-b-fwxlcr |
 
 ---
+
+## Iteration 2 Delta
+
+- DEC-101 已决策：JSONL per profile events（append-only）
+- 已落地 CLI：snapshot rebuild / rollback（见 `cd/implementation.md`）
+- 已添加 golden tests 覆盖 determinism + rollback
 
 ## Current Storage (Learn Profiles)
 

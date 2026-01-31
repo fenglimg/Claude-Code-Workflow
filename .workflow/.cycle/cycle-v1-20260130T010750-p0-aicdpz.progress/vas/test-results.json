@@ -1,14 +1,15 @@
 {
-  "version": "1.0.0",
-  "timestamp": "2026-01-30T01:09:54+08:00",
-  "iteration": 1,
-  "executed": false,
+  "version": "1.1.0",
+  "timestamp": "2026-01-31T14:07:44+08:00",
+  "iteration": 2,
+  "executed": true,
+  "command": "npm test",
   "summary": {
-    "total": 0,
-    "passed": 0,
+    "total": 197,
+    "passed": 197,
     "failed": 0,
     "skipped": 0,
-    "duration_ms": 0
+    "duration_ms": 54780
   },
   "by_suite": [],
   "coverage": {
@@ -18,5 +19,5 @@
     "branches": 0,
     "by_file": []
   },
-  "notes": "Planning-only cycle: no tests executed. Run after implementing tasks in plan.json."
+  "notes": "Full test suite passed. Coverage is not collected by default in this run."
 }

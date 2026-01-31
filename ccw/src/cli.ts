@@ -18,6 +18,11 @@ import {
   learnUpdateStateCommand,
   learnReadProfileCommand,
   learnWriteProfileCommand,
+  learnAppendProfileEventCommand,
+  learnAppendTelemetryEventCommand,
+  learnReadProfileSnapshotCommand,
+  learnRebuildProfileSnapshotCommand,
+  learnRollbackProfileCommand,
   learnListProfilesCommand,
   learnSetActiveProfileCommand,
   learnReadSessionCommand,
@@ -349,6 +354,51 @@ export function run(argv: string[]): void {
     .requiredOption('--data <json>', 'Profile JSON string')
     .option('--json', 'Output as JSON (recommended for agents)')
     .action((options) => learnWriteProfileCommand(options));
+
+  program
+    .command('learn:append-profile-event')
+    .description('Append an immutable profile event (NDJSON, lock-protected)')
+    .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
+    .requiredOption('--type <type>', 'Event type (e.g. PRECONTEXT_CAPTURED|FIELD_SET)')
+    .option('--actor <actor>', 'Actor: user|agent|system (default: user)')
+    .option('--payload <json>', 'Event payload JSON string')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnAppendProfileEventCommand(options));
+
+  program
+    .command('learn:append-telemetry-event')
+    .description('Append a telemetry event (NDJSON, lock-protected)')
+    .requiredOption('--event <name>', 'Telemetry event name')
+    .option('--profile-id <id>', 'Optional profile id')
+    .option('--session-id <id>', 'Optional session id')
+    .option('--payload <json>', 'Event payload JSON string')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnAppendTelemetryEventCommand(options));
+
+  program
+    .command('learn:read-profile-snapshot')
+    .description('Read learn profile snapshot by id (validated)')
+    .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnReadProfileSnapshotCommand(options));
+
+  program
+    .command('learn:rebuild-profile-snapshot')
+    .description('Rebuild learn profile snapshot from immutable events (lock-protected)')
+    .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
+    .option('--target-version <n>', 'Optional target event version (fold point)')
+    .option('--no-persist', 'Do not persist rebuilt snapshot to disk')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnRebuildProfileSnapshotCommand(options));
+
+  program
+    .command('learn:rollback-profile')
+    .description('Rollback snapshot view by appending ROLLBACK_TO_VERSION (no event deletion)')
+    .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
+    .requiredOption('--target-version <n>', 'Target event version to roll back to (0..head)')
+    .option('--actor <actor>', 'Actor: user|agent|system (default: user)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnRollbackProfileCommand(options));
 
   program
     .command('learn:list-profiles')

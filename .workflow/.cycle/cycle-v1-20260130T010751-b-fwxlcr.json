@@ -1,16 +1,16 @@
 {
   "cycle_id": "cycle-v1-20260130T010751-b-fwxlcr",
   "title": "Milestone B: profile snapshot + events + rollback",
-  "description": "Source TASK: .workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-task-milestone-b.md\n\nObjective: Introduce profile_snapshot read model + append-only profile_events audit log with fold/rebuild, inferred skill state machine, and rollback_to_version.\n\nNOTE: This cycle run produced requirements/plan artifacts only (no code changes executed in this cycle run).",
+  "description": "Source TASK: .workflow/.brainstorm/BS-learn-profile优化-2026-01-29/cycle-task-milestone-b.md\n\nObjective: Introduce profile_snapshot read model + append-only profile_events audit log with fold/rebuild, inferred skill state machine, and rollback_to_version.\n\nNOTE: Iteration 1 produced planning artifacts only; Iteration 2 implemented events/snapshot/rollback and executed validation/tests.\n\n--- ITERATION 2 ---\nDecide DEC-101: JSONL append per profile. Implement TASK-003/004/006 (append_event+versioning, fold/rebuild snapshot with target_version, rollback_to_version) with golden determinism tests. Defer TASK-005.",
   "task_history": [
     "Milestone B: profile snapshot + events + rollback"
   ],
   "status": "completed",
   "created_at": "2026-01-30T01:07:51+08:00",
-  "updated_at": "2026-01-30T01:09:54+08:00",
-  "completed_at": "2026-01-30T01:09:54+08:00",
+  "updated_at": "2026-01-31T14:37:10+08:00",
+  "completed_at": "2026-01-31T14:37:10+08:00",
   "max_iterations": 5,
-  "current_iteration": 1,
+  "current_iteration": 2,
   "agents": {
     "ra": {
       "status": "completed",
@@ -71,7 +71,7 @@
   ],
   "phase_errors": [],
   "requirements": {
-    "version": "1.0.0",
+    "version": "1.1.0",
     "specification": "See requirements.md",
     "edge_cases": [
       "event immutability",
@@ -79,7 +79,7 @@
       "rollback does not delete history",
       "inferred state transitions + cooldown/new evidence"
     ],
-    "last_updated": "2026-01-30T01:10:55+08:00"
+    "last_updated": "2026-01-31T14:37:10+08:00"
   },
   "exploration": {
     "version": "1.0.0",
@@ -97,14 +97,14 @@
     "last_updated": "2026-01-30T01:11:30+08:00"
   },
   "plan": {
-    "version": "1.0.0",
+    "version": "1.1.0",
     "tasks": [
       {
         "id": "TASK-001",
         "description": "Define profile_snapshot schema",
         "effort": "medium",
         "depends_on": [],
-        "status": "pending",
+        "status": "completed",
         "assigned_to": "ra",
         "files": [
           ".claude/workflows/cli-templates/schemas/learn-profile.schema.json",
@@ -130,7 +130,7 @@
         "depends_on": [
           "TASK-002"
         ],
-        "status": "pending",
+        "status": "completed",
         "assigned_to": "cd",
         "files": [
           "ccw/src/commands/learn.ts",
@@ -145,7 +145,7 @@
           "TASK-001",
           "TASK-003"
         ],
-        "status": "pending",
+        "status": "completed",
         "assigned_to": "cd",
         "files": [
           "ccw/src/learn/*",
@@ -175,7 +175,7 @@
         "depends_on": [
           "TASK-004"
         ],
-        "status": "pending",
+        "status": "completed",
         "assigned_to": "cd",
         "files": [
           "ccw/src/learn/*",
@@ -207,22 +207,54 @@
       "TASK-004",
       "TASK-006"
     ],
-    "last_updated": "2026-01-30T01:11:30+08:00"
+    "last_updated": "2026-01-31T14:37:10+08:00"
   },
   "changes": {
-    "total_files": 0,
-    "changes": [],
+    "total_files": 6,
+    "changes": [
+      {
+        "lines_removed": 0,
+        "file": ".claude/workflows/cli-templates/schemas/learn-profile-snapshot.schema.json",
+        "lines_added": 1
+      },
+      {
+        "lines_removed": 0,
+        "file": ".workflow/learn/profiles/schemas/learn-profile-snapshot.schema.json",
+        "lines_added": 1
+      },
+      {
+        "lines_removed": 0,
+        "file": "ccw/src/cli.ts",
+        "lines_added": 1
+      },
+      {
+        "lines_removed": 0,
+        "file": "ccw/src/commands/learn.ts",
+        "lines_added": 1
+      },
+      {
+        "lines_removed": 0,
+        "file": "ccw/tests/learn-profile-events-cli.test.js",
+        "lines_added": 1
+      },
+      {
+        "lines_removed": 0,
+        "file": "ccw/tests/learn-profile-snapshot-cli.test.js",
+        "lines_added": 1
+      }
+    ],
     "iteration_markers": {
-      "1": "2026-01-30T01:09:54+08:00"
+      "1": "2026-01-30T01:09:54+08:00",
+      "2": "2026-01-31T14:37:10+08:00"
     }
   },
   "test_results": {
-    "version": "1.0.0",
-    "pass_rate": 0,
+    "version": "1.1.0",
+    "pass_rate": 1,
     "coverage": 0,
     "failed_tests": [],
-    "total_tests": 0,
-    "last_run": "2026-01-30T01:12:10+08:00"
+    "total_tests": 199,
+    "last_run": "2026-01-31T14:37:10+08:00"
   },
   "iterations": [
     {
@@ -250,23 +282,37 @@
       "issues_found": [
         "Decision needed: event storage format (JSONL file vs per-event JSON)"
       ],
-      "resolved": false
+      "resolved": true
+    },
+    {
+      "number": 2,
+      "started_at": "2026-01-31T14:37:10+08:00",
+      "completed_at": "2026-01-31T14:37:10+08:00",
+      "agent_results": {
+        "vas": {
+          "status": "completed",
+          "files_modified": 4
+        },
+        "ep": {
+          "status": "completed",
+          "files_modified": 1
+        },
+        "cd": {
+          "status": "completed",
+          "files_modified": 4
+        },
+        "ra": {
+          "status": "completed",
+          "files_modified": 2
+        }
+      },
+      "issues_found": [],
+      "resolved": true
     }
   ],
   "coordination": {
     "feedback_log": [],
-    "pending_decisions": [
-      {
-        "id": "DEC-101",
-        "description": "profile_events storage format + atomicity strategy",
-        "options": [
-          "JSONL append file per profile (reuse Logger/issue JSONL patterns)",
-          "One JSON per event file + directory ordering",
-          "Single events.json array (not recommended: update costs and corruption risk)"
-        ],
-        "status": "pending"
-      }
-    ],
+    "pending_decisions": [],
     "blockers": []
   }
 }

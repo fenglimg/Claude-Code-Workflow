@@ -1,14 +1,20 @@
-# Architecture Design - v1.0.0
+# Architecture Design - v1.1.0
 
 ## Document Status
 | Field | Value |
 |-------|-------|
-| Version | 1.0.0 |
-| Iteration | 1 |
-| Updated | 2026-01-30T01:11:30+08:00 |
+| Version | 1.1.0 |
+| Iteration | 2 |
+| Updated | 2026-01-31T14:37:10+08:00 |
 | Cycle | cycle-v1-20260130T010751-b-fwxlcr |
 
 ---
+
+## Iteration 2 Delta
+
+- 事件存储：JSONL per profile（DEC-101）
+- fold/rebuild + rollback 已落地（append-only；不删除历史）
+- snapshot schema 已补齐（运行时可验证）
 
 ## Proposed Model
 
