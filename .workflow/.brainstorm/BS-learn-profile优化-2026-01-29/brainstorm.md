@@ -1360,3 +1360,550 @@ index.json 顶层：
 - 若要“真正调用”另一个 slash command `/learn:assess`，需要：
   - A) 给 profile 增加 `SlashCommand(*)` 权限，让其调用 `/learn:assess`（internal-only）
   - 或 B) 将评估闭环实现在可复用的 JS 文件中，由 profile/assess 两边引用（但目前命令文件是内嵌 JS，不是模块化）
+
+---
+
+### Round 41 - 体验反馈迭代（从“可跑通”到“可用且顺滑”）(2026-02-01T00:37:53+08:00)
+
+#### 用户反馈（本轮真实体验发现的问题）
+1) **pre_context 问题批次**：AskUserQuestion 一次最多 4 题，建议“撑满 4 题/批次”；当前体验像是“每批只有 2 题”。  
+2) **profile 文件复用**：不希望每次 learn 会话都 new 一个 profile，建议“共用一个（默认）profile”。  
+3) **topic 覆盖校验缺联想**：覆盖校验本身正确执行，但缺少“主 Agent 联想拓展”，希望在 loop 中主动引导用户在其他方向补充。  
+4) **seed 题体验**：seed 题希望由主 Agent **按 topic + 背景生成 4 道有区分度的题**用于快速定位大概 level；不希望固定模板。并且在用户回答 seed 的过程中，完整题库可以后台交给 Gemini CLI 生成，后续评估由主 Agent 读取题库按规则判断。  
+5) **用户自评很怪**：不希望“自评 correct/partial/wrong”作为主信号。  
+6) **缺用户答题确认能力流程**：希望有“答题后确认/校准”的交互（避免误判）。  
+7) **Bash 过多观感不佳**：中间多次 Bash/CLI 调用打断体验，需要优化“可见的 Bash 噪音”。
+
+#### Root Cause 假设（初步）
+- 当前实现为保证“严格 stop conditions 可落地”，引入了“自评”作为可用的、低成本的 correctness proxy；但体验上像在考试/打分，且用户不一定愿意承担校准责任。
+- seed pack 采用 deterministic 生成，保证可测试性，但牺牲了针对性与区分度。
+- “topic 联想拓展”仅靠规则解析/用户手输，缺少一个显式的 Agent 提示面。
+- Bash 噪音来自“每一步都通过 ccw learn:* CLI 做持久化/校验”（设计上是为了不允许直接写文件）。
+
+#### vNext 方向（候选方案池）
+
+**A) pre_context 批次体验修正（低风险）**
+- 明确目标：每次 AskUserQuestion 尽量凑满 4 个问题（<=4），并减少批次数（能 1 批解决就不拆 2 批）。
+- 若 UI 层实际限制导致 4 题/批显示为 2 题/批：需要定位 AskUserQuestion 渲染限制（而不是脚本逻辑）。
+
+**B) profile 默认复用（中风险，需要产品决策）**
+- 默认 profileId 固定为 `profile`（或 `default`）：create 变为“初始化/覆盖更新”而非“新建新 id”。  
+- 仍保留高级模式：显式传 `--profile-id` 才创建新 profile（多 persona/多用户）。
+
+**C) topic 覆盖校验联想拓展（中风险）**
+- 在“背景粘贴/更新完成后”，加入 **一轮** “联想提示面”：主 Agent 基于当前 topic 列表 + 背景，提出 Top-N 关联 topic（含理由），并用 AskUserQuestion 让用户确认/否认/补充。
+- 后续不再多轮联想：改为依赖 **topic 覆盖校验 AskUserQuestion loop** 基于用户反馈继续补充遗漏 topics。
+- 联想生成来源可分层：
+  1) taxonomy 结构（近邻/同类/前置）  
+  2) 规则/字典（已存在）  
+  3) LLM（Gemini CLI）作为补强（仅在需要时触发一次）
+
+**D) Seed 4 题“区分度生成” + Full Pack 后台生成（高价值，高复杂）**
+- Seed 阶段：主 Agent 先阻塞生成 4 题（覆盖 must/core 的不同 subpoints + 由易到难），用于快速定位 level 区间（不要求一次完备）。  
+- Full pack：在 seed 作答期间（或 seed 结束后）异步触发 Gemini CLI 生成 full pack（taxonomy/subpoints + qbank + regression skeleton），主 Agent 后续读取 pack 按算法继续评估。  
+- 关键需要锁定：异步任务的“状态/完成标记/重试策略/缓存 key”。
+
+**E) 去自评：改为“自动评分 + 轻量校准”两段式（高价值）**
+- 自动评分：由 LLM（Gemini/Claude）对回答做 rubric 评分 + 证据提取（subpoints 覆盖、正确性、边界意识）。  
+- 轻量校准：不让用户自评正确与否，而是让用户确认“系统复述的能力结论是否符合”（仅在系统置信度不足或结论跳变时触发）。
+
+**F) 体验降噪：减少可见 Bash（中风险）**
+- 方向 1：新增 `ccw learn:append-profile-events-batch`，把每题多个事件合并成一次写入（减少 Bash 次数）。  
+- 方向 2：评估中间状态只在内存累积，阶段性 flush（每 4 题 flush 一次）。  
+- 方向 3：把“pack ensure + read + status”合并为更粗粒度的 ccw 命令（减少调用数量）。
+
+#### Multi-Perspective 快速扫描（本轮不跑外部并行 Agent，仅按视角归类）
+
+**Creative（体验优先）**
+- 把“评估”伪装成“讲项目/讲设计/讲 debug”，seed 题更像对话而不是题库抽题（降低考试感）。  
+- 用“系统复述 + 用户纠正”替代“用户自评对错”，校准更自然。  
+- 让 full pack 的生成变成“后台准备中”，前台继续对话（进度可视化/提示）。
+
+**Pragmatic（工程落地优先）**
+- 先修最确定的体验问题：pre_context 批次 4 题与文案一致性、profile 默认复用策略。  
+- seed 题先做到“随 topic+背景生成”即可；full pack 异步先不做真正并发，改为 seed 后一次性生成（先减噪）。  
+- Bash 噪音优先用 batch 事件写入解决（收益最高、侵入最小）。
+
+**Systematic（架构可演进）**
+- 抽象出“评估状态机”（state + next_question + scoring）为纯函数/CLI step，profile 只负责交互；这样可控、可测且可减少 CLI 次数。  
+- 引入轻量 job 机制管理 pack 生成（pending/running/done/failed），并把缓存 key 标准化（topic_id+taxonomy_version+language+generator_version）。
+
+#### 本轮待锁定问题（需要你拍板）
+1) “去自评”是否是强约束（必须移除）？还是允许作为 fallback（当自动评分失败时）？  
+2) Seed 4 题是否必须 LLM 生成（保证区分度），还是允许规则生成 + LLM 仅做润色？  
+3) profile 默认复用是否确定（默认 id 固定），还是保留现状（多 profile）？
+
+#### Decisions Locked（基于你的最新拍板）
+1) 去自评：**完全移除**（不再使用用户自评 correct/partial/wrong 作为主信号或 fallback）。  
+2) Seed 4 题：由主 Agent **阻塞生成**，确保区分度；4 题各占约 25% 能力节点（覆盖不同 subpoints/难度）。  
+3) profile：**默认复用**（同一默认 profile，不再每次 new）。  
+
+#### Profile 默认复用 Contract（已确认，推荐方案锁定）
+- 默认 profileId 解析优先级：
+  1) 显式 `--profile-id <id>`（高级模式，多 persona）
+  2) 否则复用当前 `active_profile_id`（前提：不是 `p-e2e-*`）
+  3) 否则使用固定默认 id：`profile`
+- `/learn:profile create` 语义调整为 upsert：
+  - 不存在则创建；存在则复用并按策略更新
+- pre_context：
+  - 默认复用（不重问），仅在用户选择“重新采集”时才重新 AskUserQuestion
+  - 每次采集都追加 `PRECONTEXT_CAPTURED` 事件
+- background（强制输入语义）：
+  - 若不存在 background：必须输入
+  - 若已存在 background：必须让用户选择 `复用` / `更新`（复用无需再次粘贴全文）
+  - profile 文件只保留 latest（覆盖写），历史在 events（审计）保留
+
+#### Profile 单一画像模型（你的补充理解，待实现对齐）
+- 每个人默认只有 **一个** profile，并通过持续迭代完善（而不是每次会话 new 一个）。
+- 可回退能力依赖 snapshots/events（可审计 + rollback），而不是创建多个 profile 来“另起炉灶”。
+
+#### Decisions Locked（Profile 单一入口）
+- `/learn:profile create` 默认永远操作同一个 profile（优先 active，否则 `profile`），不再给用户暴露“新建一个新的 profile”入口。
+- 多 profile 能力仅保留在底层 ccw CLI（用于调试/测试），不进入用户主路径。
+- 回退策略：`learn:rollback-profile` + snapshots/events（审计历史）为唯一官方回退机制。
+
+#### Decisions Locked（连续能力模型：0..1）
+- topic 能力刻度从离散 level（L1-L5）升级为连续 `proficiency ∈ [0,1]`：
+  - `0` = 新手（只能做最基础且不稳定）
+  - `1` = 顶级（核心理念 + 核心运用 + 复杂场景取舍都稳定）
+- `0.1` 粒度用于**停止条件/题目生成/决策**：评估必须把不确定区间收敛到 `hi-lo <= 0.1` 才允许结束。
+- 自动评分引擎选择：**Claude（同进程）**结合题库与回答进行评分（不走用户自评）。
+
+#### Seed 4 题 -> 区间收敛（推荐映射规则草案）
+- 状态：维护 `ability_interval=[lo,hi]`，初始 `[0,1]`。
+- Seed 4 题使用 4 个难度点（可调，但需固定便于回归）：`d=[0.25,0.45,0.65,0.85]`，并绑定 4 个 capability_node（每题不同）。
+- 每题评分输出 `p_correct ∈ [0,1]`（Claude rubric 评分）：
+  - 若 `p_correct >= pass_th`：视为通过 -> `lo=max(lo,d)`
+  - 若 `p_correct <= fail_th`：视为未通过 -> `hi=min(hi,d)`
+  - 否则进入“澄清/追问”而非立刻更新区间（避免误砍）
+- 题目选择优先级：必须先覆盖 must/core 未证据化的 subpoints，同时尽量选择 `d≈(lo+hi)/2` 的题以最大化信息增益。
+
+#### 建议下一步（如果进入 brainstorm-to-cycle）
+- 新增 Cycle-4：UX polish + seed question generator + scoring/confirmation redesign + bash noise reduction
+  - 将 “体验反馈 1-7” 拆成可验收的 issues + 回归测试（尤其是 seed/pack 异步与评分一致性）。
+
+---
+
+### Round 10 - Seed 收敛策略补完（连续能力 + 不确定度）(2026-02-01T14:54:03+08:00)
+
+#### 推荐结论（用于落地与跨学科适配）
+- 内部能力表示统一为：`ability ∈ [0,1]` + `sigma`（不确定度）；是否展示“档位”仅作为 UI 映射，不参与决策。
+- **停止条件必须显式绑定不确定度**：建议直接定义 `sigma = hi-lo`（能力区间宽度），并以 `sigma <= 0.1` 作为“允许高置信结束”的硬条件；否则要么加题，要么进入“低置信保守推荐模式”。
+- “最后能力与学生完全一致”不可严格保证；可保证的是“在 `sigma<=0.1` 的误差带内一致”，并通过离线/在线指标验证。
+
+#### 4 题收敛：固定难度点 vs 自适应（二选一，建议自适应）
+1) 固定难度点 `d=[0.25,0.45,0.65,0.85]`（你们现有草案）
+   - 优点：便于回归与对比
+   - 风险：遇到低置信评分/题目难度标定偏差时，4 题可能无法稳定压到 0.1
+
+2) 自适应难度点（建议）
+   - 维护区间 `[lo,hi]`，每题尽量选 `d≈(lo+hi)/2` 且区分度高的题（最大信息增益）
+   - Claude 输出 `p_correct` 同时要产出 `confidence`（由 rubric 置信度 + hints/time/retries 稳定性融合）
+   - 用“软更新”避免硬砍：高置信才强更新，低置信只小幅移动并增大不确定度
+   - 配置：`N_seed_target=4`，但必须允许 `N_seed_max=6` 做兜底；否则会被“必须<=0.1才结束”卡死
+
+#### “全对/全错”与升降级规则（连续刻度版本）
+- 全对且信号好：快速抬 `lo`，并允许小比例探索（仍受 safety rails）
+- 全错且信号好：快速压 `hi`，推荐先讲解/更基础
+- 全对但信号差（提示多/耗时长）：不等价高能力；只小幅抬 `lo`，并维持较大 `sigma`
+- 全错但信号差（乱答/秒选）：对结论降权，触发“换题型/再确认/反作弊”路径
+
+#### 低置信保守推荐模式（当 4~6 题仍不收敛）
+- 推荐难度窗口偏保守（例如 `[ability-0.1, ability]`）
+- 强 safety rails（失败即降/切讲解；成功再逐步探索）
+- 明确提示“仍在校准中”，并在下一次进入该 topic 时优先补 1~2 道确认题
+
+---
+
+### Round 11 - 尚未定稿但会阻塞下一迭代的规格点清单 (2026-02-01T15:03:45+08:00)
+
+#### A) ability/sigma 口径与阈值（必须锁）
+- `sigma<=0.1` 的精确定义口径：半区间/全区间/CI 宽度？（影响停止条件与评估指标）
+- `pass_th / fail_th` 与 `confidence` 的定义：Claude rubric 输出哪些字段、如何融合 hints/time/retries
+
+#### B) Seed=4 的生成与收敛（必须锁）
+- 4 题如何生成：每题绑定哪些 capability_node/subpoints、如何确保区分度与难度覆盖（并与 topic+背景强相关）
+- 4 题不收敛时的兜底：`N_seed_max`（已建议=6）+ “低置信保守推荐模式”具体规则
+
+#### C) “确认/校准”到底要不要、要什么（需要澄清矛盾）
+- 已有 decision_override：评估后不做“轻量确认/二次确认”，只问“继续下一个 topic / 结束保存”
+- 但 Cycle-4 仍需要“校准”入口：建议仅在低置信/跳变时触发（不是自评对错），需定义触发条件与问法
+- `asserted/inferred` 状态机是否还需要 `confirmed/rejected`？若不需要确认，persist 策略要改写
+
+#### D) Full pack 异步生成的 job/caching 合同（必须锁）
+- job 状态：pending/running/done/failed 的落盘位置与读取接口
+- cache key：topic_id + taxonomy_version + language + generator_version + (background_hash?) 是否包含
+
+#### E) UX/交互限制（必须确认）
+- AskUserQuestion 是否存在 UI 限制导致“每批只显示 2 题”？（决定修脚本还是修 UI）
+
+---
+
+### Round 12 - 规格定稿：ability/sigma 口径 + Claude 评分 contract + pass/fail 阈值 (2026-02-01T15:06:23+08:00)
+
+#### 12.1 不确定度口径（建议直接锁定）
+- `ability_interval = [lo, hi]`，其中 `lo/hi ∈ [0,1]`，且 `lo <= hi`
+- `sigma = hi - lo`（区间宽度，**不是**标准差）
+- **Stop condition**：`sigma <= 0.1` 才允许“高置信结束/允许退出 topic 评估”
+- `confidence = clamp(1 - sigma/0.1, 0, 1)`（仅作 UI/策略参考，不参与 stop 的硬判断）
+
+> 备注：后续若引入 IRT/Bayes，可新增 `ci90=[lo90,hi90]` 或 `std`，但一期不要混用口径，避免实现/指标对不上。
+
+#### 12.2 Claude 评分 contract（每题必须输出）
+建议每个题目评分输出最小 JSON（用于可解释、可回放、可回归）：
+
+```json
+{
+  "p_correct": 0.0,
+  "confidence": 0.0,
+  "rubric": {
+    "correctness": 0.0,
+    "mechanism": 0.0,
+    "boundaries": 0.0,
+    "tradeoffs": 0.0,
+    "diagnostics": 0.0,
+    "structure": 0.0
+  },
+  "covered_subpoints": ["sp_x"],
+  "missing_subpoints": ["sp_y"],
+  "evidence": [
+    { "subpoint": "sp_x", "quote": "..." }
+  ],
+  "notes": "short rationale"
+}
+```
+
+规则：
+- `p_correct ∈ [0,1]`：由 rubric 维度聚合得到（仅聚合该题启用的维度）
+- `confidence ∈ [0,1]`：由“证据充分性/结构化程度/自洽性”给出；**不依赖**模型主观自信
+- `quote` 允许截断（用于 audit/回归），避免存长文本
+
+#### 12.3 rubric → p_correct 聚合（建议锁定一版简单可回归的）
+- 每维取值：`0 / 0.5 / 1`
+- 仅启用与题型相关的维度（例如 debug 题启用 diagnostics，概念解释题不启用）
+- `p_correct = average(enabled_dimensions)`
+
+#### 12.4 pass/fail 阈值（建议“带置信门槛”的双阈值）
+- `pass_th = 0.75`，`fail_th = 0.25`
+- 只有在 `confidence >= 0.6` 时，才允许触发 hard update：
+  - 若 `p_correct >= pass_th`：通过（可强更新 `lo`）
+  - 若 `p_correct <= fail_th`：未通过（可强更新 `hi`）
+- 否则进入 uncertain 分支：
+  - 软更新（小幅移动）+ `sigma` 不减/甚至增大
+  - 或直接安排下一题选择更接近 `(lo+hi)/2` 的“高区分度题”来消歧
+
+#### 12.5 hints/time/retries 融合（建议只影响 confidence，不直接改 p_correct）
+- `confidence = confidence * penalty(hints, retries, time)`
+- 原因：不同学科/题型 hints/time 可比性差，先把它当“作答稳定性/独立性”的证据，避免污染正确性评分口径
+
+#### 12.6 需要你拍板的 3 个具体选择
+1) `sigma` 口径：是否按本建议锁定为 `hi-lo` 宽度，并用 `<=0.1` 停止？
+2) 阈值：`pass_th=0.75/fail_th=0.25/confidence_gate=0.6` 是否接受？（要不要更保守/更激进）
+3) hints/time 融合：是否仅影响 `confidence`（推荐），还是也要折算进 `p_correct`？
+
+---
+
+### Round 13 - Seed=4 生成与收敛：Generator 规格草案（待你确认）(2026-02-01T15:08:06+08:00)
+
+目标：把 “Seed=4（每题≈25%能力节点）” 变成可实现、可回归、跨学科可复用的 **生成器 contract**，并与 Round 12 的评分/阈值/stop 口径对齐。
+
+#### 13.1 4 个 capability_node 的定义（跨学科版本，建议锁定）
+- `capability_node` 内部 key 固定 4 个：`see / explain / apply / debug`
+  - **注意**：这里的 `debug` 不等于“写代码调试”，而是泛化为 **诊断/分析/纠错/复杂问题求解**（任何学科都存在：找错因、判别易错点、做取舍、给出排查步骤）。UI 文案可按学科显示为“诊断/分析”。\n+  - 好处：既复用你们已锁定的证据等级（see/explain/apply/debug），又能稳定覆盖从“识别→理解→应用→高阶推理”的能力链条。
+
+#### 13.2 Seed 4 题难度点（固定集合 + 自适应顺序）
+- 每题必须带 `difficulty ∈ [0,1]`（用于 ability_interval 更新）
+- 固定难度集合（便于回归）：`D = [0.25, 0.45, 0.65, 0.85]`
+- 映射建议（默认）：
+  - `see -> 0.25`
+  - `explain -> 0.45`
+  - `apply -> 0.65`
+  - `debug -> 0.85`
+- **顺序自适应**（不改变题集合）：执行时优先从 `0.45(explain)` 开始，再根据当前 `[lo,hi]` 选择更接近 `(lo+hi)/2` 的下一题（在剩余题里选最近的 difficulty），最大化信息增益
+
+#### 13.3 subpoints 选取规则（区分度 + 覆盖 must）
+输入：`topic_id + taxonomy(must/core/nice) + background(summary/raw) + language`
+输出：4 题的 `subpoint_ids[]` 分配方案，满足：
+- 至少 2 题命中 `must`（若某 topic 的 must 少于 2，则以 `core` 补足，并在题目元数据里标注降级原因）
+- 尽量让 4 题的 subpoints 不重复（重复只能发生在 “极少 subpoints 的小 topic”）
+- 每题的 subpoints 数量建议 1~3（保证可判定、便于提取证据）
+
+#### 13.4 Seed Question Object（最小 contract）
+生成器必须输出 4 个对象（JSON），字段至少包含：
+- `id`: `seed-q1..seed-q4`（稳定，可追踪）
+- `phase`: 固定 `seed`
+- `capability_node`: see/explain/apply/debug（每题不同）
+- `difficulty`: 0.25/0.45/0.65/0.85（每题不同）
+- `topic_id`
+- `subpoint_ids[]`
+- `prompt_zh`: 题干（中文），必须包含：**例子要求 + 边界/坑 + 推理链/取舍**（保证“可判定”与区分度）
+- `rubric_version` + `rubric_dimensions[]`（从 Round 12 的 rubric 维度子集里选）
+- `expected_signals`: 该题期望提取的证据点（用于回归与可解释）
+
+#### 13.5 “区分度”如何保证（生成器 hard constraints）
+每题必须显式写出（作为 rubric 的反向约束）：
+- `common_mistakes[]`: 2~4 个最可能的错误点/误概念
+- `grading_notes`: 评分时如何区分“看似正确但没讲机制/边界”的答案
+
+#### 13.6 Seed 4 题如何用于收敛（与 Round 12 对齐）
+执行每题后由 Claude 评分得到 `p_correct/confidence`，并按 Round 12 规则更新：
+- 若 `confidence>=0.6` 且 `p_correct>=0.75`：`lo=max(lo, difficulty)`
+- 若 `confidence>=0.6` 且 `p_correct<=0.25`：`hi=min(hi, difficulty)`
+- 否则：进入 uncertain 分支（软更新 + 下一题优先选更靠近 `(lo+hi)/2` 的高区分度题）
+
+#### 13.7 4 题不收敛（sigma>0.1）时的兜底题（N_seed_max=6）
+- 追加最多 2 题（同一 pack 内 phase 仍为 `seed` 或 `calibration` 二选一，建议 `seed` 统一处理）
+- 选题优先级：
+  1) `difficulty ≈ (lo+hi)/2`（信息增益最大）
+  2) 优先补齐 must 的证据（若 must 仍未满足最低证据要求）
+  3) 优先选择“对比型/易混淆”题来消歧（Concept-Contrast）
+
+#### 13.8 待你确认的 4 个点（决定是否能进入下一迭代）
+1) `capability_node` 是否就定义为 `see/explain/apply/debug`？
+2) Seed 4 题难度是否采用固定集合 `0.25/0.45/0.65/0.85`，但允许执行顺序自适应？
+3) “至少 2 道 must” 是否为硬约束？若 topic must 不足时的降级策略是否接受？
+4) 兜底 2 题：phase 叫 `seed` 还是 `calibration`？（影响事件/统计口径）
+
+#### 13.9 跨学科适配的最小要求（避免“只对编程有效”）
+- 题目必须是 **可判定** 的：能用 rubric 给出 `p_correct`，并能抽取证据 `evidence`
+- taxonomy 若缺失：允许先由生成器临时生成 `subpoints`（并版本化落盘），否则跨 topic 的“must/core 覆盖”无法度量
+- signals（hints/time/retries）在不同学科可比性差：一期只影响 `confidence`，不要进入 `p_correct`
+
+---
+
+### Round 14 - Next Blocking Topic (pick one): 校准/确认、异步 full pack、或 UX 限制 (2026-02-01T15:23:52+08:00)
+
+我们已经锁定了：
+- 评分口径（Round 12 + synthesis decision_lock）
+- Seed=4 生成与收敛（Round 13 + synthesis decision_lock）
+
+接下来进入下一迭代前，仍有 3 个“会卡实现”的阻塞点需要继续讨论并锁定其一：
+
+1) **校准/确认（消除矛盾）**：评估后不做二次确认已 override，但仍需要“低置信/跳变时的校准入口”——需要定义触发条件、AskUserQuestion 文案、事件落库口径。
+2) **Full pack 异步生成合同**：job 状态/落盘位置、cache key 是否含 background_hash、主流程如何等待/降级。
+3) **AskUserQuestion UI 限制**：到底是 UI 只显示 2 题/批，还是脚本拆批；决定修 UI 还是修脚本。
+
+---
+
+### Round 15 - 校准/确认（与“不做二次确认”不冲突的版本）(2026-02-01T15:27:00+08:00)
+
+#### 15.1 先消歧：我们要的“校准”是什么、不是什麽
+- **不是**：评估结束后让用户确认“你是不是这个水平”（这属于二次确认/自评的变体，已被 decision_override 移除）
+- **是**：在评估过程中，当系统不确定或出现矛盾证据时，走一个“澄清/补证据”的小回路，让结果更稳、更可解释
+
+因此：校准的目标不是“用户盖章”，而是**补充可判定证据**（额外题/补充回答/更清晰的证据点）。
+
+#### 15.2 校准机制分两层（推荐都做，但都要“低打扰”）
+1) **提交确认（每题都可用，非强制额外步骤）**
+   - 用户输入答案后展示：你将提交的内容（原文/摘要）
+   - 按钮：`确认提交` / `继续编辑` / `跳过此题`
+   - 目的：避免“粘贴错/没写完/误提交”导致评分偏差（这不叫二次确认）
+
+2) **低置信/跳变时的校准入口（仅在触发条件满足时出现）**
+   - 校准入口展示的是“系统不确定在哪里”，并提供补充路径：
+     - `再做 1-2 道澄清题（推荐）`
+     - `先跳过（进入保守推荐，后续再校准）`
+   - 不出现“你觉得我判得准不准”的问题，也不让用户打分自己的能力
+
+#### 15.3 触发条件（必须可实现、可回归）
+校准入口仅在满足任一条件时触发（建议先锁定这 4 条）：
+1) **低置信连续**：最近 2 题均 `confidence < 0.6`（Round 12 的 gate），导致无法 hard update 区间
+2) **区间不收敛**：在 Seed/校准阶段，做满 `N_seed_target=4` 仍 `sigma > 0.1`
+3) **证据矛盾**：出现 “低难度未通过但高难度通过”（例如 `0.25` fail 且 `0.65` pass），或同 subpoint 评分自相矛盾
+4) **must 证据缺口**：taxonomy 存在但 must 的最低证据数量仍不足（即使 `sigma` 已接近收敛）
+
+#### 15.4 校准题的生成规则（与 Seed=4 统一口径）
+当触发校准入口且用户选择继续：
+- 最多追加 1~2 题（已锁定 `N_seed_max=6`）
+- 选题优先级（按顺序）：
+  1) `difficulty ≈ (lo+hi)/2`（最大信息增益、帮助收敛）
+  2) 优先补齐 must 缺口（若 must 证据不足）
+  3) 优先 Concept-Contrast（对比型题）用于消歧（避免再来一道“泛泛题”）
+- 输出 contract 复用 Seed 题 contract（phase 仍为 `seed`，不要新造 `calibration` phase，降低口径复杂度）
+
+#### 15.5 AskUserQuestion 文案建议（全中文、跨学科）
+当触发校准入口：
+- Header: `需要再校准一下吗？`
+- Body（示例）：`我目前对你在「{topic}」的能力仍不够确定（原因：{low_confidence|evidence_conflict|must_gap}）。为了把结果收敛到 0.1 精度，我可以再出 1-2 道澄清题。你希望：`
+- Options（<=4）：
+  - `continue_calibration` -> `继续做 1-2 题（推荐）`
+  - `skip_calibration` -> `先跳过，进入保守推荐（后续再校准）`
+  - `edit_last_answer` -> `我想补充/修改刚才的回答`
+  - `stop_topic` -> `先结束这个 topic`
+
+#### 15.6 事件落库口径（不新增事件类型，避免 whitelist 扩展）
+不新增 `ASSESSMENT_CALIBRATION_*` 事件，全部复用现有事件类型：
+- `ASSESSMENT_QUESTION_ASKED` payload 增加：`{ phase: 'seed', reason: 'calibration_triggered', trigger: <enum> }`
+- `ASSESSMENT_ANSWER_RECORDED` payload 增加：`{ phase: 'seed', submission: { action: confirm|edit|skip } }`
+- `ASSESSMENT_SCORED` payload 增加：`{ phase: 'seed', p_correct, confidence, evidence, ... }`
+- `ASSESSMENT_SESSION_SUMMARIZED` payload 增加：`{ calibration: { offered: true, taken: boolean, trigger: <enum> } }`
+
+> 这样既不违背“评估后不二次确认”，也能把“校准”作为可审计的过程信号写进事件流。
+
+#### 15.7 你需要拍板的 2 个点（拍板后我写 decision_lock）
+1) 校准入口是否按上述方式定义为“补证据/补题”，并显式避免“用户确认结论”？
+2) 是否同意“**不新增事件类型**，全部复用 ASSESSMENT_* 事件，在 payload 里加 phase/trigger 字段”？
+
+---
+
+### Round 16 - 决策：校准全自动（不询问用户）(2026-02-01T15:30:59+08:00)
+
+#### Decision
+- 校准/审查（calibration/review）必须 **全自动**：系统在触发条件出现时自动追加题目（到 `N_seed_max`），不弹 AskUserQuestion 让用户选择“要不要校准”。
+- 用户侧交互只保留：`确认提交 / 继续编辑`（可选：`跳过此题`），用户只需要做题即可完成评估并得到能力结论。
+- 解释信息可作为“结果摘要”展示，但不作为 gating 交互步骤。
+
+#### Mechanism (how it works)
+- Trigger conditions 仍然存在（低置信/矛盾/must缺口/不收敛），但触发后的动作从“询问用户是否继续”改为“直接自动加题”。
+- 若达到 `N_seed_max` 仍不满足停止条件（例如 `sigma>0.1` 或 must 证据不足）：
+  - 系统结束该 topic 的高置信评估，标记为 `low_confidence`，进入保守推荐策略（或下次再校准）。
+  - 仍不需要用户确认“你是否同意结论”。
+
+#### Storage / Events (no new event types)
+- 继续复用 `ASSESSMENT_*`，在 payload 增加：`{ phase:'seed', reason:'auto_calibration', trigger:<enum> }`
+- `ASSESSMENT_SESSION_SUMMARIZED` 增加：`{ calibration: { mode:'auto', triggers:[...], extra_questions_used:<n> } }`
+
+---
+
+### Round 17 - Full Pack 异步生成合同（全自动 + 不阻塞用户）(2026-02-01T15:34:55+08:00)
+
+目标：在用户做 Seed/评估题的同时，后台把该 topic 的 **full pack**（taxonomy + question bank + regression skeleton）生成好并缓存；用户侧不等待、不选择、不被打断。
+
+#### 17.1 核心原则（跨学科与可扩展）
+- full pack 是 **topic-level 共享资产**，缓存 key 只与 `pack_key` 有关；**不包含用户 background**（避免 pack 被“用户定制化”导致爆炸）。
+- 用户 background 只影响“本次会话的 Seed=4 / 补题题干措辞”，并通过 events 记录，不写入全局 pack 文件。
+- full pack 的完成判定以现有 `full_completeness` 为准：`has_taxonomy && has_question_bank && has_regression_skeleton && must/core 100% covered`。
+
+#### 17.2 pack_key（缓存 key）继续沿用现有字段（不引入 background_hash）
+- `topic_id, taxonomy_version, rubric_version, question_bank_version, language`
+- generator 版本/模型信息放在 `pack._metadata`（若要强制失效，靠 bump `question_bank_version` 或 `rubric_version`）
+
+#### 17.3 异步 job 状态落盘（建议）
+- 路径（建议）：`.workflow/learn/packs/{topic_id}/jobs/{pack_key_hash}.full.json`
+- 状态机：`pending` -> `running` -> `done` | `failed`
+- 必要字段：
+  - `pack_key`, `pack_key_hash`, `requested_at`, `started_at`, `completed_at`, `status`
+  - `attempt`, `error`（failed 时）
+  - `progress`（taxonomy/qbank/regression 的阶段性进度，可选）
+
+#### 17.4 主流程如何使用（不阻塞）
+当用户进入某 topic 评估：
+1) 解析 `pack_key` + `pack_key_hash`，先读 `pack-status`（不强依赖 full 就绪）
+2) 若 `full_completeness=false`：立即启动后台 job（若已有 running job 则复用，不重复启动）
+3) 同时继续执行：Seed=4 + 自动校准补题（最多到 `N_seed_max=6`）
+4) 当需要更多题（>6 或进入 must/core 覆盖阶段）：
+   - 若 full pack 已 `done`：切换到 full pack 的题库继续
+   - 若仍未完成：即时生成“会话级补题”（不写 pack），并继续后台 job（让未来会话复用）
+
+#### 17.5 失败/超时兜底（必须全自动）
+- job `failed`：不影响当前会话继续评估；改用“会话级补题 + 保守策略”，并记录失败原因到 session summary（不弹用户选择）
+- job 长时间未完成：同上；后台可在下次会话继续
+
+#### 17.6 需要你拍板的 3 个点（拍板后写 decision_lock）
+1) full pack 是否确认不包含 background_hash，仅 topic-level 缓存？（我强烈建议是）
+2) job 状态落盘路径与状态机是否按 17.3？（或你希望放到 `.workflow/learn/packs/_jobs/`）
+3) 当 full pack 未就绪但题量已超过 `N_seed_max` 时：是否允许“会话级补题继续评估”，而不是阻塞等待 full pack？
+
+---
+
+### Round 18 - AskUserQuestion “2题/批”现象：定义口径 + 解决方案（不改 UI）(2026-02-01T15:42:48+08:00)
+
+#### 18.1 现状核对（脚本侧）
+- `pre_context_v1.3` 在 `.claude/commands/learn/profile.md:222` 是**单次 AskUserQuestion 调用包含 4 题**（不是脚本拆成 2+2）。
+- 因此如果用户界面表现为“一次只看到 2 题”，大概率属于 **AskUserQuestion UI 自身的分页/展示限制**，而非我们脚本逻辑问题。
+
+#### 18.2 决策建议（跨平台/不依赖 UI 可改）
+- **重新定义“批次”口径**：批次=一次 AskUserQuestion 调用中包含的 question 数（上限 4），而不是 UI 一屏显示几题。
+- 不尝试“改 UI”；我们无法保证外部工具 UI 行为一致。
+
+#### 18.3 体验补救（不增加交互步骤）
+- 在每题 `header` 或 `question` 文案里加入进度：`(1/4) (2/4) ...`，让用户理解“当前是同一批的第几题”，即使 UI 分页也不困惑。
+  - 例如：`header: '学习方式 (1/4)'`、`header: '资源偏好 (2/4)'`
+
+#### 18.4 可验收标准（面向实现/回归）
+- pre_context 采集：在代码层面保证 **一次调用传入 4 题**（question 数=4），不拆批。
+- UI 层若仍显示 2/屏：接受；以“进度标注”消除误解。
+
+---
+
+### Addendum (2026-02-01T16:26:21+08:00) - Updated Decisions From New Feedback
+
+#### A) Topic candidates: remove parse-background dependency
+- topics 候选来源更新为：主 Agent 直接从 background **主观解析 + 联想拓展** 生成（每个候选必须带 1 句理由）。
+- topicCoverageValidationLoop 的定位：**反馈 loop**（是否覆盖/是否缺失），而不是“候选展示上限 loop”（展示上限只是 UI 约束：每轮最多 16 个候选）。
+- 仍保留 taxonomy 污染防线：仅当用户选中/输入才 resolve-topic/ensure-topic。
+
+#### B) Seed + pack generation pipeline: Gemini CLI first
+- Seed=4 题与 full pack 的生成优先走 **Gemini CLI**：
+  - Seed=4：尽量“先行输出”（阻塞等待返回），保证区分度与结构一致
+  - Full pack：后台继续补全（异步 job）；若 job 未完成则主 Agent 走会话级题目生成作为 fallback
+- Seed/pack/question 的输出数据结构必须统一（同一 Pack/Question schema 可同时容纳 seed 与 full questions）。
+
+#### C) Answer controls: remove skip
+- 用户答题控制仅保留：`确认提交 / 继续编辑`；不提供 `跳过此题`。
+
+---
+
+### Round 19 (2026-02-01T16:04:26+08:00) - Topic 覆盖校验 + 主 Agent 联想拓展（按你描述的最终形态）
+
+#### Input sources
+- **背景直接解析 topics**：来自主流程对 background 的确定性解析（现状：`ccw learn:parse-background`）
+- **主 Agent 联想 topics**：主 Agent 基于背景补充“相邻方向/生态/前置/进阶”的候选 topics（都必须带 1 句理由）
+
+#### Loop 的定位（你刚刚强调的点）
+- loop 不是“让用户逐个审核 topic 是否正确”，而是：让用户对 **Agent 最终汇总的 topics 是否覆盖** 给反馈：还缺不缺、补充什么。
+
+#### AskUserQuestion 设计（一次最多 4 题；多选形式；最多 16 个 topic + type something）
+每一轮由两次 AskUserQuestion 构成：
+1) **候选 topics 选择（撑满 4 题）**：
+   - 4 个 multiSelect questions（每题最多 4 options）= 最多 16 个候选 topic
+   - 4 题分别对应 4 个方向（建议，但可改名）：\n+     1) 背景解析（Top-4）\n+     2) 联想拓展（Top-4）\n+     3) 前置/基础（Top-4）\n+     4) 进阶/诊断（Top-4）
+   - 每个 option 的 description 必须包含：`来源 + 1句理由 + (可选)置信度`
+2) **type something 补充 + 覆盖确认**：
+   - free text：补充 topics（逗号/空格分隔，可空）
+   - single select：`已覆盖/还需补充`（决定是否进入下一轮）
+
+#### 重要约束：避免 taxonomy 污染
+- **同意并锁定**：仅当用户 “选中/输入” 的 raw topic 才会进入 topic_id 解析/创建：
+  - 优先 `ccw learn:resolve-topic --raw-topic-label`（alias/redirect/taxonomy-first）
+  - resolve 不到时：仅对用户选中/输入的 raw label 执行 `ccw learn:ensure-topic` 创建 provisional
+- 对“仅由 Agent 联想但用户未选中”的 topic：绝不 ensure-topic
+
+#### Loop guard
+- 允许 loop（作为覆盖反馈），但必须有上限：最多 3 轮（与现有实现上限一致）
+
+---
+
+### Round 19 - Topic 覆盖校验 + 主 Agent 联想拓展：可落地规格（跨学科）(2026-02-01T15:55:40+08:00)
+
+#### 19.1 目标（对应原始问题 #3）
+- Topic 覆盖校验不仅验证 parse-background 的推荐是否正确，还要主动“联想拓展”到用户可能遗漏的相关方向（生态/前置/相邻能力簇）。
+- 仍遵守：不提供独立的 “Add Topic” 命令；topic 只来自「用户背景 + Agent 联想」并通过 AskUserQuestion 在 createFlow 中确认/纠错。
+
+#### 19.2 输入与输出（接口口径）
+输入：
+- `background.raw_text/summary`
+- deterministic 信号：`ccw learn:parse-background` 的 `skills[{topic_id, confidence, evidence}]`（若缺失可降级为空）
+- taxonomy：`ccw learn:resolve-topic`（不自动 ensure）
+
+输出：
+- `topic_candidates[]`：用于 topicCoverageValidationLoop 的选项（含 reason/provenance）
+- `topic_ids_confirmed[]`：用户最终确认进入评估的 canonical topic_id 列表（若用户输入 raw label，则先 resolve；resolve 不到则在“被用户选中/输入”时才 ensure-topic 创建 provisional）
+
+#### 19.3 联想拓展的来源优先级（分层、可退化）
+1) **taxonomy-first（强优先）**：对候选 raw label 调用 `resolve-topic`，拿到 canonical topic_id（处理 alias/redirect）\n+2) **rules/dictionary（可选）**：如果有可用的“关联规则”（如同一 category/共现/人工映射），输出 Top-N 相关方向\n+3) **LLM 联想（兜底）**：当 (a) parse-background topic 太少 或 (b) 置信度低/背景过于宽泛 时，主 Agent 生成 Top-4 关联 topics + 简短理由（注意：只做“候选建议”，不自动写入 taxonomy）
+
+#### 19.4 推荐候选的组成（建议默认值）
+- 来自 parse-background 的 Top-4（按 confidence 排序）\n+- 来自 联想拓展 的 Top-4（按置信/覆盖不同方向排序）\n+- 合并去重后作为 recommended 列表（可>4），但 **UI 优先展示 Top-4**（其余在下一轮/滚动可见）
+
+#### 19.5 AskUserQuestion 交互（不增加额外步骤）
+继续复用现有 topicCoverageValidationLoop，但增强 options 的“解释性”：
+- 选项 label：尽量展示 `display_name_zh`（或 raw label），并在括号里显示 canonical `topic_id`
+- 选项 description：`来源(parse/联想) + 关键理由(1句) + 置信度(可选)`\n+- 仍保留 `type something` 用于补充遗漏（逗号/空格分隔）
+- loop guard：最多 2-3 轮；当用户选择“还需补充”时，下一轮可基于用户新增 topics 再做一次联想拓展（Top-4）
+
+#### 19.6 关键风险与约束
+- **避免 taxonomy 污染**：不对“仅由 Agent 联想且用户未选中”的 topic 执行 `ensure-topic`。\n+- **可解释**：每个被推荐的 topic 必须带 1 句理由（否则用户无法判断是否相关）。\n+- **跨学科**：当 keyword dictionary 不覆盖某领域时，parse-background 可能输出很少 topics，此时 LLM 联想必须兜底，且仍需 resolve-topic（尽量绑定到稳定 topic_id）。
+
+#### 19.7 需要你拍板的 3 个点（拍板后写 decision_lock）
+1) parse-background Top-4 + 联想 Top-4 的组合策略是否接受？\n+2) 是否同意“仅当用户选中/输入”才 ensure-topic（避免自动创建大量 provisional topics）？\n+3) loop guard：最多 2 轮还是 3 轮？（我推荐 2 轮，除非你担心覆盖不足）

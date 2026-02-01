@@ -1,0 +1,103 @@
+{
+  "pack_key": {
+    "topic_id": "cocos_creator",
+    "taxonomy_version": "v0",
+    "rubric_version": "v0",
+    "question_bank_version": "v0",
+    "language": "zh-CN"
+  },
+  "topic_id": "cocos_creator",
+  "taxonomy_version": "v0",
+  "rubric_version": "v0",
+  "question_bank_version": "v0",
+  "language": "zh-CN",
+  "created_at": "2026-01-31T16:21:39.562Z",
+  "pack_kind": "seed",
+  "taxonomy": {
+    "subpoints": [
+      {
+        "id": "cocos_creator:must:core_concepts",
+        "priority": "must",
+        "label": "核心概念",
+        "min_evidence": 1
+      },
+      {
+        "id": "cocos_creator:must:pitfalls",
+        "priority": "must",
+        "label": "常见坑/边界情况",
+        "min_evidence": 1
+      },
+      {
+        "id": "cocos_creator:core:syntax",
+        "priority": "core",
+        "label": "基础语法/结构",
+        "min_evidence": 1
+      },
+      {
+        "id": "cocos_creator:core:types",
+        "priority": "core",
+        "label": "类型/抽象",
+        "min_evidence": 1
+      },
+      {
+        "id": "cocos_creator:core:debugging",
+        "priority": "core",
+        "label": "调试与定位",
+        "min_evidence": 1
+      },
+      {
+        "id": "cocos_creator:core:practice",
+        "priority": "core",
+        "label": "实战应用",
+        "min_evidence": 1
+      },
+      {
+        "id": "cocos_creator:nice:ecosystem",
+        "priority": "nice",
+        "label": "生态/工具链",
+        "min_evidence": 1
+      },
+      {
+        "id": "cocos_creator:nice:best_practices",
+        "priority": "nice",
+        "label": "最佳实践",
+        "min_evidence": 1
+      }
+    ]
+  },
+  "questions": [
+    {
+      "id": "seed-q1",
+      "level": 3,
+      "subpoint_ids": [
+        "cocos_creator:must:core_concepts"
+      ],
+      "prompt": "【cocos_creator】请解释：核心概念。请给出一个具体例子，并说明一个常见坑/边界情况。"
+    },
+    {
+      "id": "seed-q2",
+      "level": 3,
+      "subpoint_ids": [
+        "cocos_creator:must:pitfalls"
+      ],
+      "prompt": "【cocos_creator】请解释：常见坑/边界情况。请给出一个具体例子，并说明一个常见坑/边界情况。"
+    },
+    {
+      "id": "seed-q3",
+      "level": 3,
+      "subpoint_ids": [
+        "cocos_creator:core:syntax"
+      ],
+      "prompt": "【cocos_creator】请解释：基础语法/结构。请给出一个具体例子，并说明一个常见坑/边界情况。"
+    },
+    {
+      "id": "seed-q4",
+      "level": 3,
+      "subpoint_ids": [
+        "cocos_creator:core:types"
+      ],
+      "prompt": "【cocos_creator】请解释：类型/抽象。请给出一个具体例子，并说明一个常见坑/边界情况。"
+    }
+  ],
+  "regression_cases": []
+}

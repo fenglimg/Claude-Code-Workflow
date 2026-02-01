@@ -1,1621 +1,1226 @@
 ---
 name: profile
-description: Manage user learning profiles with evidence-based skill assessment and personalized learning preferences
-argument-hint: "[create|update|select|show] [profile-id] [--goal=\"<learning goal>\"] [--no-assessment] [--full-assessment]"
-allowed-tools: TodoWrite(*), Task(*), AskUserQuestion(*), Bash(*)
+description: Manage user learning profiles (validated via ccw learn:* CLI) with optional inferred-skill proposals
+argument-hint: "[create|update|select|show] [profile-id] [--goal=\"<learning goal>\"] [--full-assessment[=true|false]]"
+allowed-tools: TodoWrite(*), Task(*), AskUserQuestion(*), Bash(*), Read(*)
 ---
 
-# Learn:Profile Command - 个人档案管理
+# Learn:Profile Command (/learn:profile)
 
 ## Quick Start
 
 ```bash
-/learn:profile create                    # 创建新档案（交互式评估）
-/learn:profile update                    # 更新当前档案
-/learn:profile select profile-advanced   # 选择激活档案
-/learn:profile show                      # 显示当前档案
-/learn:profile create --no-assessment    # 创建档案（跳过评估）
-/learn:profile create --full-assessment  # 创建档案（完整评估，较耗时）
+/learn:profile create
+/learn:profile update
+/learn:profile show
 ```
 
-## Overview
+## Execution Phase Diagram (Code-Level)
 
-`/learn:profile` 是 learn workflow 的用户画像系统，负责：
-- 创建和管理个人学习档案
-- Evidence-based技能水平评估（避免自我评估水分）
-- 设置学习偏好和目标
-- 跟踪学习历史和演进
-
-**核心特性**：
-- **Evidence-Based评估**：通过conceptual checks + micro-challenges客观测量技能
-- **置信度机制**：避免绝对分数，使用confidence标记不确定性
-- **个性化配置**：学习风格、资源偏好、时间预算
-- **演进追踪**：记录技能提升历史和学习反馈
-
-## Execution Process
-
+```text
+/learn:profile <op>
+  |
+  v
+switch(op)
+  |-- create -> createFlow()
+  |            |
+  |            +-> AskUserQuestion: pre_context_vNext (<=4 per call; may batch)
+  |            +-> AskUserQuestion: background_text (required; reuse/update if possible)
+  |            +-> main agent: background parse + topic association expansion (candidates + 1-line reasons)
+  |            +-> AskUserQuestion loop: topic 覆盖校验（推荐 topics + type something 补漏）
+  |            +-> ccw learn:write-profile (schema validated)
+  |            +-> ccw learn:append-profile-event PRECONTEXT_CAPTURED (best-effort)
+  |            +-> ccw learn:update-state active_profile_id
+  |            +-> ccw learn:append-telemetry-event PROFILE_CREATED (best-effort)
+  |            +-> (if --full-assessment=true) internal assess.js: 单 topic 评估（1题最小闭环；完整算法在后续 cycle）
+  |
+  |-- update -> updateFlow()
+  |            |
+  |            +-> ccw learn:read-profile
+  |            +-> AskUserQuestion: update_action
+  |                  |-- preferences -> AskUserQuestion: pre_context_vNext
+  |                  |                  -> ccw learn:append-profile-event FIELD_SET (best-effort)
+  |                  |                  -> ccw learn:write-profile
+  |                  |-- assess_topic -> internal assess.js: 单 topic 评估入口
+  |                  `-- show       -> showFlow()
+  |
+  |-- select -> selectFlow()
+  |            |
+  |            +-> ccw learn:list-profiles
+  |            +-> ccw learn:read-state
+  |            +-> AskUserQuestion: selected_profile
+  |            `-> ccw learn:update-state active_profile_id
+  |
+  `-- show   -> showFlow()
+               |
+               +-> ccw learn:read-profile
+               `-> ccw learn:read-profile-snapshot (best-effort)
 ```
-Input Parsing:
-   └─ 解析操作类型：create | update | select | show
 
-Phase 1: Operation Routing
-   ├─ create → Profile Creation Flow
-   ├─ update → Profile Update Flow
-   ├─ select → Profile Selection Flow
-   └─ show → Profile Display Flow
+## Reality Check (Matches Current Backend)
 
-Phase 2: Profile Creation Flow (create)
-   ├─ Step 1: Minimal Init (Low Friction)
-   │  ├─ (No forced goal_type / experience_level prompts)
-   │  ├─ Optional: Background text to seed known topics
-   │  └─ AskUserQuestion: pre_context_v1.3（固定 4 问）
-   ├─ Step 2: Evidence-Based Assessment (unless --no-assessment)
-   │  ├─ Conceptual Checks（理论探针）
-   │  │  ├─ 多选题验证基础概念
-   │  │  ├─ 追问验证深度理解
-   │  │  └─ 生成confidence score
-   │  ├─ Micro-Challenges（微挑战）
-   │  │  ├─ 代码片段任务（可验证）
-   │  │  ├─ 场景应用题
-   │  │  └─ 记录evidence + result
-   │  └─ Proficiency Calculation
-   │     ├─ 基于evidence加权计算
-   │     ├─ 生成confidence标记
-   │     └─ 避免单次失误误判
-   ├─ Step 3: Known Topics Collection
-   │  ├─ 基于评估结果生成known_topics
-   │  ├─ 每个topic包含：proficiency + evidence + confidence
-   │  └─ 标记last_updated时间戳
-   └─ Step 4: Profile Creation
-      ├─ 生成profile_id: profile-{timestamp}
-      ├─ 写入profiles/{id}.json
-      ├─ 更新state.json (active_profile_id)
-      └─ 显示档案摘要
-
-Phase 3: Profile Update Flow (update)
-   ├─ 加载当前active_profile
-   ├─ AskUserQuestion: 选择更新内容
-   │  ├─ Update Skills: 重新评估技能水平
-   │  ├─ Update Preferences: 修改学习偏好
-   │  ├─ Add Topics: 添加新的known_topics
-   │  └─ Review History: 查看feedback_journal
-   └─ 应用更新并保存
-
-Phase 4: Profile Selection Flow (select)
-   ├─ 列出所有可用profiles
-   ├─ 显示每个profile的摘要
-   ├─ AskUserQuestion: 选择profile
-   └─ 更新state.json (active_profile_id)
-
-Phase 5: Profile Display Flow (show)
-   ├─ 加载active_profile
-   ├─ 格式化显示
-   │  ├─ 基本信息（ID, experience_level）
-   │  ├─ Known Topics（按proficiency排序）
-   │  ├─ Learning Preferences
-   │  └─ Feedback Journal（最近5条）
-   └─ 显示统计信息
-```
+- Profile file is written via `ccw learn:write-profile` (schema-validated).
+- Inferred skills are stored as immutable events + folded into snapshot (`skills.inferred`), not merged into `known_topics`.
+  - Use `ccw learn:propose-inferred-skill`, `ccw learn:confirm-inferred-skill`, `ccw learn:reject-inferred-skill`.
+- Pre-context is recorded as:
+  - `PRECONTEXT_CAPTURED` event (append-only)
+  - optional `FIELD_SET` corrections for `pre_context.parsed.*` (append-only)
+- Background input (optional) is a single-line paste via AskUserQuestion (no local file reading in this command).
+- Minimal-by-default: detailed skill assessment is intended to happen JIT (Just-in-time) during `/learn:plan` / `/learn:execute`.
 
 ## Implementation
 
-### Phase 2: Profile Creation Flow
-
-#### Step 1: Basic Information
-
 ```javascript
-// 初始化阶段不强制收集 goal_type（降低摩擦）；后续可渐进采集。
-// goalType 仅用于“完整评估”时的权重启发，不来自强制问答。
-// （保留字段位于 _metadata.goal_type 以兼容旧结构）
-const goalType = 'general';
+// /learn:profile create|update|select|show
+// Tooling constraints: AskUserQuestion + Bash only. All persistence goes through ccw learn:* CLI.
 
-// Optional seed topics (may be populated by background parsing below).
-let initialKnownTopics = [];
+const args = String($ARGUMENTS ?? '').trim().split(/\s+/).filter(Boolean);
+const op = (args[0] || 'show').toLowerCase();
 
-// Optional: Background-driven topic seeding (independent of goal type)
-// Users can paste a short background or provide a local file path.
-const BG_SOURCE_KEY = 'background_source';
-const bgSourceAnswer = AskUserQuestion({
-  questions: [{
-    key: BG_SOURCE_KEY,
-    question: "Would you like to provide background text to seed your known topics (optional)?",
-    header: "Background (Optional)",
-    multiSelect: false,
-    options: [
-      { value: "skip", label: "Skip", description: "Continue without background parsing" },
-      { value: "text", label: "Paste Text", description: "Paste a short background summary (recommended)" },
-      { value: "file", label: "Local File", description: "Provide a local file path containing your background" }
-    ]
-  }]
-});
-
-let backgroundText = '';
-if (bgSourceAnswer[BG_SOURCE_KEY] === 'text') {
-  console.log('\nPlease paste a short background summary (e.g. \"3 years React + Node.js, some Postgres\")');
-  // In real implementation, would collect multi-line input via Read tool.
-  console.log('ℹ️  For now, we will proceed without background text.');
-}
-if (bgSourceAnswer[BG_SOURCE_KEY] === 'file') {
-  console.log('\nPlease provide a local file path to read background from (plain text).');
-  // In real implementation, would collect file path via Read tool and load file content.
-  console.log('ℹ️  For now, we will proceed without background text.');
-}
-
-if (backgroundText) {
-  console.log('\n## Background-Driven Topic Seeding\n');
-
-  function lastJsonObjectFromText(text) {
-    const raw = String(text ?? '').trim();
-    if (!raw) throw new Error('Empty command output');
-    const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-    for (let i = lines.length - 1; i >= 0; i--) {
-      try {
-        return JSON.parse(lines[i]);
-      } catch {
-        // keep scanning
-      }
+function parseFlags(argv) {
+  // Default: full assessment is ON (can be explicitly disabled).
+  const flags = { fullAssessment: true, goal: null };
+  for (const a of argv) {
+    if (a === '--full-assessment') flags.fullAssessment = true;
+    if (a.startsWith('--full-assessment=')) {
+      const v = a.slice('--full-assessment='.length).trim().toLowerCase();
+      flags.fullAssessment = !(v === '0' || v === 'false' || v === 'no' || v === 'off');
     }
-    const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (m) return JSON.parse(m[1].trim());
-    throw new Error('Failed to parse JSON from command output');
+    if (a.startsWith('--goal=')) {
+      const v = a.slice('--goal='.length);
+      flags.goal = v ? v.replace(/^\"|\"$/g, '').replace(/^'|'$/g, '') : null;
+    }
   }
+  return flags;
+}
 
-  let inferredSkills = [];
+const flags = parseFlags(args);
+
+function lastJsonObjectFromText(text) {
+  const raw = String(text ?? '').trim();
+  if (!raw) throw new Error('Empty command output');
+  const lines = raw.split('\n').map((l) => l.trim()).filter(Boolean);
+  for (let i = lines.length - 1; i >= 0; i--) {
+    try {
+      return JSON.parse(lines[i]);
+    } catch {
+      // keep scanning
+    }
+  }
+  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (m) return JSON.parse(m[1].trim());
+  throw new Error('Failed to parse JSON from command output');
+}
+
+function escapeSingleQuotesForShell(s) {
+  return String(s ?? '').replace(/'/g, "'\\''");
+}
+
+function runCcwJson(cmd) {
+  const out = lastJsonObjectFromText(Bash(cmd));
+  if (!out.ok) throw new Error(out.error?.message || 'Command failed');
+  return out.data;
+}
+
+function runCcwBestEffort(cmd, label) {
   try {
-    const raw = Bash(`ccw learn:parse-background --text ${JSON.stringify(backgroundText)} --json`);
-    const parsed = lastJsonObjectFromText(raw);
-    if (parsed?.ok) inferredSkills = parsed?.data?.skills ?? [];
+    const out = lastJsonObjectFromText(Bash(cmd));
+    if (!out.ok) console.warn(`⚠️ ${label} failed:`, out.error);
   } catch (e) {
-    console.log('⚠️  Background parsing failed. Continuing without background seeding.');
-  }
-
-  if (inferredSkills.length > 0) {
-    const choices = AskUserQuestion({
-      questions: inferredSkills.map(skill => ({
-        key: `bg_${skill.topic_id}`,
-        question: `Confirm your familiarity with ${skill.topic_id}:`,
-        header: "Confirm Background Topics",
-        multiSelect: false,
-        options: [
-          { value: "often", label: "经常使用", description: "I use this frequently / in real projects" },
-          { value: "touched", label: "接触过", description: "I have used it a bit / followed tutorials" },
-          { value: "heard", label: "听说过", description: "I only know it at a high level" },
-          { value: "no", label: "不对", description: "This topic does not apply to me" }
-        ]
-      }))
-    });
-
-    const now = new Date().toISOString();
-    const confirmed = inferredSkills
-      .map(skill => {
-        const v = choices[`bg_${skill.topic_id}`];
-        const prof = v === 'often' ? 0.7 : v === 'touched' ? 0.4 : v === 'heard' ? 0.2 : null;
-        if (prof === null) return null;
-        return {
-          topic_id: String(skill.topic_id).toLowerCase(),
-          proficiency: prof,
-          confidence: 0.4, // conservative default; will be refined later by assessments
-          last_updated: now,
-          evidence: [
-            {
-              evidence_type: 'self-report',
-              kind: 'background_inference',
-              timestamp: now,
-              summary: 'Inferred from background text (seed topic)',
-              data: { source: 'learn:parse-background' }
-            },
-            {
-              evidence_type: 'self-report',
-              kind: 'confirmed_topic',
-              timestamp: now,
-              summary: 'Confirmed by user (seed topic)',
-              data: { source: 'user_confirmation' }
-            }
-          ]
-        };
-      })
-      .filter(Boolean);
-
-    // Merge into initialKnownTopics (prefer higher proficiency if duplicates).
-    for (const t of confirmed) {
-      const existing = initialKnownTopics.find(x => x.topic_id === t.topic_id);
-      if (!existing) initialKnownTopics.push(t);
-      else existing.proficiency = Math.max(existing.proficiency ?? 0, t.proficiency ?? 0);
-    }
+    console.warn(`⚠️ ${label} failed:`, e?.message || e);
   }
 }
 
-// 初始化阶段不要求用户陈述整体编程经验水平（可后置/推断）
-const experienceLevel = null;
+// Internal-only assessment module (Cycle-1 plumbing): loaded via ESM import and used through factory injection.
+const { createAssess } = await import('./_internal/assess.js');
+const __assess = createAssess({ AskUserQuestion, Bash, Read });
 
-// Pre-Context (pre_context_v1.3): 固定 4 问模板（每次用满 AskUserQuestion 负载）
-const PRE_CONTEXT_VERSION = 'pre_context_v1.3';
-const PRE_Q1_STYLE_KEY = 'pre_q1_style';
-const PRE_Q2_SOURCES_KEY = 'pre_q2_sources';
-const PRE_Q3_TIME_KEY = 'pre_q3_time';
-const PRE_Q4_CONTEXT_KEY = 'pre_q4_context';
-
-const preContextAnswer = AskUserQuestion({
-  questions: [
-    {
-      key: PRE_Q1_STYLE_KEY,
-      question: "How do you prefer to learn (choose or type)?",
-      header: "Style",
-      multiSelect: false,
-      options: [
-        { value: "practical", label: "Hands-on", description: "Learn by doing / build small things" },
-        { value: "theoretical", label: "Concept-first", description: "Understand concepts deeply first" },
-        { value: "mixed", label: "Mixed", description: "Balance concept + practice" },
-        { value: "visual", label: "Visual", description: "Diagrams/videos help a lot" },
-        { value: "skip", label: "Skip", description: "Skip this for now" }
-      ]
-    },
-    {
-      key: PRE_Q2_SOURCES_KEY,
-      question: "Preferred resources (choose or type)?",
-      header: "Sources",
-      multiSelect: true,
-      options: [
-        { value: "official-docs", label: "Official docs", description: "Creator documentation" },
-        { value: "interactive", label: "Interactive", description: "Guided tutorials / sandboxes" },
-        { value: "video", label: "Videos", description: "Video courses / talks" },
-        { value: "books", label: "Books", description: "Deep written content" },
-        { value: "articles", label: "Articles", description: "Blogs / community guides" },
-        { value: "skip", label: "Skip", description: "Skip this for now" }
-      ]
-    },
-    {
-      key: PRE_Q3_TIME_KEY,
-      question: "How much time can you consistently spend per week (choose or type)?",
-      header: "Time",
-      multiSelect: false,
-      options: [
-        { value: "lt2", label: "<2h/week", description: "Very limited time" },
-        { value: "2-5", label: "2-5h/week", description: "Light pace" },
-        { value: "5-10", label: "5-10h/week", description: "Steady pace" },
-        { value: "10plus", label: "10h+/week", description: "Fast pace" },
-        { value: "variable", label: "Variable", description: "Some weeks busy, some free" },
-        { value: "skip", label: "Skip", description: "Skip this for now" }
-      ]
-    },
-    {
-      key: PRE_Q4_CONTEXT_KEY,
-      question: "Where will you mostly apply this learning (choose or type)?",
-      header: "Context",
-      multiSelect: false,
-      options: [
-        { value: "work", label: "Work tasks", description: "Apply directly on the job" },
-        { value: "project", label: "Personal project", description: "Build something you care about" },
-        { value: "interview", label: "Interview prep", description: "Prepare for technical interviews" },
-        { value: "hobby", label: "Hobby", description: "Curiosity / fun learning" },
-        { value: "unsure", label: "Not sure", description: "Exploring possibilities" },
-        { value: "skip", label: "Skip", description: "Skip this for now" }
-      ]
-    }
-  ]
-});
-
-const preContextCapturedAt = new Date().toISOString();
-// Track per-question skips for cooldown logic (best-effort; schema allows extra provenance fields).
-const skipped = {};
-if (preContextAnswer[PRE_Q1_STYLE_KEY] === 'skip') skipped[PRE_Q1_STYLE_KEY] = preContextCapturedAt;
-{
-  const v = preContextAnswer[PRE_Q2_SOURCES_KEY];
-  if ((Array.isArray(v) && v.includes('skip')) || v === 'skip') skipped[PRE_Q2_SOURCES_KEY] = preContextCapturedAt;
+function normalizeInferredTopicId(raw) {
+  const s = String(raw ?? '').toLowerCase();
+  const normalized = s
+    .replace(/[^a-z0-9_-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  return normalized;
 }
-if (preContextAnswer[PRE_Q3_TIME_KEY] === 'skip') skipped[PRE_Q3_TIME_KEY] = preContextCapturedAt;
-if (preContextAnswer[PRE_Q4_CONTEXT_KEY] === 'skip') skipped[PRE_Q4_CONTEXT_KEY] = preContextCapturedAt;
 
-const normalizeSkipValue = (v) => (v === 'skip' ? null : v);
-const normalizeSkipMulti = (v) => {
-  if (!Array.isArray(v)) return normalizeSkipValue(v);
-  const filtered = v.filter((x) => x !== 'skip');
-  return filtered.length > 0 ? filtered : null;
-};
-const pre_context = {
-  raw: {
-    [PRE_Q1_STYLE_KEY]: preContextAnswer[PRE_Q1_STYLE_KEY],
-    [PRE_Q2_SOURCES_KEY]: preContextAnswer[PRE_Q2_SOURCES_KEY],
-    [PRE_Q3_TIME_KEY]: preContextAnswer[PRE_Q3_TIME_KEY],
-    [PRE_Q4_CONTEXT_KEY]: preContextAnswer[PRE_Q4_CONTEXT_KEY]
-  },
-  parsed: {
-    learning_style: normalizeSkipValue(preContextAnswer[PRE_Q1_STYLE_KEY]),
-    preferred_sources: normalizeSkipMulti(preContextAnswer[PRE_Q2_SOURCES_KEY]),
-    time_budget: normalizeSkipValue(preContextAnswer[PRE_Q3_TIME_KEY]),
-    learning_context: normalizeSkipValue(preContextAnswer[PRE_Q4_CONTEXT_KEY])
-  },
-  provenance: {
-    template_version: PRE_CONTEXT_VERSION,
-    captured_at: preContextCapturedAt,
-    asked_vs_reused: 'asked',
-    gating_reason: 'create',
-    skipped
-  }
-};
-
-let learningStyle = pre_context.parsed.learning_style;
-let preferredSources = pre_context.parsed.preferred_sources;
-```
-
-#### Step 2: Evidence-Based Assessment
-
-```javascript
-// Streamlined default: minimal profile (fast). Full assessment is opt-in.
-const runFullAssessment = Boolean(flags.fullAssessment) && !flags.noAssessment;
-
-let knownTopics = [];
-
-if (!runFullAssessment) {
-  console.log('\n✅ Minimal Profile Mode (Fast)\n');
-  console.log('We will collect only essentials now.');
-  console.log('Detailed topic assessments will happen just-in-time during /learn:plan.\n');
-
-  // Seed topics (low-confidence by default)
-  const seedTopicIds = initialKnownTopics.length > 0
-    ? initialKnownTopics.map(t => t.topic_id)
-    : ['typescript', 'javascript'];
-
-  knownTopics = seedTopicIds.map(topicId => ({
-    topic_id: topicId,
-    proficiency: 0.3,
-    confidence: 0.3,
-    last_updated: new Date().toISOString(),
-    evidence: [{
-      evidence_type: 'self-report',
-      kind: 'minimal_seed',
-      timestamp: new Date().toISOString(),
-      summary: 'Seed topic (minimal profile)',
-      data: { topic_id: topicId }
-    }]
-  }));
-} else {
-  console.log('\n## Full Evidence-Based Skill Assessment (Opt-in)\n');
-  console.log('We will assess your skills through multiple verification stages.');
-  console.log('This prevents self-assessment bias and ensures accurate skill levels.\n');
-
-  // Seed topics for full assessment
-  knownTopics = [...initialKnownTopics];
-
-  // Determine assessment topics based on knownTopics or default assessment
-  const assessmentTopics = knownTopics.length > 0
-    ? knownTopics.map(t => t.topic_id)
-    : ['typescript', 'javascript'];
-
-// Define weights based on goal type
-const weights = {
-  concept: goalType === 'project' ? 0.3 : 0.7,
-  challenge: goalType === 'project' ? 0.7 : 0.3
-};
-
-console.log(`Assessment Strategy: ${goalType}-focused`);
-console.log(`- Conceptual Understanding: ${(weights.concept * 100).toFixed(0)}%`);
-console.log(`- Practical Challenge: ${(weights.challenge * 100).toFixed(0)}%\n`);
-
-// Multi-Factor Verification Algorithm
-assessmentTopics.forEach((topicId, index) => {
-  console.log(`## Assessing: ${topicId.toUpperCase()}\n`);
-
-  let conceptScore = 0;
-  let challengeScore = 0;
-  const evidenceTrail = [];
-
-  // Stage 1: Self-Assessment (for calibration only)
-  const SELF_ASSESS_KEY = `self_assess_${topicId}`;
-  const selfAssessAnswer = AskUserQuestion({
-    questions: [{
-      key: SELF_ASSESS_KEY,
-      question: `How would you rate your ${topicId} experience? (Used for difficulty calibration only)`,
-      header: topicId.charAt(0).toUpperCase() + topicId.slice(1),
-      multiSelect: false,
-      options: [
-        {value: "beginner", label: "Beginner", description: "Just starting or learning basics"},
-        {value: "intermediate", label: "Intermediate", description: "Comfortable with fundamentals"},
-        {value: "advanced", label: "Advanced", description: "Deep experience and expertise"}
-      ]
-    }]
-  });
-
-  const selfAssessmentLevel = selfAssessAnswer[SELF_ASSESS_KEY];
-  evidenceTrail.push({
-    type: 'self_assessment',
-    level: selfAssessmentLevel,
-    note: 'Calibration only, not included in final score'
-  });
-
-  // Stage 2: Conceptual Understanding Checks (Open-ended with AI evaluation)
-  const CONCEPT_KEY = `concept_${topicId}`;
-  const conceptQuestions = {
-    typescript: "Explain the difference between 'type' and 'interface' in TypeScript. When would you use each?",
-    javascript: "Explain closures in JavaScript with a practical example. How are they used in real applications?",
-    react: "Explain React's virtual DOM and reconciliation process. How does it optimize rendering?",
-    node: "Explain the event loop in Node.js. How does it handle asynchronous operations?"
-  };
-
-  const conceptQuestion = conceptQuestions[topicId] || `Explain your understanding of ${topicId} core concepts.`;
-
-  console.log(`\n**Conceptual Check**: ${conceptQuestion}\n`);
-  console.log('(In a full implementation, you would type your explanation and AI would evaluate it)');
-  console.log('For now, we will use a simplified verification:\n');
-
-  const conceptAnswer = AskUserQuestion({
-    questions: [{
-      key: CONCEPT_KEY,
-      question: `Rate your understanding of: "${conceptQuestion}"`,
-      header: "Conceptual Check",
-      multiSelect: false,
-      options: [
-        {value: "strong", label: "Strong Understanding", description: "I can explain this in detail with examples"},
-        {value: "moderate", label: "Moderate Understanding", description: "I know the basics but lack depth"},
-        {value: "weak", label: "Weak Understanding", description: "I've heard of it but can't explain well"},
-        {value: "none", label: "No Knowledge", description: "I don't know this concept"}
-      ]
-    }]
-  });
-
-  const conceptResponse = conceptAnswer[CONCEPT_KEY];
-
-  // Map response to score
-  const scoreMap = { strong: 0.9, moderate: 0.6, weak: 0.3, none: 0.0 };
-  conceptScore = scoreMap[conceptResponse] || 0.5;
-
-  evidenceTrail.push({
-    type: 'conceptual_check',
-    question: conceptQuestion,
-    response: conceptResponse,
-    score: conceptScore
-  });
-
-  // Stage 3: Practical Challenge (Real MCP Verification)
-  //
-  // Goal: Replace self-report ("completed/partial") with objective execution results.
-  // We capture user code (paste or local file) and run it against a deterministic fixture
-  // via an isolated runner:
-  //
-  //   node .claude/commands/learn/_internal/mcp-runner.js <code-file> <fixture-file>
-  //
-  // mcp-runner output (JSON):
-  //   { tests_passed, tests_total, score, execution_time_ms }
-  const CHALLENGE_METHOD_KEY = `challenge_method_${topicId}`;
-  const challenges = {
-    typescript: {
-      description: "Write and export: `export function first<T>(arr: T[]): T | undefined`",
-      fixture: ".claude/commands/learn/_internal/fixtures/typescript-first-element.mjs",
-      file_ext: "ts"
-    },
-    javascript: {
-      description: "Write and export: `export function evenNumbers(arr) { /* must use reduce */ }`",
-      fixture: ".claude/commands/learn/_internal/fixtures/javascript-even-reduce.mjs",
-      file_ext: "js"
-    },
-    react: {
-      description: "Optional (conceptual): Explain how you'd implement a custom hook that manages a counter state.",
-      fixture: null,
-      file_ext: null
-    },
-    node: {
-      description: "Optional (conceptual): Explain how you'd create a simple REST API endpoint using Express.js.",
-      fixture: null,
-      file_ext: null
-    }
-  };
-
-  const challenge = challenges[topicId] || { description: `Complete a practical task related to ${topicId}.`, fixture: null, file_ext: null };
-
-  console.log(`\n**Practical Challenge**: ${challenge.description}`);
-
-  // If we don't have an executable fixture, fall back to conceptual evidence.
-  // (We still record it, but with lower confidence than tool-verified evidence.)
-  if (!challenge.fixture) {
-    const challengeAnswer = AskUserQuestion({
-      questions: [{
-        key: CHALLENGE_METHOD_KEY,
-        question: "Do you want to skip the code challenge for this topic?",
-        header: "Practical Challenge (Optional)",
-        multiSelect: false,
-        options: [
-          {value: "skip", label: "Skip", description: "Skip challenge for this topic"},
-          {value: "explain", label: "Explain", description: "Provide a short explanation (non-verified)"}
-        ]
-      }]
-    });
-
-    evidenceTrail.push({
-      type: 'micro_challenge',
-      mode: challengeAnswer[CHALLENGE_METHOD_KEY],
-      challenge: challenge.description,
-      verified: false,
-      score: 0.0
-    });
-  } else {
-    // For fixture-backed challenges, collect real code and execute tests.
-    const scratchDir = `.workflow/.scratchpad/learn-challenges`;
-    const codePath = `${scratchDir}/${topicId}-solution.${challenge.file_ext}`;
-
-    console.log('\nThis challenge is tool-verified using a deterministic scratch file path.');
-    console.log('Create/edit the file locally (outside the agent), then come back and run verification:');
-    console.log(`  1) mkdir -p ${scratchDir}`);
-    console.log(`  2) edit: ${codePath}`);
-    console.log(`  3) ensure it exports the required function for: ${challenge.description}`);
-    console.log(`Fixture used for verification: ${challenge.fixture}`);
-
-    const CHALLENGE_READY_KEY = `challenge_ready_${topicId}`;
-    const readyAnswer = AskUserQuestion({
-      questions: [{
-        key: CHALLENGE_READY_KEY,
-        question: 'Ready to run the tool-verified challenge now?',
-        header: 'Code Challenge (Tool-Verified)',
-        multiSelect: false,
-        options: [
-          {value: 'ready', label: 'Ready (run tests)', description: 'Run mcp-runner against your scratch file'},
-          {value: 'skip', label: 'Skip', description: 'Skip this challenge for now'}
-        ]
-      }]
-    });
-
-    const method = readyAnswer[CHALLENGE_READY_KEY] === 'ready' ? 'scratch_file' : 'skip';
-    let challengeResult = { tests_passed: 0, tests_total: 0, score: 0, execution_time_ms: 0 };
-    let codeSha256 = null;
-
-    if (method === 'skip') {
-      challengeScore = 0.0;
-    } else {
-      Bash(`mkdir -p ${scratchDir}`);
-      // Gate: require the user to have created/edited the real solution file first.
-      Bash(`test -f ${codePath}`);
-      // Optional: store a short hash instead of full code to avoid prompt bloat.
-      codeSha256 = Bash(
-        `python3 - <<'PY'\nimport hashlib\nfrom pathlib import Path\np=Path(${JSON.stringify(codePath)})\nprint(hashlib.sha256(p.read_bytes()).hexdigest())\nPY`
-      ).trim();
-
-      const lastJsonObjectFromText = (text) => {
-        const raw = String(text ?? '').trim();
-        if (!raw) throw new Error('Empty command output');
-        const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-        for (let i = lines.length - 1; i >= 0; i--) {
-          try {
-            return JSON.parse(lines[i]);
-          } catch {
-            // keep scanning
-          }
-        }
-        const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (m) return JSON.parse(m[1].trim());
-        throw new Error('Failed to parse JSON from command output');
-      };
-
-      // Execute real tests (isolated runner) and map to score:
-      const raw = Bash(`node .claude/commands/learn/_internal/mcp-runner.js ${codePath} ${challenge.fixture} --timeout-ms=2000`);
-      challengeResult = lastJsonObjectFromText(raw);
-      challengeScore = challengeResult.score;
-    }
-
-    evidenceTrail.push({
-      type: 'real_mcp',
-      mode: method,
-      challenge: challenge.description,
-      code_path: codePath,
-      code_sha256: codeSha256,
-      fixture: challenge.fixture,
-      verified: method !== 'skip',
-      tests_passed: challengeResult.tests_passed,
-      tests_total: challengeResult.tests_total,
-      score: challengeResult.score,
-      execution_time_ms: challengeResult.execution_time_ms,
-      verified_at: new Date().toISOString()
-    });
-  }
-
-  // Stage 4: Calculate Final Proficiency & Confidence
-  const finalProficiency = (conceptScore * weights.concept) + (challengeScore * weights.challenge);
-
-  // Confidence based on evidence strength
-  let confidence = 0.4;  // Default low
-  if (challengeScore >= 0.8) {
-    confidence = 0.9;  // High: MCP validation passed
-  } else if (conceptScore >= 0.6 && challengeScore >= 0.5) {
-    confidence = 0.7;  // Medium: Both evidence present
-  } else if (conceptScore >= 0.6) {
-    confidence = 0.6;  // Low-Medium: Conceptual only
-  }
-
-  // Update or add to knownTopics
-  // Evidence structure upgrade (backward compatible):
-  // - Legacy profiles stored evidence as JSON strings
-  // - New profiles store structured evidence objects with provenance + verification metadata
-  const EVIDENCE_CONFIDENCE_CAPS = {
-    'self-report': 0.5,
-    conceptual: 0.7,
-    'tool-verified': 0.95
-  };
-
-  const normalizeEvidenceItem = (item) => {
-    // Already-structured evidence object
-    if (item && typeof item === 'object' && item.evidence_type) return item;
-
-    // Legacy string: attempt JSON parse, otherwise store as conceptual legacy blob
-    if (typeof item === 'string') {
-      try {
-        const parsed = JSON.parse(item);
-        const kind = typeof parsed?.type === 'string' ? parsed.type : 'legacy';
-
-        let evidenceType = 'conceptual';
-        if (kind === 'self_assessment') evidenceType = 'self-report';
-        if (kind === 'conceptual_check') evidenceType = 'conceptual';
-        if (kind === 'real_mcp') evidenceType = 'tool-verified';
-
-        return {
-          evidence_type: evidenceType,
-          kind,
-          timestamp: new Date().toISOString(),
-          data: parsed
-        };
-      } catch {
-        return {
-          evidence_type: 'conceptual',
-          kind: 'legacy',
-          timestamp: new Date().toISOString(),
-          data: { raw: item }
-        };
-      }
-    }
-
-    return null;
-  };
-
-  const toEvidenceItem = (e) => {
-    const kind = e?.type ?? 'unknown';
-    let evidenceType = 'conceptual';
-
-    if (kind === 'self_assessment') evidenceType = 'self-report';
-    if (kind === 'conceptual_check') evidenceType = 'conceptual';
-    if (kind === 'real_mcp' && e?.verified) evidenceType = 'tool-verified';
-
-    const evidence = {
-      evidence_type: evidenceType,
-      kind,
-      timestamp: new Date().toISOString(),
-      data: e
-    };
-
-    if (evidenceType === 'tool-verified') {
-      evidence.verification_metadata = {
-        method: 'mcp-runner',
-        timestamp: e?.verified_at ?? new Date().toISOString(),
-        test_results: {
-          tests_passed: e?.tests_passed ?? 0,
-          tests_total: e?.tests_total ?? 0,
-          score: e?.score ?? 0,
-          execution_time_ms: e?.execution_time_ms ?? 0
-        },
-        confidence_source: 'tool-verified'
-      };
-    }
-
-    return evidence;
-  };
-
-  const existingIndex = knownTopics.findIndex(t => t.topic_id === topicId);
-
-  if (existingIndex >= 0) {
-    // Update existing topic
-    knownTopics[existingIndex].proficiency = Math.max(knownTopics[existingIndex].proficiency, finalProficiency);
-    const existingEvidence = Array.isArray(knownTopics[existingIndex].evidence) ? knownTopics[existingIndex].evidence : [];
-    const normalizedExistingEvidence = existingEvidence.map(normalizeEvidenceItem).filter(Boolean);
-    const newEvidence = evidenceTrail.map(toEvidenceItem);
-    const mergedEvidence = [...normalizedExistingEvidence, ...newEvidence];
-
-    // Confidence cap by evidence provenance:
-    //   self-report <= 0.5, conceptual <= 0.7, tool-verified <= 0.95
-    const hasToolVerified = mergedEvidence.some(e => e?.evidence_type === 'tool-verified');
-    const hasConceptual = mergedEvidence.some(e => e?.evidence_type === 'conceptual');
-    const cap = hasToolVerified ? EVIDENCE_CONFIDENCE_CAPS['tool-verified']
-      : hasConceptual ? EVIDENCE_CONFIDENCE_CAPS.conceptual
-        : EVIDENCE_CONFIDENCE_CAPS['self-report'];
-
-    knownTopics[existingIndex].confidence = Math.min(confidence, cap);
-    knownTopics[existingIndex].evidence = mergedEvidence;
-    knownTopics[existingIndex].last_updated = new Date().toISOString();
-  } else {
-    // Add new topic
-    const newEvidence = evidenceTrail.map(toEvidenceItem);
-    const hasToolVerified = newEvidence.some(e => e?.evidence_type === 'tool-verified');
-    const hasConceptual = newEvidence.some(e => e?.evidence_type === 'conceptual');
-    const cap = hasToolVerified ? EVIDENCE_CONFIDENCE_CAPS['tool-verified']
-      : hasConceptual ? EVIDENCE_CONFIDENCE_CAPS.conceptual
-        : EVIDENCE_CONFIDENCE_CAPS['self-report'];
-
-    knownTopics.push({
-      topic_id: topicId,
-      proficiency: finalProficiency,
-      confidence: Math.min(confidence, cap),
-      last_updated: new Date().toISOString(),
-      evidence: newEvidence
-    });
-  }
-
-  console.log(`\n✅ ${topicId} Assessment Complete:`);
-  console.log(`   - Proficiency: ${(finalProficiency * 100).toFixed(0)}%`);
-  console.log(`   - Confidence: ${(confidence * 100).toFixed(0)}%`);
-  console.log(`   - Concept: ${(conceptScore * 100).toFixed(0)}%, Challenge: ${(challengeScore * 100).toFixed(0)}%\n`);
-});
-
-// Display anti-inflation mechanism
-console.log('## Assessment Quality Controls:');
-console.log('✅ Forced Evidence: All proficiencies based on verifiable assessment');
-console.log('✅ Reduced Subjective Weight: Self-assessment used for calibration only');
-console.log('✅ Multi-Factor Verification: Conceptual + Practical challenges');
-console.log('✅ Weighted Scoring: Goals determine assessment emphasis');
-console.log('✅ Confidence Tracking: Evidence strength clearly marked\n');
-} // end full assessment (flags.fullAssessment)
-```
-
-#### Step 3: Known Topics Collection
-
-```javascript
-// Consolidate known_topics from assessment
-console.log('\n## Assessment Summary\n');
-console.log(`Assessed ${knownTopics.length} topics:`);
-
-knownTopics.forEach(topic => {
-  const proficiencyPercent = (topic.proficiency * 100).toFixed(0);
-  const confidencePercent = (topic.confidence * 100).toFixed(0);
-  console.log(`  - ${topic.topic_id}: ${proficiencyPercent}% proficiency (${confidencePercent}% confidence)`);
-});
-
-// Ask if user wants to add more topics manually
-const ADD_MORE_KEY = 'add_more_topics';
-const addMoreAnswer = AskUserQuestion({
-  questions: [{
-    key: ADD_MORE_KEY,
-    question: "Would you like to add more topics to your profile?",
-    header: "Add Topics",
-    multiSelect: false,
-    options: [
-      {value: "yes", label: "Yes", description: "Add more known topics"},
-      {value: "no", label: "No", description: "Continue with current topics"}
-    ]
-  }]
-});
-
-if (addMoreAnswer[ADD_MORE_KEY] === 'yes') {
-  // Allow manual topic addition (simplified for MVP)
-  console.log('ℹ️  Manual topic addition will be available in future versions.');
-  console.log('   For now, topics will be added automatically as you complete learning sessions.');
+function getActiveProfileIdOrNull() {
+  const state = runCcwJson('ccw learn:read-state --json');
+  const id = state?.active_profile_id ?? null;
+  if (typeof id === 'string' && id.startsWith('p-e2e-')) return null;
+  return id;
 }
-```
 
-#### Step 4: Profile Creation
+function getProfileIdFromArgsOrActive(argv, index) {
+  const candidate = argv[index];
+  if (candidate && !candidate.startsWith('--')) return candidate;
+  return getActiveProfileIdOrNull();
+}
 
-```javascript
-// Generate profile ID
-const timestamp = Date.now();
-const profileId = `profile-${timestamp}`;
+function collectBackgroundTextRequired() {
+  // Background is required in create. If a previous active profile has background, allow reuse.
+  const state = runCcwJson('ccw learn:read-state --json');
+  const activeId = String(state?.active_profile_id ?? '').trim();
 
-// Streamlined default: minimal profile unless --full-assessment is specified
-const runFullAssessment = Boolean(flags.fullAssessment) && !flags.noAssessment;
-const isMinimal = !runFullAssessment;
-const completionPercent = runFullAssessment ? 100 : 60;
+  const loadPrev = () => {
+    if (!activeId || activeId.startsWith('p-e2e-')) return null;
+    try {
+      const p = runCcwJson(`ccw learn:read-profile --profile-id \"${activeId}\" --json`);
+      const raw = String(p?.background?.raw_text ?? '').trim();
+      const summary = String(p?.background?.summary ?? '').trim();
+      if (!raw && !summary) return null;
+      return { profile_id: activeId, raw_text: raw, summary };
+    } catch {
+      return null;
+    }
+  };
 
-// User correction path: allow correcting derived preferences without overwriting raw evidence.
-// Corrections are recorded as FIELD_SET events later (append-only).
-const fieldSetCorrections = [];
-const PREF_CORRECT_KEY = 'pre_context_correction';
-while (true) {
-  const correctionAnswer = AskUserQuestion({
-    questions: [{
-      key: PREF_CORRECT_KEY,
-      question: "Anything to correct in your preferences? (Optional)",
-      header: "Confirm",
-      multiSelect: false,
-      options: [
-        { value: "ok", label: "Looks good", description: "No changes" },
-        { value: "style", label: "Learning style", description: "Adjust Hands-on / Concept-first / Mixed / Visual" },
-        { value: "sources", label: "Preferred resources", description: "Adjust docs / interactive / video / books / articles" },
-        { value: "time", label: "Weekly time budget", description: "Adjust how much time you can spend" },
-        { value: "context", label: "Learning context", description: "Adjust where you apply this learning" }
-      ]
-    }]
-  });
-
-  const choice = correctionAnswer[PREF_CORRECT_KEY];
-  if (choice === 'ok') break;
-
-  if (choice === 'style') {
+  const prev = loadPrev();
+  if (prev) {
+    const KEY = 'background_reuse_action';
     const ans = AskUserQuestion({
       questions: [{
+        key: KEY,
+        header: '背景信息（必填）',
+        multiSelect: false,
+        question:
+          `检测到你上一次的背景信息（profile: ${prev.profile_id}）。\\n` +
+          `\\n摘要：${prev.summary || (prev.raw_text.slice(0, 120) + (prev.raw_text.length > 120 ? '…' : ''))}\\n` +
+          `\\n是否复用？`,
+        options: [
+          { value: 'reuse', label: '复用', description: '沿用上一次的背景信息' },
+          { value: 'update', label: '更新', description: '重新输入/更新背景信息' }
+        ]
+      }]
+    });
+
+    if (ans[KEY] === 'reuse') return prev.raw_text || prev.summary;
+  }
+
+  const KEY = 'background_text';
+  const ans2 = AskUserQuestion({
+    questions: [{
+      key: KEY,
+      header: '背景信息（必填）',
+      multiSelect: false,
+      question:
+        '请粘贴你的背景信息（尽量一行，包含你做过的项目/技术栈/经验即可）。\\n' +
+        '示例：\"3年React+Node，做过后台管理；用过Postgres\"\\n\\n' +
+        '（直接输入文本继续）'
+    }]
+  });
+  return String(ans2[KEY] ?? '').trim();
+}
+
+function preContextV13() {
+  const PRE_CONTEXT_VERSION = 'pre_context_v1.3';
+  const PRE_Q1_STYLE_KEY = 'pre_q1_style';
+  const PRE_Q2_SOURCES_KEY = 'pre_q2_sources';
+  const PRE_Q3_TIME_KEY = 'pre_q3_time';
+  const PRE_Q4_CONTEXT_KEY = 'pre_q4_context';
+
+  const answer = AskUserQuestion({
+    questions: [
+      {
         key: PRE_Q1_STYLE_KEY,
-        question: "Update your learning style (choose or type)?",
-        header: "Style",
+        question: '你更喜欢怎样学习？（可选，也可直接输入）',
+        header: '学习方式',
         multiSelect: false,
         options: [
-          { value: "practical", label: "Hands-on", description: "Learn by doing / build small things" },
-          { value: "theoretical", label: "Concept-first", description: "Understand concepts deeply first" },
-          { value: "mixed", label: "Mixed", description: "Balance concept + practice" },
-          { value: "visual", label: "Visual", description: "Diagrams/videos help a lot" },
-          { value: "skip", label: "Skip", description: "Skip this for now" }
+          { value: 'practical', label: '动手优先', description: '先做再总结' },
+          { value: 'theoretical', label: '概念优先', description: '先理解再实践' },
+          { value: 'mixed', label: '混合', description: '概念 + 实践平衡' },
+          { value: 'visual', label: '视觉化', description: '图示/视频更高效' },
+          { value: 'skip', label: '跳过', description: '暂时跳过' }
         ]
-      }]
-    });
-
-    const next = normalizeSkipValue(ans[PRE_Q1_STYLE_KEY]);
-    const prev = learningStyle ?? null;
-    if (next !== prev) fieldSetCorrections.push({ field_path: 'pre_context.parsed.learning_style', old_value: prev, new_value: next });
-    learningStyle = next;
-    pre_context.parsed.learning_style = next;
-  }
-
-  if (choice === 'sources') {
-    const ans = AskUserQuestion({
-      questions: [{
+      },
+      {
         key: PRE_Q2_SOURCES_KEY,
-        question: "Update preferred resources (choose or type)?",
-        header: "Sources",
+        question: '你更偏好的学习资源？（可多选，也可直接输入）',
+        header: '资源偏好',
         multiSelect: true,
         options: [
-          { value: "official-docs", label: "Official docs", description: "Creator documentation" },
-          { value: "interactive", label: "Interactive", description: "Guided tutorials / sandboxes" },
-          { value: "video", label: "Videos", description: "Video courses / talks" },
-          { value: "books", label: "Books", description: "Deep written content" },
-          { value: "articles", label: "Articles", description: "Blogs / community guides" },
-          { value: "skip", label: "Skip", description: "Skip this for now" }
+          { value: 'official-docs', label: '官方文档', description: '更信任一手资料' },
+          { value: 'interactive', label: '交互式教程', description: '一步步引导/沙盒' },
+          { value: 'video', label: '视频课程', description: '视频/系统课' },
+          { value: 'books', label: '书籍', description: '系统性强' },
+          { value: 'articles', label: '文章/博客', description: '短平快/案例' },
+          { value: 'skip', label: '跳过', description: '暂时跳过' }
         ]
-      }]
-    });
-
-    const next = normalizeSkipMulti(ans[PRE_Q2_SOURCES_KEY]);
-    const prev = preferredSources ?? null;
-    if (JSON.stringify(next) !== JSON.stringify(prev)) {
-      fieldSetCorrections.push({ field_path: 'pre_context.parsed.preferred_sources', old_value: prev, new_value: next });
-    }
-    preferredSources = next;
-    pre_context.parsed.preferred_sources = next;
-  }
-
-  if (choice === 'time') {
-    const ans = AskUserQuestion({
-      questions: [{
+      },
+      {
         key: PRE_Q3_TIME_KEY,
-        question: "Update weekly time budget (choose or type)?",
-        header: "Time",
+        question: '你每周能稳定投入多少学习时间？（可选，也可直接输入）',
+        header: '时间投入',
         multiSelect: false,
         options: [
-          { value: "lt2", label: "<2h/week", description: "Very limited time" },
-          { value: "2-5", label: "2-5h/week", description: "Light pace" },
-          { value: "5-10", label: "5-10h/week", description: "Steady pace" },
-          { value: "10plus", label: "10h+/week", description: "Fast pace" },
-          { value: "variable", label: "Variable", description: "Some weeks busy, some free" },
-          { value: "skip", label: "Skip", description: "Skip this for now" }
+          { value: 'lt2', label: '<2 小时/周', description: '时间很少' },
+          { value: '2-5', label: '2-5 小时/周', description: '轻量' },
+          { value: '5-10', label: '5-10 小时/周', description: '稳定' },
+          { value: '10plus', label: '10+ 小时/周', description: '高强度' },
+          { value: 'variable', label: '不固定', description: '有时忙有时闲' },
+          { value: 'skip', label: '跳过', description: '暂时跳过' }
         ]
-      }]
-    });
-
-    const next = normalizeSkipValue(ans[PRE_Q3_TIME_KEY]);
-    const prev = pre_context.parsed.time_budget ?? null;
-    if (next !== prev) fieldSetCorrections.push({ field_path: 'pre_context.parsed.time_budget', old_value: prev, new_value: next });
-    pre_context.parsed.time_budget = next;
-  }
-
-  if (choice === 'context') {
-    const ans = AskUserQuestion({
-      questions: [{
+      },
+      {
         key: PRE_Q4_CONTEXT_KEY,
-        question: "Update learning context (choose or type)?",
-        header: "Context",
+        question: '你的学习场景更像哪种？（可选，也可直接输入）',
+        header: '学习场景',
         multiSelect: false,
         options: [
-          { value: "work", label: "Work tasks", description: "Apply directly on the job" },
-          { value: "project", label: "Personal project", description: "Build something you care about" },
-          { value: "interview", label: "Interview prep", description: "Prepare for technical interviews" },
-          { value: "hobby", label: "Hobby", description: "Curiosity / fun learning" },
-          { value: "unsure", label: "Not sure", description: "Exploring possibilities" },
-          { value: "skip", label: "Skip", description: "Skip this for now" }
+          { value: 'work', label: '工作驱动', description: '为解决当前工作任务' },
+          { value: 'project', label: '个人项目', description: '做出自己关心的东西' },
+          { value: 'interview', label: '求职/面试', description: '为求职准备' },
+          { value: 'hobby', label: '兴趣驱动', description: '好奇/乐趣' },
+          { value: 'unsure', label: '还不确定', description: '先探索' },
+          { value: 'skip', label: '跳过', description: '暂时跳过' }
         ]
-      }]
-    });
+      }
+    ]
+  });
 
-    const next = normalizeSkipValue(ans[PRE_Q4_CONTEXT_KEY]);
-    const prev = pre_context.parsed.learning_context ?? null;
-    if (next !== prev) fieldSetCorrections.push({ field_path: 'pre_context.parsed.learning_context', old_value: prev, new_value: next });
-    pre_context.parsed.learning_context = next;
+  const capturedAt = new Date().toISOString();
+  const skipped = {};
+  if (answer[PRE_Q1_STYLE_KEY] === 'skip') skipped[PRE_Q1_STYLE_KEY] = capturedAt;
+  {
+    const v = answer[PRE_Q2_SOURCES_KEY];
+    if ((Array.isArray(v) && v.includes('skip')) || v === 'skip') skipped[PRE_Q2_SOURCES_KEY] = capturedAt;
   }
-}
+  if (answer[PRE_Q3_TIME_KEY] === 'skip') skipped[PRE_Q3_TIME_KEY] = capturedAt;
+  if (answer[PRE_Q4_CONTEXT_KEY] === 'skip') skipped[PRE_Q4_CONTEXT_KEY] = capturedAt;
 
-// Create profile object
-const profile = {
-  "$schema": "./schemas/learn-profile.schema.json",
-  "profile_id": profileId,
-  "is_minimal": isMinimal,
-  "experience_level": experienceLevel,
-  "known_topics": knownTopics,
-  "pre_context": pre_context,
-  "learning_preferences": {
-    "style": learningStyle,
-    "preferred_sources": preferredSources
-  },
-  "feedback_journal": [],
-  "_metadata": {
-    "created_at": new Date().toISOString(),
-    "updated_at": new Date().toISOString(),
-    "version": "1.0.0",
-    "goal_type": goalType,
-    "assessment_method": isMinimal ? "minimal" : "evidence-based",
-    "completion_percent": completionPercent
-  }
-};
+  const normalizeSkipValue = (v) => (v === 'skip' ? null : v);
+  const normalizeSkipMulti = (v) => {
+    if (!Array.isArray(v)) return normalizeSkipValue(v);
+    const filtered = v.filter((x) => x !== 'skip');
+    return filtered.length > 0 ? filtered : null;
+  };
 
-// Persist via CLI (no direct Read/Write)
-const escapeSingleQuotesForShell = (s) => s.replace(/'/g, "'\\''");
-
-const lastJsonObjectFromText = (text) => {
-  const raw = String(text ?? '').trim();
-  if (!raw) throw new Error('Empty command output');
-  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-  for (let i = lines.length - 1; i >= 0; i--) {
-    try {
-      return JSON.parse(lines[i]);
-    } catch {
-      // keep scanning
-    }
-  }
-  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (m) return JSON.parse(m[1].trim());
-  throw new Error('Failed to parse JSON from command output');
-};
-
-const profilePayload = JSON.stringify(profile);
-const escapedProfilePayload = escapeSingleQuotesForShell(profilePayload);
-
-const writeProfileResp = lastJsonObjectFromText(Bash(`ccw learn:write-profile --profile-id ${profileId} --data '${escapedProfilePayload}' --json`));
-if (!writeProfileResp.ok) {
-  console.error('❌ Failed to write profile:', writeProfileResp.error);
-  throw new Error(writeProfileResp.error?.message || 'Profile write failed');
-}
-
-// Best-effort telemetry + immutable events (append-only). Do not block profile creation on failures.
-try {
-  const preContextEventPayload = JSON.stringify({
+  return {
     template_version: PRE_CONTEXT_VERSION,
-    pre_context
-  });
-  const escapedPreContextEventPayload = escapeSingleQuotesForShell(preContextEventPayload);
-  const ev = lastJsonObjectFromText(Bash(
-    `ccw learn:append-profile-event --profile-id ${profileId} --type PRECONTEXT_CAPTURED --actor user --payload '${escapedPreContextEventPayload}' --json`
-  ));
-  if (!ev.ok) console.warn('⚠️ Failed to append PRECONTEXT_CAPTURED event:', ev.error);
-} catch (e) {
-  console.warn('⚠️ Failed to append PRECONTEXT_CAPTURED event:', e?.message || e);
-}
-
-try {
-  for (const change of fieldSetCorrections) {
-    const payload = JSON.stringify(change);
-    const escapedPayload = escapeSingleQuotesForShell(payload);
-    const ev = lastJsonObjectFromText(Bash(
-      `ccw learn:append-profile-event --profile-id ${profileId} --type FIELD_SET --actor user --payload '${escapedPayload}' --json`
-    ));
-    if (!ev.ok) console.warn('⚠️ Failed to append FIELD_SET event:', ev.error);
-  }
-} catch (e) {
-  console.warn('⚠️ Failed to append FIELD_SET events:', e?.message || e);
-}
-
-try {
-  const telemetryPayload = JSON.stringify({
-    template_version: PRE_CONTEXT_VERSION,
-    asked_vs_reused: pre_context?.provenance?.asked_vs_reused ?? null,
-    gating_reason: pre_context?.provenance?.gating_reason ?? null,
-    skipped_keys: Object.keys(pre_context?.provenance?.skipped || {}),
-    corrections_count: Array.isArray(fieldSetCorrections) ? fieldSetCorrections.length : 0
-  });
-  const escapedTelemetryPayload = escapeSingleQuotesForShell(telemetryPayload);
-  const tel = lastJsonObjectFromText(Bash(
-    `ccw learn:append-telemetry-event --event PRECONTEXT_CAPTURED --profile-id ${profileId} --payload '${escapedTelemetryPayload}' --json`
-  ));
-  if (!tel.ok) console.warn('⚠️ Failed to append telemetry event PRECONTEXT_CAPTURED:', tel.error);
-} catch (e) {
-  console.warn('⚠️ Failed to append telemetry event PRECONTEXT_CAPTURED:', e?.message || e);
-}
-
-const updateStateResp = lastJsonObjectFromText(Bash(`ccw learn:update-state --field active_profile_id --value ${profileId} --json`));
-if (!updateStateResp.ok) {
-  console.error('❌ Failed to update learn state:', updateStateResp.error);
-  throw new Error(updateStateResp.error?.message || 'State update failed');
-}
-
-// Telemetry: init completion (best-effort).
-try {
-  const initTelemetryPayload = JSON.stringify({
-    is_minimal: isMinimal,
-    completion_percent: completionPercent,
-    known_topics_count: Array.isArray(knownTopics) ? knownTopics.length : 0
-  });
-  const escapedInitTelemetryPayload = escapeSingleQuotesForShell(initTelemetryPayload);
-  const tel = lastJsonObjectFromText(Bash(
-    `ccw learn:append-telemetry-event --event PROFILE_CREATED --profile-id ${profileId} --payload '${escapedInitTelemetryPayload}' --json`
-  ));
-  if (!tel.ok) console.warn('⚠️ Failed to append telemetry event PROFILE_CREATED:', tel.error);
-} catch (e) {
-  console.warn('⚠️ Failed to append telemetry event PROFILE_CREATED:', e?.message || e);
-}
-
-// Display summary
-console.log(`
-## Profile Created Successfully
-
-**Profile ID**: ${profileId}
-**Experience Level**: ${experienceLevel ?? 'unknown'}
-**Learning Style**: ${learningStyle ?? 'unspecified'}
-**Known Topics**: ${knownTopics.length}
-**Profile Completion**: ${completionPercent}% (${isMinimal ? 'minimal' : 'full'})
-
-**Top Skills**:
-${knownTopics
-  .sort((a, b) => b.proficiency - a.proficiency)
-  .slice(0, 5)
-  .map(t => `  - ${t.topic_id}: ${(t.proficiency * 100).toFixed(0)}%`)
-  .join('\n')}
-
-✅ Profile activated. Ready to create learning plans with /learn:plan
-${isMinimal ? 'ℹ️  Tip: Use /learn:plan to trigger JIT assessments, or re-run with --full-assessment for deep profiling.' : ''}
-`);
-```
-
-### Phase 3: Profile Update Flow
-
-```javascript
-// Load current profile
-const lastJsonObjectFromText = (text) => {
-  const raw = String(text ?? '').trim();
-  if (!raw) throw new Error('Empty command output');
-  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-  for (let i = lines.length - 1; i >= 0; i--) {
-    try {
-      return JSON.parse(lines[i]);
-    } catch {
-      // keep scanning
-    }
-  }
-  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (m) return JSON.parse(m[1].trim());
-  throw new Error('Failed to parse JSON from command output');
-};
-
-const stateResp = lastJsonObjectFromText(Bash('ccw learn:read-state --json'));
-if (!stateResp.ok) {
-  console.error('❌ Failed to read learn state:', stateResp.error);
-  throw new Error(stateResp.error?.message || 'State read failed');
-}
-const state = stateResp.data;
-
-if (!state.active_profile_id) {
-  console.error('❌ No active profile. Create one with /learn:profile create');
-  return;
-}
-
-const profileResp = lastJsonObjectFromText(Bash(`ccw learn:read-profile --profile-id ${state.active_profile_id} --json`));
-if (!profileResp.ok) {
-  console.error('❌ Failed to read profile:', profileResp.error);
-  throw new Error(profileResp.error?.message || 'Profile read failed');
-}
-const profile = profileResp.data;
-
-const escapeSingleQuotesForShell = (s) => s.replace(/'/g, "'\\''");
-
-const extractKeywords = (text) => {
-  const raw = String(text ?? '').toLowerCase().trim();
-  if (!raw) return [];
-
-  const stopwords = new Set([
-    'a', 'an', 'the', 'and', 'or', 'to', 'of', 'in', 'on', 'for', 'with', 'from', 'at', 'by',
-    'learn', 'learning', 'master', 'advanced', 'beginner', 'intermediate', 'expert',
-    'build', 'create', 'project', 'projects', 'app', 'apps'
-  ]);
-
-  const tokens = raw.split(/[^a-z0-9#+.]+/g).map(s => s.trim()).filter(Boolean);
-  const out = [];
-  for (const t of tokens) {
-    if (stopwords.has(t)) continue;
-    if (!out.includes(t)) out.push(t);
-    if (out.length >= 20) break;
-  }
-  return out;
-};
-
-// Check for --goal parameter (non-interactive mode)
-if (flags.goal) {
-  console.log(`\n## Goal-Oriented Profile Update`);
-  console.log(`Updating profile based on learning goal: "${flags.goal}"\n`);
-
-  const learningGoal = flags.goal;
-  const goalKeywords = extractKeywords(learningGoal);
-
-  console.log(`Extracted keywords: ${goalKeywords.join(', ')}`);
-
-  // Determine topics to assess based on goal keywords
-  const topicsToAssess = [];
-
-  // Map keywords to topics
-  goalKeywords.forEach(keyword => {
-    const keywordLower = keyword.toLowerCase();
-
-    // Simple keyword mapping (avoid static dictionaries in the main flow)
-    const techMapping = {
-      'react': 'react',
-      'vue': 'vue',
-      'angular': 'angular',
-      'typescript': 'typescript',
-      'javascript': 'javascript',
-      'node': 'node',
-      'python': 'python',
-      'rust': 'rust',
-      'go': 'go',
-      'docker': 'docker',
-      'kubernetes': 'kubernetes',
-      'aws': 'aws',
-      'frontend': 'javascript',
-      'backend': 'node',
-      'fullstack': ['javascript', 'node']
-    };
-
-    const matchedTopics = techMapping[keywordLower];
-    if (matchedTopics) {
-      if (Array.isArray(matchedTopics)) {
-        topicsToAssess.push(...matchedTopics);
-      } else {
-        topicsToAssess.push(matchedTopics);
+    pre_context: {
+      raw: {
+        [PRE_Q1_STYLE_KEY]: answer[PRE_Q1_STYLE_KEY],
+        [PRE_Q2_SOURCES_KEY]: answer[PRE_Q2_SOURCES_KEY],
+        [PRE_Q3_TIME_KEY]: answer[PRE_Q3_TIME_KEY],
+        [PRE_Q4_CONTEXT_KEY]: answer[PRE_Q4_CONTEXT_KEY]
+      },
+      parsed: {
+        learning_style: normalizeSkipValue(answer[PRE_Q1_STYLE_KEY]),
+        preferred_sources: normalizeSkipMulti(answer[PRE_Q2_SOURCES_KEY]),
+        time_budget: normalizeSkipValue(answer[PRE_Q3_TIME_KEY]),
+        learning_context: normalizeSkipValue(answer[PRE_Q4_CONTEXT_KEY])
+      },
+      provenance: {
+        template_version: PRE_CONTEXT_VERSION,
+        captured_at: capturedAt,
+        asked_vs_reused: 'asked',
+        gating_reason: 'create',
+        skipped
       }
     }
-  });
+  };
+}
 
-  // Remove duplicates
-  const uniqueTopics = [...new Set(topicsToAssess)];
+function preContextVNext() {
+  // vNext pre-context: personal-only learning profile (not goal/env), asked in batches (<=4 per AskUserQuestion).
+  const PRE_CONTEXT_VERSION = 'pre_context_vNext';
 
-  console.log(`Topics to assess: ${uniqueTopics.join(', ')}`);
+  const Q_STYLE = 'pre_style';
+  const Q_SOURCES = 'pre_sources';
+  const Q_HOURS_WEEK = 'pre_hours_week';
+  const Q_SESSION_LEN = 'pre_session_len';
 
-  // Run targeted assessment for each topic
-  uniqueTopics.forEach(topicId => {
-    console.log(`\n## Assessing: ${topicId.toUpperCase()}\n`);
+  const Q_PRACTICE = 'pre_practice_intensity';
+  const Q_FEEDBACK = 'pre_feedback_style';
+  const Q_PACE = 'pre_pace';
+  const Q_MOTIVATION = 'pre_motivation';
 
-    // Check if topic already exists in profile
-    const existingTopic = profile.known_topics.find(t => t.topic_id === topicId);
-    const currentProficiency = existingTopic ? existingTopic.proficiency : 0;
-
-    // Simplified assessment for goal-oriented update
-    const ASSESS_KEY = `assess_${topicId}`;
-    const assessAnswer = AskUserQuestion({
-      questions: [{
-        key: ASSESS_KEY,
-        question: `Rate your ${topicId} experience (Current: ${(currentProficiency * 100).toFixed(0)}%):`,
-        header: topicId.charAt(0).toUpperCase() + topicId.slice(1),
+  const b1 = AskUserQuestion({
+    questions: [
+      {
+        key: Q_STYLE,
+        header: '学习方式 (1/4)',
         multiSelect: false,
+        question: '你更喜欢怎样学习？（可选，也可直接输入）',
         options: [
-          {value: "beginner", label: "Beginner", description: "Just starting or learning basics"},
-          {value: "intermediate", label: "Intermediate", description: "Comfortable with fundamentals"},
-          {value: "advanced", label: "Advanced", description: "Deep experience and expertise"}
+          { value: 'practical', label: '动手优先', description: '先做再总结' },
+          { value: 'theoretical', label: '概念优先', description: '先理解再实践' },
+          { value: 'mixed', label: '混合', description: '概念 + 实践平衡' },
+          { value: 'visual', label: '视觉化', description: '图示/视频更高效' },
+          { value: 'skip', label: '跳过', description: '暂时跳过' }
         ]
-      }]
-    });
-
-    const level = assessAnswer[ASSESS_KEY];
-    const proficiencyMap = { beginner: 0.3, intermediate: 0.6, advanced: 0.9 };
-    const newProficiency = proficiencyMap[level];
-
-    // Update or add topic
-    if (existingTopic) {
-      existingTopic.proficiency = newProficiency;
-      existingTopic.last_updated = new Date().toISOString();
-      existingTopic.evidence = Array.isArray(existingTopic.evidence) ? existingTopic.evidence : [];
-      existingTopic.evidence.push({
-        evidence_type: 'self-report',
-        kind: 'goal_update',
-        timestamp: new Date().toISOString(),
-        summary: `Goal-oriented update: ${learningGoal}`,
-        data: { learning_goal: learningGoal, level }
-      });
-    } else {
-      profile.known_topics.push({
-        topic_id: topicId,
-        proficiency: newProficiency,
-        confidence: 0.7,
-        last_updated: new Date().toISOString(),
-        evidence: [{
-          evidence_type: 'self-report',
-          kind: 'goal_update',
-          timestamp: new Date().toISOString(),
-          summary: `Goal-oriented update: ${learningGoal}`,
-          data: { learning_goal: learningGoal, level }
-        }]
-      });
-    }
-
-    console.log(`✅ ${topicId} updated: ${(newProficiency * 100).toFixed(0)}%`);
+      },
+      {
+        key: Q_SOURCES,
+        header: '资源偏好 (2/4)',
+        multiSelect: true,
+        question: '你更偏好的学习资源？（可多选，也可直接输入）',
+        options: [
+          { value: 'official-docs', label: '官方文档', description: '更信任一手资料' },
+          { value: 'interactive', label: '交互式教程', description: '一步步引导/沙盒' },
+          { value: 'video', label: '视频课程', description: '视频/系统课' },
+          { value: 'books', label: '书籍', description: '系统性强' },
+          { value: 'articles', label: '文章/博客', description: '短平快/案例' },
+          { value: 'skip', label: '跳过', description: '暂时跳过' }
+        ]
+      },
+      {
+        key: Q_HOURS_WEEK,
+        header: '每周投入 (3/4)',
+        multiSelect: false,
+        question: '你每周能稳定投入多少小时学习？（可选，也可直接输入数字/区间）',
+        options: [
+          { value: '1-3', label: '1-3 小时', description: '轻量' },
+          { value: '3-6', label: '3-6 小时', description: '中等' },
+          { value: '6-10', label: '6-10 小时', description: '认真投入' },
+          { value: '10+', label: '10+ 小时', description: '高强度' },
+          { value: 'skip', label: '跳过', description: '暂时跳过' }
+        ]
+      },
+      {
+        key: Q_SESSION_LEN,
+        header: '单次时长 (4/4)',
+        multiSelect: false,
+        question: '你更偏好每次学习大概持续多久？（可选，也可直接输入）',
+        options: [
+          { value: '15', label: '15 分钟', description: '碎片化' },
+          { value: '30', label: '30 分钟', description: '短时段' },
+          { value: '60', label: '60 分钟', description: '中等时段' },
+          { value: '90+', label: '90+ 分钟', description: '长时段' },
+          { value: 'skip', label: '跳过', description: '暂时跳过' }
+        ]
+      }
+    ]
   });
 
-  // Save updated profile
-  profile._metadata.updated_at = new Date().toISOString();
-  const updatedProfilePayload = JSON.stringify(profile);
-  const escapedUpdatedProfilePayload = escapeSingleQuotesForShell(updatedProfilePayload);
-  const writeProfileResp = lastJsonObjectFromText(Bash(`ccw learn:write-profile --profile-id ${profile.profile_id} --data '${escapedUpdatedProfilePayload}' --json`));
-  if (!writeProfileResp.ok) {
-    console.error('❌ Failed to write updated profile:', writeProfileResp.error);
-    throw new Error(writeProfileResp.error?.message || 'Profile write failed');
+  const b2 = AskUserQuestion({
+    questions: [
+      {
+        key: Q_PRACTICE,
+        header: '练习强度 (1/4)',
+        multiSelect: false,
+        question: '你希望练习的强度更像哪种？（可选，也可直接输入）',
+        options: [
+          { value: 'low', label: '低', description: '更偏理解/阅读' },
+          { value: 'mid', label: '中', description: '理解 + 适量练习' },
+          { value: 'high', label: '高', description: '大量练习/项目驱动' },
+          { value: 'skip', label: '跳过', description: '暂时跳过' }
+        ]
+      },
+      {
+        key: Q_FEEDBACK,
+        header: '反馈风格 (2/4)',
+        multiSelect: false,
+        question: '你更喜欢怎样的反馈方式？（可选，也可直接输入）',
+        options: [
+          { value: 'direct', label: '直接指出问题', description: '直给、指出错误与改进点' },
+          { value: 'gentle', label: '温和引导', description: '更鼓励式、循序渐进' },
+          { value: 'step', label: '按步骤拆解', description: '一步一步给下一步行动' },
+          { value: 'skip', label: '跳过', description: '暂时跳过' }
+        ]
+      },
+      {
+        key: Q_PACE,
+        header: '节奏偏好 (3/4)',
+        multiSelect: false,
+        question: '你更偏好的学习节奏？（可选，也可直接输入）',
+        options: [
+          { value: 'slow', label: '慢一些更稳', description: '宁可慢也要扎实' },
+          { value: 'normal', label: '正常', description: '平衡速度与理解' },
+          { value: 'fast', label: '快一些', description: '先覆盖再回补' },
+          { value: 'skip', label: '跳过', description: '暂时跳过' }
+        ]
+      },
+      {
+        key: Q_MOTIVATION,
+        header: '动机 (4/4)',
+        multiSelect: false,
+        question: '你学习的主要动机更接近哪种？（可选，也可直接输入）',
+        options: [
+          { value: 'project', label: '做项目', description: '做出东西最重要' },
+          { value: 'career', label: '工作/求职', description: '与岗位相关' },
+          { value: 'exam', label: '考试/课程', description: '有明确要求' },
+          { value: 'curiosity', label: '兴趣驱动', description: '好奇/想弄明白' },
+          { value: 'skip', label: '跳过', description: '暂时跳过' }
+        ]
+      }
+    ]
+  });
+
+  const asArray = (v) => {
+    if (v == null) return [];
+    if (Array.isArray(v)) return v.map(String).filter(Boolean);
+    const s = String(v).trim();
+    if (!s || s === 'skip') return [];
+    return s.split(/[,，;；\\s]+/).map((x) => x.trim()).filter(Boolean);
+  };
+
+  const parseIntOrNull = (v) => {
+    if (v == null) return null;
+    const s = String(v).trim();
+    if (!s || s === 'skip') return null;
+    const n = Number(s.replace(/[^0-9]/g, ''));
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  };
+
+  const raw = {
+    [Q_STYLE]: b1[Q_STYLE],
+    [Q_SOURCES]: b1[Q_SOURCES],
+    [Q_HOURS_WEEK]: b1[Q_HOURS_WEEK],
+    [Q_SESSION_LEN]: b1[Q_SESSION_LEN],
+    [Q_PRACTICE]: b2[Q_PRACTICE],
+    [Q_FEEDBACK]: b2[Q_FEEDBACK],
+    [Q_PACE]: b2[Q_PACE],
+    [Q_MOTIVATION]: b2[Q_MOTIVATION]
+  };
+
+  const parsed = {
+    learning_style: b1[Q_STYLE] === 'skip' ? null : (String(b1[Q_STYLE] ?? '').trim() || null),
+    preferred_sources: asArray(b1[Q_SOURCES]),
+    hours_per_week: (() => {
+      const v = b1[Q_HOURS_WEEK];
+      if (v === '1-3') return 2;
+      if (v === '3-6') return 4;
+      if (v === '6-10') return 8;
+      if (v === '10+') return 12;
+      return parseIntOrNull(v);
+    })(),
+    session_length_minutes: (() => {
+      const v = b1[Q_SESSION_LEN];
+      if (v === '90+') return 90;
+      return parseIntOrNull(v);
+    })(),
+    practice_intensity: b2[Q_PRACTICE] === 'skip' ? null : (String(b2[Q_PRACTICE] ?? '').trim() || null),
+    feedback_style: b2[Q_FEEDBACK] === 'skip' ? null : (String(b2[Q_FEEDBACK] ?? '').trim() || null),
+    pace: b2[Q_PACE] === 'skip' ? null : (String(b2[Q_PACE] ?? '').trim() || null),
+    motivation_type: b2[Q_MOTIVATION] === 'skip' ? null : (String(b2[Q_MOTIVATION] ?? '').trim() || null)
+  };
+
+  const capturedAt = new Date().toISOString();
+  const provenance = {
+    template_version: PRE_CONTEXT_VERSION,
+    captured_at: capturedAt,
+    asked_vs_reused: 'asked',
+    gating_reason: 'create_required'
+  };
+
+  return {
+    template_version: PRE_CONTEXT_VERSION,
+    pre_context: {
+      raw,
+      parsed,
+      provenance
+    }
+  };
+}
+
+function collectKnownTopicsMinimal(initialKnownTopics) {
+  // Cycle-2: manual Add Topic is removed. Known topics should come from:
+  // - background parse + topic coverage loop (then assessed), or
+  // - later, taxonomy-first resolve + assessment events (Cycle-3).
+  return Array.isArray(initialKnownTopics) ? initialKnownTopics.slice() : [];
+}
+
+function topicCoverageValidationLoop(topicCandidates) {
+  // Cycle-4:
+  // - Candidates are generated by the main agent (subjective parse + association expansion) from background.
+  // - This is a feedback loop to confirm coverage (not a fixed list).
+  // - Per round: 2 AskUserQuestion calls:
+  //   1) 4 multiSelect questions (<=4 options each, total <=16 topics)
+  //   2) free text supplement + covered/more confirm
+  // - Only user-selected/typed labels can be resolve/ensure-topic (no taxonomy pollution).
+
+  const normalizeLabel = (s) => String(s ?? '').trim();
+  const asCandidate = (x) => {
+    if (typeof x === 'string') return { label: normalizeLabel(x), reason: '候选' };
+    if (!x || typeof x !== 'object') return { label: '', reason: '' };
+    const label = normalizeLabel(x.label ?? x.topic ?? x.topic_id ?? x.value ?? '');
+    const reason = normalizeLabel(x.reason ?? x.description ?? x.why ?? '候选');
+    return { label, reason };
+  };
+
+  const uniq = [];
+  const seen = new Set();
+  for (const x of Array.isArray(topicCandidates) ? topicCandidates : []) {
+    const c = asCandidate(x);
+    if (!c.label) continue;
+    const key = c.label.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    uniq.push(c);
+    if (uniq.length >= 16) break; // hard limit: 4x4
   }
 
-  console.log(`\n✅ Profile updated based on goal: "${flags.goal}"`);
-  console.log(`Total topics: ${profile.known_topics.length}`);
-  return;
+  const chunk = (arr, size) => {
+    const out = [];
+    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+    return out;
+  };
+
+  const splitFreeText = (txt) =>
+    String(txt ?? '')
+      .trim()
+      .split(/[,，;；\\s]+/)
+      .map((x) => normalizeLabel(x))
+      .filter(Boolean);
+
+  const resolveOrEnsureOne = (rawLabel) => {
+    const raw = normalizeLabel(rawLabel);
+    if (!raw) return null;
+
+    const resolved = runCcwJson(
+      ['ccw learn:resolve-topic', `--raw-topic-label ${JSON.stringify(raw)}`, '--json'].join(' ')
+    );
+
+    if (resolved.found) return String(resolved.topic_id);
+
+    if (resolved.ambiguous) {
+      // Ask user to decide (no auto-choice).
+      const KEY = `topic_ambiguous_${Date.now()}`;
+      const opts = (resolved.candidates || []).slice(0, 4).map((c) => ({
+        value: String(c.topic_id),
+        label: String(c.topic_id),
+        description: String(c.display_name_zh || c.display_name_en || c.topic_id)
+      }));
+      const picked = AskUserQuestion({
+        questions: [{
+          key: KEY,
+          header: 'Topic 解析存在歧义',
+          multiSelect: false,
+          question: `“${raw}” 可能对应多个 topic，请选择一个：`,
+          options: opts.length > 0 ? opts : [{ value: 'type', label: '手动输入', description: '候选为空时手动输入' }]
+        }]
+      });
+      const choice = String(picked?.[KEY] ?? '').trim();
+      if (choice && choice !== 'type') return choice;
+      // If user refuses to pick one of the candidates, we treat it as a deliberate new label (allowed only because user selected it).
+      const ensured = runCcwJson(
+        ['ccw learn:ensure-topic', `--raw-topic-label ${JSON.stringify(raw)}`, '--actor user', '--json'].join(' ')
+      );
+      return String(ensured.topic_id);
+    }
+
+    // Not found: create provisional ONLY because user selected/typed it.
+    const ensured = runCcwJson(
+      ['ccw learn:ensure-topic', `--raw-topic-label ${JSON.stringify(raw)}`, '--actor user', '--json'].join(' ')
+    );
+    return String(ensured.topic_id);
+  };
+
+  let merged = [];
+  for (let round = 1; round <= 3; round += 1) {
+    const groups = chunk(uniq, 4);
+    while (groups.length < 4) groups.push([]);
+
+    const pickQuestions = groups.slice(0, 4).map((g, i) => {
+      const key = `topic_pick_${round}_${i + 1}`;
+      const opts = g.slice(0, 4).map((c) => ({ value: c.label, label: c.label, description: c.reason }));
+      const options = opts.length > 0 ? opts : [{ value: 'none', label: '(无更多候选)', description: '可在下一步手动输入' }];
+      return {
+        key,
+        header: `候选 Topics (${i + 1}/4)`,
+        multiSelect: true,
+        question: '请选择与你相关的 topics（可多选；也可以不选）。',
+        options
+      };
+    });
+
+    const picked = AskUserQuestion({ questions: pickQuestions });
+
+    const selectedLabels = [];
+    for (const q of pickQuestions) {
+      const v = picked?.[q.key];
+      const arr = Array.isArray(v) ? v : (v ? [v] : []);
+      for (const x of arr) {
+        const s = normalizeLabel(x);
+        if (!s || s === 'none') continue;
+        selectedLabels.push(s);
+      }
+    }
+
+    const EXTRA_KEY = `topic_extra_${round}`;
+    const COVERED_KEY = `topic_covered_${round}`;
+    const round2 = AskUserQuestion({
+      questions: [
+        {
+          key: EXTRA_KEY,
+          header: `补充 topics（第 ${round} 轮）`,
+          multiSelect: false,
+          question: '如果还有缺失的技能点/细分 topic，请直接输入（可空；逗号/空格分隔）。'
+        },
+        {
+          key: COVERED_KEY,
+          header: '覆盖确认',
+          multiSelect: false,
+          question: '你认为 topics 是否已经覆盖了你预期的范围？',
+          options: [
+            { value: 'covered', label: '已覆盖', description: '进入下一步' },
+            { value: 'more', label: '还需补充', description: '继续补充 topics' }
+          ]
+        }
+      ]
+    });
+
+    const extraLabels = splitFreeText(round2?.[EXTRA_KEY]);
+    merged = Array.from(new Set([...merged, ...selectedLabels, ...extraLabels])).filter(Boolean);
+
+    if (String(round2?.[COVERED_KEY]) === 'covered') break;
+  }
+
+  // Resolve/ensure ONLY for user-selected/typed labels.
+  const topicIds = [];
+  for (const raw of merged) {
+    const tid = resolveOrEnsureOne(raw);
+    if (tid) topicIds.push(String(tid));
+  }
+
+  return Array.from(new Set(topicIds));
 }
 
-// Interactive mode: Ask what to update
-const UPDATE_TYPE_KEY = 'update_type';
-const updateAnswer = AskUserQuestion({
-  questions: [{
-    key: UPDATE_TYPE_KEY,
-    question: "What would you like to update?",
-    header: "Update Type",
-    multiSelect: false,
-    options: [
-      {value: "skills", label: "Re-assess Skills", description: "Update known_topics with new assessment"},
-      {value: "preferences", label: "Update Preferences", description: "Change learning style or resource preferences"},
-      {value: "add_topics", label: "Add Topics", description: "Manually add new known topics"},
-      {value: "review_history", label: "Review History", description: "View feedback journal"}
-    ]
-  }]
-});
+function createFlow() {
+  // Phase 2: Profile Creation Flow (vNext)
+  const requestedId = args[1] && !args[1].startsWith('--') ? args[1] : null;
+  const activeId = getActiveProfileIdOrNull();
+  const profileId = requestedId || activeId || `profile-${Date.now()}`;
+  if (String(profileId).startsWith('p-e2e-')) throw new Error('p-e2e-* 是测试 profile，已永久隔离，不能用于真实交互');
 
-const updateType = updateAnswer[UPDATE_TYPE_KEY];
+  // A) pre_context_vNext (personal-only). Must be collected before background parsing.
+  const pc = preContextVNext();
+  const pre_context = pc.pre_context;
+  const preContextEventPayload = JSON.stringify({ template_version: pc.template_version, pre_context });
 
-switch (updateType) {
-  case 'skills':
-    // Re-run assessment for specific topics
-    console.log('Re-assessment feature coming soon.');
-    break;
-  case 'preferences':
-    // Update learning preferences
-    const STYLE_UPDATE_KEY = 'style_update';
-    const styleUpdateAnswer = AskUserQuestion({
+  // B) Background is required (reuse/update allowed).
+  const backgroundText = collectBackgroundTextRequired();
+  if (!backgroundText) throw new Error('背景信息不能为空（create 阶段必填）');
+
+  // C) Topic candidates (main agent subjective parse + association expansion).
+  // Policy: DO NOT call learn:parse-background for this step (Cycle-4 decision override).
+  // Keep <=16 candidates; each should include a 1-line reason to help user selection.
+  const topicCandidates = (() => {
+    const candidates = [];
+
+    const t = String(backgroundText || '');
+    const lower = t.toLowerCase();
+    const push = (label, reason) => {
+      const l = String(label || '').trim();
+      if (!l) return;
+      candidates.push({ label: l, reason: String(reason || '背景推断').trim() || '背景推断' });
+    };
+
+    // Lightweight heuristics (fallback). In practice, the main agent should enrich this list using its own understanding.
+    if (lower.includes('typescript')) push('TypeScript', '背景中提到 TypeScript');
+    if (lower.includes('javascript')) push('JavaScript', '背景中提到 JavaScript');
+    if (lower.includes('react')) push('React', '背景中提到 React');
+    if (lower.includes('node')) push('Node.js', '背景中提到 Node/后端');
+    if (lower.includes('cocos')) push('Cocos Creator', '背景中提到 Cocos');
+
+    // Always include a generic \"core\" fallback so the user can at least pick something.
+    if (candidates.length === 0) push('general_learning', '未能从背景中提取明确关键词：先用通用 topic 作为起点');
+
+    return candidates.slice(0, 16);
+  })();
+
+  // D) Topic coverage validation loop (4x4 + type something). Returns canonical topic_ids.
+  const topicIds = topicCoverageValidationLoop(topicCandidates);
+
+  const runFullAssessment = Boolean(flags.fullAssessment);
+  const isMinimal = !runFullAssessment;
+  const completionPercent = runFullAssessment ? 100 : 60;
+
+  const now = new Date().toISOString();
+
+  // Upsert: if profile already exists, we preserve prior known_topics/journal and update only the relevant fields.
+  let existingProfile = null;
+  try {
+    existingProfile = runCcwJson(`ccw learn:read-profile --profile-id \"${profileId}\" --json`);
+  } catch {
+    existingProfile = null;
+  }
+
+  const createdAt = existingProfile?._metadata?.created_at ?? now;
+  const baseKnownTopics = Array.isArray(existingProfile?.known_topics) ? existingProfile.known_topics : [];
+  const baseJournal = Array.isArray(existingProfile?.feedback_journal) ? existingProfile.feedback_journal : [];
+
+  const profile = {
+    ...(existingProfile && typeof existingProfile === 'object' ? existingProfile : {}),
+    $schema: './schemas/learn-profile.schema.json',
+    profile_id: profileId,
+    is_minimal: isMinimal,
+    experience_level: existingProfile?.experience_level ?? null,
+    known_topics: baseKnownTopics,
+    pre_context,
+    background: {
+      raw_text: backgroundText,
+      summary: backgroundText.slice(0, 240),
+      _metadata: { captured_at: now }
+    },
+    learning_preferences: {
+      style: pre_context?.parsed?.learning_style ?? null,
+      preferred_sources: pre_context?.parsed?.preferred_sources ?? null
+    },
+    feedback_journal: baseJournal,
+    _metadata: {
+      ...(existingProfile?._metadata || {}),
+      created_at: createdAt,
+      updated_at: now,
+      version: existingProfile?._metadata?.version ?? '1.0.0',
+      goal_type: flags.goal ? 'custom' : 'general',
+      goal_text: flags.goal ?? null,
+      assessment_method: isMinimal ? 'minimal' : 'evidence-based',
+      completion_percent: completionPercent
+    }
+  };
+
+  // Write profile (validated).
+  const profilePayload = JSON.stringify(profile);
+  const escapedProfilePayload = escapeSingleQuotesForShell(profilePayload);
+  const writeProfileResp = lastJsonObjectFromText(
+    Bash(`ccw learn:write-profile --profile-id ${profileId} --data '${escapedProfilePayload}' --json`)
+  );
+  if (!writeProfileResp.ok) throw new Error(writeProfileResp.error?.message || 'Profile write failed');
+
+  // Pre-context immutable event (best-effort, batch API).
+  const preContextBatchEvents = JSON.stringify([{
+    type: 'PRECONTEXT_CAPTURED',
+    actor: 'user',
+    payload: JSON.parse(preContextEventPayload)
+  }]);
+  runCcwBestEffort(
+    `ccw learn:append-profile-events-batch --profile-id ${profileId} --events '${escapeSingleQuotesForShell(preContextBatchEvents)}' --json`,
+    'append PRECONTEXT_CAPTURED (batch)'
+  );
+
+  // Set active profile (persisted via state API).
+  runCcwJson(`ccw learn:update-state --field active_profile_id --value \"${profileId}\" --json`);
+
+  // Telemetry (best-effort).
+  runCcwBestEffort(
+    `ccw learn:append-telemetry-event --event PROFILE_CREATED --profile-id ${profileId} --payload '${escapeSingleQuotesForShell(JSON.stringify({ is_minimal: isMinimal, topics_count: topicIds.length }))}' --json`,
+    'append telemetry PROFILE_CREATED'
+  );
+
+  // E) Default: enter single-topic assessment (Cycle-1 plumbing) when full-assessment is enabled.
+  if (runFullAssessment) {
+    const remaining = Array.isArray(topicIds) ? [...topicIds] : [];
+
+    const upsertKnownTopicFromAssessment = (assessResult) => {
+      if (!assessResult || !assessResult.topic_id) return;
+      if (assessResult.reused) return;
+
+      profile.known_topics = Array.isArray(profile.known_topics) ? profile.known_topics : [];
+      const tid = String(assessResult.topic_id);
+      const idx = profile.known_topics.findIndex((t) => String(t?.topic_id || '') === tid);
+      const ts = new Date().toISOString();
+
+      const entry = idx >= 0 ? profile.known_topics[idx] : { topic_id: tid, proficiency: 0, evidence: [] };
+      entry.topic_id = tid;
+      entry.proficiency = Number(assessResult.proficiency ?? entry.proficiency ?? 0);
+      if (assessResult.confidence !== undefined && assessResult.confidence !== null) {
+        entry.confidence = Number(assessResult.confidence);
+      }
+      entry.last_updated = ts;
+      entry.evidence = Array.isArray(entry.evidence) ? entry.evidence : [];
+      entry.evidence.push({
+        evidence_type: 'self-report',
+        kind: 'assessment_summary',
+        timestamp: ts,
+        summary: `Full assessment summary (${assessResult.algorithm_version || 'cycle-3-vnext'})`,
+        data: {
+          session_id: assessResult.session_id ?? null,
+          topic_id: tid,
+          pack_key_hash: assessResult.pack_key_hash ?? null,
+          completed: Boolean(assessResult.completed),
+          stop_conditions: assessResult.stop_conditions ?? null
+        }
+      });
+
+      if (idx >= 0) profile.known_topics[idx] = entry;
+      else profile.known_topics.push(entry);
+    };
+
+    const proposeInferredSkillFromAssessment = (assessResult) => {
+      if (!assessResult || !assessResult.topic_id) return;
+      if (assessResult.reused) return;
+      const tid = String(assessResult.topic_id);
+      const prof = Number(assessResult.proficiency ?? 0);
+      const conf = Number(assessResult.confidence ?? 0);
+      const evidenceText =
+        `Assessment result (topic=${tid}, session=${assessResult.session_id || 'n/a'}, ` +
+        `completed=${Boolean(assessResult.completed)}, pack_key_hash=${assessResult.pack_key_hash || 'n/a'})`;
+
+      runCcwBestEffort(
+        [
+          'ccw learn:propose-inferred-skill',
+          `--profile-id ${profileId}`,
+          `--topic-id ${JSON.stringify(tid)}`,
+          `--proficiency ${prof}`,
+          `--confidence ${conf}`,
+          `--evidence ${JSON.stringify(evidenceText)}`,
+          '--actor agent',
+          '--json'
+        ].join(' '),
+        'propose inferred skill from assessment'
+      );
+    };
+
+    const MAX_TOPIC_ROUNDS = 20;
+    let rounds = 0;
+    let done = false;
+    while (!done && rounds < MAX_TOPIC_ROUNDS) {
+      rounds += 1;
+
+      const TOPIC_KEY = 'assess_topic_id';
+      const topicOptions = (remaining.length > 0)
+        ? remaining.slice(0, 4).map((t) => ({ value: String(t), label: String(t), description: '来自 topic 覆盖校验' }))
+        : [{ value: 'game_dev_core', label: 'game_dev_core', description: '示例 topic（可直接输入其它）' }];
+
+      const picked = AskUserQuestion({
+        questions: [{
+          key: TOPIC_KEY,
+          header: '题目评估（单 topic）',
+          multiSelect: false,
+          question: '请选择（或直接输入）本次要评估的 topic_id（create 阶段默认必须进入评估）：',
+          options: topicOptions
+        }]
+      });
+
+      const topicId = normalizeInferredTopicId(String(picked[TOPIC_KEY] ?? '').trim());
+      if (!topicId) throw new Error('必须选择/输入 topic_id 才能继续（--full-assessment=true）');
+
+      const assessResult = __assess.assessTopic({ profileId, topicId, language: 'zh-CN' });
+      if (assessResult?.reused) {
+        console.log(`\nℹ️ topic=${assessResult.topic_id} 已在相同 pack_key 下评估过，本次跳过重复评估。`);
+      } else {
+        upsertKnownTopicFromAssessment(assessResult);
+        proposeInferredSkillFromAssessment(assessResult);
+
+        // Persist updated profile (validated).
+        const updatedPayload = escapeSingleQuotesForShell(JSON.stringify(profile));
+        const writeResp = lastJsonObjectFromText(
+          Bash(`ccw learn:write-profile --profile-id ${profileId} --data '${updatedPayload}' --json`)
+        );
+        if (!writeResp.ok) throw new Error(writeResp.error?.message || 'Profile write failed (post-assessment)');
+      }
+
+      // Remove from remaining (best-effort).
+      const idx = remaining.findIndex((t) => String(t) === String(assessResult?.topic_id || topicId));
+      if (idx >= 0) remaining.splice(idx, 1);
+
+      const NEXT_KEY = 'assess_next';
+      const next = AskUserQuestion({
+        questions: [{
+          key: NEXT_KEY,
+          header: '继续评估？',
+          multiSelect: false,
+          question: remaining.length > 0
+            ? '是否继续评估下一个 topic？'
+            : '没有更多推荐 topic。是否还要手动输入一个 topic 继续评估？',
+          options: [
+            { value: 'continue', label: '继续', description: '继续评估下一个 topic' },
+            { value: 'end', label: '结束', description: '结束并保存' }
+          ]
+        }]
+      });
+      done = String(next[NEXT_KEY]) !== 'continue';
+    }
+  }
+
+  console.log('\n✅ Profile created');
+  console.log(`Profile ID: ${profileId}`);
+  console.log(`Topics (confirmed): ${topicIds.join(', ') || '(none)'}`);
+  console.log('Next: /learn:plan (JIT)');
+}
+
+function updateFlow() {
+  // Phase 3: Profile Update Flow
+  const profileId = getProfileIdFromArgsOrActive(args, 1);
+  if (!profileId) throw new Error('没有可用的 active profile，请先运行：/learn:profile create');
+
+  const profile = runCcwJson(`ccw learn:read-profile --profile-id \"${profileId}\" --json`);
+
+  const KEY = 'update_action';
+  const ans = AskUserQuestion({
+    questions: [{
+      key: KEY,
+      header: '更新 Profile',
+      multiSelect: false,
+      question: '你想更新什么内容？',
+      options: [
+        { value: 'preferences', label: '更新偏好', description: '更新 pre_context.parsed + learning_preferences' },
+        { value: 'assess_topic', label: '题目评估（单 topic）', description: '进入最小评估闭环（Cycle-1）' },
+        { value: 'show', label: '查看', description: '查看当前 profile + snapshot' }
+      ]
+    }]
+  });
+
+  if (ans[KEY] === 'show') {
+    showFlow(profileId);
+    return;
+  }
+
+  if (ans[KEY] === 'assess_topic') {
+    const TOPIC_KEY = 'assess_topic_id';
+    const picked = AskUserQuestion({
       questions: [{
-        key: STYLE_UPDATE_KEY,
-        question: "Update your learning style:",
-        header: "Style",
+        key: TOPIC_KEY,
+        header: '题目评估入口（最小闭环）',
         multiSelect: false,
+        question: '请输入要评估的 topic_id（可直接输入；或选择跳过）。',
         options: [
-          {value: "practical", label: "Practical"},
-          {value: "theoretical", label: "Theoretical"},
-          {value: "visual", label: "Visual"}
+          { value: 'game_dev_core', label: 'game_dev_core', description: '示例 topic（可直接输入其它）' },
+          { value: 'skip', label: '跳过', description: '本次先不做题目评估' }
         ]
       }]
     });
 
-    profile.learning_preferences.style = styleUpdateAnswer[STYLE_UPDATE_KEY];
-    profile._metadata.updated_at = new Date().toISOString();
+    const topicId = normalizeInferredTopicId(String(picked[TOPIC_KEY] ?? '').trim());
+    if (topicId && topicId !== 'skip') {
+      const assessResult = __assess.assessTopic({ profileId, topicId, language: 'zh-CN' });
+      if (assessResult?.reused) {
+        console.log(`\nℹ️ topic=${assessResult.topic_id} 已在相同 pack_key 下评估过，本次不需要重复评估。`);
+        return;
+      }
 
-    const updatedProfilePayload = JSON.stringify(profile);
-    const escapedUpdatedProfilePayload = escapeSingleQuotesForShell(updatedProfilePayload);
-    const writeProfileResp = lastJsonObjectFromText(Bash(`ccw learn:write-profile --profile-id ${profile.profile_id} --data '${escapedUpdatedProfilePayload}' --json`));
-    if (!writeProfileResp.ok) {
-      console.error('❌ Failed to write updated profile:', writeProfileResp.error);
-      throw new Error(writeProfileResp.error?.message || 'Profile write failed');
+      // Upsert into profile.known_topics (validated).
+      profile.known_topics = Array.isArray(profile.known_topics) ? profile.known_topics : [];
+      const tid = String(assessResult.topic_id || topicId);
+      const idx = profile.known_topics.findIndex((t) => String(t?.topic_id || '') === tid);
+      const ts = new Date().toISOString();
+      const entry = idx >= 0 ? profile.known_topics[idx] : { topic_id: tid, proficiency: 0, evidence: [] };
+      entry.topic_id = tid;
+      entry.proficiency = Number(assessResult.proficiency ?? entry.proficiency ?? 0);
+      if (assessResult.confidence !== undefined && assessResult.confidence !== null) {
+        entry.confidence = Number(assessResult.confidence);
+      }
+      entry.last_updated = ts;
+      entry.evidence = Array.isArray(entry.evidence) ? entry.evidence : [];
+      entry.evidence.push({
+        evidence_type: 'self-report',
+        kind: 'assessment_summary',
+        timestamp: ts,
+        summary: 'Full assessment summary (cycle-3-vnext)',
+        data: {
+          session_id: assessResult.session_id ?? null,
+          topic_id: tid,
+          pack_key_hash: assessResult.pack_key_hash ?? null,
+          completed: Boolean(assessResult.completed),
+          stop_conditions: assessResult.stop_conditions ?? null
+        }
+      });
+      if (idx >= 0) profile.known_topics[idx] = entry;
+      else profile.known_topics.push(entry);
+
+      // Persist updated profile (validated).
+      const updatedPayload = escapeSingleQuotesForShell(JSON.stringify(profile));
+      const writeResp = lastJsonObjectFromText(
+        Bash(`ccw learn:write-profile --profile-id ${profileId} --data '${updatedPayload}' --json`)
+      );
+      if (!writeResp.ok) throw new Error(writeResp.error?.message || 'Profile write failed (post-assessment)');
+
+      // Also write inferred skill proposal (audited, no auto-confirm).
+      const prof = Number(assessResult.proficiency ?? 0);
+      const conf = Number(assessResult.confidence ?? 0);
+      const evidenceText =
+        `Assessment result (topic=${tid}, session=${assessResult.session_id || 'n/a'}, ` +
+        `completed=${Boolean(assessResult.completed)}, pack_key_hash=${assessResult.pack_key_hash || 'n/a'})`;
+      runCcwBestEffort(
+        [
+          'ccw learn:propose-inferred-skill',
+          `--profile-id ${profileId}`,
+          `--topic-id ${JSON.stringify(tid)}`,
+          `--proficiency ${prof}`,
+          `--confidence ${conf}`,
+          `--evidence ${JSON.stringify(evidenceText)}`,
+          '--actor agent',
+          '--json'
+        ].join(' '),
+        'propose inferred skill from assessment'
+      );
+
+      // Ask whether to continue (no "light confirmation").
+      const NEXT_KEY = 'assess_next';
+      const next = AskUserQuestion({
+        questions: [{
+          key: NEXT_KEY,
+          header: '继续评估？',
+          multiSelect: false,
+          question: '是否继续评估下一个 topic？',
+          options: [
+            { value: 'end', label: '结束', description: '结束并保存' },
+            { value: 'continue', label: '继续', description: '继续评估下一个 topic（将再次进入评估入口）' }
+          ]
+        }]
+      });
+      if (String(next[NEXT_KEY]) === 'continue') {
+        console.log('➡️ 请再次选择“题目评估（单 topic）”进入下一个 topic 的评估。');
+      } else {
+        console.log('✅ 已保存评估结果。');
+      }
     }
-    console.log('✅ Preferences updated');
+    return;
+  }
+
+  if (ans[KEY] === 'preferences') {
+    const pc = preContextVNext();
+    const nextParsed = pc.pre_context?.parsed ?? {};
+    const curParsed = profile?.pre_context?.parsed ?? {};
+
+    // Apply parsed preferences into profile JSON.
+    profile.pre_context = pc.pre_context;
+    profile.learning_preferences = profile.learning_preferences || {};
+    profile.learning_preferences.style = profile.pre_context.parsed.learning_style ?? null;
+    profile.learning_preferences.preferred_sources = profile.pre_context.parsed.preferred_sources ?? null;
+
+    // Emit FIELD_SET events for changed parsed fields (best-effort, append-only).
+    const changes = [
+      { k: 'learning_style', path: 'pre_context.parsed.learning_style' },
+      { k: 'preferred_sources', path: 'pre_context.parsed.preferred_sources' },
+      { k: 'hours_per_week', path: 'pre_context.parsed.hours_per_week' },
+      { k: 'session_length_minutes', path: 'pre_context.parsed.session_length_minutes' },
+      { k: 'practice_intensity', path: 'pre_context.parsed.practice_intensity' },
+      { k: 'feedback_style', path: 'pre_context.parsed.feedback_style' },
+      { k: 'pace', path: 'pre_context.parsed.pace' },
+      { k: 'motivation_type', path: 'pre_context.parsed.motivation_type' }
+    ];
+    for (const c of changes) {
+      const prev = curParsed?.[c.k] ?? null;
+      const next = nextParsed?.[c.k] ?? null;
+      if (JSON.stringify(prev) === JSON.stringify(next)) continue;
+      runCcwBestEffort(
+        `ccw learn:append-profile-event --profile-id ${profileId} --type FIELD_SET --actor user --payload '${escapeSingleQuotesForShell(JSON.stringify({ field_path: c.path, old_value: prev, new_value: next }))}' --json`,
+        `append FIELD_SET ${c.path}`
+      );
+    }
+  }
+
+  profile._metadata = profile._metadata || {};
+  profile._metadata.updated_at = new Date().toISOString();
+
+  const payload = JSON.stringify(profile);
+  const escaped = escapeSingleQuotesForShell(payload);
+  const writeProfileResp = lastJsonObjectFromText(Bash(`ccw learn:write-profile --profile-id ${profileId} --data '${escaped}' --json`));
+  if (!writeProfileResp.ok) throw new Error(writeProfileResp.error?.message || 'Profile write failed');
+
+  console.log('✅ Profile updated');
+}
+
+function selectFlow() {
+  // Phase 4: Profile Selection Flow
+  const summaries = runCcwJson('ccw learn:list-profiles --json');
+  if (!Array.isArray(summaries) || summaries.length === 0) {
+    console.error('❌ 没有找到任何 profiles，请先运行：/learn:profile create');
+    return;
+  }
+
+  const activeId = getActiveProfileIdOrNull();
+  const KEY = 'selected_profile';
+  const ans = AskUserQuestion({
+    questions: [{
+      key: KEY,
+      header: '选择 Profile',
+      multiSelect: false,
+      question: '请选择要激活的 profile：',
+      options: summaries.map((s) => ({
+        value: s.profile_id,
+        label: s.profile_id,
+        description: s.profile_id === activeId ? '当前已激活' : ''
+      }))
+    }]
+  });
+
+  const selectedId = ans[KEY];
+  runCcwJson(`ccw learn:update-state --field active_profile_id --value \"${selectedId}\" --json`);
+  console.log(`✅ 已设置 active profile：${selectedId}`);
+}
+
+function showFlow(profileIdArg) {
+  // Phase 5: Profile Display Flow
+  const profileId = profileIdArg || getProfileIdFromArgsOrActive(args, 1);
+  if (!profileId) {
+    console.error('❌ 没有 active profile，请先运行：/learn:profile create');
+    return;
+  }
+
+  const profile = runCcwJson(`ccw learn:read-profile --profile-id \"${profileId}\" --json`);
+  const knownTopics = Array.isArray(profile?.known_topics) ? profile.known_topics : [];
+
+  let snapshot = null;
+  try {
+    snapshot = runCcwJson(`ccw learn:read-profile-snapshot --profile-id \"${profileId}\" --json`);
+  } catch {
+    snapshot = null;
+  }
+
+  console.log('\n## 当前 Profile\n');
+  console.log(`Profile ID: ${profile.profile_id}`);
+  console.log(`经验等级（可空）: ${profile.experience_level ?? null}`);
+  console.log(`自述 known_topics 数量: ${knownTopics.length}`);
+  if (knownTopics.length > 0) {
+    knownTopics
+      .slice()
+      .sort((a, b) => (b.proficiency ?? 0) - (a.proficiency ?? 0))
+      .slice(0, 10)
+      .forEach((t) => console.log(`  - ${t.topic_id}: ${Math.round((t.proficiency ?? 0) * 100)}%`));
+  }
+
+  if (snapshot && snapshot.skills && Array.isArray(snapshot.skills.inferred)) {
+    console.log('\n推断技能（snapshot）：');
+    const inferred = snapshot.skills.inferred;
+    if (inferred.length === 0) console.log('  (none)');
+    inferred.forEach((s) => console.log(`  - ${s.topic_id}: ${s.status} (p=${s.proficiency ?? null}, c=${s.confidence ?? null})`));
+  }
+}
+
+switch (op) {
+  case 'create':
+    createFlow();
     break;
-  case 'add_topics':
-    console.log('Manual topic addition coming soon.');
+  case 'update':
+    updateFlow();
     break;
-  case 'review_history':
-    console.log('\n## Feedback Journal\n');
-    profile.feedback_journal.slice(-5).forEach(entry => {
-      console.log(`**${entry.date}** - Session: ${entry.session_id}`);
-      console.log(`Rating: ${'⭐'.repeat(entry.rating)}`);
-      if (entry.notes) console.log(`Notes: ${entry.notes}`);
-      console.log('');
-    });
+  case 'select':
+    selectFlow();
+    break;
+  case 'show':
+  default:
+    showFlow();
     break;
 }
+```
+
+### Tool-Verified Challenges (Deterministic Scratchpad)
+
+If you later add tool-verified micro-challenges, use a deterministic scratch path (do not embed placeholder code strings).
+
+- Scratch root: `.workflow/.scratchpad/learn-challenges`
+
+```javascript
+// Deterministic scratch file marker (used by tests and by tool-verified challenge flows).
+const scratchRoot = '.workflow/.scratchpad/learn-challenges';
+
+// Example: parse mcp-runner output robustly (avoid JSON.parse(raw)).
+const raw = Bash('ccw mcp-runner --some-args --json');
+const challengeResult = lastJsonObjectFromText(raw);
 ```
 
 ### Phase 4: Profile Selection Flow (select)
 
+Implementation is in `selectFlow()` above; key invariants:
+
 ```javascript
-// List and select an active profile, then persist to state via CLI.
-const lastJsonObjectFromText = (text) => {
-  const raw = String(text ?? '').trim();
-  if (!raw) throw new Error('Empty command output');
-  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-  for (let i = lines.length - 1; i >= 0; i--) {
-    try {
-      return JSON.parse(lines[i]);
-    } catch {
-      // keep scanning
-    }
-  }
-  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (m) return JSON.parse(m[1].trim());
-  throw new Error('Failed to parse JSON from command output');
-};
-
-// Discover available profiles (by file names under .workflow/learn/profiles)
-const rawList = Bash('ls -1 .workflow/learn/profiles/*.json 2>/dev/null || true');
-const profileIds = String(rawList)
-  .trim()
-  .split('\n')
-  .map(s => s.trim())
-  .filter(Boolean)
-  .map(p => p.split('/').pop().replace(/\.json$/, ''));
-
-if (profileIds.length === 0) {
-  console.error('❌ No profiles found. Create one with /learn:profile create');
-  return;
-}
-
-// Load current state (to mark active profile in UI)
 const stateResp = lastJsonObjectFromText(Bash('ccw learn:read-state --json'));
-if (!stateResp.ok) {
-  console.error('❌ Failed to read learn state:', stateResp.error);
-  throw new Error(stateResp.error?.message || 'State read failed');
-}
 const activeId = stateResp.data.active_profile_id;
-
-// Ask user to select
-const SELECT_KEY = 'selected_profile';
-const selectAnswer = AskUserQuestion({
-  questions: [{
-    key: SELECT_KEY,
-    question: "Select a profile to activate:",
-    header: "Profile Selection",
-    multiSelect: false,
-    options: profileIds.map(id => ({
-      value: id,
-      label: id,
-      description: id === activeId ? 'Active profile (current)' : ''
-    }))
-  }]
-});
-
-const selectedId = selectAnswer[SELECT_KEY];
-
-// Persist selection (avoid direct file writes)
-const updateStateResp = lastJsonObjectFromText(
-  Bash(`ccw learn:update-state --field active_profile_id --value "${selectedId}" --json`)
-);
-if (!updateStateResp.ok) {
-  console.error('❌ Failed to update learn state:', updateStateResp.error);
-  throw new Error(updateStateResp.error?.message || 'State update failed');
-}
-
-console.log(`✅ Active profile set to: ${selectedId}`);
+// ...
+Bash(`ccw learn:update-state --field active_profile_id --value "${selectedId}" --json`);
 ```
 
 ### Phase 5: Profile Display Flow (show)
 
+Implementation is in `showFlow()` above; key invariants:
+
 ```javascript
-// Display the active profile (or a specified profile-id), using CLI read APIs.
-const lastJsonObjectFromText = (text) => {
-  const raw = String(text ?? '').trim();
-  if (!raw) throw new Error('Empty command output');
-  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-  for (let i = lines.length - 1; i >= 0; i--) {
-    try {
-      return JSON.parse(lines[i]);
-    } catch {
-      // keep scanning
-    }
-  }
-  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (m) return JSON.parse(m[1].trim());
-  throw new Error('Failed to parse JSON from command output');
-};
-
-const args = String($ARGUMENTS ?? '').trim().split(/\s+/).filter(Boolean);
-const requestedProfileId = args[1] || null; // `/learn:profile show <profile-id>`
-
 const stateResp = lastJsonObjectFromText(Bash('ccw learn:read-state --json'));
-if (!stateResp.ok) {
-  console.error('❌ Failed to read learn state:', stateResp.error);
-  throw new Error(stateResp.error?.message || 'State read failed');
-}
-
-const state = stateResp.data;
-const profileId = requestedProfileId || state.active_profile_id;
-
-if (!profileId) {
-  console.error('❌ No active profile. Create one with /learn:profile create');
-  return;
-}
-
-const profileResp = lastJsonObjectFromText(
-  Bash(`ccw learn:read-profile --profile-id "${profileId}" --json`)
-);
-if (!profileResp.ok) {
-  console.error('❌ Failed to read profile:', profileResp.error);
-  throw new Error(profileResp.error?.message || 'Profile read failed');
-}
-
-const profile = profileResp.data;
-const knownTopics = Array.isArray(profile.known_topics) ? profile.known_topics : [];
-const learningStyle = profile.learning_preferences?.style;
-
-console.log('\n## Current Profile\\n');
-console.log(`**Profile ID**: ${profile.profile_id}`);
-console.log(`**Experience Level**: ${profile.experience_level}`);
-if (learningStyle) console.log(`**Learning Style**: ${learningStyle}`);
-console.log(`\\n**Known Topics** (${knownTopics.length}):`);
-
-knownTopics
-  .slice()
-  .sort((a, b) => (b.proficiency ?? 0) - (a.proficiency ?? 0))
-  .slice(0, 10)
-  .forEach(t => {
-    const pct = ((t.proficiency ?? 0) * 100).toFixed(0);
-    const conf = typeof t.confidence === 'number' ? ` (confidence: ${(t.confidence * 100).toFixed(0)}%)` : '';
-    console.log(`  - ${t.topic_id}: ${pct}%${conf}`);
-  });
+const profileId = stateResp.data.active_profile_id;
+const profileResp = lastJsonObjectFromText(Bash(`ccw learn:read-profile --profile-id "${profileId}" --json`));
 ```
-
-## Error Handling
-
-| Error | Resolution |
-|-------|------------|
-| No profiles directory | Auto-create `.workflow/learn/profiles/` |
-| Profile not found | List available profiles, prompt selection |
-| Invalid profile ID | Validate format, suggest correction |
-| State.json missing | Initialize with default state |
-| Assessment timeout | Save partial profile, allow resume |
-| Schema validation fails | Log errors, use defaults for missing fields |
-
-## Quality Checklist
-
-Before completing profile creation, verify:
-
-- [ ] `profile.json` follows `learn-profile.schema.json`
-- [ ] All required fields present (profile_id, known_topics) — experience_level is optional
-- [ ] Proficiency scores in valid range (0.0-1.0)
-- [ ] Evidence array populated for assessed topics
-- [ ] Confidence scores included (if evidence-based)
-- [ ] state.json updated with active_profile_id
-- [ ] Profile file written successfully
-- [ ] User confirmation displayed
-
-## Related Commands
-
-**Creates Profile For**:
-- `/learn:plan` - Uses profile for gap analysis and personalization
-
-**Updated By**:
-- `/learn:review` - Updates proficiency scores after session completion
-
-**References**:
-- `schemas/learn-profile.schema.json` - Profile data structure definition
-
-## Examples
-
-### Example 1: Create Profile with Assessment
-
-```bash
-User: /learn:profile create
-
-Output:
-## Profile Creation
-
-What is your primary learning goal?
-[User selects: Build Projects]
-
-What is your overall programming experience?
-[User selects: Intermediate]
-
-What is your preferred learning style?
-[User selects: Practical]
-
-## Evidence-Based Skill Assessment
-
-In TypeScript, what is the key purpose of the 'type' keyword?
-[User selects: Define type aliases]
-
-Can you explain when to use 'type' vs 'interface' in TypeScript?
-[User selects: Basic understanding]
-
-## Assessment Summary
-Assessed 1 topics:
-  - typescript: 50% proficiency (70% confidence)
-
-## Profile Created Successfully
-**Profile ID**: profile-1737734400000
-**Experience Level**: intermediate
-**Learning Style**: practical
-**Known Topics**: 1
-
-✅ Profile activated. Ready to create learning plans with /learn:plan
-```
-
-### Example 2: Update Profile Preferences
-
-```bash
-User: /learn:profile update
-
-Output:
-What would you like to update?
-[User selects: Update Preferences]
-
-Update your learning style:
-[User selects: Visual]
-
-✅ Preferences updated
-```
-
-### Example 3: Show Current Profile
-
-```bash
-User: /learn:profile show
-
-Output:
-## Current Profile
-
-**Profile ID**: profile-1737734400000
-**Experience Level**: intermediate
-**Learning Style**: visual
-**Created**: 2025-01-24
-
-**Known Topics** (3):
-  - typescript: 50% (confidence: 70%)
-  - javascript: 60% (confidence: 70%)
-  - react: 40% (confidence: 60%)
-
-**Preferred Resources**:
-  - Official Docs
-  - Interactive Tutorials
-
-**Learning History**:
-  - 2 sessions completed
-  - Average rating: 4.5/5
-```
-
-## Integration Points
-
-- **Input**: User responses via AskUserQuestion
-- **Output**: Profile JSON file in `.workflow/learn/profiles/`
-- **Side Effects**: Updates `state.json` with active_profile_id
-- **Dependencies**: None (first command to run)
-- **Consumed By**: `/learn:plan` (reads profile for personalization)
-
-## P0 Fixes Applied
-
-Based on multi-CLI analysis synthesis:
-
-### 1. AskUserQuestion Pattern ✅
-
-**Problem**: Brittle `Object.values(answer)[0]` usage
-**Solution**: Key-based access pattern throughout
-
-```javascript
-// ✅ Robust pattern
-const KEY = 'question_key';
-const answer = AskUserQuestion({ questions: [{ key: KEY, ... }] });
-const choice = answer[KEY];
-```
-
-### 2. Evidence-Based Assessment ✅
-
-**Problem**: Self-assessment bias ("水分")
-**Solution**: Conceptual checks + micro-challenges + confidence scoring
-
-- Conceptual checks verify understanding
-- Micro-challenges provide verifiable evidence
-- Confidence scores acknowledge uncertainty
-- Multiple evidence points prevent single-failure bias
-
-### 3. Schema Compliance ✅
-
-**Problem**: No schema validation
-**Solution**: Reference `learn-profile.schema.json` and validate structure
-
-- All profiles follow schema definition
-- Required fields enforced
-- Enum values validated
-- Proficiency range checked (0.0-1.0)
-
----
-
-**版本**: v1.0.0-mvp
-**状态**: MVP Ready - P0 Fixes Applied
-**最后更新**: 2026-01-24

@@ -1,0 +1,90 @@
+{
+  "version": "1.0.0",
+  "cycle_id": "cycle-v1-20260131T223026-profileflow-jiehna",
+  "objective": "Land /learn:profile flow vNext: Chinese-only UX, background required & persisted, topic coverage loop (no manual Add Topic), default single-topic assessment entry, and p-e2e-* isolation.",
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "description": "Backend: isolate p-e2e-* profiles in learn:list-profiles, learn:set-active-profile, and learn:update-state (active_profile_id).",
+      "effort": "small",
+      "depends_on": [],
+      "status": "pending",
+      "assigned_to": "cd",
+      "files": [
+        "ccw/src/commands/learn.ts"
+      ]
+    },
+    {
+      "id": "TASK-002",
+      "description": "Profile create flow: move pre_context before background; make background required with reuse/update; persist to profile.background; Chinese prompts.",
+      "effort": "large",
+      "depends_on": [],
+      "status": "pending",
+      "assigned_to": "cd",
+      "files": [
+        ".claude/commands/learn/profile.md"
+      ]
+    },
+    {
+      "id": "TASK-003",
+      "description": "Topic coverage validation loop: recommended topics (from learn:parse-background) + free text补漏 + confirm covered; then pick exactly one topic to assess; remove manual Add Topic.",
+      "effort": "large",
+      "depends_on": [
+        "TASK-002"
+      ],
+      "status": "pending",
+      "assigned_to": "cd",
+      "files": [
+        ".claude/commands/learn/profile.md"
+      ]
+    },
+    {
+      "id": "TASK-004",
+      "description": "Update flow: ensure no background expansion; Chinese prompts; keep a single-topic assessment entry; hide legacy options as needed.",
+      "effort": "medium",
+      "depends_on": [],
+      "status": "pending",
+      "assigned_to": "cd",
+      "files": [
+        ".claude/commands/learn/profile.md"
+      ]
+    },
+    {
+      "id": "TASK-005",
+      "description": "Doc restructure: add Phase headings and explanation for taxonomy-first resolve; preserve Phase 4/5 headings and other doc invariants required by tests.",
+      "effort": "medium",
+      "depends_on": [
+        "TASK-002",
+        "TASK-003",
+        "TASK-004"
+      ],
+      "status": "pending",
+      "assigned_to": "cd",
+      "files": [
+        ".claude/commands/learn/profile.md"
+      ]
+    },
+    {
+      "id": "TASK-006",
+      "description": "Validation: run npm test; update/adjust any doc tests triggered by changes (without weakening invariants unintentionally).",
+      "effort": "medium",
+      "depends_on": [
+        "TASK-001",
+        "TASK-005"
+      ],
+      "status": "pending",
+      "assigned_to": "vas",
+      "files": [
+        "ccw/tests/*.test.js"
+      ]
+    }
+  ],
+  "critical_path": [
+    "TASK-001",
+    "TASK-002",
+    "TASK-003",
+    "TASK-005",
+    "TASK-006"
+  ]
+}
+

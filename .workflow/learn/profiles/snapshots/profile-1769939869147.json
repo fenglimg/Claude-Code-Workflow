@@ -1,0 +1,45 @@
+{
+  "$schema": "../schemas/learn-profile-snapshot.schema.json",
+  "profile_id": "profile-1769939869147",
+  "version": 1,
+  "updated_at": "2026-02-01T09:58:31.333Z",
+  "pre_context": {
+    "raw": {
+      "pre_style": "混合",
+      "pre_sources": [
+        "交互式教程"
+      ],
+      "pre_hours_week": "3-6 小时",
+      "pre_session_len": "30 分钟",
+      "pre_practice_intensity": "中",
+      "pre_feedback_style": "温和引导",
+      "pre_pace": "慢一些更稳",
+      "pre_motivation": "工作/求职"
+    },
+    "parsed": {
+      "learning_style": "mixed",
+      "preferred_sources": [
+        "interactive"
+      ],
+      "hours_per_week": 4,
+      "session_length_minutes": 30,
+      "practice_intensity": "mid",
+      "feedback_style": "gentle",
+      "pace": "slow",
+      "motivation_type": "career"
+    },
+    "provenance": {
+      "template_version": "pre_context_vNext",
+      "captured_at": "2026-02-01T00:00:00.000Z",
+      "asked_vs_reused": "asked",
+      "gating_reason": "create_required"
+    }
+  },
+  "skills": {
+    "asserted": [],
+    "inferred": []
+  },
+  "_metadata": {
+    "schema_version": "1.0.0"
+  }
+}

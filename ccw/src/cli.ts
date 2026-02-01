@@ -17,17 +17,31 @@ import {
   learnReadStateCommand,
   learnUpdateStateCommand,
   learnReadProfileCommand,
-  learnWriteProfileCommand,
-  learnAppendProfileEventCommand,
-  learnAppendTelemetryEventCommand,
-  learnReadProfileSnapshotCommand,
-  learnRebuildProfileSnapshotCommand,
-  learnRollbackProfileCommand,
-  learnListProfilesCommand,
-  learnSetActiveProfileCommand,
-  learnReadSessionCommand,
-  learnUpdateProgressCommand
-} from './commands/learn.js';
+		learnWriteProfileCommand,
+		learnAppendProfileEventCommand,
+		learnAppendProfileEventsBatchCommand,
+		learnProposeInferredSkillCommand,
+		learnConfirmInferredSkillCommand,
+		learnRejectInferredSkillCommand,
+		learnAppendTelemetryEventCommand,
+	  learnReadProfileSnapshotCommand,
+	  learnRebuildProfileSnapshotCommand,
+	  learnRollbackProfileCommand,
+	  learnListProfilesCommand,
+	  learnSetActiveProfileCommand,
+	  learnReadSessionCommand,
+	  learnUpdateProgressCommand,
+	  learnResolvePackKeyCommand,
+	  learnReadPackCommand,
+	  learnWritePackCommand,
+	  learnPackStatusCommand,
+	  learnEnsurePackCommand,
+	  learnResolveTopicCommand,
+	  learnEnsureTopicCommand,
+	  learnTaxonomyAliasCommand,
+	  learnTaxonomyRedirectCommand,
+	  learnTaxonomyPromoteCommand
+	} from './commands/learn.js';
 import { learnParseBackgroundCommand } from './commands/learn-background.js';
 import { learnAdaptiveStepCommand } from './commands/learn-adaptive.js';
 import { learnValidateQuestionsCommand } from './commands/learn-questions.js';
@@ -355,20 +369,59 @@ export function run(argv: string[]): void {
     .option('--json', 'Output as JSON (recommended for agents)')
     .action((options) => learnWriteProfileCommand(options));
 
-  program
-    .command('learn:append-profile-event')
-    .description('Append an immutable profile event (NDJSON, lock-protected)')
-    .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
-    .requiredOption('--type <type>', 'Event type (e.g. PRECONTEXT_CAPTURED|FIELD_SET)')
-    .option('--actor <actor>', 'Actor: user|agent|system (default: user)')
-    .option('--payload <json>', 'Event payload JSON string')
-    .option('--json', 'Output as JSON (recommended for agents)')
-    .action((options) => learnAppendProfileEventCommand(options));
+		  program
+		    .command('learn:append-profile-event')
+		    .description('Append an immutable profile event (NDJSON, lock-protected)')
+		    .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
+		    .requiredOption('--type <type>', 'Event type (e.g. PRECONTEXT_CAPTURED|FIELD_SET)')
+		    .option('--actor <actor>', 'Actor: user|agent|system (default: user)')
+		    .option('--payload <json>', 'Event payload JSON string')
+		    .option('--json', 'Output as JSON (recommended for agents)')
+		    .action((options) => learnAppendProfileEventCommand(options));
 
-  program
-    .command('learn:append-telemetry-event')
-    .description('Append a telemetry event (NDJSON, lock-protected)')
-    .requiredOption('--event <name>', 'Telemetry event name')
+		  program
+		    .command('learn:append-profile-events-batch')
+		    .description('Append multiple immutable profile events in one lock (NDJSON, lock-protected)')
+		    .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
+		    .requiredOption('--events <json>', 'JSON array of {type, actor?, payload?}')
+		    .option('--json', 'Output as JSON (recommended for agents)')
+		    .action((options) => learnAppendProfileEventsBatchCommand(options));
+
+	  program
+	    .command('learn:propose-inferred-skill')
+	    .description('Propose an inferred skill (agent/system) with cooldown + new evidence gating after rejection')
+	    .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
+	    .requiredOption('--topic-id <id>', 'Inferred skill topic id (normalized to lowercase)')
+	    .requiredOption('--proficiency <n>', 'Proposed proficiency (0..1)')
+	    .option('--confidence <n>', 'Proposed confidence (0..1)')
+	    .requiredOption('--evidence <text>', 'Evidence text (used for new-evidence gating)')
+	    .option('--actor <actor>', 'Actor: user|agent|system (default: agent)')
+	    .option('--json', 'Output as JSON (recommended for agents)')
+	    .action((options) => learnProposeInferredSkillCommand(options));
+
+	  program
+	    .command('learn:confirm-inferred-skill')
+	    .description('Confirm an inferred skill (must be actor=user; no auto-confirm)')
+	    .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
+	    .requiredOption('--topic-id <id>', 'Inferred skill topic id (normalized to lowercase)')
+	    .option('--actor <actor>', 'Actor: must be user (default: user)')
+	    .option('--json', 'Output as JSON (recommended for agents)')
+	    .action((options) => learnConfirmInferredSkillCommand(options));
+
+	  program
+	    .command('learn:reject-inferred-skill')
+	    .description('Reject an inferred skill (must be actor=user; blocks re-propose until cooldown + new evidence)')
+	    .requiredOption('--profile-id <id>', 'Profile id (filename stem)')
+	    .requiredOption('--topic-id <id>', 'Inferred skill topic id (normalized to lowercase)')
+	    .option('--reason <text>', 'Optional rejection reason')
+	    .option('--actor <actor>', 'Actor: must be user (default: user)')
+	    .option('--json', 'Output as JSON (recommended for agents)')
+	    .action((options) => learnRejectInferredSkillCommand(options));
+	
+	  program
+	    .command('learn:append-telemetry-event')
+	    .description('Append a telemetry event (NDJSON, lock-protected)')
+	    .requiredOption('--event <name>', 'Telemetry event name')
     .option('--profile-id <id>', 'Optional profile id')
     .option('--session-id <id>', 'Optional session id')
     .option('--payload <json>', 'Event payload JSON string')
@@ -429,6 +482,100 @@ export function run(argv: string[]): void {
     .option('--evidence <json>', 'Evidence JSON string')
     .option('--json', 'Output as JSON (recommended for agents)')
     .action((options) => learnUpdateProgressCommand(options));
+
+  program
+    .command('learn:resolve-pack-key')
+    .description('Resolve canonical assessment pack_key for a topic (stable defaults)')
+    .requiredOption('--topic-id <id>', 'Topic id (canonical taxonomy id)')
+    .option('--taxonomy-version <v>', 'Taxonomy version (default: v0)')
+    .option('--rubric-version <v>', 'Rubric version (default: v0)')
+    .option('--question-bank-version <v>', 'Question bank version (default: taxonomy_version)')
+    .option('--language <lang>', 'Language tag (default: zh-CN)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnResolvePackKeyCommand(options));
+
+  program
+    .command('learn:read-pack')
+    .description('Read assessment pack by pack_key (or by individual key fields)')
+    .option('--pack-key <json>', 'Pack key JSON (overrides individual fields)')
+    .option('--topic-id <id>', 'Topic id (required if --pack-key not provided)')
+    .option('--taxonomy-version <v>', 'Taxonomy version (default: v0)')
+    .option('--rubric-version <v>', 'Rubric version (default: v0)')
+    .option('--question-bank-version <v>', 'Question bank version (default: taxonomy_version)')
+    .option('--language <lang>', 'Language tag (default: zh-CN)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnReadPackCommand(options));
+
+  program
+    .command('learn:write-pack')
+    .description('Write (overwrite) assessment pack JSON to .workflow/learn/packs/*')
+    .requiredOption('--pack <json>', 'Full pack JSON (must include pack_key and questions[])')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnWritePackCommand(options));
+
+  program
+    .command('learn:pack-status')
+    .description('Compute assessment pack completeness status (seed/full gate)')
+    .option('--pack-key <json>', 'Pack key JSON (overrides individual fields)')
+    .option('--topic-id <id>', 'Topic id (required if --pack-key not provided)')
+    .option('--taxonomy-version <v>', 'Taxonomy version (default: v0)')
+    .option('--rubric-version <v>', 'Rubric version (default: v0)')
+    .option('--question-bank-version <v>', 'Question bank version (default: taxonomy_version)')
+    .option('--language <lang>', 'Language tag (default: zh-CN)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnPackStatusCommand(options));
+
+  program
+    .command('learn:ensure-pack')
+    .description('Ensure an assessment pack exists (seed=4 or full completeness)')
+    .requiredOption('--topic-id <id>', 'Canonical taxonomy topic_id')
+    .option('--mode <mode>', 'auto|seed|full (default: auto)')
+    .option('--language <lang>', 'Language tag (default: zh-CN)')
+    .option('--seed-questions <n>', 'Seed question count (default: 4)')
+    .option('--force', 'Force overwrite even if pack exists')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnEnsurePackCommand(options));
+
+  program
+    .command('learn:resolve-topic')
+    .description('Resolve raw topic label to canonical taxonomy topic_id (taxonomy-first)')
+    .requiredOption('--raw-topic-label <text>', 'Raw topic label (user/agent text)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnResolveTopicCommand(options));
+
+  program
+    .command('learn:ensure-topic')
+    .description('Ensure topic exists in taxonomy (creates provisional when missing)')
+    .requiredOption('--raw-topic-label <text>', 'Raw topic label (user/agent text)')
+    .option('--actor <actor>', 'Actor: user|agent|system (default: agent)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnEnsureTopicCommand(options));
+
+  program
+    .command('learn:taxonomy-alias')
+    .description('Add an alias to a canonical topic_id (audited)')
+    .requiredOption('--topic-id <id>', 'Canonical taxonomy topic_id')
+    .requiredOption('--alias <text>', 'Alias text to add')
+    .option('--actor <actor>', 'Actor: user|agent|system (default: agent)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnTaxonomyAliasCommand(options));
+
+  program
+    .command('learn:taxonomy-redirect')
+    .description('Redirect one topic_id to another (merge/rename without breaking history)')
+    .requiredOption('--from-topic-id <id>', 'Source topic_id (will become status=redirect)')
+    .requiredOption('--to-topic-id <id>', 'Target topic_id (canonical)')
+    .option('--actor <actor>', 'Actor: user|agent|system (default: agent)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnTaxonomyRedirectCommand(options));
+
+  program
+    .command('learn:taxonomy-promote')
+    .description('Promote provisional topic to active (requires regression>=30)')
+    .requiredOption('--topic-id <id>', 'Canonical topic_id to promote')
+    .option('--actor <actor>', 'Actor: user|agent|system (default: agent)')
+    .option('--json', 'Output as JSON (recommended for agents)')
+    .action((options) => learnTaxonomyPromoteCommand(options));
 
   program
     .command('learn:parse-background')

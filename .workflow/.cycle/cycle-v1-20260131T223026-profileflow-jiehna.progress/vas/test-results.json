@@ -1,0 +1,7 @@
+{
+  "cycle_id": "cycle-v1-20260131T223026-profileflow-jiehna",
+  "command": "npm test",
+  "build": { "ok": true, "command": "npm run build" },
+  "tests": { "ok": true, "total": 205, "passed": 205, "failed": 0 }
+}
+

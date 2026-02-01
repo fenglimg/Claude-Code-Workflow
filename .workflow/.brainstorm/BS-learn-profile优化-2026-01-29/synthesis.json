@@ -351,5 +351,287 @@
         "promotion_regression_min_count": 30
       }
     }
+    ,
+    {
+      "timestamp": "2026-02-01T00:37:53+08:00",
+      "type": "experience_feedback",
+      "summary": "真实体验反馈：pre_context 批次、profile 复用、topic 联想拓展、seed 题区分度、去自评/加校准、Bash 噪音优化。",
+      "issues": [
+        "pre_context 批次希望每批 4 题（<=4）",
+        "profile 默认复用（不每次 new）",
+        "topic 覆盖校验需加入主 Agent 联想拓展",
+        "seed 4 题应随 topic+背景生成（有区分度）；full pack 可后台生成",
+        "不希望用户自评作为主信号；需要答题后校准/确认入口",
+        "体验中 Bash 次数过多，需合并/降噪"
+      ],
+      "decisions_locked": {
+        "remove_user_self_rating": true,
+        "seed_questions_count": 4,
+        "seed_questions_generated_by": "main_agent_blocking",
+        "seed_questions_design": "4 questions ~= 25% capability nodes each",
+        "default_profile_reuse": true
+      },
+      "proposed_next_cycle": {
+        "title": "Cycle-4: UX polish + seed generator + scoring/confirmation redesign + bash noise reduction",
+        "artifact": ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/ideas/idea-ux-seed-pack-scoring-vnext.md"
+      }
+    }
+    ,
+    {
+      "timestamp": "2026-02-01T14:54:03+08:00",
+      "type": "decision_lock",
+      "summary": "连续能力刻度与Seed收敛策略细化已锁定：内部使用 ability∈[0,1]+sigma，不确定度(sigma)<=0.1才允许高置信结束；Seed目标4题，允许最多6题兜底；选题优先自适应信息增益(区间二分/IRT-lite)并对低置信结果做软更新，避免硬砍。",
+      "decisions": {
+        "ability_model": "continuous_0_1_with_sigma",
+        "seed_stop_condition": "sigma<=0.1",
+        "seed_questions_target": 4,
+        "seed_questions_max": 6,
+        "seed_selection_strategy": "adaptive_information_gain_with_soft_updates",
+        "low_confidence_fallback": "conservative_recommendation_mode",
+        "details_refs": [
+          ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/brainstorm.md",
+          ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/ideas/idea-continuous-ability-sigma-v1.md"
+        ]
+      }
+    }
+    ,
+    {
+      "timestamp": "2026-02-01T15:08:06+08:00",
+      "type": "decision_lock",
+      "summary": "ability/sigma 口径与评分阈值已定稿：sigma=hi-lo（区间宽度）且 sigma<=0.1 为停止硬条件；Claude 评分采用 p_correct+confidence 的 contract，pass/fail 使用双阈值并带 confidence gate；hints/time/retries 仅影响 confidence，不折算进 p_correct。",
+      "decisions": {
+        "sigma_definition": "hi_minus_lo_interval_width",
+        "stop_condition": "sigma<=0.1",
+        "scoring_contract": {
+          "required_fields": [
+            "p_correct",
+            "confidence",
+            "rubric",
+            "covered_subpoints",
+            "missing_subpoints",
+            "evidence"
+          ]
+        },
+        "thresholds": {
+          "pass_th": 0.75,
+          "fail_th": 0.25,
+          "confidence_gate": 0.6
+        },
+        "signals_fusion": {
+          "hints_time_retries_affect": "confidence_only",
+          "p_correct_affected_by_signals": false
+        },
+        "reference": ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/brainstorm.md"
+      }
+    }
+    ,
+    {
+      "timestamp": "2026-02-01T15:23:52+08:00",
+      "type": "decision_lock",
+      "summary": "Seed=4 生成与收敛规格已锁定（跨学科通用）：4题对应 4 个能力节点 see/explain/apply/debug（debug 泛化为诊断/分析/纠错）；难度固定集合 0.25/0.45/0.65/0.85 且顺序可自适应；taxonomy 存在时至少 2 题命中 must（不足则用 core 降级补足并记录原因）；每题必须携带区分度元信息（common_mistakes+grading_notes）；4题不收敛可加题到 N_seed_max=6，追加题 phase 仍记为 seed。",
+      "decisions": {
+        "seed_questions_count": 4,
+        "seed_phase_name": "seed",
+        "capability_nodes": [
+          "see",
+          "explain",
+          "apply",
+          "debug"
+        ],
+        "capability_node_notes": {
+          "debug": "cross-domain: diagnose/analyze/correct/resolve complex cases; UI label can be 诊断/分析"
+        },
+        "seed_difficulty_set": [
+          0.25,
+          0.45,
+          0.65,
+          0.85
+        ],
+        "seed_ordering": "adaptive_choose_next_closest_to_midpoint_among_remaining",
+        "must_coverage": {
+          "min_must_questions_when_taxonomy_exists": 2,
+          "downgrade_when_insufficient_must": "fill_from_core_and_record_reason"
+        },
+        "discrimination_metadata_required": [
+          "common_mistakes",
+          "grading_notes"
+        ],
+        "seed_max_questions": 6,
+        "extra_seed_questions_phase": "seed",
+        "reference": [
+          ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/brainstorm.md",
+          ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/ideas/idea-seed-4q-generator-spec-v1.md"
+        ]
+      }
+    }
+    ,
+    {
+      "timestamp": "2026-02-01T15:30:59+08:00",
+      "type": "decision_lock",
+      "summary": "校准/审查策略已锁定为全自动：触发低置信/矛盾/不收敛/must缺口时系统自动追加题目到 N_seed_max，不询问用户是否继续；用户仅做题并通过“确认提交/继续编辑”控制答案文本；事件不新增类型，复用 ASSESSMENT_* 并在 payload 标记 auto_calibration。",
+      "decisions": {
+        "calibration_mode": "auto_only",
+        "ask_user_to_continue_calibration": false,
+        "user_interaction": {
+          "answer_submission_controls": [
+            "confirm_submit",
+            "edit"
+          ],
+          "optional_controls": [
+            "skip"
+          ]
+        },
+        "auto_calibration_triggers": [
+          "low_confidence_streak",
+          "evidence_conflict",
+          "sigma_not_converged_after_target",
+          "must_evidence_gap"
+        ],
+        "auto_calibration_actions": {
+          "add_questions_up_to_seed_max": true,
+          "on_still_not_converged": "mark_low_confidence_and_enter_conservative_recommendation"
+        },
+        "events": {
+          "add_new_event_types": false,
+          "payload_fields": [
+            "phase",
+            "reason",
+            "trigger"
+          ],
+          "reason_value": "auto_calibration"
+        },
+        "reference": ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/brainstorm.md"
+      }
+    }
+    ,
+    {
+      "timestamp": "2026-02-01T15:38:08+08:00",
+      "type": "decision_lock",
+      "summary": "Full pack 异步生成合同已锁定：full pack 为 topic-level 共享资产，缓存 key 仅为 pack_key（不含 background_hash）；评估主流程永不阻塞等待 full pack，full 未就绪时继续会话级补题；后台 job 状态落盘到 packs/{topic_id}/jobs/{pack_key_hash}.full.json，状态机 pending/running/done/failed，失败/超时全自动兜底并记录。",
+      "decisions": {
+        "full_pack_scope": "topic_level_shared_asset",
+        "pack_cache_key_includes_background_hash": false,
+        "pack_key_fields": [
+          "topic_id",
+          "taxonomy_version",
+          "rubric_version",
+          "question_bank_version",
+          "language"
+        ],
+        "full_pack_generation": {
+          "mode": "async_background_job",
+          "block_user_flow": false,
+          "on_not_ready_continue": "session_level_question_generation",
+          "on_failed_continue": "session_level_question_generation_with_conservative_strategy"
+        },
+        "job_storage": {
+          "path_template": ".workflow/learn/packs/{topic_id}/jobs/{pack_key_hash}.full.json",
+          "status_values": [
+            "pending",
+            "running",
+            "done",
+            "failed"
+          ]
+        },
+        "reference": ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/brainstorm.md"
+      }
+    }
+    ,
+    {
+      "timestamp": "2026-02-01T15:46:51+08:00",
+      "type": "decision_lock",
+      "summary": "AskUserQuestion 批次与“2题/屏”现象的处理已锁定：批次口径以一次 AskUserQuestion 调用内 questions 数（<=4）为准，不依赖 UI 一屏显示几题；pre_context 继续一次传 4 题；若 UI 分页导致观感像 2 题/批，则用 header 进度标注 (1/4..4/4) 消除困惑，不要求改 UI。",
+      "decisions": {
+        "ask_user_question_batch_definition": "one_call_questions_length",
+        "max_questions_per_call": 4,
+        "pre_context_questions_per_call": 4,
+        "ui_shows_two_per_screen_accept": true,
+        "mitigation": {
+          "header_progress_label": true,
+          "header_format_example": "学习方式 (1/4)"
+        },
+        "reference": [
+          ".claude/commands/learn/profile.md",
+          ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/brainstorm.md"
+        ]
+      }
+    }
+    ,
+    {
+      "timestamp": "2026-02-01T16:04:26+08:00",
+      "type": "decision_lock",
+      "summary": "Topic 覆盖校验 + 联想拓展已锁定：topics 候选来源=背景解析(parse-background) + 主 Agent 联想；覆盖校验 loop 的意义是让用户反馈“是否已覆盖/是否缺失”，而非逐个审核对错；每轮最多展示 16 个候选 topic（4 个 multiSelect question × 每题 4 options）并保留 type something；仅当用户选中/输入才 resolve-topic/ensure-topic（避免 taxonomy 污染）；loop guard 最多 3 轮。",
+      "decisions": {
+        "topic_candidates_sources": [
+          "background_parse",
+          "agent_expansion"
+        ],
+        "topic_coverage_loop": {
+          "purpose": "coverage_feedback_only",
+          "max_rounds": 3,
+          "ui": {
+            "max_questions_per_call": 4,
+            "topics_per_round_max": 16,
+            "options_per_question_max": 4,
+            "has_type_something": true
+          }
+        },
+        "taxonomy_pollution_guard": {
+          "auto_ensure_for_unselected_agent_topics": false,
+          "ensure_only_when_user_selected_or_typed": true,
+          "resolution_order": [
+            "learn:resolve-topic",
+            "learn:ensure-topic (provisional, only if user-selected/typed and not resolvable)"
+          ]
+        },
+        "reference": [
+          ".claude/commands/learn/profile.md",
+          ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/brainstorm.md"
+        ]
+      }
+    }
+    ,
+    {
+      "timestamp": "2026-02-01T16:26:21+08:00",
+      "type": "decision_override",
+      "summary": "按最新反馈更新：topics 候选不再依赖 learn:parse-background，由主 Agent 直接从 background 主观解析 + 联想拓展生成；topic 覆盖 loop 定位为反馈 loop（确认是否覆盖/是否缺失），不是“候选展示上限 loop”。另外：seed 题/题库生成优先走 Gemini CLI；答题控制仅保留确认提交/继续编辑（不提供跳过）。",
+      "overrides": {
+        "overridden_timestamp": "2026-02-01T16:04:26+08:00",
+        "remove_parse_background_as_source": true
+      },
+      "decisions": {
+        "topic_candidates_sources": [
+          "agent_parse_and_expand"
+        ],
+        "topic_coverage_loop": {
+          "purpose": "feedback_loop_only",
+          "max_rounds": 3,
+          "ui_limits": {
+            "max_questions_per_call": 4,
+            "max_options_per_question": 4,
+            "max_topics_per_round": 16,
+            "has_type_something": true
+          }
+        },
+        "topic_resolution": {
+          "ensure_only_when_user_selected_or_typed": true,
+          "resolution_order": [
+            "learn:resolve-topic",
+            "learn:ensure-topic (provisional, only if user-selected/typed and not resolvable)"
+          ]
+        },
+        "generation_pipeline": {
+          "seed_questions_primary": "gemini_cli",
+          "full_pack_primary": "gemini_cli_async_job",
+          "full_pack_fallback": "main_agent_session_generation"
+        },
+        "user_answer_controls": {
+          "confirm_submit": true,
+          "edit": true,
+          "skip": false
+        },
+        "reference": ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/brainstorm.md"
+      }
+    }
   ]
 }

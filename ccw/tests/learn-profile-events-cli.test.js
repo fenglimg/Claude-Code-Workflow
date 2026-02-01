@@ -122,6 +122,70 @@ describe('ccw learn:* profile/telemetry events (NDJSON)', () => {
     }
   });
 
+  it('learn:append-profile-events-batch appends multiple events under one lock and updates snapshot once', () => {
+    const cwd = setupSandboxProject();
+    try {
+      const profile = { known_topics: [], experience_level: null };
+      const { res: r0, out: o0 } = runCcw(
+        ['learn:write-profile', '--profile-id', 'p1', '--data', JSON.stringify(profile), '--json'],
+        cwd
+      );
+      assert.equal(r0.status, 0);
+      assert.equal(o0.ok, true);
+
+      const events = [
+        {
+          type: 'PRECONTEXT_CAPTURED',
+          actor: 'user',
+          payload: {
+            template_version: 'pre_context_vNext',
+            pre_context: {
+              raw: { pre_style: 'mixed' },
+              parsed: { learning_style: 'mixed' },
+              provenance: {
+                template_version: 'pre_context_vNext',
+                captured_at: '2026-01-01T00:00:00.000Z',
+                asked_vs_reused: 'asked',
+                gating_reason: 'test'
+              }
+            }
+          }
+        },
+        {
+          type: 'FIELD_SET',
+          actor: 'user',
+          payload: { field_path: 'pre_context.parsed.learning_style', new_value: 'mixed' }
+        }
+      ];
+
+      const { res, out } = runCcw(
+        ['learn:append-profile-events-batch', '--profile-id', 'p1', '--events', JSON.stringify(events), '--json'],
+        cwd
+      );
+      assert.equal(res.status, 0);
+      assert.equal(out.ok, true);
+      assert.equal(out.data.appended_count, 2);
+      assert.equal(out.data.first_version, 1);
+      assert.equal(out.data.last_version, 2);
+
+      const eventsPath = path.join(cwd, '.workflow/learn/profiles/events/p1.ndjson');
+      assert.equal(existsSync(eventsPath), true);
+      const lines = readFileSync(eventsPath, 'utf8').trim().split(/\r?\n/);
+      assert.equal(lines.length, 2);
+      assert.equal(JSON.parse(lines[0]).version, 1);
+      assert.equal(JSON.parse(lines[1]).version, 2);
+
+      const snapshotPath = path.join(cwd, '.workflow/learn/profiles/snapshots/p1.json');
+      assert.equal(existsSync(snapshotPath), true);
+      const snapshot = JSON.parse(readFileSync(snapshotPath, 'utf8'));
+      assert.equal(snapshot.profile_id, 'p1');
+      assert.equal(snapshot.version, 2);
+      assert.equal(snapshot.pre_context?.parsed?.learning_style, 'mixed');
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
   it('learn:append-telemetry-event appends to telemetry/events.ndjson', () => {
     const cwd = setupSandboxProject();
     try {

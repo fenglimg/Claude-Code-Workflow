@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0",
+  "cycle_id": "cycle-v1-20260131T225717-taxonomyassess-vezuib",
+  "tasks": [
+    {
+      "id": "TPA-1",
+      "title": "Taxonomy index + loader + audited governance CLI",
+      "status": "done",
+      "artifacts": [
+        "ccw/src/commands/learn.ts",
+        "ccw/src/cli.ts",
+        "ccw/tests/learn-taxonomy-cli.test.js"
+      ]
+    },
+    {
+      "id": "TPA-4",
+      "title": "Pack completeness (seed=4 + full gate) + ensure-pack/pack-status CLI",
+      "status": "done",
+      "artifacts": [
+        "ccw/src/commands/learn.ts",
+        "ccw/src/cli.ts",
+        "ccw/tests/learn-pack-completeness-cli.test.js"
+      ]
+    },
+    {
+      "id": "TPA-5",
+      "title": "Full assessment loop (max=20 + strict stop conditions) + events",
+      "status": "done",
+      "artifacts": [
+        ".claude/commands/learn/_internal/assess.js",
+        "ccw/tests/learn-assess-internal-vnext.test.js"
+      ]
+    },
+    {
+      "id": "INTEGRATION",
+      "title": "/learn:profile integration (persist summary + propose inferred skills; Chinese UX)",
+      "status": "done",
+      "artifacts": [
+        ".claude/commands/learn/profile.md"
+      ]
+    }
+  ]
+}
+

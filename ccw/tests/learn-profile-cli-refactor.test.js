@@ -11,8 +11,9 @@ const repoRoot = path.resolve(__dirname, '../..');
 describe('learn/profile.md CLI refactor', () => {
   it('does not use direct Read()/Write() calls', () => {
     const content = readFileSync(path.join(repoRoot, '.claude/commands/learn/profile.md'), 'utf8');
-    // Allow explanatory mentions like "Write()" in prose/comments, but forbid real calls like "Write(path, ...)".
-    assert.ok(!/\bRead\(\s*[^)]/.test(content));
+    // Allow tool declaration in frontmatter like "Read(*)", but forbid real calls like "Read('path')" or "Write(path, ...)".
+    // Note: /learn:profile may be allowed to Read(), but all persistence must still go through ccw learn:* CLI.
+    assert.ok(!/\bRead\(\s*(?!\*)[^)]/.test(content));
     assert.ok(!/\bWrite\(\s*[^)]/.test(content));
   });
 

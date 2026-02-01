@@ -1,0 +1,82 @@
+{
+  "version": "1.0.0",
+  "cycle_id": "cycle-v1-20260131T215441-assess-owxkvc",
+  "objective": "Assessment plumbing: internal assess module + pack CLI + assessment event whitelist; minimal single-topic 1-question loop runnable from /learn:profile.",
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "description": "Add Read(*) to /learn:profile allowed-tools; remove --no-assessment from argument-hint/flags; wire minimal call into internal assess module.",
+      "effort": "medium",
+      "depends_on": [],
+      "status": "pending",
+      "assigned_to": "cd",
+      "files": [
+        ".claude/commands/learn/profile.md"
+      ]
+    },
+    {
+      "id": "TASK-002",
+      "description": "Implement internal assessment module .claude/commands/learn/_internal/assess.js (factory injection) that can run 1-question topic assessment and write pack+events via ccw CLI.",
+      "effort": "medium",
+      "depends_on": [
+        "TASK-003",
+        "TASK-004"
+      ],
+      "status": "pending",
+      "assigned_to": "cd",
+      "files": [
+        ".claude/commands/learn/_internal/assess.js"
+      ]
+    },
+    {
+      "id": "TASK-003",
+      "description": "Add ccw pack CLI commands: learn:resolve-pack-key, learn:read-pack, learn:write-pack (overwrite) with storage under .workflow/learn/packs/.",
+      "effort": "large",
+      "depends_on": [],
+      "status": "pending",
+      "assigned_to": "cd",
+      "files": [
+        "ccw/src/cli.ts",
+        "ccw/src/commands/learn.ts"
+      ]
+    },
+    {
+      "id": "TASK-004",
+      "description": "Enforce explicit whitelist in ccw learn:append-profile-event (include ASSESSMENT_* + existing profile events) and add tests.",
+      "effort": "medium",
+      "depends_on": [],
+      "status": "pending",
+      "assigned_to": "cd",
+      "files": [
+        "ccw/src/commands/learn.ts",
+        "ccw/tests/learn-profile-events-cli.test.js"
+      ]
+    },
+    {
+      "id": "TASK-005",
+      "description": "Add tests for pack read/write/resolve-pack-key and whitelist (ASSESSMENT_* allowed, unknown rejected).",
+      "effort": "medium",
+      "depends_on": [
+        "TASK-003",
+        "TASK-004"
+      ],
+      "status": "pending",
+      "assigned_to": "cd",
+      "files": [
+        "ccw/tests/learn-assessment-pack-cli.test.js"
+      ]
+    }
+  ],
+  "critical_path": [
+    "TASK-003",
+    "TASK-004",
+    "TASK-002",
+    "TASK-001",
+    "TASK-005"
+  ],
+  "notes": [
+    "Keep Cycle-1 minimal: do not implement full algorithm/taxonomy governance here.",
+    "Do not add Write(*) to /learn:profile; all persistence via ccw CLI."
+  ]
+}
+

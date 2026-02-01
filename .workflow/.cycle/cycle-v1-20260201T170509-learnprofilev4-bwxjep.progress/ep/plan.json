@@ -1,0 +1,51 @@
+{
+  "version": "1.0.0",
+  "cycle_id": "cycle-v1-20260201T170509-learnprofilev4-bwxjep",
+  "tasks": [
+    {
+      "title": "Add learn:append-profile-events-batch (lock-safe + whitelist) + tests",
+      "status": "done",
+      "id": "LP4-1",
+      "artifacts": [
+        "ccw/src/commands/learn.ts",
+        "ccw/src/cli.ts",
+        "ccw/tests/learn-profile-events-cli.test.js"
+      ]
+    },
+    {
+      "title": "Seed=4 gemini-first + full pack async job status in learn:ensure-pack + tests",
+      "status": "done",
+      "id": "LP4-2",
+      "artifacts": [
+        "ccw/src/commands/learn.ts",
+        "ccw/src/cli.ts",
+        "ccw/tests/learn-pack-completeness-cli.test.js"
+      ]
+    },
+    {
+      "title": "Rewrite assess.js: no self-rating, confirm/edit, ability interval, batch flush, pack switching",
+      "status": "done",
+      "id": "LP4-3",
+      "artifacts": [
+        ".claude/commands/learn/_internal/assess.js",
+        "ccw/tests/learn-assess-internal-vnext.test.js"
+      ]
+    },
+    {
+      "title": "Update learn/profile.md: profile reuse upsert, topic candidate expansion+4x4 loop, header progress",
+      "status": "done",
+      "id": "LP4-4",
+      "artifacts": [
+        ".claude/commands/learn/profile.md"
+      ]
+    },
+    {
+      "title": "VAS: run npm test, update/regression for new behaviors",
+      "status": "todo",
+      "id": "LP4-5",
+      "artifacts": [
+        "ccw/scripts/run-tests.js"
+      ]
+    }
+  ]
+}

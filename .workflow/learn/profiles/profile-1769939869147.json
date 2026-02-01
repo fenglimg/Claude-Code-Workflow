@@ -1,0 +1,62 @@
+{
+  "$schema": "./schemas/learn-profile.schema.json",
+  "profile_id": "profile-1769939869147",
+  "is_minimal": false,
+  "experience_level": null,
+  "known_topics": [],
+  "pre_context": {
+    "raw": {
+      "pre_style": "混合",
+      "pre_sources": [
+        "交互式教程"
+      ],
+      "pre_hours_week": "3-6 小时",
+      "pre_session_len": "30 分钟",
+      "pre_practice_intensity": "中",
+      "pre_feedback_style": "温和引导",
+      "pre_pace": "慢一些更稳",
+      "pre_motivation": "工作/求职"
+    },
+    "parsed": {
+      "learning_style": "mixed",
+      "preferred_sources": [
+        "interactive"
+      ],
+      "hours_per_week": 4,
+      "session_length_minutes": 30,
+      "practice_intensity": "mid",
+      "feedback_style": "gentle",
+      "pace": "slow",
+      "motivation_type": "career"
+    },
+    "provenance": {
+      "template_version": "pre_context_vNext",
+      "captured_at": "2026-02-01T00:00:00.000Z",
+      "asked_vs_reused": "asked",
+      "gating_reason": "create_required"
+    }
+  },
+  "background": {
+    "raw_text": "拥有 1 年 Cocos Creator 实战开发经验，熟练掌握 TypeScript/JavaScript 及引擎核心组件系统，能够独立负责游戏功能模块的逻辑实现与 UI 交互开发。熟悉 物理引擎、动画系统及资源管理机制，具备跨平台（H5、小游戏及移动端）发布与性能优化的基础实践能力，并在项目协作中形成了良好的代码规范与问题排查思路。",
+    "summary": "拥有 1 年 Cocos Creator 实战开发经验，熟练掌握 TypeScript/JavaScript 及引擎核心组件系统，能够独立负责游戏功能模块的逻辑实现与 UI 交互开发。熟悉 物理引擎、动画系统及资源管理机制，具备跨平台（H5、小游戏及移动端）发布与性能优化的基础实践能力，并在项目协作中形成了良好的代码规范与问题排查思路。",
+    "_metadata": {
+      "captured_at": "2026-02-01T00:00:00.000Z"
+    }
+  },
+  "learning_preferences": {
+    "style": "mixed",
+    "preferred_sources": [
+      "interactive"
+    ]
+  },
+  "feedback_journal": [],
+  "_metadata": {
+    "created_at": "2026-02-01T00:00:00.000Z",
+    "updated_at": "2026-02-01T00:00:00.000Z",
+    "version": "1.0.0",
+    "goal_type": "general",
+    "goal_text": null,
+    "assessment_method": "evidence-based",
+    "completion_percent": 100
+  }
+}

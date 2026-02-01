@@ -1,0 +1,2 @@
+{"timestamp":"2026-01-31T23:38:04+08:00","hypothesis":"Taxonomy redirect test case accidentally normalizes numeric suffix away; adjust test to use non-numeric differentiator.","result":"confirmed","notes":"See ccw/tests/learn-taxonomy-cli.test.js update."}
+
