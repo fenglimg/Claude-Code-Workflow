@@ -1,44 +1,51 @@
 {
   "project_name": "Claude-Code-Workflow",
-  "initialized_at": "2026-01-24T06:35:00.000Z",
+  "initialized_at": "2026-02-01T14:00:00.000Z",
   "overview": {
-    "description": "JSON-driven multi-agent development framework with intelligent CLI orchestration (Gemini/Qwen/Codex/Claude), context-first architecture, and automated workflow execution. Features 4-level workflow system from instant execution to multi-role brainstorming.",
+    "description": "JSON-driven multi-agent development framework with intelligent CLI orchestration (Gemini/Qwen/Codex/Claude), context-first architecture, and automated workflow execution",
     "technology_stack": {
       "languages": [
         {
           "name": "TypeScript",
-          "file_count": 54,
+          "file_count": 3821,
           "primary": true
         },
         {
-          "name": "Python",
-          "file_count": 250,
-          "primary": false
-        },
-        {
           "name": "JavaScript",
-          "file_count": 19,
+          "file_count": 4421,
           "primary": false
         },
         {
-          "name": "Markdown",
-          "file_count": 153,
+          "name": "Python",
+          "file_count": 360,
+          "primary": false
+        },
+        {
+          "name": "TSX",
+          "file_count": 42,
           "primary": false
         }
       ],
       "frameworks": [
+        "React",
+        "Express.js",
         "Node.js",
-        "Commander.js",
-        "Inquirer.js",
-        "MCP SDK",
-        "LiteLLM",
+        "Zustand",
+        "TanStack Query",
+        "React Flow",
+        "Radix UI",
+        "Tailwind CSS",
+        "Zod",
         "FastEmbed",
-        "Tree-sitter"
+        "Tree-sitter",
+        "Pygls"
       ],
       "build_tools": [
         "npm",
-        "TypeScript Compiler",
-        "setuptools"
+        "TypeScript",
+        "Vite",
+        "setuptools",
+        "pip"
       ],
       "test_frameworks": [
         "Node.js Test Runner",
@@ -47,83 +54,82 @@
       ]
     },
     "architecture": {
-      "style": "Modular CLI-based microservices with agent orchestration",
+      "style": "layered",
       "layers": [
-        "CLI Interface",
-        "Command Orchestration",
-        "Agent Execution",
-        "Core Services",
-        "Tool Integration",
-        "Dashboard/UI"
+        "presentation",
+        "business-logic",
+        "data-access",
+        "tool-layer"
       ],
       "patterns": [
-        "Command Pattern",
-        "Factory Pattern",
-        "Repository Pattern",
-        "Observer Pattern",
-        "Strategy Pattern",
-        "Agent-based Architecture"
+        "MCP (Model Context Protocol)",
+        "Facade",
+        "Registry",
+        "Factory",
+        "Strategy",
+        "Observer",
+        "Repository"
       ]
     },
     "key_components": [
       {
-        "name": "CLI Orchestrator",
-        "path": "ccw/src/cli.ts",
-        "description": "Main CLI entry point orchestrating multi-agent workflows with semantic CLI invocation",
-        "importance": "high"
-      },
-      {
-        "name": "Command System",
-        "path": "ccw/src/commands/",
-        "description": "Workflow commands (plan, execute, lite-plan, lite-fix, brainstorm, issue, memory)",
-        "importance": "high"
-      },
-      {
-        "name": "Agent Layer",
-        "path": ".claude/agents/",
-        "description": "Multi-agent system including cli-explore-agent, action-planning-agent, universal-executor, and 20+ specialized agents",
-        "importance": "high"
-      },
-      {
-        "name": "Core Services",
-        "path": "ccw/src/core/services/",
-        "description": "Business logic services for workflow execution, session management, and state persistence",
-        "importance": "high"
-      },
-      {
-        "name": "Dashboard",
-        "path": "ccw/src/core/routes/",
-        "description": "Web-based dashboard for session overview, CodexLens search, graph explorer, and CLI manager",
+        "name": "CCW CLI Core",
+        "path": "ccw/src",
+        "description": "Main CLI application with command routing, tool registry, and workflow orchestration",
         "importance": "high"
       },
       {
         "name": "CodexLens",
-        "path": "codex-lens/",
-        "description": "Python-based semantic code search engine with FTS5, embedding, hybrid search, and reranking",
+        "path": "codex-lens/src/codexlens",
+        "description": "Multi-modal code analysis platform with semantic search, LSP integration, and hybrid retrieval",
+        "importance": "high"
+      },
+      {
+        "name": "CCW Dashboard Frontend",
+        "path": "ccw/frontend/src",
+        "description": "React-based visual dashboard for session management, search, and workflow monitoring",
+        "importance": "high"
+      },
+      {
+        "name": "LiteLLM Integration",
+        "path": "ccw-litellm/src/ccw_litellm",
+        "description": "Unified LLM interface layer for multi-provider support (Gemini, Codex, Qwen, Claude)",
+        "importance": "high"
+      },
+      {
+        "name": "Workflow Skills",
+        "path": ".claude/skills",
+        "description": "Modular skill definitions for workflow automation (planning, review, analysis, generation)",
         "importance": "high"
       },
       {
         "name": "MCP Server",
-        "path": "ccw/src/mcp-server/",
-        "description": "Model Context Protocol server for tool integration and context management",
+        "path": "ccw/src/mcp-server",
+        "description": "Model Context Protocol server for tool discovery and execution",
         "importance": "medium"
       },
       {
-        "name": "CCW LiteLLM",
-        "path": "ccw-litellm/",
-        "description": "Unified LiteLLM interface layer shared by ccw and codex-lens for multi-model LLM access",
+        "name": "CLI Commands",
+        "path": "ccw/src/commands",
+        "description": "Core CLI commands: workflow, session, tool, memory, view, serve",
+        "importance": "high"
+      },
+      {
+        "name": "Tool Registry",
+        "path": "ccw/src/tools",
+        "description": "MCP-like tool system with schema validation and execution for file operations, search, CLI execution",
+        "importance": "high"
+      },
+      {
+        "name": "Core Routes",
+        "path": "ccw/src/core/routes",
+        "description": "HTTP API routes for CCW, CodexLens, LiteLLM, memory, and session management",
         "importance": "medium"
       },
       {
-        "name": "Skill System",
-        "path": ".claude/skills/",
-        "description": "Reusable skill templates for code review, project analysis, issue management, and workflow automation",
-        "importance": "medium"
-      },
-      {
-        "name": "Workflow Templates",
-        "path": ".claude/workflows/",
-        "description": "CLI templates, schemas, and protocol definitions for workflow execution",
+        "name": "Learn System",
+        "path": "ccw/src/learn",
+        "description": "Profile-aware learning workflow with phase-based progression and assessment",
         "importance": "medium"
       }
     ]
@@ -139,11 +145,11 @@
   "statistics": {
     "total_features": 0,
     "total_sessions": 0,
-    "last_updated": "2026-01-24T06:35:00.000Z"
+    "last_updated": "2026-02-01T14:00:00.000Z"
   },
   "_metadata": {
     "initialized_by": "cli-explore-agent",
-    "analysis_timestamp": "2026-01-24T06:35:00.000Z",
+    "analysis_timestamp": "2026-02-01T14:00:00.000Z",
     "analysis_mode": "deep-scan"
   }
 }

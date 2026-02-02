@@ -1609,7 +1609,8 @@ index.json 顶层：
 
 #### 13.1 4 个 capability_node 的定义（跨学科版本，建议锁定）
 - `capability_node` 内部 key 固定 4 个：`see / explain / apply / debug`
-  - **注意**：这里的 `debug` 不等于“写代码调试”，而是泛化为 **诊断/分析/纠错/复杂问题求解**（任何学科都存在：找错因、判别易错点、做取舍、给出排查步骤）。UI 文案可按学科显示为“诊断/分析”。\n+  - 好处：既复用你们已锁定的证据等级（see/explain/apply/debug），又能稳定覆盖从“识别→理解→应用→高阶推理”的能力链条。
+  - **注意**：这里的 `debug` 不等于“写代码调试”，而是泛化为 **诊断/分析/纠错/复杂问题求解**（任何学科都存在：找错因、判别易错点、做取舍、给出排查步骤）。UI 文案可按学科显示为“诊断/分析”。
+  - 好处：既复用你们已锁定的证据等级（see/explain/apply/debug），又能稳定覆盖从“识别→理解→应用→高阶推理”的能力链条。
 
 #### 13.2 Seed 4 题难度点（固定集合 + 自适应顺序）
 - 每题必须带 `difficulty ∈ [0,1]`（用于 ability_interval 更新）
@@ -1857,7 +1858,11 @@ index.json 顶层：
 每一轮由两次 AskUserQuestion 构成：
 1) **候选 topics 选择（撑满 4 题）**：
    - 4 个 multiSelect questions（每题最多 4 options）= 最多 16 个候选 topic
-   - 4 题分别对应 4 个方向（建议，但可改名）：\n+     1) 背景解析（Top-4）\n+     2) 联想拓展（Top-4）\n+     3) 前置/基础（Top-4）\n+     4) 进阶/诊断（Top-4）
+   - 4 题分别对应 4 个方向（建议，但可改名）：
+     1) 背景解析（Top-4）
+     2) 联想拓展（Top-4）
+     3) 前置/基础（Top-4）
+     4) 进阶/诊断（Top-4）
    - 每个 option 的 description 必须包含：`来源 + 1句理由 + (可选)置信度`
 2) **type something 补充 + 覆盖确认**：
    - free text：补充 topics（逗号/空格分隔，可空）
@@ -1874,11 +1879,161 @@ index.json 顶层：
 
 ---
 
+### Round 42 - Multi-CLI Analysis: Three Core Issues (2026-02-01T19:30:00+08:00)
+
+#### Context
+继续讨论 learn:profile 存在的三个具体问题：
+1. ccw learn:resolve-topic 需支持批量，修复 INVALID_ARGS 错误（无法从 '跨平台开发' 推导 ID）
+2. 移除 assessment.js，改用 Gemini CLI + 外部文档引入规则生成 Seed 题
+3. 深度参考 claude-session-12824e11-2026-02-01.md 补全不合规项
+
+#### Multi-CLI Perspectives
+
+**Gemini CLI (Technical Solution)**
+
+问题1 - resolve-topic 批量与中文支持：
+- CLI 接口改造：增加 `--raw-topic-labels` 参数接收 JSON 数组 `'["React", "跨平台开发"]'`
+- 返回结果：与输入顺序对应的 JSON 数组，包含 `input`, `status`, `topic_id` 或 `candidates`
+- 中文映射：在后端实现标签到 ID 的映射机制，使用包含 `topic_id`, `display_name_zh`, `display_name_en`, `aliases` 的知识库
+- 代码位置：`.claude/commands/learn/profile.md:658` 的 `topicCoverageValidationLoop` 和 `.claude/commands/learn/profile.md:607` 的 `resolveOrEnsureOne`
+
+问题2 - 用 Gemini CLI 替代 assessment.js：
+- 废弃 `import('./_internal/assess.js')` 和 `__assess.assessTopic()` 调用
+- 创建规则文件 `.claude/prompts/assessment/seed-question-rules.md` 定义生成规则
+- 新 CLI 调用：`gemini-cli generate-questions --topic-id "..." --rules "path/to/rules.md"`
+- 输出格式：严格遵循 JSON schema，包含 `question_id`, `type`, `text`, `options`, `correct_answer_key`, `difficulty`
+
+问题3 - 不合规项修复（来自 claude-session 日志）：
+- **AskUserQuestion options 数量超限**：`profile.md:405` 等位置有 5 个选项（含 skip），超过 4 个限制
+  - 修复：移除 skip 选项，或合并相近选项
+- **AskUserQuestion 缺少 options**：`profile.md:213` 的 `collectBackgroundTextRequired` 中自由文本输入未提供 options
+  - 修复：添加至少 2 个"哑"选项满足校验
+
+**Codex CLI (Engineering Feasibility)**
+
+实现难度评估：
+| 问题 | Effort | Risk | 依赖 |
+|------|--------|------|------|
+| resolve-topic 批量 | 3/5 | 中 | taxonomy index 中文支持 |
+| Gemini CLI 替代 assess.js | 4/5 | 高 | Gemini CLI 稳定性、prompt 工程 |
+| 不合规项修复 | 2/5 | 低 | 无 |
+
+推荐实施顺序：
+1. 先修复不合规项（立即解决运行时错误）
+2. 实现 resolve-topic 批量（性能优化）
+3. 逐步迁移到 Gemini CLI（架构升级）
+
+**Claude CLI (Architecture Consistency)**
+
+架构设计建议：
+- 保持与现有 CLI 工具一致的设计模式
+- 数据流：`background` → `parse + expand` → `resolve-topics-batch` (NEW) → `write profile`
+- Pack 生成：Gemini CLI 生成 → `learn:write-pack` → 缓存复用
+- 版本兼容性：新增命令保持向后兼容，不破坏现有流程
+
+关键架构决策：
+1. **Batch API 设计**：`learn:resolve-topics-batch` 作为新命令，保留原 `resolve-topic` 单条接口
+2. **Pack 缓存策略**：`pack_key = {topic_id, taxonomy_version, rubric_version, question_bank_version, language}`
+3. **评估落点**：内置在 `/learn:profile` 中，通过内部 JS 模块调用，不暴露独立命令
+
+#### Synthesis
+
+**Convergent Themes**:
+- ✅ 三个问题都有明确的技术解决方案
+- ✅ 修复不合规项是最高优先级（阻塞性问题）
+- ✅ Gemini CLI 替代方案与现有架构方向一致
+
+**Implementation Priority**:
+1. **P0**: 修复 AskUserQuestion 不合规项（options 数量、缺失 options）
+2. **P1**: 实现 `learn:resolve-topics-batch` 批量接口
+3. **P2**: 迁移 assessment.js 到 Gemini CLI + 规则文档
+
+---
+
+### Round 42 - Multi-CLI Analysis: learn:profile 三个核心问题 (2026-02-01T19:30:00+08:00)
+
+#### Context
+针对 learn:profile 三个核心问题启动 Multi-CLI 协作分析：
+1. ccw learn:resolve-topic 需支持批量，修复 INVALID_ARGS 错误（无法从 '跨平台开发' 推导 ID）
+2. 移除 assessment.js，改用 Gemini CLI + 外部文档引入规则生成 Seed 题
+3. 深度参考 .workflow/learn/claude-session-12824e11-2026-02-01.md 补全不合规项
+
+#### Gemini CLI Findings (Technical Solutions)
+
+**问题 1 - resolve-topic 批量与中文支持**：
+- CLI 接口改造：增加 `--raw-topic-labels` 参数接收 JSON 数组 `'["React", "跨平台开发"]'`
+- 返回结果：与输入顺序对应的 JSON 数组，包含 `input`, `status`, `topic_id` 或 `candidates`
+- 中文映射：在后端实现标签到 ID 的映射知识库（`topic_id`, `display_name_zh`, `display_name_en`, `aliases`）
+- 代码位置：`.claude/commands/learn/profile.md:658` 的 `topicCoverageValidationLoop` 和 `.claude/commands/learn/profile.md:607` 的 `resolveOrEnsureOne`
+
+**问题 2 - Gemini CLI 替代 assess.js**：
+- 废弃 `import('./_internal/assess.js')` 和 `__assess.assessTopic()` 调用
+- 创建规则文件 `.claude/prompts/assessment/seed-question-rules.md` 定义生成规则
+- 新 CLI 调用：`gemini-cli generate-questions --topic-id "..." --rules "path/to/rules.md"`
+- 输出格式：严格遵循 JSON schema，包含 `question_id`, `type`, `text`, `options`, `correct_answer_key`, `difficulty`
+
+**问题 3 - 不合规项修复**：
+- **AskUserQuestion options 数量超限**：`profile.md:405` 等位置有 5 个选项（含 skip），超过 4 个限制
+  - 修复：移除 skip 选项，或合并相近选项
+- **AskUserQuestion 缺少 options**：`profile.md:213` 的 `collectBackgroundTextRequired` 中自由文本输入未提供 options
+  - 修复：添加至少 2 个"哑"选项满足校验
+
+#### Codex CLI Findings (Engineering Feasibility)
+
+**工作量评估**：
+
+| 问题 | Effort | Risk | 依赖 |
+|------|--------|------|------|
+| resolve-topic 批量 | 4/5 | 中 | taxonomy index 中文支持 |
+| Gemini CLI 替代 assess.js | 2/5 | 低 | Gemini CLI 稳定性、prompt 工程 |
+| 不合规项修复 | 2/5 | 低 | 无 |
+
+**推荐实施顺序**：
+1. 不合规项修复（立即解决运行时错误）
+2. resolve-topic 批量（性能优化）
+3. Gemini CLI 迁移（架构升级）
+
+**关键风险点**：
+- 中文 normalize 改动导致既有英文匹配行为变化（需回归测试）
+- 中文 raw label 的 topic_id 生成策略不明确（建议用 hash id 或强制用户选定英文 id）
+- batch 输出形态影响现有调用方（建议新增命令而非修改现有）
+
+#### Claude CLI Findings (Architecture Consistency)
+
+**架构设计建议**：
+- 保持与现有 CLI 工具一致的设计模式
+- 数据流：`background` → `parse + expand` → `resolve-topics-batch` (NEW) → `write profile`
+- Pack 生成：Gemini CLI 生成 → `learn:write-pack` → 缓存复用
+
+**关键架构决策**：
+1. **Batch API 设计**：`learn:resolve-topics-batch` 作为新命令，保留原 `resolve-topic` 单条接口
+2. **Pack 缓存策略**：`pack_key = {topic_id, taxonomy_version, rubric_version, question_bank_version, language}`
+3. **评估落点**：内置在 `/learn:profile` 中，通过内部 JS 模块调用，不暴露独立命令
+
+**数据模型不一致发现**：
+- Pack schema 使用 `level` (1-5) 但 assess.js 期望 `difficulty` (0-1)
+- topicCoverageValidationLoop 有 N+1 CLI 调用问题
+- assess.js 使用启发式评分而非语义化评估
+
+#### Synthesis
+
+**Convergent Themes**：
+- 三个问题都有明确的技术解决方案
+- 修复不合规项是最高优先级（阻塞性问题）
+- Gemini CLI 替代方案与现有架构方向一致
+
+**Implementation Priority**：
+1. **P0**: 修复 AskUserQuestion 不合规项（options 数量超限、缺失 options 字段）
+2. **P1**: 实现 `learn:resolve-topics-batch` 批量接口
+3. **P2**: 迁移 assessment.js 到 Gemini CLI + 规则文档
+
+---
+
 ### Round 19 - Topic 覆盖校验 + 主 Agent 联想拓展：可落地规格（跨学科）(2026-02-01T15:55:40+08:00)
 
 #### 19.1 目标（对应原始问题 #3）
-- Topic 覆盖校验不仅验证 parse-background 的推荐是否正确，还要主动“联想拓展”到用户可能遗漏的相关方向（生态/前置/相邻能力簇）。
-- 仍遵守：不提供独立的 “Add Topic” 命令；topic 只来自「用户背景 + Agent 联想」并通过 AskUserQuestion 在 createFlow 中确认/纠错。
+- Topic 覆盖校验不仅验证 parse-background 的推荐是否正确，还要主动"联想拓展"到用户可能遗漏的相关方向（生态/前置/相邻能力簇）。
+- 仍遵守：不提供独立的 "Add Topic" 命令；topic 只来自「用户背景 + Agent 联想」并通过 AskUserQuestion 在 createFlow 中确认/纠错。
 
 #### 19.2 输入与输出（接口口径）
 输入：
@@ -1888,22 +2043,118 @@ index.json 顶层：
 
 输出：
 - `topic_candidates[]`：用于 topicCoverageValidationLoop 的选项（含 reason/provenance）
-- `topic_ids_confirmed[]`：用户最终确认进入评估的 canonical topic_id 列表（若用户输入 raw label，则先 resolve；resolve 不到则在“被用户选中/输入”时才 ensure-topic 创建 provisional）
+- `topic_ids_confirmed[]`：用户最终确认进入评估的 canonical topic_id 列表（若用户输入 raw label，则先 resolve；resolve 不到则在"被用户选中/输入"时才 ensure-topic 创建 provisional）
 
 #### 19.3 联想拓展的来源优先级（分层、可退化）
-1) **taxonomy-first（强优先）**：对候选 raw label 调用 `resolve-topic`，拿到 canonical topic_id（处理 alias/redirect）\n+2) **rules/dictionary（可选）**：如果有可用的“关联规则”（如同一 category/共现/人工映射），输出 Top-N 相关方向\n+3) **LLM 联想（兜底）**：当 (a) parse-background topic 太少 或 (b) 置信度低/背景过于宽泛 时，主 Agent 生成 Top-4 关联 topics + 简短理由（注意：只做“候选建议”，不自动写入 taxonomy）
+1) **taxonomy-first（强优先）**：对候选 raw label 调用 `resolve-topic`，拿到 canonical topic_id（处理 alias/redirect）
+2) **rules/dictionary（可选）**：如果有可用的"关联规则"（如同一 category/共现/人工映射），输出 Top-N 相关方向
+3) **LLM 联想（兜底）**：当 (a) parse-background topic 太少 或 (b) 置信度低/背景过于宽泛 时，主 Agent 生成 Top-4 关联 topics + 简短理由（注意：只做"候选建议"，不自动写入 taxonomy）
 
 #### 19.4 推荐候选的组成（建议默认值）
-- 来自 parse-background 的 Top-4（按 confidence 排序）\n+- 来自 联想拓展 的 Top-4（按置信/覆盖不同方向排序）\n+- 合并去重后作为 recommended 列表（可>4），但 **UI 优先展示 Top-4**（其余在下一轮/滚动可见）
+- 来自 parse-background 的 Top-4（按 confidence 排序）
+- 来自 联想拓展 的 Top-4（按置信/覆盖不同方向排序）
+- 合并去重后作为 recommended 列表（可>4），但 **UI 优先展示 Top-4**（其余在下一轮/滚动可见）
 
 #### 19.5 AskUserQuestion 交互（不增加额外步骤）
-继续复用现有 topicCoverageValidationLoop，但增强 options 的“解释性”：
+继续复用现有 topicCoverageValidationLoop，但增强 options 的"解释性"：
 - 选项 label：尽量展示 `display_name_zh`（或 raw label），并在括号里显示 canonical `topic_id`
-- 选项 description：`来源(parse/联想) + 关键理由(1句) + 置信度(可选)`\n+- 仍保留 `type something` 用于补充遗漏（逗号/空格分隔）
-- loop guard：最多 2-3 轮；当用户选择“还需补充”时，下一轮可基于用户新增 topics 再做一次联想拓展（Top-4）
+- 选项 description：`来源(parse/联想) + 关键理由(1句) + 置信度(可选)`
+- 仍保留 `type something` 用于补充遗漏（逗号/空格分隔）
+- loop guard：最多 2-3 轮；当用户选择"还需补充"时，下一轮可基于用户新增 topics 再做一次联想拓展（Top-4）
 
 #### 19.6 关键风险与约束
-- **避免 taxonomy 污染**：不对“仅由 Agent 联想且用户未选中”的 topic 执行 `ensure-topic`。\n+- **可解释**：每个被推荐的 topic 必须带 1 句理由（否则用户无法判断是否相关）。\n+- **跨学科**：当 keyword dictionary 不覆盖某领域时，parse-background 可能输出很少 topics，此时 LLM 联想必须兜底，且仍需 resolve-topic（尽量绑定到稳定 topic_id）。
+- **避免 taxonomy 污染**：不对"仅由 Agent 联想且用户未选中"的 topic 执行 `ensure-topic`。
+- **可解释**：每个被推荐的 topic 必须带 1 句理由（否则用户无法判断是否相关）。
+- **跨学科**：当 keyword dictionary 不覆盖某领域时，parse-background 可能输出很少 topics，此时 LLM 联想必须兜底，且仍需 resolve-topic（尽量绑定到稳定 topic_id）。
 
 #### 19.7 需要你拍板的 3 个点（拍板后写 decision_lock）
-1) parse-background Top-4 + 联想 Top-4 的组合策略是否接受？\n+2) 是否同意“仅当用户选中/输入”才 ensure-topic（避免自动创建大量 provisional topics）？\n+3) loop guard：最多 2 轮还是 3 轮？（我推荐 2 轮，除非你担心覆盖不足）
+1) parse-background Top-4 + 联想 Top-4 的组合策略是否接受？
+2) 是否同意"仅当用户选中/输入"才 ensure-topic（避免自动创建大量 provisional topics）？
+3) loop guard：最多 2 轮还是 3 轮？（我推荐 2 轮，除非你担心覆盖不足）
+
+---
+
+### Round 43 (2026-02-01T20:07:47+08:00) - 继续：Topic 批量解析 + 中文 topic_id + TopicSet 约束 + Gemini Seed/QBank + 评分策略落地
+
+#### 本轮输入（用户新增要求）
+1) `ccw learn:resolve-topic` 需支持批量；修复 `INVALID_ARGS: Cannot derive topic_id from raw_topic_label`（例如“跨平台开发”）。
+2) 主 Agent 的 Topic 联想必须：
+   - 考虑 Profile 原先已存在的 topics（避免重复、避免“重新推荐已知项”）。
+   - topic 作为**最小能力粒度**；topic 之间不做“包含关系”建模（避免用 parent/child 关系偷懒），并且 topic 之间不重复（同义/别名/重定向要收敛到同一 canonical id）。
+3) 当前尚未集成：Gemini CLI 的 Seed 题 + 题库（pack）策略；以及主 Agent 的具体评分策略（连续能力区间 0..1 + sigma）。
+4) 深度参考 `.workflow/learn/claude-session-12824e11-2026-02-01.md`，补齐仍不符合约束/仍会出错的方向。
+
+---
+
+#### 从 claude-session-12824e11-2026-02-01 读到的“仍不合规/易出错点”（作为约束清单）
+**AskUserQuestion 硬约束**（否则直接 InputValidationError）：
+- 每个 question 必须带 `options`，且 `options.length >= 2`。
+- 每个 question 的 `options.length <= 4`（因此不能再塞 `skip`；也不应把“示例/跳过”当 option 解决必填校验）。
+- 同一次 AskUserQuestion 中：`question` 文本必须唯一；且每个 question 内 `option.label` 必须唯一。
+
+**Topic resolve/ensure 的硬问题（导致 INVALID_ARGS）**：
+- 现有 `normalizeTopicLabelForMatch()` 只保留 `[a-z0-9+#]`，中文会被归一化成空串 → `topicIdCandidateFromRawLabel()` 返回空 → `ensure-topic` 无法派生 `topic_id`。
+
+---
+
+#### Diverge（多视角发散）
+
+##### Creative（想法发散：把“中文/别名/去重”做成一等能力）
+1) **Stable-ID / Human-Label 分离**：topic_id 永远是稳定 ASCII（hash/pinyin），display_name/aliases 承载人类可读标签；所有“中文→id”的困难都下沉到别名/索引层解决。
+2) **TopicSet 约束器（Constraint Solver）**：把“去重、避免已存在、避免近义冗余”做成一个显式步骤，输出 `kept[]/dropped[]` 并给原因（可审计）。
+3) **候选 topic 的“冲突说明”**：当候选中出现可能重复/冗余（例如 JS vs TS），在 option.description 里明确“冲突对/保留理由”，而不是悄悄删。
+
+##### Pragmatic（可落地：最小改动、最快止血）
+1) **批量 resolve API**：保留 `learn:resolve-topic` 单条；新增 `learn:resolve-topics`（或 `learn:resolve-topic --raw-topic-labels <json-array>`）一次解析 N 个 raw labels，按输入顺序返回结果（found/ambiguous/not_found + candidates）。
+2) **中文 topic_id fallback**：`topicIdCandidateFromRawLabel()` 遇到非 ASCII 时，走 deterministic hash（例如 `u_<hash8>`），并把 raw label 塞进 aliases/display_name_zh；后续仍可通过 redirect/alias 收敛。
+3) **主 Agent 联想“去重先于展示”**：联想产出先做 resolve-batch，再按 canonical `topic_id` 去重；并减去 profile 已有 topic_ids（必要时仍可展示为“已存在”但默认不再推荐）。
+
+##### Systematic（架构一致性：把约束写成不变量）
+1) **Topic 的不变量**：
+   - `topic_id`：稳定、ASCII、安全作为 path segment；
+   - `aliases[]`：用于跨语言/同义/旧名匹配；alias-normalize 必须支持中文，不然“中文 alias”永远无法命中；
+   - `redirect_to_topic_id`：用于收敛同义词与历史遗留 id。
+2) **TopicSet 的不变量**（Profile 层）：
+   - set 语义：同一 canonical topic_id 只能出现一次；
+   - “不做包含关系”≠ 不做冗余控制：仍需要“同义/别名/重定向”级别的严格去重；以及（可选）“冗余主题对”治理（例如 TS/JS）作为规则层而非 taxonomy 层级。
+3) **评分策略落地要可回归**：能力区间更新规则、sigma 停止条件、rubric contract 必须可用回归集验证；否则“0..1 恒定”无法保证（同输入在不同模型/不同 prompt 下会漂移）。
+
+---
+
+#### Converge（收敛：建议组合方案）
+**P0（止血/合规）**：
+- 全量扫 `/learn:profile` 里的 AskUserQuestion：确保 options 2..4、question 文案唯一、option.label 唯一、移除 skip。
+
+**P1（修复 INVALID_ARGS：中文 raw label 可确保 topic）**：
+- 扩展 label normalize：支持中文 alias 匹配（否则 alias/去重都会失效）。
+- `topic_id` 派生策略：优先英文/可 slugify；否则 fallback hash（稳定、可重复）。
+
+**P1.5（性能/体验：batch resolve）**：
+- 新增 batch resolve 命令/参数，避免 topicCoverageValidationLoop 的 N+1 CLI 调用。
+
+**P2（Topic 联想满足“最小粒度/不重复/考虑既有 topics”）**：
+- 主 Agent 输入：`existing_profile_topics[]` + `background_parsed_topics[]` + `association_candidates[]`（每个 1 句理由）。
+- 先 resolve-batch → canonicalize → 去重 → subtract existing → 再做 4x4 分组展示。
+- 增加“冗余主题对治理”作为可配置规则（不走包含层级），输出 dropped 原因（可审计）。
+
+**P3（Gemini Seed + QBank/Pack 集成）**：
+- `seed`：阻塞确保（Seed=4），保证最小闭环；
+- `full`：异步生成（不阻塞 create/update），通过 pack_key 缓存复用；
+- 移除/停用 `assess.js` 的“题库/评分私货”，把它收敛为：pack ensure + 运行时调度/写入事件（规则在文档+schema+回归集中）。
+
+**P4（主 Agent 评分策略集成）**：
+- 内部统一口径：`ability ∈ [0,1]` + `sigma = hi-lo` + `sigma<=0.1` 才允许“高置信结束”；
+- LLM 评分必须带版本与证据片段写入 events（否则无法回溯/对齐“能力恒定”）。
+
+---
+
+#### Open Questions（需要你拍板，否则后续会反复返工）
+1) **中文 topic_id 策略**：你更倾向 `pinyin slug`（可读但依赖库/歧义）还是 `hash id`（稳定但不可读）？还是“hash 为主 + 常见 topic 手工 alias 显示”为折中？
+2) **冗余主题对治理范围**：是否要立刻对 “TS vs JS / 框架 vs 语言 / 引擎 vs 语言” 这类做规则化去冗余？还是先只做“同义/别名/redirect”级别去重？
+3) **既有 topics 的呈现**：update 场景里，已存在 topics 是否需要在 loop 中“只读展示”以便覆盖确认，还是完全不展示以降低噪音？
+
+#### Decision Lock（Confirmed: 2026-02-01T21:17:46+08:00）
+为进入 brainstorm-with-cycle（实现迭代）固化本轮的 3 个决策（作为 Cycle-5 的 scope 锁）：
+1) **Topic V0（简化）**：不再依赖 `resolve-topic/ensure-topic`。统一用 `topic_id = "t_" + hash(normalized_label)` 作为稳定机器键；topic 之间不建包含/层级关系（并列最小粒度）。
+2) **重复/合并治理**：先只做“同义/别名合并”（显式 `alias_map`），暂不做 TS/JS 等“近义/重叠”去冗余规则化。
+3) **update 既有 topics**：只读展示（用于覆盖感知），但不进入“新增候选”的选择集；新增候选会在集合约束阶段减去 existing topics。

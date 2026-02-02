@@ -1,0 +1,58 @@
+{
+  "project_structure": {
+    "workflow_commands": ".claude/commands/workflow/",
+    "agents": ".claude/agents/",
+    "skills": ".claude/skills/",
+    "schemas": "~/.claude/workflows/cli-templates/schemas/",
+    "session_outputs": ".workflow/.lite-plan/ | .workflow/.lite-fix/"
+  },
+  "relevant_files": [
+    {"path": ".claude/commands/workflow/lite-plan.md", "relevance": 0.95, "rationale": "Core workflow command template"},
+    {"path": ".claude/commands/workflow/lite-fix.md", "relevance": 0.95, "rationale": "Bug fix workflow variant"},
+    {"path": ".claude/commands/workflow/lite-execute.md", "relevance": 0.90, "rationale": "Execution engine"},
+    {"path": ".claude/agents/cli-lite-planning-agent.md", "relevance": 0.85, "rationale": "Planning agent pattern"},
+    {"path": ".claude/agents/cli-explore-agent.md", "relevance": 0.85, "rationale": "Exploration agent pattern"},
+    {"path": ".claude/skills/skill-generator/SKILL.md", "relevance": 0.90, "rationale": "Skill generation meta-skill"},
+    {"path": ".claude/skills/_shared/SKILL-DESIGN-SPEC.md", "relevance": 0.95, "rationale": "Skill design specification"}
+  ],
+  "patterns": {
+    "workflow_structure": {
+      "phases": "5-phase pattern: Analysis → Clarification → Planning → Confirmation → Execution",
+      "session_management": "sessionId = {slug}-{date}, sessionFolder = .workflow/.lite-{type}/{sessionId}/",
+      "artifact_pattern": "exploration-{angle}.json, manifest.json, plan.json"
+    },
+    "command_structure": {
+      "frontmatter": "name, description, argument-hint, allowed-tools",
+      "sections": "Overview, Usage, Output Artifacts, Auto Mode Defaults, Execution Process, Implementation, Session Folder Structure, Error Handling"
+    },
+    "agent_structure": {
+      "frontmatter": "name, description, color",
+      "sections": "Core Capabilities, Input Context, Execution Flow, CLI Command Template, Core Functions, Quality Standards, Key Reminders"
+    },
+    "schema_pattern": {
+      "location": "~/.claude/workflows/cli-templates/schemas/",
+      "naming": "{purpose}-json-schema.json",
+      "structure": "JSON Schema draft-07 with required fields, properties, enums"
+    }
+  },
+  "dependencies": {
+    "cli_tools": ["ccw cli", "gemini", "qwen", "codex"],
+    "mcp_tools": ["mcp__ace-tool__search_context", "mcp__ccw-tools__smart_search"],
+    "built_in_tools": ["Task", "AskUserQuestion", "Read", "Write", "Bash", "Glob", "Grep"]
+  },
+  "integration_points": [
+    {"point": "SlashCommand handoff", "location": "lite-plan → lite-execute", "mechanism": "executionContext global variable"},
+    {"point": "Agent invocation", "location": "Task(subagent_type=...)", "mechanism": "Task tool with run_in_background=false"},
+    {"point": "CLI execution", "location": "ccw cli -p ... --tool gemini", "mechanism": "Bash tool with background mode"}
+  ],
+  "constraints": {
+    "naming": "kebab-case for commands/skills, camelCase for functions",
+    "output": "JSON for structured data, Markdown for documentation",
+    "execution": "Foreground for agents (run_in_background=false), Background for CLI (run_in_background=true)"
+  },
+  "_metadata": {
+    "exploration_angle": "workflow-patterns",
+    "exploration_index": 1,
+    "timestamp": "2026-02-02T00:00:00.000Z"
+  }
+}

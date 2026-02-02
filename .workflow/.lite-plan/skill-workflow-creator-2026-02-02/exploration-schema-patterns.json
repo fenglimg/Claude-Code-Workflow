@@ -1,0 +1,50 @@
+{
+  "project_structure": {
+    "schema_location": "~/.claude/workflows/cli-templates/schemas/",
+    "existing_schemas": [
+      "plan-json-schema.json",
+      "fix-plan-json-schema.json",
+      "explore-json-schema.json",
+      "diagnosis-json-schema.json"
+    ]
+  },
+  "relevant_files": [
+    {"path": "~/.claude/workflows/cli-templates/schemas/plan-json-schema.json", "relevance": 0.95, "rationale": "Core plan schema pattern"},
+    {"path": "~/.claude/workflows/cli-templates/schemas/explore-json-schema.json", "relevance": 0.85, "rationale": "Exploration output schema"},
+    {"path": ".claude/skills/skill-generator/specs/skill-requirements.md", "relevance": 0.80, "rationale": "Skill requirements spec"}
+  ],
+  "patterns": {
+    "schema_structure": {
+      "format": "JSON Schema draft-07",
+      "required_fields": ["$schema", "title", "description", "type", "required", "properties"],
+      "common_patterns": {
+        "task_array": "tasks with id, title, scope, action, description, implementation, acceptance",
+        "metadata": "_metadata with timestamp, source, planning_mode",
+        "complexity_fields": "Low (base), Medium (+rationale, +verification), High (+risks, +code_skeleton, +data_flow)"
+      }
+    },
+    "naming_conventions": {
+      "schema_file": "{purpose}-json-schema.json",
+      "task_id": "T1, T2, T3... or FIX1, FIX2...",
+      "session_id": "{slug}-{YYYY-MM-DD}"
+    }
+  },
+  "dependencies": {
+    "schema_validation": "ajv library for JSON Schema validation",
+    "cli_integration": "ccw cli reads schema via cat command"
+  },
+  "integration_points": [
+    {"point": "Schema loading", "location": "Agent MANDATORY FIRST STEPS", "mechanism": "cat ~/.claude/workflows/cli-templates/schemas/{schema}.json"},
+    {"point": "Output validation", "location": "Phase 3: Schema Validation", "mechanism": "Read schema → Extract fields → Validate structure"}
+  ],
+  "constraints": {
+    "schema_compliance": "Output MUST follow schema exactly (field names, types, enums)",
+    "required_fields": "ALL required fields must be present at every level",
+    "case_sensitivity": "Field names and enum values are case-sensitive"
+  },
+  "_metadata": {
+    "exploration_angle": "schema-patterns",
+    "exploration_index": 2,
+    "timestamp": "2026-02-02T00:00:00.000Z"
+  }
+}

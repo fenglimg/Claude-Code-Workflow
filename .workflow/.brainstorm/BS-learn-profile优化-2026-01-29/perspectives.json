@@ -10,6 +10,106 @@
     "评估机制升级：仅支持纯文本输入，严禁选择题；动态难度调整；置信度=语义相似度×知识点覆盖率（强调逻辑严密性）",
     "资源文件清理：停用并删除 KeywordDictionary.json"
   ],
+  "last_updated": "2026-02-01T20:07:47+08:00",
+  "continuations": [
+    {
+      "timestamp": "2026-02-01T20:07:47+08:00",
+      "topic": "learn:profile - resolve-topic 批量 + 中文 topic_id + TopicSet 约束 + Gemini Seed/QBank + 评分策略落地",
+      "inputs": [
+        "ccw learn:resolve-topic 支持批量 + 修复 INVALID_ARGS（无法从中文 raw label 派生 topic_id）",
+        "主 Agent Topic 联想需考虑 profile 已有 topics；topic 为最小粒度；topic 间不做包含关系建模；topic 不重复（同义/别名/redirect 收敛）",
+        "尚未集成 Gemini CLI 生成 Seed/QBank/Pack 的策略与主 Agent 评分策略（ability 0..1 + sigma）",
+        "深度参考 .workflow/learn/claude-session-12824e11-2026-02-01.md 的失败点/硬约束"
+      ],
+      "creative": {
+        "ideas": [
+          {
+            "id": "C-43-1",
+            "title": "Stable-ID / Human-Label 分离",
+            "description": "topic_id 永远是稳定 ASCII（hash/pinyin），display_name/aliases 承载中文/别名；把跨语言匹配下沉到索引层。",
+            "novelty": 3,
+            "impact": 5
+          },
+          {
+            "id": "C-43-2",
+            "title": "TopicSet 约束器（显式 kept/dropped + 原因）",
+            "description": "把去重、减去既有 topics、冗余对治理做成明确步骤；输出审计信息，避免“悄悄删/悄悄加”。",
+            "novelty": 4,
+            "impact": 4
+          },
+          {
+            "id": "C-43-3",
+            "title": "冲突可解释的候选呈现",
+            "description": "当候选存在可能冗余（TS/JS 等）时，在 option.description 明确冲突对与保留理由，降低误解。",
+            "novelty": 3,
+            "impact": 3
+          }
+        ]
+      },
+      "pragmatic": {
+        "approaches": [
+          {
+            "id": "P-43-1",
+            "title": "新增 batch resolve（避免 N+1）",
+            "description": "新增 learn:resolve-topics（或为 learn:resolve-topic 增加 --raw-topic-labels JSON array），按输入顺序返回 found/ambiguous/not_found。",
+            "effort": 3,
+            "risk": 2
+          },
+          {
+            "id": "P-43-2",
+            "title": "中文 topic_id fallback hash",
+            "description": "topicIdCandidateFromRawLabel() 遇到非 ASCII 时生成稳定 hash id（例如 u_<hash8>），并把 raw label 加入 aliases/display_name_zh。",
+            "effort": 2,
+            "risk": 3
+          },
+          {
+            "id": "P-43-3",
+            "title": "先 resolve-batch 再去重/减已有/再展示",
+            "description": "联想候选先 canonicalize 成 topic_id，再按 topic_id 去重并减去 existing_profile_topics，最后做 4x4 分组供 AskUserQuestion 展示。",
+            "effort": 2,
+            "risk": 2
+          }
+        ],
+        "blockers": [
+          "AskUserQuestion 硬约束（options 2..4、question 文案唯一、option.label 唯一）未全量满足会直接阻塞流程",
+          "alias normalize 目前偏 ASCII，若不升级则中文 alias 匹配/去重会长期失效"
+        ]
+      },
+      "systematic": {
+        "decomposition": [
+          "输入：existing_profile_topics + background_parsed_topics + agent_association_candidates(raw+reason)",
+          "规范化：resolve-batch → canonical topic_id → redirect/alias 收敛",
+          "集合约束：去重 + subtract existing +（可选）冗余对治理",
+          "交互：4x4 multiSelect + free text 补充 + covered/more confirm（<=3 rounds）",
+          "评估：seed pack blocking + full pack async + ability/sigma 更新 + 事件写入"
+        ],
+        "patterns": [
+          "Stable identifiers + alias index（多语言/同义收敛）",
+          "Explicit constraint step（可审计输出）",
+          "Cache-by-pack_key（seed/full 分层）"
+        ],
+        "risks": [
+          "hash id 不可读：需要 UI 以 display_name_zh 为主，topic_id 仅作括号补充",
+          "冗余对治理若过早/过硬，可能误删用户真实关注的独立主题"
+        ]
+      },
+      "synthesis": {
+        "priorities": [
+          "P0：修复 AskUserQuestion 合规（options 2..4、唯一性、移除 skip）",
+          "P1：修复中文 raw label 解析/ensure（topic_id fallback + alias normalize）",
+          "P1.5：batch resolve 命令/参数，避免 N+1 CLI 调用",
+          "P2：Topic 联想按 TopicSet 约束输出（考虑既有 topics + 去重 + 可审计）",
+          "P3：Gemini Seed/QBank/Pack 集成（seed blocking + full async）",
+          "P4：主 Agent 评分策略落地（ability 0..1 + sigma contract + 回归）"
+        ],
+        "open_questions": [
+          "中文 topic_id：pinyin vs hash vs 混合",
+          "冗余对治理范围：仅同义/别名/redirect，还是扩展到 TS/JS 等",
+          "update 场景是否需要展示“已存在 topics”用于覆盖确认"
+        ]
+      }
+    }
+  ],
   "creative": {
     "ideas": [
       {
@@ -478,7 +578,7 @@
       "timestamp": "2026-01-31T20:12:58+08:00",
       "topic": "Round 27 流程修订：去轻量确认 + update 目标驱动 + 覆盖校验推荐列表",
       "issues": [
-        "topic 覆盖校验 loop 需要“推荐 topics + type something”",
+        "topic 覆盖校验 loop 需要「推荐 topics + type something」",
         "/learn:assess 结束后不做轻量确认，只保留继续/结束",
         "update 不做背景联想，改为 goal 驱动并检测是否已评估",
         "保存步骤在流程图层面合并（profile + events 视为同一保存）",
@@ -486,9 +586,66 @@
       ],
       "pragmatic": {
         "recommendations": [
-          "覆盖校验 UI 用 Top-N 列表 + ‘其他（请输入）’",
+          "覆盖校验 UI 用 Top-N 列表 + '其他（请输入）'",
           "update 先做 goal->topic resolution，再查 pack_key 是否已完成评估",
           "评估闭环不要依赖用户确认，改为通过题库/回归集/自适应策略保证准确性"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-02-01T19:30:00+08:00",
+      "topic": "Round 42 Multi-CLI Analysis: Three Core Issues",
+      "issues": [
+        "ccw learn:resolve-topic 需支持批量，修复 INVALID_ARGS 错误（无法从 '跨平台开发' 推导 ID）",
+        "移除 assessment.js，改用 Gemini CLI + 外部文档引入规则生成 Seed 题",
+        "深度参考 claude-session-12824e11-2026-02-01.md 补全不合规项"
+      ],
+      "gemini": {
+        "solutions": [
+          {
+            "id": "G42-1",
+            "title": "resolve-topic 批量接口改造",
+            "description": "增加 --raw-topic-labels 参数接收 JSON 数组，返回与输入顺序对应的结果数组；后端实现中文标签到 topic_id 的映射知识库",
+            "code_locations": [".claude/commands/learn/profile.md:658 (topicCoverageValidationLoop)", ".claude/commands/learn/profile.md:607 (resolveOrEnsureOne)"]
+          },
+          {
+            "id": "G42-2",
+            "title": "Gemini CLI 替代 assessment.js",
+            "description": "废弃 import('./_internal/assess.js')，创建规则文件 .claude/prompts/assessment/seed-question-rules.md，调用 gemini-cli generate-questions",
+            "output_schema": ["question_id", "type", "text", "options", "correct_answer_key", "difficulty"]
+          },
+          {
+            "id": "G42-3",
+            "title": "不合规项修复",
+            "description": "AskUserQuestion options 数量超限(profile.md:405)需移除skip；AskUserQuestion缺少options(profile.md:213)需添加哑选项",
+            "violations": ["options.length > 4", "missing options field"]
+          }
+        ]
+      },
+      "codex": {
+        "effort_assessment": [
+          {"issue": "resolve-topic 批量", "effort": "3/5", "risk": "中", "dependencies": "taxonomy index 中文支持"},
+          {"issue": "Gemini CLI 替代 assess.js", "effort": "4/5", "risk": "高", "dependencies": "Gemini CLI 稳定性、prompt 工程"},
+          {"issue": "不合规项修复", "effort": "2/5", "risk": "低", "dependencies": "无"}
+        ],
+        "implementation_order": [
+          "1. 修复不合规项（立即解决运行时错误）",
+          "2. 实现 resolve-topic 批量（性能优化）",
+          "3. 逐步迁移到 Gemini CLI（架构升级）"
+        ]
+      },
+      "claude": {
+        "architecture_decisions": [
+          {"id": "C42-1", "title": "Batch API 设计", "description": "learn:resolve-topics-batch 作为新命令，保留原 resolve-topic 单条接口"},
+          {"id": "C42-2", "title": "Pack 缓存策略", "description": "pack_key = {topic_id, taxonomy_version, rubric_version, question_bank_version, language}"},
+          {"id": "C42-3", "title": "评估落点", "description": "内置在 /learn:profile 中，通过内部 JS 模块调用，不暴露独立命令"}
+        ]
+      },
+      "synthesis": {
+        "priority": [
+          {"level": "P0", "item": "修复 AskUserQuestion 不合规项"},
+          {"level": "P1", "item": "实现 learn:resolve-topics-batch 批量接口"},
+          {"level": "P2", "item": "迁移 assessment.js 到 Gemini CLI"}
         ]
       }
     }

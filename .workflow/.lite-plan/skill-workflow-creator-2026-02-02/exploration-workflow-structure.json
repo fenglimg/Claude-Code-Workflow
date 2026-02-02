@@ -1,0 +1,117 @@
+{
+  "project_structure": "Claude-Code-Workflow uses a layered architecture with three main workflow-related directories: (1) .claude/commands/ - Slash command definitions as Markdown files with YAML frontmatter (name, description, argument-hint, allowed-tools), organized by domain (workflow/, learn/, issue/, memory/); (2) .claude/skills/ - Modular skill packages with SKILL.md entry point, phases/ for execution steps, specs/ for constraints, templates/ for reusable content; (3) ccw/src/tools/ - TypeScript tool implementations with schema + handler pattern, registered via tool-registry.ts. Workflows are orchestrated through flow-coordinator skill using JSON templates in templates/*.json. Schema files are centralized in .claude/workflows/cli-templates/schemas/.",
+
+  "relevant_files": [
+    {
+      "path": ".claude/skills/_shared/SKILL-DESIGN-SPEC.md",
+      "relevance": 0.95,
+      "rationale": "Core specification document defining skill structure, naming conventions, phase design, and quality standards - essential reference for creating new skills"
+    },
+    {
+      "path": ".claude/skills/skill-generator/SKILL.md",
+      "relevance": 0.92,
+      "rationale": "Meta-skill for creating new skills - demonstrates execution modes (sequential/autonomous), phase generation, and template usage patterns"
+    },
+    {
+      "path": ".claude/commands/workflow/lite-plan.md",
+      "relevance": 0.90,
+      "rationale": "Exemplary slash command showing complete workflow structure: YAML frontmatter, multi-phase execution, agent orchestration, and session management"
+    },
+    {
+      "path": ".claude/skills/flow-coordinator/SKILL.md",
+      "relevance": 0.88,
+      "rationale": "Template-driven workflow coordinator demonstrating JSON template structure, execution modes (mainprocess/async), and status tracking"
+    },
+    {
+      "path": ".claude/commands/workflow/lite-execute.md",
+      "relevance": 0.85,
+      "rationale": "Execution command showing task grouping, executor assignment, CLI integration, and progress tracking patterns"
+    },
+    {
+      "path": ".claude/workflows/cli-templates/schemas/plan-json-schema.json",
+      "relevance": 0.82,
+      "rationale": "JSON schema example showing schema structure, required fields, nested objects, and validation patterns"
+    },
+    {
+      "path": "ccw/src/tools/command-registry.ts",
+      "relevance": 0.80,
+      "rationale": "Command discovery and parsing logic - shows how slash commands are registered and their YAML headers parsed"
+    },
+    {
+      "path": "ccw/src/tools/index.ts",
+      "relevance": 0.78,
+      "rationale": "Tool registry showing how TypeScript tools are registered with schema + handler pattern"
+    },
+    {
+      "path": ".claude/skills/skill-generator/templates/skill-md.md",
+      "relevance": 0.75,
+      "rationale": "Template for SKILL.md entry files - defines required sections and frontmatter format"
+    },
+    {
+      "path": ".claude/skills/flow-coordinator/templates/rapid.json",
+      "relevance": 0.72,
+      "rationale": "Example workflow template JSON showing step structure, execution config, and context hints"
+    }
+  ],
+
+  "patterns": "**Slash Command Pattern**: Markdown files with YAML frontmatter (---name, description, argument-hint, allowed-tools---) in .claude/commands/{domain}/{name}.md. Commands are auto-discovered by CommandRegistry scanning directories.\n\n**Skill Structure Pattern**: SKILL.md entry with phases/NN-{step}.md for sequential execution or phases/orchestrator.md + phases/actions/*.md for autonomous mode. Specs in specs/, templates in templates/.\n\n**Schema Location Pattern**: JSON schemas stored in .claude/workflows/cli-templates/schemas/{name}-schema.json or {name}.schema.json. Referenced by agents and commands for output validation.\n\n**CLI Tool Pattern**: TypeScript files in ccw/src/tools/ with exported schema (ToolSchema) and handler function. Registered in index.ts via registerTool(toLegacyTool(module)).\n\n**Workflow Template Pattern**: JSON files in .claude/skills/flow-coordinator/templates/ defining step sequences with cmd, args, execution mode, and contextHint.\n\n**Agent Pattern**: Markdown files in .claude/agents/{name}.md defining agent behavior, invoked via Task(subagent_type='{name}').\n\n**Session Folder Pattern**: .workflow/.lite-plan/{task-slug}-{YYYY-MM-DD}/ for planning artifacts, .workflow/.flow-coordinator/{session-id}/ for flow state.",
+
+  "dependencies": "**Internal Dependencies**: (1) CommandRegistry (ccw/src/tools/command-registry.ts) for slash command discovery; (2) Tool Registry (ccw/src/tools/index.ts) for CLI tool registration; (3) Skill loader for SKILL.md parsing; (4) JSON schema validation for output compliance.\n\n**External Dependencies**: (1) ccw CLI for tool execution (ccw tool exec, ccw cli); (2) Gemini/Qwen/Codex CLI tools for AI-assisted generation; (3) Bash for file operations and script execution.\n\n**Schema Dependencies**: Schemas in .claude/workflows/cli-templates/schemas/ are referenced by: explore-json-schema.json (exploration output), plan-json-schema.json (planning output), various domain-specific schemas.\n\n**Agent Dependencies**: Agents in .claude/agents/ are invoked by commands via Task() tool. Key agents: cli-explore-agent, cli-lite-planning-agent, code-developer.",
+
+  "integration_points": "**Slash Command Registration**: .claude/commands/{domain}/{name}.md:1-6 (YAML frontmatter parsed by CommandRegistry)\n\n**Skill Entry Point**: .claude/skills/{skill-name}/SKILL.md:1-10 (frontmatter with name, description, allowed-tools)\n\n**Tool Registration**: ccw/src/tools/index.ts:351-368 (registerTool calls for each tool module)\n\n**Schema Reference**: Commands reference schemas via cat ~/.claude/workflows/cli-templates/schemas/{name}.json\n\n**Workflow Template Discovery**: .claude/skills/flow-coordinator/SKILL.md:91-109 (Glob-based template discovery)\n\n**Agent Invocation**: Task(subagent_type='{agent-name}', prompt='...') pattern used throughout commands\n\n**Session Folder Creation**: .workflow/.lite-plan/{session-id}/ created by lite-plan.md:117-123",
+
+  "constraints": "**Naming Conventions**: (1) Skill directories use lowercase-hyphen (e.g., skill-generator); (2) Phase files use NN-{action}.md numbering; (3) Schema files use {name}-schema.json or {name}.schema.json; (4) Commands use {name}.md in domain subdirectories.\n\n**Frontmatter Requirements**: (1) name field required for all commands/skills; (2) description should include trigger keywords; (3) allowed-tools must list all tools used.\n\n**Schema Compliance**: (1) All structured outputs must follow corresponding JSON schema; (2) Schemas stored in .claude/workflows/cli-templates/schemas/; (3) Required fields must be present.\n\n**Execution Mode Constraints**: (1) Sequential skills use phases/NN-*.md; (2) Autonomous skills use phases/orchestrator.md + phases/actions/*.md; (3) CLI tools require schema + handler exports.\n\n**File Location Constraints**: (1) Slash commands in .claude/commands/; (2) Skills in .claude/skills/; (3) CLI tools in ccw/src/tools/; (4) Schemas in .claude/workflows/cli-templates/schemas/.",
+
+  "clarification_needs": [
+    {
+      "question": "What execution mode should the skill-workflow-creator use?",
+      "context": "Skills can use sequential mode (fixed phase order like software-manual) or autonomous mode (state-driven action selection like issue-manage). Sequential is better for linear creation workflows, autonomous for interactive/iterative processes.",
+      "options": [
+        "Sequential - Fixed phase order (01-requirements -> 02-structure -> 03-generation -> 04-validation)",
+        "Autonomous - State-driven with orchestrator selecting actions based on current state",
+        "Hybrid - Sequential for main flow with autonomous sub-phases for complex steps"
+      ],
+      "recommended": 0
+    },
+    {
+      "question": "Should the skill generate CLI tools (TypeScript) in addition to slash commands?",
+      "context": "Some workflows only need slash commands (.claude/commands/*.md), while others require CLI tools (ccw/src/tools/*.ts) for programmatic access. CLI tools require TypeScript implementation with schema + handler pattern.",
+      "options": [
+        "Slash commands only - Generate .claude/commands/ and .claude/skills/ files",
+        "Full stack - Also generate ccw/src/tools/*.ts CLI tool implementations",
+        "Configurable - Let user choose per-workflow whether CLI tools are needed"
+      ],
+      "recommended": 2
+    },
+    {
+      "question": "How should the skill handle schema generation and placement?",
+      "context": "Schemas can be placed in .claude/workflows/cli-templates/schemas/ (global) or within the skill's specs/ directory (local). Global schemas are reusable across workflows, local schemas are skill-specific.",
+      "options": [
+        "Global schemas - All schemas in .claude/workflows/cli-templates/schemas/",
+        "Local schemas - Schemas in {skill}/specs/ directory",
+        "Smart placement - Global for reusable schemas, local for skill-specific ones"
+      ],
+      "recommended": 2
+    },
+    {
+      "question": "What level of agent design support should be included?",
+      "context": "Workflows may need custom agents (.claude/agents/*.md) for specialized tasks. The skill could generate agent templates, reference existing agents, or leave agent design to the user.",
+      "options": [
+        "No agent generation - Reference existing agents only",
+        "Agent templates - Generate basic agent markdown templates",
+        "Full agent design - Include agent behavior specification and prompt engineering"
+      ],
+      "recommended": 1
+    }
+  ],
+
+  "_metadata": {
+    "timestamp": "2026-02-02T15:30:00.000Z",
+    "task_description": "设计一个skill专门用于创造基于该Claude-Code-Workflow的相关slash命令以及闭环的工作流（slash命令文档的编写，流程设计，Agent涉及，数据结构的涉及，何时需要创建cli，json schema的编写与位置存放等等多方面)",
+    "source": "cli-explore-agent",
+    "exploration_angle": "workflow-structure",
+    "exploration_index": 1,
+    "total_explorations": 4,
+    "duration_seconds": 45
+  }
+}

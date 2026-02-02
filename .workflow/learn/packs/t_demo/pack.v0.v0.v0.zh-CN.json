@@ -1,0 +1,155 @@
+{
+  "pack_key": {
+    "topic_id": "t_demo",
+    "taxonomy_version": "v0",
+    "rubric_version": "v0",
+    "question_bank_version": "v0",
+    "language": "zh-CN"
+  },
+  "topic_id": "t_demo",
+  "taxonomy_version": "v0",
+  "rubric_version": "v0",
+  "question_bank_version": "v0",
+  "language": "zh-CN",
+  "created_at": "2026-02-01T14:06:56.394Z",
+  "pack_kind": "seed",
+  "taxonomy": {
+    "subpoints": [
+      {
+        "id": "t_demo:must:core_concepts",
+        "priority": "must",
+        "label": "核心概念",
+        "min_evidence": 1
+      },
+      {
+        "id": "t_demo:must:pitfalls",
+        "priority": "must",
+        "label": "常见坑/边界情况",
+        "min_evidence": 1
+      },
+      {
+        "id": "t_demo:core:syntax",
+        "priority": "core",
+        "label": "基础语法/结构",
+        "min_evidence": 1
+      },
+      {
+        "id": "t_demo:core:types",
+        "priority": "core",
+        "label": "类型/抽象",
+        "min_evidence": 1
+      },
+      {
+        "id": "t_demo:core:debugging",
+        "priority": "core",
+        "label": "调试与定位",
+        "min_evidence": 1
+      },
+      {
+        "id": "t_demo:core:practice",
+        "priority": "core",
+        "label": "实战应用",
+        "min_evidence": 1
+      },
+      {
+        "id": "t_demo:nice:ecosystem",
+        "priority": "nice",
+        "label": "生态/工具链",
+        "min_evidence": 1
+      },
+      {
+        "id": "t_demo:nice:best_practices",
+        "priority": "nice",
+        "label": "最佳实践",
+        "min_evidence": 1
+      }
+    ]
+  },
+  "questions": [
+    {
+      "id": "seed-q1",
+      "level": 2,
+      "difficulty": 0.25,
+      "capability_node": "see",
+      "subpoint_ids": [
+        "t_demo:must:core_concepts"
+      ],
+      "common_mistakes": [
+        "只背定义，不给可检验的例子/场景",
+        "忽略约束/边界条件导致答案不可用",
+        "把相关概念混为一谈（概念漂移）"
+      ],
+      "grading_notes": "评分关注：是否给出可检验的定义/例子；是否包含推理链或步骤；是否明确边界/取舍。",
+      "prompt": "【t_demo｜识别】看到「核心概念」时，你会如何判断自己是否理解/见过？请用一句话给出定义，并给一个最小例子。"
+    },
+    {
+      "id": "seed-q2",
+      "level": 3,
+      "difficulty": 0.45,
+      "capability_node": "explain",
+      "subpoint_ids": [
+        "t_demo:must:pitfalls"
+      ],
+      "common_mistakes": [
+        "只背定义，不给可检验的例子/场景",
+        "忽略约束/边界条件导致答案不可用",
+        "把相关概念混为一谈（概念漂移）"
+      ],
+      "grading_notes": "评分关注：是否给出可检验的定义/例子；是否包含推理链或步骤；是否明确边界/取舍。",
+      "prompt": "【t_demo｜解释】用自己的话解释「常见坑/边界情况」的机制/因果链：\\n- 为什么它这样工作？\\n- 给一个具体例子\\n- 提一个常见坑/边界条件"
+    },
+    {
+      "id": "seed-q3",
+      "level": 4,
+      "difficulty": 0.65,
+      "capability_node": "apply",
+      "subpoint_ids": [
+        "t_demo:core:syntax"
+      ],
+      "common_mistakes": [
+        "只背定义，不给可检验的例子/场景",
+        "忽略约束/边界条件导致答案不可用",
+        "把相关概念混为一谈（概念漂移）"
+      ],
+      "grading_notes": "评分关注：是否给出可检验的定义/例子；是否包含推理链或步骤；是否明确边界/取舍。",
+      "prompt": "【t_demo｜应用】给定一个具体场景（你自选一个真实场景），说明你会如何使用「基础语法/结构」解决问题：\\n- 输入/约束是什么？\\n- 关键步骤是什么？\\n- 输出/验收是什么？\\n并提一个常见坑/边界条件。"
+    },
+    {
+      "id": "seed-q4",
+      "level": 4,
+      "difficulty": 0.85,
+      "capability_node": "debug",
+      "subpoint_ids": [
+        "t_demo:core:types"
+      ],
+      "common_mistakes": [
+        "只背定义，不给可检验的例子/场景",
+        "忽略约束/边界条件导致答案不可用",
+        "把相关概念混为一谈（概念漂移）"
+      ],
+      "grading_notes": "评分关注：是否给出可检验的定义/例子；是否包含推理链或步骤；是否明确边界/取舍。",
+      "prompt": "【t_demo｜诊断】假设你在使用「类型/抽象」时遇到失败/效果不符合预期：\\n1) 你会如何定位原因（步骤）？\\n2) 你会优先排查哪 3 类可能性？\\n3) 你会如何选择修复方案并解释取舍？"
+    }
+  ],
+  "regression_cases": [],
+  "_metadata": {
+    "generator": "deterministic_fallback",
+    "seed_spec": {
+      "version": "cycle-4",
+      "N": 4,
+      "capability_nodes": [
+        "see",
+        "explain",
+        "apply",
+        "debug"
+      ],
+      "difficulties": [
+        0.25,
+        0.45,
+        0.65,
+        0.85
+      ]
+    },
+    "error": "Unexpected token '\\', \"\\r\\nPURPOS\"... is not valid JSON"
+  }
+}

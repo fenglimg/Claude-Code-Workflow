@@ -18,16 +18,14 @@ function getSection(content, heading) {
 }
 
 describe('learn/profile.md contract', () => {
-  it('implements select/show flows via ccw learn:* APIs', () => {
+  it('keeps Cycle-5 contract: no show/select flows; create/update only', () => {
     const content = readFileSync(path.join(repoRoot, '.claude/commands/learn/profile.md'), 'utf8');
 
-    const selectSection = getSection(content, '### Phase 4: Profile Selection Flow (select)');
-    assert.ok(selectSection.includes('ccw learn:read-state --json'));
-    assert.ok(selectSection.includes('ccw learn:update-state --field active_profile_id'));
-
-    const showSection = getSection(content, '### Phase 5: Profile Display Flow (show)');
-    assert.ok(showSection.includes('ccw learn:read-state --json'));
-    assert.ok(showSection.includes('ccw learn:read-profile'));
+    assert.ok(content.includes('Usage: /learn:profile create|update'));
+    assert.ok(!content.includes("case 'select'"));
+    assert.ok(!content.includes("case 'show'"));
+    assert.ok(!content.includes('function selectFlow'));
+    assert.ok(!content.includes('function showFlow'));
   });
 
   it('keeps --goal update helper consistent (extractKeywords)', () => {

@@ -1,0 +1,90 @@
+{
+  "project_structure": "Multi-agent workflow framework with layered architecture: .claude/agents/ (20 agent definitions), .claude/skills/ (14 skill packages with phases/specs/templates), .claude/commands/ (slash commands), and ccw/src/ (CLI core). Agents are invoked via Task() tool with subagent_type parameter. Skills use orchestrator patterns (sequential phases or autonomous actions). CLI tools (gemini/qwen/codex) integrate via ccw cli command with --tool and --mode parameters.",
+  "relevant_files": [
+    {
+      "path": ".claude/skills/skill-generator/SKILL.md",
+      "relevance": 0.95,
+      "rationale": "Primary reference for skill creation workflow - defines 5-phase generation process, execution modes (sequential/autonomous), and complete output structure"
+    },
+    {
+      "path": ".claude/skills/_shared/SKILL-DESIGN-SPEC.md",
+      "relevance": 0.92,
+      "rationale": "Universal design specification for all skills - defines directory structure, naming conventions, phase types, and quality standards"
+    },
+    {
+      "path": ".claude/skills/skill-generator/specs/cli-integration.md",
+      "relevance": 0.90,
+      "rationale": "CLI integration patterns for skills - defines Task() vs Bash() execution, session management, and tool selection strategies"
+    },
+    {
+      "path": ".claude/agents/universal-executor.md",
+      "relevance": 0.85,
+      "rationale": "Reference agent definition showing frontmatter format, execution philosophy, and quality checklist patterns"
+    },
+    {
+      "path": ".claude/commands/workflow/lite-plan.md",
+      "relevance": 0.85,
+      "rationale": "Complex workflow command demonstrating multi-phase execution, parallel agent invocation, and context handoff patterns"
+    },
+    {
+      "path": ".claude/skills/lite-skill-generator/SKILL.md",
+      "relevance": 0.80,
+      "rationale": "Lightweight skill generator showing simplified 3-phase approach with style learning - alternative pattern for simpler skills"
+    },
+    {
+      "path": "~/.claude/workflows/cli-templates/schemas/",
+      "relevance": 0.78,
+      "rationale": "JSON schema repository (24 schemas) - defines data contracts for plans, explorations, issues, and workflow state"
+    },
+    {
+      "path": ".claude/agents/cli-explore-agent.md",
+      "relevance": 0.75,
+      "rationale": "Agent definition with 4-phase workflow, schema validation protocol, and dual-source analysis strategy"
+    }
+  ],
+  "patterns": "**Agent Definition Pattern**: YAML frontmatter (name, description, color) + markdown body with sections (Core Philosophy, Execution Process, Quality Checklist, Key Reminders). Example: `---\\nname: agent-name\\ndescription: |\\n  Multi-line description.\\ncolor: green\\n---`\n\n**Agent Invocation Pattern**: `Task({ subagent_type: 'agent-name', prompt: '...', run_in_background: false })` for synchronous execution. Agent files in .claude/agents/{name}.md are auto-loaded by subagent_type.\n\n**Skill Structure Pattern**: `SKILL.md` entry with frontmatter (name, description, allowed-tools) + `phases/` directory with numbered files (01-xxx.md, 02-xxx.md) + `specs/` for domain requirements + `templates/` for reusable content.\n\n**CLI Integration Pattern**: `ccw cli -p \"PURPOSE: ... TASK: ... MODE: ... CONTEXT: ... EXPECTED: ...\" --tool gemini --mode analysis --rule template-name`\n\n**Schema Location Pattern**: Schemas stored in `~/.claude/workflows/cli-templates/schemas/{name}-schema.json` or `{name}.schema.json`",
+  "dependencies": "**Internal Dependencies**: Task tool (agent invocation), Bash tool (CLI execution), Read/Write/Glob/Grep (file operations), AskUserQuestion (interactive prompts), SlashCommand (workflow chaining).\n\n**CLI Tools**: gemini, qwen, codex, claude (defined in ~/.claude/cli-tools.json) - used via `ccw cli -p \"...\" --tool <tool> --mode <mode>`.\n\n**Schema Dependencies**: JSON Schema draft-07 for validation, Zod for runtime validation in TypeScript.\n\n**Workflow Dependencies**: .workflow/project-tech.json (tech stack context), .workflow/project-guidelines.json (user constraints), session folders in .workflow/.lite-plan/ or .workflow/.scratchpad/",
+  "integration_points": "**Agent Registration**: .claude/agents/{agent-name}.md - auto-discovered by Task tool via subagent_type parameter (line 19 in CLAUDE.md: `Task({ subagent_type: \"xxx\", prompt: \"...\", run_in_background: false })`)\n\n**Skill Registration**: .claude/skills/{skill-name}/SKILL.md - auto-discovered by Skill tool, frontmatter triggers on keywords (line 143 in SKILL-DESIGN-SPEC.md: `Triggers on \"keyword1\", \"keyword2\"`)\n\n**Slash Command Registration**: .claude/commands/{category}/{command}.md - auto-discovered, invoked via /category:command or SlashCommand() tool\n\n**Schema Integration**: Read schema via `cat ~/.claude/workflows/cli-templates/schemas/{name}.json` before generating output (line 107-110 in cli-explore-agent.md)\n\n**CLI Tool Integration**: ccw/src/commands/cli.ts handles --tool routing to gemini/qwen/codex backends",
+  "constraints": "**Agent Constraints**: Agents MUST use `run_in_background: false` for Task() calls to ensure synchronous execution. Agent definitions require YAML frontmatter with name, description fields.\n\n**Skill Constraints**: Skills MUST follow SKILL-DESIGN-SPEC.md structure - SKILL.md entry required, phases/ directory for multi-step workflows, specs/ for domain requirements. Allowed-tools must be declared in frontmatter.\n\n**Schema Constraints**: Output JSON MUST validate against schema - read schema FIRST, copy field names EXACTLY (case-sensitive), include ALL required fields.\n\n**CLI Constraints**: CLI calls use `run_in_background: true` for Bash tool. Mode must be explicit: --mode analysis (read-only) or --mode write (file modifications).\n\n**Naming Constraints**: kebab-case for skill/agent names, numbered prefixes for phases (01-, 02-), .schema.json suffix for schemas",
+  "clarification_needs": [
+    {
+      "question": "Should the skill-workflow-creator generate skills using the full skill-generator (5-phase) or lite-skill-generator (3-phase) approach?",
+      "context": "The codebase has two skill generation patterns: skill-generator for production-ready skills with phases/specs/templates directories, and lite-skill-generator for minimal skills with just SKILL.md + README. The choice affects complexity and output structure.",
+      "options": [
+        "Full skill-generator approach (5 phases, complete structure)",
+        "Lite-skill-generator approach (3 phases, minimal structure)",
+        "Hybrid: Auto-detect based on skill complexity"
+      ],
+      "recommended": 2
+    },
+    {
+      "question": "What execution mode should generated skills default to: sequential or autonomous?",
+      "context": "Sequential mode executes phases in fixed order (01 -> 02 -> 03), suitable for pipeline tasks. Autonomous mode uses an orchestrator that dynamically selects actions based on state, suitable for interactive tasks. Most existing skills use sequential.",
+      "options": [
+        "Sequential (fixed phase order, simpler)",
+        "Autonomous (state-driven, more flexible)",
+        "User-selectable during skill creation"
+      ],
+      "recommended": 2
+    },
+    {
+      "question": "Should the skill include CLI tool creation guidance (ccw tool exec) or focus only on slash commands and agents?",
+      "context": "The codebase has ccw/src/tools/ with MCP-like tools that can be invoked via `ccw tool exec`. Creating new CLI tools requires TypeScript implementation in ccw/src/tools/. This adds significant complexity but enables programmatic tool access.",
+      "options": [
+        "Include CLI tool creation (full workflow coverage)",
+        "Focus on slash commands and agents only (simpler scope)",
+        "Document CLI tools as optional advanced topic"
+      ],
+      "recommended": 2
+    }
+  ],
+  "_metadata": {
+    "timestamp": "2026-02-02T08:00:00.000Z",
+    "task_description": "设计一个skill专门用于创造基于该Claude-Code-Workflow的相关slash命令以及闭环的工作流（slash命令文档的编写，流程设计，Agent涉及，数据结构的涉及，何时需要创建cli，json schema的编写与位置存放等等多方面)",
+    "source": "cli-explore-agent",
+    "exploration_angle": "agent-integration",
+    "exploration_index": 3,
+    "total_explorations": 4,
+    "duration_seconds": 120
+  }
+}

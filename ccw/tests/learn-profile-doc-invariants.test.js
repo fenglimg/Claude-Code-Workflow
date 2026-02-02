@@ -17,17 +17,20 @@ function getSection(content, heading) {
   return content.slice(start, end);
 }
 
-describe('learn/profile.md invariants (select/show)', () => {
-  it('contains select/show implementation blocks that use ccw learn:* APIs', () => {
+describe('learn/profile.md invariants', () => {
+  it('documents Topic V0 + Gemini packs and avoids show/select flows in Cycle-5', () => {
     const content = readFileSync(path.join(repoRoot, '.claude/commands/learn/profile.md'), 'utf8');
 
-    const selectSection = getSection(content, '### Phase 4: Profile Selection Flow (select)');
-    assert.ok(selectSection.includes('ccw learn:read-state --json'));
-    assert.ok(selectSection.includes('ccw learn:update-state --field active_profile_id'));
+    const execSection = getSection(content, '## Execution Process');
+    assert.ok(execSection.includes('Topic V0'));
+    assert.ok(execSection.includes('t_<sha1(normalized_label)>'));
+    assert.ok(execSection.includes('ccw learn:ensure-pack'));
 
-    const showSection = getSection(content, '### Phase 5: Profile Display Flow (show)');
-    assert.ok(showSection.includes('ccw learn:read-state --json'));
-    assert.ok(showSection.includes('ccw learn:read-profile'));
+    // Cycle-5 decision: remove show/select branches from the main interaction.
+    assert.ok(!content.includes('/learn:profile show'));
+    assert.ok(!content.includes('/learn:profile select'));
+    assert.ok(!content.includes('function showFlow'));
+    assert.ok(!content.includes('function selectFlow'));
   });
 });
 

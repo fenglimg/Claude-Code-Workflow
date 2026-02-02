@@ -1,4 +1,4 @@
-{
+  {
   "$schema": "./schemas/learn-profile.schema.json",
   "profile_id": "profile-1769939869147",
   "is_minimal": false,

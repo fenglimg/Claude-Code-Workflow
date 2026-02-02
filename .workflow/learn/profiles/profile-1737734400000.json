@@ -1,0 +1,12 @@
+{
+  "$schema": "./schemas/learn-profile.schema.json",
+  "profile_id": "profile-1737734400000",
+  "experience_level": null,
+  "known_topics": [],
+  "_metadata": {
+    "created_at": "2025-01-25T00:00:00.000Z",
+    "updated_at": "2025-01-25T00:00:00.000Z",
+    "version": "1.0.0"
+  }
+}
+

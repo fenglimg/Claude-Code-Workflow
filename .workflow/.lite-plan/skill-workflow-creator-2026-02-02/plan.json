@@ -1,0 +1,444 @@
+{
+  "summary": "设计一个名为 'workflow-creator' 的skill，用于基于用户描述的流程自动生成Claude-Code-Workflow的slash命令、Agent定义、JSON Schema和闭环工作流。该skill支持用户输入具体命令文档，进行Phase拆解，使用ACE-tool分析相似流程参考，并确保生成的工作流闭环可用。",
+  "approach": "采用7阶段顺序执行模式：需求收集 → 流程文档输入 → Phase拆解 → 相似流程分析 → 大纲生成 → 组件脚手架 → 闭环验证。通过学习现有工作流的共性模式，结合ACE-tool语义搜索，生成符合SKILL-DESIGN-SPEC规范的完整工作流包。",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "设计skill入口和元数据结构",
+      "scope": ".claude/skills/workflow-creator/",
+      "action": "Create",
+      "description": "创建workflow-creator skill的SKILL.md入口文件，定义元数据、架构图、执行流程和参考文档",
+      "modification_points": [
+        {"file": ".claude/skills/workflow-creator/SKILL.md", "target": "entire file", "change": "创建skill入口文件"},
+        {"file": ".claude/skills/workflow-creator/README.md", "target": "entire file", "change": "创建使用说明"}
+      ],
+      "implementation": [
+        "参考 .claude/skills/_shared/SKILL-DESIGN-SPEC.md 了解skill结构规范",
+        "参考 .claude/skills/skill-generator/SKILL.md 了解meta-skill模式",
+        "定义frontmatter: name, description, allowed-tools",
+        "设计7阶段执行流程架构图（包含新增的流程输入、Phase拆解、相似流程分析阶段）",
+        "列出Reference Documents by Phase"
+      ],
+      "reference": {
+        "pattern": "SKILL-DESIGN-SPEC.md Section 4: SKILL.md入口规范",
+        "files": [".claude/skills/_shared/SKILL-DESIGN-SPEC.md", ".claude/skills/skill-generator/SKILL.md"],
+        "examples": "参考skill-generator的架构图和执行流程设计"
+      },
+      "acceptance": [
+        "SKILL.md包含完整frontmatter (name, description, allowed-tools)",
+        "包含ASCII架构图展示7阶段流程",
+        "包含Reference Documents by Phase表格"
+      ],
+      "depends_on": [],
+      "rationale": {
+        "chosen_approach": "采用顺序执行模式(Sequential)而非自治模式(Autonomous)",
+        "alternatives_considered": ["Autonomous模式", "混合模式"],
+        "decision_factors": ["工作流创建是线性流程", "阶段间有强依赖", "输出结构固定"],
+        "tradeoffs": "灵活性较低，但流程更可控"
+      },
+      "verification": {
+        "unit_tests": [],
+        "integration_tests": [],
+        "manual_checks": ["验证frontmatter格式正确", "验证架构图可读性"],
+        "success_metrics": ["符合SKILL-DESIGN-SPEC规范"]
+      }
+    },
+    {
+      "id": "T2",
+      "title": "实现需求收集阶段",
+      "scope": ".claude/skills/workflow-creator/phases/",
+      "action": "Create",
+      "description": "创建Phase 1: 需求收集，通过交互式问答收集用户的工作流需求",
+      "modification_points": [
+        {"file": ".claude/skills/workflow-creator/phases/01-requirements-collection.md", "target": "entire file", "change": "创建需求收集阶段"}
+      ],
+      "implementation": [
+        "设计AskUserQuestion问题集：工作流名称、目的、阶段数、工具依赖、输出格式",
+        "定义workflow-config.json输出结构",
+        "参考lite-skill-generator的Phase 2: Requirements Gathering模式",
+        "添加工作流类型选择：planning类、fix类、analysis类、generation类"
+      ],
+      "reference": {
+        "pattern": "lite-skill-generator Phase 2 pattern",
+        "files": [".claude/skills/lite-skill-generator/SKILL.md"],
+        "examples": "gatherRequirements()函数设计"
+      },
+      "acceptance": [
+        "包含4-6个结构化问题",
+        "输出workflow-config.json包含所有必要字段",
+        "支持工作流类型分类"
+      ],
+      "depends_on": ["T1"],
+      "rationale": {
+        "chosen_approach": "使用AskUserQuestion进行交互式收集",
+        "alternatives_considered": ["纯文本解析", "模板选择"],
+        "decision_factors": ["用户体验", "信息完整性", "减少歧义"],
+        "tradeoffs": "需要更多用户交互"
+      },
+      "verification": {
+        "unit_tests": [],
+        "integration_tests": [],
+        "manual_checks": ["测试问题流程完整性", "验证config输出格式"],
+        "success_metrics": ["用户能在5分钟内完成需求收集"]
+      }
+    },
+    {
+      "id": "T3",
+      "title": "实现流程文档输入阶段",
+      "scope": ".claude/skills/workflow-creator/phases/",
+      "action": "Create",
+      "description": "创建Phase 2: 流程文档输入，用户输入具体要生成的命令文档，支持文本描述或Markdown文件",
+      "modification_points": [
+        {"file": ".claude/skills/workflow-creator/phases/02-workflow-document-input.md", "target": "entire file", "change": "创建流程文档输入阶段"}
+      ],
+      "implementation": [
+        "支持两种输入模式：直接文本描述 或 Markdown文件路径",
+        "解析用户输入的流程描述，提取关键步骤",
+        "生成workflow-document.json包含原始输入和解析结果",
+        "支持多轮澄清：如果流程描述不清晰，使用AskUserQuestion进行澄清"
+      ],
+      "reference": {
+        "pattern": "lite-plan Phase 1: Task Analysis",
+        "files": [".claude/commands/workflow/lite-plan.md"],
+        "examples": "Parse input (description or .md file)"
+      },
+      "acceptance": [
+        "支持文本和文件两种输入模式",
+        "能正确解析流程描述中的步骤",
+        "输出workflow-document.json包含结构化的流程信息"
+      ],
+      "depends_on": ["T2"],
+      "rationale": {
+        "chosen_approach": "支持多种输入格式以提高灵活性",
+        "alternatives_considered": ["仅支持文本", "仅支持文件"],
+        "decision_factors": ["用户便利性", "灵活性", "与现有工作流一致"],
+        "tradeoffs": "需要处理多种输入格式"
+      },
+      "verification": {
+        "unit_tests": [],
+        "integration_tests": [],
+        "manual_checks": ["测试文本输入解析", "测试文件输入解析"],
+        "success_metrics": ["正确解析90%以上的流程描述"]
+      }
+    },
+    {
+      "id": "T4",
+      "title": "实现Phase拆解阶段",
+      "scope": ".claude/skills/workflow-creator/phases/",
+      "action": "Create",
+      "description": "创建Phase 3: Phase拆解，对用户输入的流程文档进行Phase拆解，定义每个Phase的具体流程",
+      "modification_points": [
+        {"file": ".claude/skills/workflow-creator/phases/03-phase-decomposition.md", "target": "entire file", "change": "创建Phase拆解阶段"},
+        {"file": ".claude/skills/workflow-creator/specs/phase-decomposition-rules.md", "target": "entire file", "change": "创建Phase拆解规则"}
+      ],
+      "implementation": [
+        "分析workflow-document.json中的流程步骤",
+        "根据步骤类型和依赖关系进行Phase分组",
+        "为每个Phase定义：目标、输入、输出、工具依赖、执行步骤",
+        "生成phase-decomposition.json包含所有Phase定义",
+        "参考lite-plan的5阶段模式作为基础模板"
+      ],
+      "reference": {
+        "pattern": "lite-plan 5-phase structure",
+        "files": [".claude/commands/workflow/lite-plan.md", ".claude/commands/workflow/lite-fix.md"],
+        "examples": "Phase 1: Analysis → Phase 2: Clarification → Phase 3: Planning → Phase 4: Confirmation → Phase 5: Execution"
+      },
+      "acceptance": [
+        "每个Phase有明确的目标和边界",
+        "Phase之间的依赖关系清晰",
+        "每个Phase的输入输出定义完整"
+      ],
+      "depends_on": ["T3"],
+      "rationale": {
+        "chosen_approach": "基于现有工作流模式进行Phase拆解",
+        "alternatives_considered": ["AI自由拆解", "固定模板"],
+        "decision_factors": ["一致性", "可预测性", "与现有工作流兼容"],
+        "tradeoffs": "灵活性受限于现有模式"
+      },
+      "verification": {
+        "unit_tests": [],
+        "integration_tests": [],
+        "manual_checks": ["验证Phase拆解合理性", "验证依赖关系正确性"],
+        "success_metrics": ["Phase拆解符合SKILL-DESIGN-SPEC规范"]
+      }
+    },
+    {
+      "id": "T5",
+      "title": "实现相似流程分析阶段",
+      "scope": ".claude/skills/workflow-creator/phases/",
+      "action": "Create",
+      "description": "创建Phase 4: 相似流程分析，使用ACE-tool MCP分析是否存在相似流程可参考，没有则标记为新增",
+      "modification_points": [
+        {"file": ".claude/skills/workflow-creator/phases/04-similar-workflow-analysis.md", "target": "entire file", "change": "创建相似流程分析阶段"}
+      ],
+      "implementation": [
+        "使用mcp__ace-tool__search_context搜索相似的工作流实现",
+        "对每个Phase，搜索是否有相似的Phase实现可参考",
+        "生成similarity-analysis.json包含：相似流程列表、参考建议、新增标记",
+        "如果找到相似流程，提取可复用的模式和代码片段",
+        "如果没有相似流程，标记为'new'并提供设计建议"
+      ],
+      "reference": {
+        "pattern": "cli-explore-agent semantic analysis",
+        "files": [".claude/agents/cli-explore-agent.md"],
+        "examples": "mcp__ace-tool__search_context(project_root_path, query)"
+      },
+      "acceptance": [
+        "对每个Phase都进行相似性分析",
+        "相似度评分准确（0-1范围）",
+        "提供可操作的参考建议"
+      ],
+      "depends_on": ["T4"],
+      "rationale": {
+        "chosen_approach": "使用ACE-tool进行语义搜索",
+        "alternatives_considered": ["关键词搜索", "手动查找"],
+        "decision_factors": ["搜索准确性", "效率", "语义理解能力"],
+        "tradeoffs": "依赖ACE-tool可用性"
+      },
+      "verification": {
+        "unit_tests": [],
+        "integration_tests": [],
+        "manual_checks": ["验证相似性分析准确性", "验证参考建议有效性"],
+        "success_metrics": ["相似流程识别准确率>80%"]
+      }
+    },
+    {
+      "id": "T6",
+      "title": "实现大纲生成阶段",
+      "scope": ".claude/skills/workflow-creator/phases/",
+      "action": "Create",
+      "description": "创建Phase 5: 大纲生成，基于Phase拆解和相似流程分析生成工作流大纲",
+      "modification_points": [
+        {"file": ".claude/skills/workflow-creator/phases/05-outline-generation.md", "target": "entire file", "change": "创建大纲生成阶段"},
+        {"file": ".claude/skills/workflow-creator/templates/workflow-outline.md", "target": "entire file", "change": "创建大纲模板"}
+      ],
+      "implementation": [
+        "整合phase-decomposition.json和similarity-analysis.json",
+        "设计workflow-outline.json结构：包含slash命令、Agent、schema、CLI集成等组件",
+        "对于有相似流程的Phase，复用现有模式",
+        "对于新增Phase，基于规范生成模板",
+        "生成skill-generator输入格式的大纲"
+      ],
+      "reference": {
+        "pattern": "cli-lite-planning-agent planObject generation",
+        "files": [".claude/agents/cli-lite-planning-agent.md", "~/.claude/workflows/cli-templates/schemas/plan-json-schema.json"],
+        "examples": "generatePlanObject()函数设计"
+      },
+      "acceptance": [
+        "大纲包含所有必要组件定义",
+        "大纲格式兼容skill-generator输入",
+        "相似流程的参考信息被正确整合"
+      ],
+      "depends_on": ["T5"],
+      "rationale": {
+        "chosen_approach": "整合多源信息生成结构化大纲",
+        "alternatives_considered": ["直接生成代码", "交互式逐步生成"],
+        "decision_factors": ["可审查性", "可修改性", "与skill-generator集成"],
+        "tradeoffs": "增加一个中间步骤"
+      },
+      "verification": {
+        "unit_tests": [],
+        "integration_tests": [],
+        "manual_checks": ["验证大纲完整性", "验证skill-generator兼容性"],
+        "success_metrics": ["大纲能被skill-generator正确解析"]
+      }
+    },
+    {
+      "id": "T7",
+      "title": "实现组件脚手架阶段",
+      "scope": ".claude/skills/workflow-creator/phases/",
+      "action": "Create",
+      "description": "创建Phase 6: 组件脚手架，生成工作流所需的各类组件文件",
+      "modification_points": [
+        {"file": ".claude/skills/workflow-creator/phases/06-component-scaffolding.md", "target": "entire file", "change": "创建组件脚手架阶段"},
+        {"file": ".claude/skills/workflow-creator/templates/command-template.md", "target": "entire file", "change": "创建slash命令模板"},
+        {"file": ".claude/skills/workflow-creator/templates/agent-template.md", "target": "entire file", "change": "创建Agent模板"},
+        {"file": ".claude/skills/workflow-creator/templates/schema-template.json", "target": "entire file", "change": "创建schema模板"}
+      ],
+      "implementation": [
+        "实现slash命令生成：基于lite-plan/lite-fix模式",
+        "实现Agent定义生成：基于cli-lite-planning-agent/cli-explore-agent模式",
+        "实现JSON Schema生成：基于plan-json-schema模式",
+        "实现CLI集成配置生成",
+        "调用skill-generator或直接生成文件"
+      ],
+      "reference": {
+        "pattern": "skill-generator Phase 3: Phase/Action Generation",
+        "files": [".claude/skills/skill-generator/phases/03-phase-generation.md"],
+        "examples": "generatePhase(), generateAction()函数"
+      },
+      "acceptance": [
+        "生成完整的slash命令文件",
+        "生成完整的Agent定义文件",
+        "生成有效的JSON Schema文件",
+        "所有文件符合各自规范"
+      ],
+      "depends_on": ["T6"],
+      "rationale": {
+        "chosen_approach": "基于模板的组件生成",
+        "alternatives_considered": ["AI直接生成", "复制粘贴现有文件"],
+        "decision_factors": ["一致性", "可维护性", "质量保证"],
+        "tradeoffs": "模板需要维护"
+      },
+      "verification": {
+        "unit_tests": [],
+        "integration_tests": [],
+        "manual_checks": ["验证生成文件格式正确", "验证文件可被Claude Code加载"],
+        "success_metrics": ["生成的工作流能正常执行"]
+      }
+    },
+    {
+      "id": "T8",
+      "title": "实现闭环验证阶段",
+      "scope": ".claude/skills/workflow-creator/phases/",
+      "action": "Create",
+      "description": "创建Phase 7: 闭环验证，确保生成的slash命令已闭环且足以实现需求",
+      "modification_points": [
+        {"file": ".claude/skills/workflow-creator/phases/07-closure-validation.md", "target": "entire file", "change": "创建闭环验证阶段"},
+        {"file": ".claude/skills/workflow-creator/specs/closure-validation-rules.md", "target": "entire file", "change": "创建闭环验证规则"}
+      ],
+      "implementation": [
+        "实现需求覆盖验证：检查所有用户需求是否被工作流覆盖",
+        "实现流程闭环验证：检查工作流是否有明确的开始和结束",
+        "实现数据流验证：检查Phase之间的数据传递是否完整",
+        "实现工具依赖验证：检查所有使用的工具是否在allowed-tools中声明",
+        "生成closure-validation-report.json",
+        "如果验证失败，提供修复建议"
+      ],
+      "reference": {
+        "pattern": "cli-lite-planning-agent Phase 5: Plan Quality Check",
+        "files": [".claude/agents/cli-lite-planning-agent.md"],
+        "examples": "Quality dimensions: completeness, granularity, dependencies, acceptance criteria"
+      },
+      "acceptance": [
+        "验证覆盖所有闭环维度",
+        "验证报告包含详细的检查结果",
+        "提供可操作的修复建议"
+      ],
+      "depends_on": ["T7"],
+      "rationale": {
+        "chosen_approach": "多维度闭环验证",
+        "alternatives_considered": ["仅结构验证", "手动验证"],
+        "decision_factors": ["质量保证", "自动化", "可追溯性"],
+        "tradeoffs": "增加执行时间"
+      },
+      "verification": {
+        "unit_tests": [],
+        "integration_tests": [],
+        "manual_checks": ["验证闭环检查准确性", "验证修复建议有效性"],
+        "success_metrics": ["闭环验证通过率100%"]
+      }
+    },
+    {
+      "id": "T9",
+      "title": "创建工作流组件规范文档",
+      "scope": ".claude/skills/workflow-creator/specs/",
+      "action": "Create",
+      "description": "创建详细的工作流组件规范文档，定义各组件的结构和要求",
+      "modification_points": [
+        {"file": ".claude/skills/workflow-creator/specs/command-spec.md", "target": "entire file", "change": "创建slash命令规范"},
+        {"file": ".claude/skills/workflow-creator/specs/agent-spec.md", "target": "entire file", "change": "创建Agent规范"},
+        {"file": ".claude/skills/workflow-creator/specs/schema-spec.md", "target": "entire file", "change": "创建Schema规范"},
+        {"file": ".claude/skills/workflow-creator/specs/cli-integration-spec.md", "target": "entire file", "change": "创建CLI集成规范"},
+        {"file": ".claude/skills/workflow-creator/specs/quality-standards.md", "target": "entire file", "change": "创建质量标准规范"}
+      ],
+      "implementation": [
+        "提取lite-plan/lite-fix的命令结构规范",
+        "提取cli-lite-planning-agent/cli-explore-agent的Agent结构规范",
+        "提取plan-json-schema的Schema结构规范",
+        "定义CLI集成的配置和调用规范",
+        "定义质量标准和验证规则"
+      ],
+      "reference": {
+        "pattern": "SKILL-DESIGN-SPEC.md Section 6: Specs规范文件设计",
+        "files": [".claude/skills/_shared/SKILL-DESIGN-SPEC.md"],
+        "examples": "specs/目录下的规范文件结构"
+      },
+      "acceptance": [
+        "每个规范文档包含When to Use表格",
+        "包含详细的字段定义",
+        "包含示例代码/配置"
+      ],
+      "depends_on": ["T1"],
+      "rationale": {
+        "chosen_approach": "独立的规范文档便于维护和引用",
+        "alternatives_considered": ["内嵌在phase文档中", "单一大文档"],
+        "decision_factors": ["可维护性", "可引用性", "关注点分离"],
+        "tradeoffs": "文件数量增加"
+      },
+      "verification": {
+        "unit_tests": [],
+        "integration_tests": [],
+        "manual_checks": ["验证规范完整性", "验证示例正确性"],
+        "success_metrics": ["规范覆盖所有组件类型"]
+      }
+    }
+  ],
+  "data_flow": {
+    "diagram": "UserInput → RequirementsCollection → WorkflowDocumentInput → PhaseDecomposition → SimilarWorkflowAnalysis → OutlineGeneration → ComponentScaffolding → ClosureValidation → WorkflowPackage",
+    "stages": [
+      {"stage": "RequirementsCollection", "input": "User answers", "output": "workflow-config.json", "component": "Phase 1"},
+      {"stage": "WorkflowDocumentInput", "input": "User text/file", "output": "workflow-document.json", "component": "Phase 2"},
+      {"stage": "PhaseDecomposition", "input": "workflow-document.json", "output": "phase-decomposition.json", "component": "Phase 3"},
+      {"stage": "SimilarWorkflowAnalysis", "input": "phase-decomposition.json + codebase", "output": "similarity-analysis.json", "component": "Phase 4"},
+      {"stage": "OutlineGeneration", "input": "phase-decomposition.json + similarity-analysis.json", "output": "workflow-outline.json", "component": "Phase 5"},
+      {"stage": "ComponentScaffolding", "input": "workflow-outline.json", "output": "Generated files", "component": "Phase 6"},
+      {"stage": "ClosureValidation", "input": "Generated files + workflow-config.json", "output": "closure-validation-report.json", "component": "Phase 7"}
+    ],
+    "dependencies": ["mcp__ace-tool__search_context", "skill-generator (optional)", "existing workflow files for pattern extraction"]
+  },
+  "design_decisions": [
+    {
+      "decision": "采用7阶段顺序执行模式",
+      "rationale": "新增流程输入、Phase拆解、相似流程分析阶段以满足用户需求",
+      "tradeoff": "流程更长，但功能更完整"
+    },
+    {
+      "decision": "使用ACE-tool进行相似流程分析",
+      "rationale": "语义搜索比关键词搜索更准确，能找到真正相似的实现",
+      "tradeoff": "依赖ACE-tool可用性"
+    },
+    {
+      "decision": "增加闭环验证阶段",
+      "rationale": "确保生成的工作流能完整实现用户需求，避免遗漏",
+      "tradeoff": "增加执行时间，但提高质量"
+    },
+    {
+      "decision": "支持流程文档输入",
+      "rationale": "允许用户提供详细的流程描述，提高生成准确性",
+      "tradeoff": "需要额外的解析逻辑"
+    }
+  ],
+  "flow_control": {
+    "execution_order": [
+      {"phase": "parallel-1", "tasks": ["T1", "T9"], "type": "parallel"},
+      {"phase": "sequential-1", "tasks": ["T2"], "type": "sequential"},
+      {"phase": "sequential-2", "tasks": ["T3"], "type": "sequential"},
+      {"phase": "sequential-3", "tasks": ["T4"], "type": "sequential"},
+      {"phase": "sequential-4", "tasks": ["T5"], "type": "sequential"},
+      {"phase": "sequential-5", "tasks": ["T6"], "type": "sequential"},
+      {"phase": "sequential-6", "tasks": ["T7"], "type": "sequential"},
+      {"phase": "sequential-7", "tasks": ["T8"], "type": "sequential"}
+    ],
+    "exit_conditions": {
+      "success": "所有阶段完成且闭环验证通过",
+      "failure": "任一阶段失败或闭环验证不通过"
+    }
+  },
+  "focus_paths": [
+    ".claude/skills/workflow-creator/SKILL.md",
+    ".claude/skills/workflow-creator/phases/",
+    ".claude/skills/workflow-creator/specs/",
+    ".claude/skills/workflow-creator/templates/"
+  ],
+  "estimated_time": "6-8 hours",
+  "recommended_execution": "Agent",
+  "complexity": "High",
+  "_metadata": {
+    "timestamp": "2026-02-02T00:00:00.000Z",
+    "source": "direct-planning",
+    "planning_mode": "direct",
+    "exploration_angles": ["workflow-patterns", "schema-patterns"],
+    "user_feedback_incorporated": true
+  }
+}

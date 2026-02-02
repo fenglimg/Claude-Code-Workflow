@@ -105,29 +105,19 @@ export function createAssess(deps = {}) {
   requireFn('Bash', Bash);
   requireFn('Read', Read);
 
-  function resolveTopicOrThrow(rawTopicLabel) {
-    const raw = String(rawTopicLabel ?? '').trim();
-    if (!raw) throw new Error('assessTopic: missing topicId/raw label');
+  function normalizeAndValidateTopicIdOrThrow(topicIdRaw) {
+    const topicId = String(topicIdRaw ?? '').trim().toLowerCase();
+    if (!topicId) throw new Error('assessTopic: missing topicId');
 
-    const resolved = execCcwJson(
-      Bash,
-      ['ccw learn:resolve-topic', `--raw-topic-label ${JSON.stringify(raw)}`, '--json'].join(' '),
-      'learn:resolve-topic'
-    );
-
-    if (resolved.found) return resolved;
-    if (resolved.ambiguous) {
-      const err = new Error('Topic resolve ambiguous; must be resolved in /learn:profile topic selection');
-      err.code = 'AMBIGUOUS_TOPIC';
-      err.details = { raw_topic_label: raw, candidates: resolved.candidates };
+    // Keep consistent with ccw safeInferredSkillIdOrThrow ([a-z0-9_-], max 128).
+    if (!/^[a-z0-9][a-z0-9_-]{0,127}$/.test(topicId)) {
+      const err = new Error('Invalid topic_id (expected [a-z0-9_-] and <=128 chars)');
+      err.code = 'INVALID_ARGS';
+      err.details = { topic_id: topicIdRaw };
       throw err;
     }
 
-    // Cycle-4 policy: do NOT auto ensure-topic here (only user-selected topics can be ensured upstream).
-    const err = new Error('Topic not found; must be ensured in /learn:profile topic selection');
-    err.code = 'TOPIC_NOT_FOUND';
-    err.details = { raw_topic_label: raw };
-    throw err;
+    return topicId;
   }
 
   function ensurePack(topicId, language, mode) {
@@ -193,10 +183,7 @@ export function createAssess(deps = {}) {
     const language = String(input?.language ?? 'zh-CN').trim() || 'zh-CN';
 
     if (!profileId) throw new Error('assessTopic: missing profileId');
-    if (!topicIdRaw) throw new Error('assessTopic: missing topicId');
-
-    const resolved = resolveTopicOrThrow(topicIdRaw);
-    const topicId = normalizeInferredTopicId(resolved.topic_id);
+    const topicId = normalizeAndValidateTopicIdOrThrow(topicIdRaw);
 
     // Always ensure seed pack first (blocking).
     const seedEnsure = ensurePack(topicId, language, 'seed');

@@ -3,6 +3,32 @@
   "topic": "learn：profile优化",
   "completed": "2026-01-29T22:44:53+08:00",
   "total_rounds": 9,
+  "last_updated": "2026-02-01T20:07:47+08:00",
+  "continuations": [
+    {
+      "timestamp": "2026-02-01T20:07:47+08:00",
+      "focus": [
+        "resolve-topic 批量支持 + 修复中文 raw label 导致的 INVALID_ARGS",
+        "主 Agent Topic 联想：考虑 profile 既有 topics；topic 最小粒度；不做包含层级；不重复（同义/别名/redirect 收敛）",
+        "Gemini CLI Seed/QBank/Pack 策略与主 Agent 评分策略（ability 0..1 + sigma）落地",
+        "对齐 AskUserQuestion 硬约束（options 2..4 + 唯一性）"
+      ],
+      "primary_recommendation": "先合规止血（AskUserQuestion），再修 topic_id/alias normalize（中文可确保 topic），随后上 batch resolve 与 TopicSet 约束，最后接入 Gemini Pack 与 ability/sigma 评分闭环。",
+      "priority_order": [
+        "P0: AskUserQuestion 合规（options 2..4、question 文案唯一、option.label 唯一、移除 skip）",
+        "P1: 中文 raw label -> topic_id（fallback hash/pinyin）+ alias normalize 支持中文",
+        "P1.5: batch resolve（learn:resolve-topics 或 --raw-topic-labels）",
+        "P2: TopicSet 约束（canonicalize + 去重 + subtract existing + 冗余对治理可配置）",
+        "P3: Gemini Seed/QBank/Pack 集成（seed blocking + full async + pack_key cache）",
+        "P4: 评分策略落地（ability 0..1 + sigma contract + 回归集）"
+      ],
+      "open_questions": [
+        "中文 topic_id 策略：pinyin vs hash vs 混合",
+        "冗余主题对治理：仅同义/别名/redirect，还是扩展到 TS/JS 等“近义/包含型冗余”",
+        "update 场景是否要展示已存在 topics 用于覆盖确认"
+      ]
+    }
+  ],
   "top_ideas": [
     {
       "title": "Init Flow Simplification（删强制项）",
@@ -594,7 +620,7 @@
     {
       "timestamp": "2026-02-01T16:26:21+08:00",
       "type": "decision_override",
-      "summary": "按最新反馈更新：topics 候选不再依赖 learn:parse-background，由主 Agent 直接从 background 主观解析 + 联想拓展生成；topic 覆盖 loop 定位为反馈 loop（确认是否覆盖/是否缺失），不是“候选展示上限 loop”。另外：seed 题/题库生成优先走 Gemini CLI；答题控制仅保留确认提交/继续编辑（不提供跳过）。",
+      "summary": "按最新反馈更新：topics 候选不再依赖 learn:parse-background，由主 Agent 直接从 background 主观解析 + 联想拓展生成；topic 覆盖 loop 定位为反馈 loop（确认是否覆盖/是否缺失），不是「候选展示上限 loop」。另外：seed 题/题库生成优先走 Gemini CLI；答题控制仅保留确认提交/继续编辑（不提供跳过）。",
       "overrides": {
         "overridden_timestamp": "2026-02-01T16:04:26+08:00",
         "remove_parse_background_as_source": true
@@ -631,6 +657,41 @@
           "skip": false
         },
         "reference": ".workflow/.brainstorm/BS-learn-profile优化-2026-01-29/brainstorm.md"
+      }
+    },
+    {
+      "timestamp": "2026-02-01T19:30:00+08:00",
+      "type": "multi_cli_analysis",
+      "summary": "针对 learn:profile 三个核心问题的 Multi-CLI 协作分析：resolve-topic 批量与中文支持、Gemini CLI 替代 assessment.js、补全不合规项。",
+      "issues_analyzed": [
+        "ccw learn:resolve-topic 需支持批量，修复 INVALID_ARGS 错误（无法从 '跨平台开发' 推导 ID）",
+        "移除 assessment.js，改用 Gemini CLI + 外部文档引入规则生成 Seed 题",
+        "深度参考 claude-session-12824e11-2026-02-01.md 补全不合规项"
+      ],
+      "gemini_findings": {
+        "resolve_topic_batch": "增加 --raw-topic-labels 参数接收 JSON 数组，后端实现中文标签到 topic_id 的映射知识库",
+        "gemini_cli_replace": "废弃 assessment.js，创建规则文件 .claude/prompts/assessment/seed-question-rules.md，调用 gemini-cli generate-questions",
+        "compliance_fixes": "AskUserQuestion options 数量超限需移除skip；AskUserQuestion缺少options需添加哑选项"
+      },
+      "codex_findings": {
+        "effort_assessment": [
+          {"issue": "resolve-topic 批量", "effort": "3/5", "risk": "中"},
+          {"issue": "Gemini CLI 替代 assess.js", "effort": "4/5", "risk": "高"},
+          {"issue": "不合规项修复", "effort": "2/5", "risk": "低"}
+        ],
+        "implementation_order": ["不合规项修复", "resolve-topic 批量", "Gemini CLI 迁移"]
+      },
+      "claude_findings": {
+        "architecture_decisions": [
+          "learn:resolve-topics-batch 作为新命令，保留原 resolve-topic 单条接口",
+          "pack_key = {topic_id, taxonomy_version, rubric_version, question_bank_version, language}",
+          "评估内置在 /learn:profile 中，通过内部 JS 模块调用"
+        ]
+      },
+      "priority": {
+        "P0": "修复 AskUserQuestion 不合规项",
+        "P1": "实现 learn:resolve-topics-batch 批量接口",
+        "P2": "迁移 assessment.js 到 Gemini CLI"
       }
     }
   ]

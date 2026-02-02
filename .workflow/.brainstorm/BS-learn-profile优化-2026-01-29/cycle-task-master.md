@@ -40,6 +40,11 @@
 - Issues: `cycle-issues-profile-flow-vnext.md`
 - 验收：全中文；create 强制背景；topic 覆盖校验 loop；默认单 topic 评估；update 已评估直接退出；移除 Add Topic/selectFlow/--no-assessment；隐藏 p-e2e-*
 
+3.5) **Cycle-5：Topic V0 简化 + Gemini Packs（Seed blocking + Full async）**
+- Task: `cycle-task-cycle-5-2026-02-01.md`
+- 验收：topic_id 不再依赖 taxonomy-first resolve/ensure；中文 raw label 不再触发 INVALID_ARGS；topic 集合不重复且无包含层级；Gemini seed/full pack 默认可用。
+- 备注：该 cycle 作为“先跑稳/先降复杂度”的决策锁，会暂时弱化 Cycle-3 的 taxonomy-first 路线（后续如需回归 taxonomy，可用 alias_map/redirect 逐步迁移）。
+
 4) **Cycle-3：Taxonomy + Pack Completeness + Full Assessment Loop vNext（可长期稳定）**
 - Task: `cycle-task-taxonomy-pack-assessment-vnext.md`
 - Issues: `cycle-issues-taxonomy-pack-assessment-vnext.md`
@@ -61,4 +66,3 @@
 
 - `pre_context_v1.3（固定4问）` vs `pre_context_vNext（分批<=4问、多批完成）`：两者必须合并成单一版本策略，否则会造成文档与实现不一致。
 - “评估一次尽量可长期复用”的目标，强依赖 Cycle-3 的 **pack/version 强绑定 + full completeness gate + 回归门槛**；Cycle-1/2 只能保证链路通，不保证长期稳定。
-

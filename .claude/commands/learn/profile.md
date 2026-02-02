@@ -1,7 +1,7 @@
 ---
 name: profile
 description: Manage user learning profiles (validated via ccw learn:* CLI) with optional inferred-skill proposals
-argument-hint: "[create|update|select|show] [profile-id] [--goal=\"<learning goal>\"] [--full-assessment[=true|false]]"
+argument-hint: "[create|update] [profile-id] [--goal=\"<learning goal>\"] [--full-assessment[=true|false]]"
 allowed-tools: TodoWrite(*), Task(*), AskUserQuestion(*), Bash(*), Read(*)
 ---
 
@@ -12,7 +12,82 @@ allowed-tools: TodoWrite(*), Task(*), AskUserQuestion(*), Bash(*), Read(*)
 ```bash
 /learn:profile create
 /learn:profile update
-/learn:profile show
+```
+
+## Execution Process
+
+```
+START
+   ↓
+Input Parsing:
+   ├─ 解析 op(create|update) + flags(--goal, --full-assessment)
+   └─ 硬约束（避免 INVALID_ARGS / UX 崩溃）：
+      - AskUserQuestion 每次调用 <=4 questions
+      - 每题 options 数量 2..4（multiSelect/free text 也需要 options 时要补齐）
+      - question 文案唯一（同一次调用内）
+      - option.label 唯一（同一题内）
+   ↓
+
+Topic V0 (Cycle-5: simpler topic model):
+   ├─ topic 是最小能力粒度：topics = Set(topic_id)，无包含/无层级/无父子推导
+   ├─ 去重规则：只按 topic_id 去重（不做“近似相似度合并”）
+   ├─ topic_id 生成：topic_id = "t_" + sha1(normalized_label).slice(0,12)
+   │                （即：t_<sha1(normalized_label)>；normalized_label = NFKC + trim + 空白折叠 + lowercase；保留中文）
+   ├─ 合并规则：只允许显式合并 alias_map（profile.custom_fields.topic_v0.alias_to_canonical）
+   └─ 旧 topics 只读展示：existing known_topics 不参与本次“新候选”池（避免重复创建）
+
+Gemini Seed Pack + 题库策略（用于最小评估闭环）：
+   ├─ 评估入口（assess_topic）先确保 seed pack（阻塞）：ccw learn:ensure-pack --mode seed（Gemini-first；失败回退 deterministic）
+   └─ 然后触发 full pack（非阻塞）：ccw learn:ensure-pack --mode full（异步 job；后台补全题库）
+   ↓
+
+Phase A: Create Flow (/learn:profile create)
+   Phase A1: pre_context_vNext（偏好/目标/学习方式等）
+       ├─ AskUserQuestion 批 1（4题）
+       └─ AskUserQuestion 批 2（4题）
+   Phase A2: background_text（必填；可复用上一次 active profile）
+       └─ AskUserQuestion（含 options；支持“查看示例”）
+   Phase A3: existing profile upsert baseline（Topic V0 合并基线）
+       ├─ ccw learn:read-profile（best-effort）
+       ├─ 读取 existing known_topics（只读展示）
+       └─ 读取 profile.custom_fields.topic_v0.alias_to_canonical（作为显式合并表）
+   Phase A4: topic candidates（主 Agent parse+联想；考虑 existing topics；fallback heuristics 兜底）
+       └─ 产出 <=16 候选，每个带 1 句理由
+   Phase A5: topic 覆盖校验 loop（Topic V0）
+       ├─ 每轮 1：4 个 multiSelect questions（<=4 options each，总<=16）
+       ├─ 每轮 2：free text 补充 + covered/more 确认
+       ├─ loop 上限：3 轮
+       └─ 输出：topic_ids = t_<sha1(normalized_label)>, topics_by_id（并减去 existing topics）
+   Phase A6: write profile（schema validated）
+       ├─ ccw learn:write-profile
+       └─ profile.custom_fields.topic_v0:
+          ├─ topics_by_id（topic_id -> display_label/topic_key）
+          └─ alias_to_canonical（显式合并表，延续旧值）
+   Phase A7: side effects（best-effort）
+       ├─ ccw learn:append-profile-events-batch PRECONTEXT_CAPTURED
+       ├─ ccw learn:update-state active_profile_id
+       └─ ccw learn:append-telemetry-event PROFILE_CREATED
+   Phase A8: optional assessment (--full-assessment=true)
+       ├─ AskUserQuestion：选择/输入要评估的 topic（可用 display_label；可手输中文 label）
+       └─ internal assess.js：
+          ├─ ccw learn:ensure-pack --mode seed（阻塞，Gemini-first）
+          └─ ccw learn:ensure-pack --mode full（异步 job，不阻塞）
+
+Phase B: Update Flow (/learn:profile update)
+   Phase B1: load profile
+       └─ ccw learn:read-profile
+   Phase B2: AskUserQuestion update_action
+       ├─ preferences -> pre_context_vNext -> FIELD_SET events -> write-profile
+       ├─ assess_topic -> 输入 topic_id 或中文 label（Topic V0 hash）-> internal assess.js
+       └─ 仅保留 create/update 两条主路径；查看/切换请直接使用 ccw learn:* CLI（避免在主交互里引入多分支噪音）
+
+Outputs (What you get after running this command):
+   ├─ profile.json snapshot: ccw learn:write-profile（schema validated）
+   ├─ events: PRECONTEXT_CAPTURED + optional FIELD_SET + ASSESSMENT_*（append-only via ccw learn:append-profile-events-batch）
+   ├─ state: active_profile_id updated（ccw learn:update-state）
+   └─ packs: seed/full question bank written by ccw learn:ensure-pack (best-effort async for full)
+   ↓
+DONE
 ```
 
 ## Execution Phase Diagram (Code-Level)
@@ -27,12 +102,15 @@ switch(op)
   |            +-> AskUserQuestion: pre_context_vNext (<=4 per call; may batch)
   |            +-> AskUserQuestion: background_text (required; reuse/update if possible)
   |            +-> main agent: background parse + topic association expansion (candidates + 1-line reasons)
-  |            +-> AskUserQuestion loop: topic 覆盖校验（推荐 topics + type something 补漏）
+  |            +-> AskUserQuestion loop: topic 覆盖校验（Topic V0: label -> topic_id=t_<hash>；可 type something 补漏）
   |            +-> ccw learn:write-profile (schema validated)
   |            +-> ccw learn:append-profile-event PRECONTEXT_CAPTURED (best-effort)
   |            +-> ccw learn:update-state active_profile_id
   |            +-> ccw learn:append-telemetry-event PROFILE_CREATED (best-effort)
-  |            +-> (if --full-assessment=true) internal assess.js: 单 topic 评估（1题最小闭环；完整算法在后续 cycle）
+  |            +-> (if --full-assessment=true) internal assess.js:
+  |                 - ccw learn:ensure-pack --mode seed (blocking; Gemini-first; deterministic fallback)
+  |                 - ccw learn:ensure-pack --mode full (async job; non-blocking)
+  |                 - adaptive interval assessment -> ASSESSMENT_* events
   |
   |-- update -> updateFlow()
   |            |
@@ -41,20 +119,8 @@ switch(op)
   |                  |-- preferences -> AskUserQuestion: pre_context_vNext
   |                  |                  -> ccw learn:append-profile-event FIELD_SET (best-effort)
   |                  |                  -> ccw learn:write-profile
-  |                  |-- assess_topic -> internal assess.js: 单 topic 评估入口
-  |                  `-- show       -> showFlow()
-  |
-  |-- select -> selectFlow()
-  |            |
-  |            +-> ccw learn:list-profiles
-  |            +-> ccw learn:read-state
-  |            +-> AskUserQuestion: selected_profile
-  |            `-> ccw learn:update-state active_profile_id
-  |
-  `-- show   -> showFlow()
-               |
-               +-> ccw learn:read-profile
-               `-> ccw learn:read-profile-snapshot (best-effort)
+  |                  |-- assess_topic -> internal assess.js (same ensure-pack + assessment loop)
+  |                  `-- (no show/select in Cycle-5)
 ```
 
 ## Reality Check (Matches Current Backend)
@@ -62,20 +128,39 @@ switch(op)
 - Profile file is written via `ccw learn:write-profile` (schema-validated).
 - Inferred skills are stored as immutable events + folded into snapshot (`skills.inferred`), not merged into `known_topics`.
   - Use `ccw learn:propose-inferred-skill`, `ccw learn:confirm-inferred-skill`, `ccw learn:reject-inferred-skill`.
+- Topic V0 metadata is stored in `profile.custom_fields.topic_v0`:
+  - `topics_by_id`: `topic_id -> { display_label, topic_key }`
+  - `alias_to_canonical`: explicit merge map (`topic_key -> canonical topic_id`)
 - Pre-context is recorded as:
   - `PRECONTEXT_CAPTURED` event (append-only)
   - optional `FIELD_SET` corrections for `pre_context.parsed.*` (append-only)
-- Background input (optional) is a single-line paste via AskUserQuestion (no local file reading in this command).
+- Background input is required in create (may reuse previous active profile); updates are opt-in via AskUserQuestion (no local file reading in this command).
 - Minimal-by-default: detailed skill assessment is intended to happen JIT (Just-in-time) during `/learn:plan` / `/learn:execute`.
+
+## Example Scenario (Topic V0 + Seed/Full Pack)
+
+**场景**：你已有 profile `p_alice`，known_topics 里已经有 React / TypeScript。现在你想补充“跨平台开发”相关能力并做一次最小评估闭环。
+
+1) `/learn:profile update p_alice` → 选择 `assess_topic`  
+2) 输入 `跨平台开发`（中文 label）  
+3) 系统内部会计算 Topic V0：
+   - normalized_label = `"跨平台开发"`（NFKC/trim/空白折叠/lowercase）
+   - topic_id = `t_<sha1(normalized_label)>`（示例：`t_3f5e9a1b2c3d`）
+4) `internal assess.js` 执行：
+   - `ccw learn:ensure-pack --mode seed`：生成/确保 seed 题（阻塞，Gemini-first；失败回退 deterministic）
+   - `ccw learn:ensure-pack --mode full`：触发后台补全题库（异步 job，不阻塞）
+   - 进入 interval assessment，产出 ASSESSMENT_* events，并最终写回 profile snapshot（proficiency 仍是 0..1）
+
+**关键点**：如果该 profile 已经存在同一个 topic_id（或 alias_to_canonical 显式指向同一个 canonical），则不会重复创建；Topic V0 不做“包含关系/层级”推导。
 
 ## Implementation
 
 ```javascript
-// /learn:profile create|update|select|show
+// /learn:profile create|update
 // Tooling constraints: AskUserQuestion + Bash only. All persistence goes through ccw learn:* CLI.
 
 const args = String($ARGUMENTS ?? '').trim().split(/\s+/).filter(Boolean);
-const op = (args[0] || 'show').toLowerCase();
+const op = (args[0] || 'update').toLowerCase();
 
 function parseFlags(argv) {
   // Default: full assessment is ON (can be explicitly disabled).
@@ -132,16 +217,83 @@ function runCcwBestEffort(cmd, label) {
 }
 
 // Internal-only assessment module (Cycle-1 plumbing): loaded via ESM import and used through factory injection.
+const { createHash } = await import('node:crypto');
 const { createAssess } = await import('./_internal/assess.js');
 const __assess = createAssess({ AskUserQuestion, Bash, Read });
 
 function normalizeInferredTopicId(raw) {
-  const s = String(raw ?? '').toLowerCase();
+  // Align with ccw safeInferredSkillIdOrThrow (lowercase + [a-z0-9_-]).
+  const s = String(raw ?? '').trim().toLowerCase();
   const normalized = s
     .replace(/[^a-z0-9_-]/g, '_')
     .replace(/_+/g, '_')
     .replace(/^_+|_+$/g, '');
   return normalized;
+}
+
+function normalizeTopicKeyV0(rawLabel) {
+  // V0: keep Unicode (incl. Chinese), only normalize whitespace/compat forms.
+  // This is the stable "alias_key" and also the basis of topic_id hashing.
+  return String(rawLabel ?? '')
+    .normalize('NFKC')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
+}
+
+function topicIdV0FromKey(topicKey) {
+  const k = String(topicKey ?? '').trim();
+  if (!k) return '';
+  const hex = createHash('sha1').update(k, 'utf8').digest('hex');
+  return `t_${hex.slice(0, 12)}`;
+}
+
+function buildAliasMapV0(existingTopicIds, explicitAliasToCanonical) {
+  // Build a minimal alias map so that common "label <-> existing topic_id" matches don't re-create hash ids.
+  // Order: derived-from-existing (fallback) -> explicitAliasToCanonical (override).
+  const map = Object.create(null);
+
+  const add = (aliasKey, topicId) => {
+    const k = normalizeTopicKeyV0(aliasKey);
+    const v = normalizeInferredTopicId(topicId);
+    if (!k || !v) return;
+    map[k] = v;
+  };
+
+  for (const tid of Array.isArray(existingTopicIds) ? existingTopicIds : []) {
+    const id = normalizeInferredTopicId(tid);
+    if (!id) continue;
+    // allow matching by id itself, and by "id with underscores as spaces" (cocos_creator -> cocos creator)
+    add(id, id);
+    add(id.replace(/_/g, ' '), id);
+  }
+
+  const explicit = explicitAliasToCanonical && typeof explicitAliasToCanonical === 'object' ? explicitAliasToCanonical : {};
+  for (const [k, v] of Object.entries(explicit)) add(k, v);
+
+  return map;
+}
+
+function topicV0FromLabel(rawLabel, aliasToCanonical) {
+  const display_label = String(rawLabel ?? '').trim();
+  const topic_key = normalizeTopicKeyV0(display_label);
+  if (!topic_key) return { topic_id: '', topic_key: '', display_label: '' };
+
+  const mapped = aliasToCanonical && typeof aliasToCanonical === 'object' ? aliasToCanonical[topic_key] : null;
+  const topic_id = mapped ? normalizeInferredTopicId(mapped) : topicIdV0FromKey(topic_key);
+  return { topic_id, topic_key, display_label };
+}
+
+function topicIdFromUserInputV0(rawInput, aliasToCanonical) {
+  const s = String(rawInput ?? '').trim();
+  if (!s) return '';
+
+  // If user typed a safe topic_id, accept it directly.
+  const maybeId = normalizeInferredTopicId(s);
+  if (maybeId && /^[a-z0-9][a-z0-9_-]{0,127}$/.test(maybeId)) return maybeId;
+
+  // Otherwise treat it as a human label and hash it (or map via alias).
+  return topicV0FromLabel(s, aliasToCanonical).topic_id;
 }
 
 function getActiveProfileIdOrNull() {
@@ -203,123 +355,79 @@ function collectBackgroundTextRequired() {
       key: KEY,
       header: '背景信息（必填）',
       multiSelect: false,
+      options: [
+        { value: 'type', label: '输入背景', description: '直接输入你的背景信息' },
+        { value: 'example', label: '查看示例', description: '先看一条示例，再继续输入' }
+      ],
       question:
         '请粘贴你的背景信息（尽量一行，包含你做过的项目/技术栈/经验即可）。\\n' +
-        '示例：\"3年React+Node，做过后台管理；用过Postgres\"\\n\\n' +
-        '（直接输入文本继续）'
+        '（直接输入文本继续；如需示例可先选择“查看示例”）'
     }]
   });
-  return String(ans2[KEY] ?? '').trim();
-}
 
-function preContextV13() {
-  const PRE_CONTEXT_VERSION = 'pre_context_v1.3';
-  const PRE_Q1_STYLE_KEY = 'pre_q1_style';
-  const PRE_Q2_SOURCES_KEY = 'pre_q2_sources';
-  const PRE_Q3_TIME_KEY = 'pre_q3_time';
-  const PRE_Q4_CONTEXT_KEY = 'pre_q4_context';
-
-  const answer = AskUserQuestion({
-    questions: [
-      {
-        key: PRE_Q1_STYLE_KEY,
-        question: '你更喜欢怎样学习？（可选，也可直接输入）',
-        header: '学习方式',
+  const v0 = String(ans2[KEY] ?? '').trim();
+  // AskUserQuestion may return option label instead of value; normalize both.
+  const v = v0 === '查看示例' ? 'example' : (v0 === '输入背景' ? 'type' : v0);
+  if (v === 'example') {
+    console.log('\n示例：\"3年React+Node，做过后台管理；用过Postgres\"\\n');
+    const KEY2 = 'background_text_2';
+    const ans3 = AskUserQuestion({
+      questions: [{
+        key: KEY2,
+        header: '背景信息（必填）',
         multiSelect: false,
         options: [
-          { value: 'practical', label: '动手优先', description: '先做再总结' },
-          { value: 'theoretical', label: '概念优先', description: '先理解再实践' },
-          { value: 'mixed', label: '混合', description: '概念 + 实践平衡' },
-          { value: 'visual', label: '视觉化', description: '图示/视频更高效' },
-          { value: 'skip', label: '跳过', description: '暂时跳过' }
-        ]
-      },
-      {
-        key: PRE_Q2_SOURCES_KEY,
-        question: '你更偏好的学习资源？（可多选，也可直接输入）',
-        header: '资源偏好',
-        multiSelect: true,
-        options: [
-          { value: 'official-docs', label: '官方文档', description: '更信任一手资料' },
-          { value: 'interactive', label: '交互式教程', description: '一步步引导/沙盒' },
-          { value: 'video', label: '视频课程', description: '视频/系统课' },
-          { value: 'books', label: '书籍', description: '系统性强' },
-          { value: 'articles', label: '文章/博客', description: '短平快/案例' },
-          { value: 'skip', label: '跳过', description: '暂时跳过' }
-        ]
-      },
-      {
-        key: PRE_Q3_TIME_KEY,
-        question: '你每周能稳定投入多少学习时间？（可选，也可直接输入）',
-        header: '时间投入',
-        multiSelect: false,
-        options: [
-          { value: 'lt2', label: '<2 小时/周', description: '时间很少' },
-          { value: '2-5', label: '2-5 小时/周', description: '轻量' },
-          { value: '5-10', label: '5-10 小时/周', description: '稳定' },
-          { value: '10plus', label: '10+ 小时/周', description: '高强度' },
-          { value: 'variable', label: '不固定', description: '有时忙有时闲' },
-          { value: 'skip', label: '跳过', description: '暂时跳过' }
-        ]
-      },
-      {
-        key: PRE_Q4_CONTEXT_KEY,
-        question: '你的学习场景更像哪种？（可选，也可直接输入）',
-        header: '学习场景',
-        multiSelect: false,
-        options: [
-          { value: 'work', label: '工作驱动', description: '为解决当前工作任务' },
-          { value: 'project', label: '个人项目', description: '做出自己关心的东西' },
-          { value: 'interview', label: '求职/面试', description: '为求职准备' },
-          { value: 'hobby', label: '兴趣驱动', description: '好奇/乐趣' },
-          { value: 'unsure', label: '还不确定', description: '先探索' },
-          { value: 'skip', label: '跳过', description: '暂时跳过' }
-        ]
-      }
-    ]
-  });
-
-  const capturedAt = new Date().toISOString();
-  const skipped = {};
-  if (answer[PRE_Q1_STYLE_KEY] === 'skip') skipped[PRE_Q1_STYLE_KEY] = capturedAt;
-  {
-    const v = answer[PRE_Q2_SOURCES_KEY];
-    if ((Array.isArray(v) && v.includes('skip')) || v === 'skip') skipped[PRE_Q2_SOURCES_KEY] = capturedAt;
-  }
-  if (answer[PRE_Q3_TIME_KEY] === 'skip') skipped[PRE_Q3_TIME_KEY] = capturedAt;
-  if (answer[PRE_Q4_CONTEXT_KEY] === 'skip') skipped[PRE_Q4_CONTEXT_KEY] = capturedAt;
-
-  const normalizeSkipValue = (v) => (v === 'skip' ? null : v);
-  const normalizeSkipMulti = (v) => {
-    if (!Array.isArray(v)) return normalizeSkipValue(v);
-    const filtered = v.filter((x) => x !== 'skip');
-    return filtered.length > 0 ? filtered : null;
-  };
-
-  return {
-    template_version: PRE_CONTEXT_VERSION,
-    pre_context: {
-      raw: {
-        [PRE_Q1_STYLE_KEY]: answer[PRE_Q1_STYLE_KEY],
-        [PRE_Q2_SOURCES_KEY]: answer[PRE_Q2_SOURCES_KEY],
-        [PRE_Q3_TIME_KEY]: answer[PRE_Q3_TIME_KEY],
-        [PRE_Q4_CONTEXT_KEY]: answer[PRE_Q4_CONTEXT_KEY]
-      },
-      parsed: {
-        learning_style: normalizeSkipValue(answer[PRE_Q1_STYLE_KEY]),
-        preferred_sources: normalizeSkipMulti(answer[PRE_Q2_SOURCES_KEY]),
-        time_budget: normalizeSkipValue(answer[PRE_Q3_TIME_KEY]),
-        learning_context: normalizeSkipValue(answer[PRE_Q4_CONTEXT_KEY])
-      },
-      provenance: {
-        template_version: PRE_CONTEXT_VERSION,
-        captured_at: capturedAt,
-        asked_vs_reused: 'asked',
-        gating_reason: 'create',
-        skipped
-      }
+          { value: 'type', label: '输入背景', description: '直接输入你的背景信息' },
+          { value: 'cancel', label: '取消', description: '返回上一层' }
+        ],
+        question: '请继续输入你的背景信息（尽量一行）。'
+      }]
+    });
+    const v20 = String(ans3[KEY2] ?? '').trim();
+    const v2 = v20 === '取消' ? 'cancel' : (v20 === '输入背景' ? 'type' : v20);
+    if (v2 === 'cancel') return '';
+    if (!v2 || v2 === 'type') {
+      // User picked the placeholder option but did not type; ask once more.
+      const KEY3 = 'background_text_3';
+      const ans4 = AskUserQuestion({
+        questions: [{
+          key: KEY3,
+          header: '背景信息（必填）',
+          multiSelect: false,
+          options: [
+            { value: 'type', label: '输入背景', description: '请直接输入你的背景信息' },
+            { value: 'cancel', label: '取消', description: '返回上一层' }
+          ],
+          question: '请直接输入你的背景信息（必填，尽量一行）。'
+        }]
+      });
+      const v30 = String(ans4[KEY3] ?? '').trim();
+      const v3 = v30 === '取消' ? 'cancel' : (v30 === '输入背景' ? 'type' : v30);
+      return v3 === 'cancel' || v3 === 'type' ? '' : v3;
     }
-  };
+    return v2;
+  }
+
+  if (!v || v === 'type') {
+    const KEY4 = 'background_text_4';
+    const ans5 = AskUserQuestion({
+      questions: [{
+        key: KEY4,
+        header: '背景信息（必填）',
+        multiSelect: false,
+        options: [
+          { value: 'type', label: '输入背景', description: '请直接输入你的背景信息' },
+          { value: 'cancel', label: '取消', description: '返回上一层' }
+        ],
+        question: '请直接输入你的背景信息（必填，尽量一行）。'
+      }]
+    });
+    const v40 = String(ans5[KEY4] ?? '').trim();
+    const v4 = v40 === '取消' ? 'cancel' : (v40 === '输入背景' ? 'type' : v40);
+    return v4 === 'cancel' || v4 === 'type' ? '' : v4;
+  }
+
+  return v;
 }
 
 function preContextVNext() {
@@ -347,8 +455,7 @@ function preContextVNext() {
           { value: 'practical', label: '动手优先', description: '先做再总结' },
           { value: 'theoretical', label: '概念优先', description: '先理解再实践' },
           { value: 'mixed', label: '混合', description: '概念 + 实践平衡' },
-          { value: 'visual', label: '视觉化', description: '图示/视频更高效' },
-          { value: 'skip', label: '跳过', description: '暂时跳过' }
+          { value: 'none', label: '暂不填', description: '本题先不填写' }
         ]
       },
       {
@@ -360,9 +467,7 @@ function preContextVNext() {
           { value: 'official-docs', label: '官方文档', description: '更信任一手资料' },
           { value: 'interactive', label: '交互式教程', description: '一步步引导/沙盒' },
           { value: 'video', label: '视频课程', description: '视频/系统课' },
-          { value: 'books', label: '书籍', description: '系统性强' },
-          { value: 'articles', label: '文章/博客', description: '短平快/案例' },
-          { value: 'skip', label: '跳过', description: '暂时跳过' }
+          { value: 'none', label: '暂不填', description: '本题先不填写' }
         ]
       },
       {
@@ -374,8 +479,7 @@ function preContextVNext() {
           { value: '1-3', label: '1-3 小时', description: '轻量' },
           { value: '3-6', label: '3-6 小时', description: '中等' },
           { value: '6-10', label: '6-10 小时', description: '认真投入' },
-          { value: '10+', label: '10+ 小时', description: '高强度' },
-          { value: 'skip', label: '跳过', description: '暂时跳过' }
+          { value: 'none', label: '暂不填', description: '本题先不填写' }
         ]
       },
       {
@@ -387,8 +491,7 @@ function preContextVNext() {
           { value: '15', label: '15 分钟', description: '碎片化' },
           { value: '30', label: '30 分钟', description: '短时段' },
           { value: '60', label: '60 分钟', description: '中等时段' },
-          { value: '90+', label: '90+ 分钟', description: '长时段' },
-          { value: 'skip', label: '跳过', description: '暂时跳过' }
+          { value: 'none', label: '暂不填', description: '本题先不填写' }
         ]
       }
     ]
@@ -405,7 +508,7 @@ function preContextVNext() {
           { value: 'low', label: '低', description: '更偏理解/阅读' },
           { value: 'mid', label: '中', description: '理解 + 适量练习' },
           { value: 'high', label: '高', description: '大量练习/项目驱动' },
-          { value: 'skip', label: '跳过', description: '暂时跳过' }
+          { value: 'none', label: '暂不填', description: '本题先不填写' }
         ]
       },
       {
@@ -417,7 +520,7 @@ function preContextVNext() {
           { value: 'direct', label: '直接指出问题', description: '直给、指出错误与改进点' },
           { value: 'gentle', label: '温和引导', description: '更鼓励式、循序渐进' },
           { value: 'step', label: '按步骤拆解', description: '一步一步给下一步行动' },
-          { value: 'skip', label: '跳过', description: '暂时跳过' }
+          { value: 'none', label: '暂不填', description: '本题先不填写' }
         ]
       },
       {
@@ -429,7 +532,7 @@ function preContextVNext() {
           { value: 'slow', label: '慢一些更稳', description: '宁可慢也要扎实' },
           { value: 'normal', label: '正常', description: '平衡速度与理解' },
           { value: 'fast', label: '快一些', description: '先覆盖再回补' },
-          { value: 'skip', label: '跳过', description: '暂时跳过' }
+          { value: 'none', label: '暂不填', description: '本题先不填写' }
         ]
       },
       {
@@ -440,26 +543,27 @@ function preContextVNext() {
         options: [
           { value: 'project', label: '做项目', description: '做出东西最重要' },
           { value: 'career', label: '工作/求职', description: '与岗位相关' },
-          { value: 'exam', label: '考试/课程', description: '有明确要求' },
           { value: 'curiosity', label: '兴趣驱动', description: '好奇/想弄明白' },
-          { value: 'skip', label: '跳过', description: '暂时跳过' }
+          { value: 'none', label: '暂不填', description: '本题先不填写' }
         ]
       }
     ]
   });
 
+  const isNone = (v) => v === 'none' || v === null || v === undefined;
+
   const asArray = (v) => {
     if (v == null) return [];
     if (Array.isArray(v)) return v.map(String).filter(Boolean);
     const s = String(v).trim();
-    if (!s || s === 'skip') return [];
+    if (!s || isNone(s)) return [];
     return s.split(/[,，;；\\s]+/).map((x) => x.trim()).filter(Boolean);
   };
 
   const parseIntOrNull = (v) => {
     if (v == null) return null;
     const s = String(v).trim();
-    if (!s || s === 'skip') return null;
+    if (!s || isNone(s)) return null;
     const n = Number(s.replace(/[^0-9]/g, ''));
     return Number.isFinite(n) && n >= 0 ? n : null;
   };
@@ -476,7 +580,7 @@ function preContextVNext() {
   };
 
   const parsed = {
-    learning_style: b1[Q_STYLE] === 'skip' ? null : (String(b1[Q_STYLE] ?? '').trim() || null),
+    learning_style: isNone(b1[Q_STYLE]) ? null : (String(b1[Q_STYLE] ?? '').trim() || null),
     preferred_sources: asArray(b1[Q_SOURCES]),
     hours_per_week: (() => {
       const v = b1[Q_HOURS_WEEK];
@@ -491,10 +595,10 @@ function preContextVNext() {
       if (v === '90+') return 90;
       return parseIntOrNull(v);
     })(),
-    practice_intensity: b2[Q_PRACTICE] === 'skip' ? null : (String(b2[Q_PRACTICE] ?? '').trim() || null),
-    feedback_style: b2[Q_FEEDBACK] === 'skip' ? null : (String(b2[Q_FEEDBACK] ?? '').trim() || null),
-    pace: b2[Q_PACE] === 'skip' ? null : (String(b2[Q_PACE] ?? '').trim() || null),
-    motivation_type: b2[Q_MOTIVATION] === 'skip' ? null : (String(b2[Q_MOTIVATION] ?? '').trim() || null)
+    practice_intensity: isNone(b2[Q_PRACTICE]) ? null : (String(b2[Q_PRACTICE] ?? '').trim() || null),
+    feedback_style: isNone(b2[Q_FEEDBACK]) ? null : (String(b2[Q_FEEDBACK] ?? '').trim() || null),
+    pace: isNone(b2[Q_PACE]) ? null : (String(b2[Q_PACE] ?? '').trim() || null),
+    motivation_type: isNone(b2[Q_MOTIVATION]) ? null : (String(b2[Q_MOTIVATION] ?? '').trim() || null)
   };
 
   const capturedAt = new Date().toISOString();
@@ -518,18 +622,16 @@ function preContextVNext() {
 function collectKnownTopicsMinimal(initialKnownTopics) {
   // Cycle-2: manual Add Topic is removed. Known topics should come from:
   // - background parse + topic coverage loop (then assessed), or
-  // - later, taxonomy-first resolve + assessment events (Cycle-3).
+  // - later cycles may reintroduce taxonomy-first governance, but Cycle-5 uses Topic V0 (hash-id) by default.
   return Array.isArray(initialKnownTopics) ? initialKnownTopics.slice() : [];
 }
 
-function topicCoverageValidationLoop(topicCandidates) {
-  // Cycle-4:
-  // - Candidates are generated by the main agent (subjective parse + association expansion) from background.
-  // - This is a feedback loop to confirm coverage (not a fixed list).
-  // - Per round: 2 AskUserQuestion calls:
-  //   1) 4 multiSelect questions (<=4 options each, total <=16 topics)
-  //   2) free text supplement + covered/more confirm
-  // - Only user-selected/typed labels can be resolve/ensure-topic (no taxonomy pollution).
+function topicCoverageValidationLoop(topicCandidates, opts = {}) {
+  // Cycle-5 (Topic V0):
+  // - Candidate selection is a coverage feedback loop (not a fixed taxonomy list).
+  // - topic_id is stable: t_<sha1(normalized_label)>
+  // - Dedupe/merge uses alias_map + existing topic_id derived aliases.
+  // - existing topics are excluded from the "new candidates" output.
 
   const normalizeLabel = (s) => String(s ?? '').trim();
   const asCandidate = (x) => {
@@ -540,12 +642,19 @@ function topicCoverageValidationLoop(topicCandidates) {
     return { label, reason };
   };
 
+  const existingTopicIds = Array.isArray(opts.existingTopicIds) ? opts.existingTopicIds.map(String) : [];
+  const explicitAliasToCanonical =
+    opts.explicitAliasToCanonical && typeof opts.explicitAliasToCanonical === 'object' ? opts.explicitAliasToCanonical : {};
+  const aliasToCanonical = buildAliasMapV0(existingTopicIds, explicitAliasToCanonical);
+  const existingSet = new Set(existingTopicIds.map((t) => normalizeInferredTopicId(t)).filter(Boolean));
+
   const uniq = [];
   const seen = new Set();
   for (const x of Array.isArray(topicCandidates) ? topicCandidates : []) {
     const c = asCandidate(x);
     if (!c.label) continue;
-    const key = c.label.toLowerCase();
+    const key = normalizeTopicKeyV0(c.label);
+    if (!key) continue;
     if (seen.has(key)) continue;
     seen.add(key);
     uniq.push(c);
@@ -563,50 +672,7 @@ function topicCoverageValidationLoop(topicCandidates) {
       .trim()
       .split(/[,，;；\\s]+/)
       .map((x) => normalizeLabel(x))
-      .filter(Boolean);
-
-  const resolveOrEnsureOne = (rawLabel) => {
-    const raw = normalizeLabel(rawLabel);
-    if (!raw) return null;
-
-    const resolved = runCcwJson(
-      ['ccw learn:resolve-topic', `--raw-topic-label ${JSON.stringify(raw)}`, '--json'].join(' ')
-    );
-
-    if (resolved.found) return String(resolved.topic_id);
-
-    if (resolved.ambiguous) {
-      // Ask user to decide (no auto-choice).
-      const KEY = `topic_ambiguous_${Date.now()}`;
-      const opts = (resolved.candidates || []).slice(0, 4).map((c) => ({
-        value: String(c.topic_id),
-        label: String(c.topic_id),
-        description: String(c.display_name_zh || c.display_name_en || c.topic_id)
-      }));
-      const picked = AskUserQuestion({
-        questions: [{
-          key: KEY,
-          header: 'Topic 解析存在歧义',
-          multiSelect: false,
-          question: `“${raw}” 可能对应多个 topic，请选择一个：`,
-          options: opts.length > 0 ? opts : [{ value: 'type', label: '手动输入', description: '候选为空时手动输入' }]
-        }]
-      });
-      const choice = String(picked?.[KEY] ?? '').trim();
-      if (choice && choice !== 'type') return choice;
-      // If user refuses to pick one of the candidates, we treat it as a deliberate new label (allowed only because user selected it).
-      const ensured = runCcwJson(
-        ['ccw learn:ensure-topic', `--raw-topic-label ${JSON.stringify(raw)}`, '--actor user', '--json'].join(' ')
-      );
-      return String(ensured.topic_id);
-    }
-
-    // Not found: create provisional ONLY because user selected/typed it.
-    const ensured = runCcwJson(
-      ['ccw learn:ensure-topic', `--raw-topic-label ${JSON.stringify(raw)}`, '--actor user', '--json'].join(' ')
-    );
-    return String(ensured.topic_id);
-  };
+      .filter((x) => Boolean(x) && x !== 'none' && x !== 'type' && x !== '无补充' && x !== '输入补充');
 
   let merged = [];
   for (let round = 1; round <= 3; round += 1) {
@@ -616,12 +682,18 @@ function topicCoverageValidationLoop(topicCandidates) {
     const pickQuestions = groups.slice(0, 4).map((g, i) => {
       const key = `topic_pick_${round}_${i + 1}`;
       const opts = g.slice(0, 4).map((c) => ({ value: c.label, label: c.label, description: c.reason }));
-      const options = opts.length > 0 ? opts : [{ value: 'none', label: '(无更多候选)', description: '可在下一步手动输入' }];
+      const options =
+        opts.length > 0
+          ? opts
+          : [
+              { value: 'none', label: '(无更多候选)', description: '可在下一步手动输入' },
+              { value: 'none2', label: '(本组不选)', description: '跳过本组' }
+            ];
       return {
         key,
         header: `候选 Topics (${i + 1}/4)`,
         multiSelect: true,
-        question: '请选择与你相关的 topics（可多选；也可以不选）。',
+        question: `请选择与你相关的 topics - 第 ${i + 1} 组（可多选；也可以不选）。`,
         options
       };
     });
@@ -634,7 +706,7 @@ function topicCoverageValidationLoop(topicCandidates) {
       const arr = Array.isArray(v) ? v : (v ? [v] : []);
       for (const x of arr) {
         const s = normalizeLabel(x);
-        if (!s || s === 'none') continue;
+        if (!s || s === 'none' || s === 'none2') continue;
         selectedLabels.push(s);
       }
     }
@@ -647,6 +719,10 @@ function topicCoverageValidationLoop(topicCandidates) {
           key: EXTRA_KEY,
           header: `补充 topics（第 ${round} 轮）`,
           multiSelect: false,
+          options: [
+            { value: 'type', label: '输入补充', description: '直接输入文本即可（可空）' },
+            { value: 'none', label: '无补充', description: '本轮不补充' }
+          ],
           question: '如果还有缺失的技能点/细分 topic，请直接输入（可空；逗号/空格分隔）。'
         },
         {
@@ -662,20 +738,29 @@ function topicCoverageValidationLoop(topicCandidates) {
       ]
     });
 
-    const extraLabels = splitFreeText(round2?.[EXTRA_KEY]);
+    const extraRaw0 = String(round2?.[EXTRA_KEY] ?? '').trim();
+    // AskUserQuestion may return option label instead of value; normalize both.
+    const extraRaw =
+      extraRaw0 === '无补充' ? 'none' : (extraRaw0 === '输入补充' ? 'type' : extraRaw0);
+    const extraLabels = extraRaw === 'none' || extraRaw === 'type' ? [] : splitFreeText(extraRaw);
     merged = Array.from(new Set([...merged, ...selectedLabels, ...extraLabels])).filter(Boolean);
 
     if (String(round2?.[COVERED_KEY]) === 'covered') break;
   }
 
-  // Resolve/ensure ONLY for user-selected/typed labels.
-  const topicIds = [];
+  // Canonicalize -> dedupe by topic_id -> subtract existing topics.
+  const outIds = [];
+  const topicsById = Object.create(null);
   for (const raw of merged) {
-    const tid = resolveOrEnsureOne(raw);
-    if (tid) topicIds.push(String(tid));
+    const t = topicV0FromLabel(raw, aliasToCanonical);
+    if (!t.topic_id) continue;
+    if (existingSet.has(t.topic_id)) continue;
+    if (topicsById[t.topic_id]) continue;
+    topicsById[t.topic_id] = { display_label: t.display_label, topic_key: t.topic_key };
+    outIds.push(t.topic_id);
   }
 
-  return Array.from(new Set(topicIds));
+  return { topic_ids: outIds, topics_by_id: topicsById };
 }
 
 function createFlow() {
@@ -693,6 +778,33 @@ function createFlow() {
   // B) Background is required (reuse/update allowed).
   const backgroundText = collectBackgroundTextRequired();
   if (!backgroundText) throw new Error('背景信息不能为空（create 阶段必填）');
+
+  const now = new Date().toISOString();
+
+  // Upsert: if profile already exists, we preserve prior known_topics/journal and update only the relevant fields.
+  let existingProfile = null;
+  try {
+    existingProfile = runCcwJson(`ccw learn:read-profile --profile-id \"${profileId}\" --json`);
+  } catch {
+    existingProfile = null;
+  }
+
+  const createdAt = existingProfile?._metadata?.created_at ?? now;
+  const baseKnownTopics = Array.isArray(existingProfile?.known_topics) ? existingProfile.known_topics : [];
+  const baseJournal = Array.isArray(existingProfile?.feedback_journal) ? existingProfile.feedback_journal : [];
+
+  const existingTopicIds = baseKnownTopics.map((t) => String(t?.topic_id ?? '')).filter(Boolean);
+  const prevCustomFields =
+    existingProfile?.custom_fields && typeof existingProfile.custom_fields === 'object' ? existingProfile.custom_fields : {};
+  const prevTopicV0 = prevCustomFields?.topic_v0 && typeof prevCustomFields.topic_v0 === 'object' ? prevCustomFields.topic_v0 : {};
+  const explicitAliasToCanonical =
+    prevTopicV0?.alias_to_canonical && typeof prevTopicV0.alias_to_canonical === 'object' ? prevTopicV0.alias_to_canonical : {};
+
+  if (existingTopicIds.length > 0) {
+    console.log('\n(只读) 当前 profile 已有 topics：');
+    existingTopicIds.slice(0, 20).forEach((t) => console.log(`  - ${t}`));
+    if (existingTopicIds.length > 20) console.log(`  ... +${existingTopicIds.length - 20}`);
+  }
 
   // C) Topic candidates (main agent subjective parse + association expansion).
   // Policy: DO NOT call learn:parse-background for this step (Cycle-4 decision override).
@@ -721,26 +833,19 @@ function createFlow() {
     return candidates.slice(0, 16);
   })();
 
-  // D) Topic coverage validation loop (4x4 + type something). Returns canonical topic_ids.
-  const topicIds = topicCoverageValidationLoop(topicCandidates);
+  // D) Topic coverage validation loop (4x4 + type something).
+  // Cycle-5 Topic V0: returns stable ids (t_<hash>) and a topics_by_id map for display/audit.
+  const topicSel = topicCoverageValidationLoop(topicCandidates, { existingTopicIds, explicitAliasToCanonical });
+  const topicIds = Array.isArray(topicSel?.topic_ids) ? topicSel.topic_ids : [];
+  const topicsByIdV0 = topicSel?.topics_by_id && typeof topicSel.topics_by_id === 'object' ? topicSel.topics_by_id : {};
 
   const runFullAssessment = Boolean(flags.fullAssessment);
   const isMinimal = !runFullAssessment;
   const completionPercent = runFullAssessment ? 100 : 60;
 
-  const now = new Date().toISOString();
-
-  // Upsert: if profile already exists, we preserve prior known_topics/journal and update only the relevant fields.
-  let existingProfile = null;
-  try {
-    existingProfile = runCcwJson(`ccw learn:read-profile --profile-id \"${profileId}\" --json`);
-  } catch {
-    existingProfile = null;
-  }
-
-  const createdAt = existingProfile?._metadata?.created_at ?? now;
-  const baseKnownTopics = Array.isArray(existingProfile?.known_topics) ? existingProfile.known_topics : [];
-  const baseJournal = Array.isArray(existingProfile?.feedback_journal) ? existingProfile.feedback_journal : [];
+  const prevTopicsById =
+    prevTopicV0?.topics_by_id && typeof prevTopicV0.topics_by_id === 'object' ? prevTopicV0.topics_by_id : {};
+  const nextTopicsById = { ...prevTopicsById, ...topicsByIdV0 };
 
   const profile = {
     ...(existingProfile && typeof existingProfile === 'object' ? existingProfile : {}),
@@ -754,6 +859,15 @@ function createFlow() {
       raw_text: backgroundText,
       summary: backgroundText.slice(0, 240),
       _metadata: { captured_at: now }
+    },
+    custom_fields: {
+      ...prevCustomFields,
+      topic_v0: {
+        schema_version: '1.0.0',
+        updated_at: now,
+        alias_to_canonical: explicitAliasToCanonical,
+        topics_by_id: nextTopicsById
+      }
     },
     learning_preferences: {
       style: pre_context?.parsed?.learning_style ?? null,
@@ -872,8 +986,26 @@ function createFlow() {
 
       const TOPIC_KEY = 'assess_topic_id';
       const topicOptions = (remaining.length > 0)
-        ? remaining.slice(0, 4).map((t) => ({ value: String(t), label: String(t), description: '来自 topic 覆盖校验' }))
+        ? (() => {
+            const counts = Object.create(null);
+            const opts = remaining.slice(0, 4).map((t) => {
+              const tid = String(t);
+              const base = String(topicsByIdV0?.[tid]?.display_label ?? tid);
+              const k = base.toLowerCase();
+              counts[k] = (counts[k] ?? 0) + 1;
+              const label = counts[k] > 1 ? `${base} (${tid})` : base;
+              const key = String(topicsByIdV0?.[tid]?.topic_key ?? '');
+              return {
+                value: tid,
+                label,
+                description: key ? `topic_key=${key}` : `topic_id=${tid}`
+              };
+            });
+            return opts;
+          })()
         : [{ value: 'game_dev_core', label: 'game_dev_core', description: '示例 topic（可直接输入其它）' }];
+
+      const labelToId = new Map(topicOptions.map((o) => [String(o.label), String(o.value)]));
 
       const picked = AskUserQuestion({
         questions: [{
@@ -885,7 +1017,12 @@ function createFlow() {
         }]
       });
 
-      const topicId = normalizeInferredTopicId(String(picked[TOPIC_KEY] ?? '').trim());
+      const rawPick = String(picked[TOPIC_KEY] ?? '').trim();
+      const direct = normalizeInferredTopicId(rawPick);
+      const topicId =
+        labelToId.get(rawPick) ??
+        direct ||
+        topicV0FromLabel(rawPick, buildAliasMapV0(existingTopicIds, explicitAliasToCanonical)).topic_id;
       if (!topicId) throw new Error('必须选择/输入 topic_id 才能继续（--full-assessment=true）');
 
       const assessResult = __assess.assessTopic({ profileId, topicId, language: 'zh-CN' });
@@ -928,7 +1065,11 @@ function createFlow() {
 
   console.log('\n✅ Profile created');
   console.log(`Profile ID: ${profileId}`);
-  console.log(`Topics (confirmed): ${topicIds.join(', ') || '(none)'}`);
+  const topicLabels = (Array.isArray(topicIds) ? topicIds : []).map((tid) => {
+    const name = topicsByIdV0?.[tid]?.display_label;
+    return name ? `${name} (${tid})` : String(tid);
+  });
+  console.log(`Topics (confirmed): ${topicLabels.join(', ') || '(none)'}`);
   console.log('Next: /learn:plan (JIT)');
 }
 
@@ -948,16 +1089,10 @@ function updateFlow() {
       question: '你想更新什么内容？',
       options: [
         { value: 'preferences', label: '更新偏好', description: '更新 pre_context.parsed + learning_preferences' },
-        { value: 'assess_topic', label: '题目评估（单 topic）', description: '进入最小评估闭环（Cycle-1）' },
-        { value: 'show', label: '查看', description: '查看当前 profile + snapshot' }
+        { value: 'assess_topic', label: '题目评估（单 topic）', description: '进入最小评估闭环（Cycle-5 Topic V0 + Gemini packs）' }
       ]
     }]
   });
-
-  if (ans[KEY] === 'show') {
-    showFlow(profileId);
-    return;
-  }
 
   if (ans[KEY] === 'assess_topic') {
     const TOPIC_KEY = 'assess_topic_id';
@@ -966,16 +1101,26 @@ function updateFlow() {
         key: TOPIC_KEY,
         header: '题目评估入口（最小闭环）',
         multiSelect: false,
-        question: '请输入要评估的 topic_id（可直接输入；或选择跳过）。',
+        question: '请输入要评估的 topic_id（可直接输入；也可取消）。',
         options: [
           { value: 'game_dev_core', label: 'game_dev_core', description: '示例 topic（可直接输入其它）' },
-          { value: 'skip', label: '跳过', description: '本次先不做题目评估' }
+          { value: 'cancel', label: '取消', description: '返回上一步' }
         ]
       }]
     });
 
-    const topicId = normalizeInferredTopicId(String(picked[TOPIC_KEY] ?? '').trim());
-    if (topicId && topicId !== 'skip') {
+    const rawPick = String(picked[TOPIC_KEY] ?? '').trim();
+    if (rawPick === 'cancel') return;
+
+    const existingTopicIds = Array.isArray(profile?.known_topics) ? profile.known_topics.map((t) => String(t?.topic_id ?? '')).filter(Boolean) : [];
+    const custom = profile?.custom_fields && typeof profile.custom_fields === 'object' ? profile.custom_fields : {};
+    const topicV0 = custom?.topic_v0 && typeof custom.topic_v0 === 'object' ? custom.topic_v0 : {};
+    const explicitAliasToCanonical =
+      topicV0?.alias_to_canonical && typeof topicV0.alias_to_canonical === 'object' ? topicV0.alias_to_canonical : {};
+    const aliasToCanonical = buildAliasMapV0(existingTopicIds, explicitAliasToCanonical);
+
+    const topicId = topicIdFromUserInputV0(rawPick, aliasToCanonical);
+    if (topicId) {
       const assessResult = __assess.assessTopic({ profileId, topicId, language: 'zh-CN' });
       if (assessResult?.reused) {
         console.log(`\nℹ️ topic=${assessResult.topic_id} 已在相同 pack_key 下评估过，本次不需要重复评估。`);
@@ -1105,73 +1250,6 @@ function updateFlow() {
   console.log('✅ Profile updated');
 }
 
-function selectFlow() {
-  // Phase 4: Profile Selection Flow
-  const summaries = runCcwJson('ccw learn:list-profiles --json');
-  if (!Array.isArray(summaries) || summaries.length === 0) {
-    console.error('❌ 没有找到任何 profiles，请先运行：/learn:profile create');
-    return;
-  }
-
-  const activeId = getActiveProfileIdOrNull();
-  const KEY = 'selected_profile';
-  const ans = AskUserQuestion({
-    questions: [{
-      key: KEY,
-      header: '选择 Profile',
-      multiSelect: false,
-      question: '请选择要激活的 profile：',
-      options: summaries.map((s) => ({
-        value: s.profile_id,
-        label: s.profile_id,
-        description: s.profile_id === activeId ? '当前已激活' : ''
-      }))
-    }]
-  });
-
-  const selectedId = ans[KEY];
-  runCcwJson(`ccw learn:update-state --field active_profile_id --value \"${selectedId}\" --json`);
-  console.log(`✅ 已设置 active profile：${selectedId}`);
-}
-
-function showFlow(profileIdArg) {
-  // Phase 5: Profile Display Flow
-  const profileId = profileIdArg || getProfileIdFromArgsOrActive(args, 1);
-  if (!profileId) {
-    console.error('❌ 没有 active profile，请先运行：/learn:profile create');
-    return;
-  }
-
-  const profile = runCcwJson(`ccw learn:read-profile --profile-id \"${profileId}\" --json`);
-  const knownTopics = Array.isArray(profile?.known_topics) ? profile.known_topics : [];
-
-  let snapshot = null;
-  try {
-    snapshot = runCcwJson(`ccw learn:read-profile-snapshot --profile-id \"${profileId}\" --json`);
-  } catch {
-    snapshot = null;
-  }
-
-  console.log('\n## 当前 Profile\n');
-  console.log(`Profile ID: ${profile.profile_id}`);
-  console.log(`经验等级（可空）: ${profile.experience_level ?? null}`);
-  console.log(`自述 known_topics 数量: ${knownTopics.length}`);
-  if (knownTopics.length > 0) {
-    knownTopics
-      .slice()
-      .sort((a, b) => (b.proficiency ?? 0) - (a.proficiency ?? 0))
-      .slice(0, 10)
-      .forEach((t) => console.log(`  - ${t.topic_id}: ${Math.round((t.proficiency ?? 0) * 100)}%`));
-  }
-
-  if (snapshot && snapshot.skills && Array.isArray(snapshot.skills.inferred)) {
-    console.log('\n推断技能（snapshot）：');
-    const inferred = snapshot.skills.inferred;
-    if (inferred.length === 0) console.log('  (none)');
-    inferred.forEach((s) => console.log(`  - ${s.topic_id}: ${s.status} (p=${s.proficiency ?? null}, c=${s.confidence ?? null})`));
-  }
-}
-
 switch (op) {
   case 'create':
     createFlow();
@@ -1179,12 +1257,8 @@ switch (op) {
   case 'update':
     updateFlow();
     break;
-  case 'select':
-    selectFlow();
-    break;
-  case 'show':
   default:
-    showFlow();
+    console.log('Usage: /learn:profile create|update');
     break;
 }
 ```
@@ -1202,25 +1276,4 @@ const scratchRoot = '.workflow/.scratchpad/learn-challenges';
 // Example: parse mcp-runner output robustly (avoid JSON.parse(raw)).
 const raw = Bash('ccw mcp-runner --some-args --json');
 const challengeResult = lastJsonObjectFromText(raw);
-```
-
-### Phase 4: Profile Selection Flow (select)
-
-Implementation is in `selectFlow()` above; key invariants:
-
-```javascript
-const stateResp = lastJsonObjectFromText(Bash('ccw learn:read-state --json'));
-const activeId = stateResp.data.active_profile_id;
-// ...
-Bash(`ccw learn:update-state --field active_profile_id --value "${selectedId}" --json`);
-```
-
-### Phase 5: Profile Display Flow (show)
-
-Implementation is in `showFlow()` above; key invariants:
-
-```javascript
-const stateResp = lastJsonObjectFromText(Bash('ccw learn:read-state --json'));
-const profileId = stateResp.data.active_profile_id;
-const profileResp = lastJsonObjectFromText(Bash(`ccw learn:read-profile --profile-id "${profileId}" --json`));
 ```
