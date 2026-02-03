@@ -1,0 +1,23 @@
+diff --git a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-028.outline.md b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-028.outline.md
+index 0ad300bf..75574687 100644
+--- a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-028.outline.md
++++ b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-028.outline.md
+@@ -37,14 +37,14 @@ allowed-tools: Read(*), Write(*)
+ - Likely code locations:
+   - `ccw/src/tools/command-registry.ts`
+   - `ccw/src/tools/cli-executor.ts`
++  - `.claude/commands/memory/compact.md`
++  - `.claude/commands/ccw.md`
+   - `ccw/src/tools/claude-cli-tools.ts`
+   - `ccw/src/commands/session.ts`
+-  - `ccw/src/commands/core-memory.ts`
+-  - `ccw/src/commands/install.ts`
+-  - `ccw/src/tools/cli-executor-core.ts`
+   - `ccw/src/commands/cli.ts`
++  - `ccw/src/tools/command-registry.test.ts`
++  - `ccw/src/tools/generate-module-docs.ts`
+   - `ccw/src/commands/issue.ts`
+-  - `ccw/src/tools/session-manager.ts`
+ 
+ ## Execution Process
+ 

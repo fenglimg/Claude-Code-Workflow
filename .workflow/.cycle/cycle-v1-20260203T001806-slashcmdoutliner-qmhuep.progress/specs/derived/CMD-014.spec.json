@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/issue/new.md",
-  "created_at": "2026-02-02T16:54:05.790Z",
+  "created_at": "2026-02-03T05:36:52.414Z",
   "command": {
-    "group": "",
+    "group": "issue",
     "name": "new",
     "description": "Create structured issue from GitHub URL or text description",
     "argument_hint": "[-y|--yes] <github-url | text-description> [--priority 1-5]",
@@ -13,6 +13,21 @@
       "Read(*)",
       "AskUserQuestion(*)",
       "mcp__ace-tool__search_context(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/issue/new.md",
+    "code_pointers": [
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/issue/plan.md",
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/tools/codex-lens.ts",
+      "ccw/src/commands/install.ts",
+      "ccw/src/tools/cli-history-store.ts",
+      "ccw/src/commands/core-memory.ts",
+      "ccw/src/tools/session-manager.ts"
     ]
   },
   "structure_hints": {

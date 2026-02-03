@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { extractHeadings, parseYamlHeader, readCommandFile, toPosixPath } from './command-md.js';
+import { findImplementationHints } from './implementation-hints.js';
 
 export function splitCsv(s) {
   return String(s || '')
@@ -10,12 +11,23 @@ export function splitCsv(s) {
     .filter(Boolean);
 }
 
+function inferGroupFromCommandPath(commandPath, headerGroup) {
+  if (headerGroup && String(headerGroup).trim().length > 0) return String(headerGroup).trim();
+  const p = toPosixPath(String(commandPath || ''));
+  const marker = '.claude/commands/';
+  const idx = p.indexOf(marker);
+  if (idx === -1) return '';
+  const rel = p.slice(idx + marker.length);
+  const parts = rel.split('/').filter(Boolean);
+  return parts.length >= 2 ? parts[0] : '';
+}
+
 export function deriveSpecFromCommandFile(repoRoot, commandPath) {
   const abs = path.resolve(repoRoot, commandPath);
   const { header, headings } = readCommandFile(abs);
 
   const name = header?.name ? String(header.name).trim() : path.basename(abs, '.md');
-  const group = header?.group ? String(header.group).trim() : '';
+  const group = inferGroupFromCommandPath(commandPath, header?.group);
   const description = header?.description ? String(header.description) : 'TBD';
   const argumentHint = header?.['argument-hint'] ? String(header['argument-hint']) : '';
   const allowedTools = splitCsv(header?.['allowed-tools']);
@@ -32,6 +44,10 @@ export function deriveSpecFromCommandFile(repoRoot, commandPath) {
       description,
       argument_hint: argumentHint,
       allowed_tools: allowedToolsFinal,
+    },
+    implementation: {
+      command_doc: commandPath,
+      code_pointers: [],
     },
     structure_hints: {
       headings: headings.map((h) => ({ level: h.level, text: h.text })),
@@ -61,6 +77,9 @@ function slash(cmd) {
 export function renderOutlineFromSpec(spec) {
   const cmd = spec.command;
   const title = cmd.group ? `${cmd.group}:${cmd.name}` : cmd.name;
+  const impl = spec.implementation || {};
+  const implDoc = impl.command_doc || spec.derived_from || 'TBD';
+  const implPointers = Array.isArray(impl.code_pointers) ? impl.code_pointers : [];
 
   // Core P0 sections + minimal CCW-standard scaffolding.
   const body = [
@@ -91,6 +110,12 @@ export function renderOutlineFromSpec(spec) {
     '- Reads:',
     ...(spec.artifacts?.reads?.length ? spec.artifacts.reads.map((p) => `  - \`${p}\``) : ['  - TBD']),
     '',
+    '## Implementation Pointers',
+    '',
+    `- Command doc: \`${implDoc}\``,
+    '- Likely code locations:',
+    ...(implPointers.length ? implPointers.map((p) => `  - \`${p}\``) : ['  - TBD']),
+    '',
     '## Execution Process',
     '',
     '1. TBD',
@@ -116,23 +141,7 @@ function headingSet(headings, level) {
   return new Set(headings.filter((h) => h.level === level).map((h) => h.text));
 }
 
-function findToolingHints(toolingFiles, tokens) {
-  const loweredTokens = tokens.filter(Boolean).map((t) => t.toLowerCase());
-  if (loweredTokens.length === 0) return [];
-  const hits = [];
-  for (const f of toolingFiles) {
-    const lf = String(f).toLowerCase();
-    let score = 0;
-    for (const t of loweredTokens) {
-      if (lf.includes(t)) score += 1;
-    }
-    if (score > 0) hits.push({ file: f, score });
-  }
-  hits.sort((a, b) => b.score - a.score);
-  return hits.slice(0, 8).map((h) => h.file);
-}
-
-export function computeGapReport(spec, outlineMd, referenceMd, toolingManifest) {
+export function computeGapReport(repoRoot, spec, outlineMd, referenceMd, toolingManifest) {
   const outlineParsed = parseYamlHeader(outlineMd);
   const refParsed = parseYamlHeader(referenceMd);
   const outlineHeadings = extractHeadings(outlineParsed.body);
@@ -168,15 +177,16 @@ export function computeGapReport(spec, outlineMd, referenceMd, toolingManifest) 
   if (missingH2.length) p1.push(`Missing reference H2 sections: ${missingH2.map((t) => `\`${t}\``).join(', ')}`);
   if (extraH2.length) p1.push(`Extra H2 sections (not in reference): ${extraH2.map((t) => `\`${t}\``).join(', ')}`);
 
-  const toolingFiles = toolingManifest?.files || [];
-  const tokens = unique([
-    spec?.command?.group,
-    spec?.command?.name,
-    ...(String(spec?.command?.description || '').split(/\W+/).filter(Boolean).slice(0, 3)),
-  ]);
-  const toolingHints = findToolingHints(toolingFiles, tokens);
+  const derivedFrom = spec?.derived_from || '';
+  const implementationHints = findImplementationHints({
+    repoRoot,
+    derivedFrom,
+    command: spec?.command,
+    toolingManifest,
+    maxResults: 10,
+  });
 
-  return { p0, p1, toolingHints };
+  return { p0, p1, implementationHints };
 }
 
 export function writeJson(repoRoot, outPath, value) {

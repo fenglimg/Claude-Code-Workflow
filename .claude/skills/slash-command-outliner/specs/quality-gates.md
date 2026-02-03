@@ -22,4 +22,11 @@ Once a command is marked “completed” in the corpus, future changes must not 
 Mechanism:
 - keep snapshots in `regression/expected/`
 - compare newly generated `regression/current/` to expected
+- store diffs in `regression/diff/`
 
+Default behavior (gate enabled):
+- If `expected/` snapshot is missing, initialize it from current output.
+- If `expected/` differs from `current/`, the run fails (blocks) and a diff is written.
+
+To accept intentional changes:
+- re-run with `--update-expected` to overwrite `expected/` for the differing snapshots.

@@ -1,0 +1,421 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/cli/cli-init.md",
+  "created_at": "2026-02-03T05:35:42.460Z",
+  "command": {
+    "group": "cli",
+    "name": "cli-init",
+    "description": "Generate .gemini/ and .qwen/ config directories with settings.json and ignore files based on workspace technology detection",
+    "argument_hint": "[--tool gemini|qwen|all] [--output path] [--preview]",
+    "allowed_tools": [
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Glob(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/cli/cli-init.md",
+    "code_pointers": []
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "CLI Initialization Command (/cli:cli-init)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Core Functionality"
+      },
+      {
+        "level": 3,
+        "text": "Configuration Generation"
+      },
+      {
+        "level": 3,
+        "text": "Generated Files"
+      },
+      {
+        "level": 4,
+        "text": "Configuration Directories"
+      },
+      {
+        "level": 4,
+        "text": "Ignore Files"
+      },
+      {
+        "level": 3,
+        "text": "Supported Technology Stacks"
+      },
+      {
+        "level": 4,
+        "text": "Frontend Technologies"
+      },
+      {
+        "level": 4,
+        "text": "Backend Technologies"
+      },
+      {
+        "level": 4,
+        "text": "Database & Infrastructure"
+      },
+      {
+        "level": 3,
+        "text": "Generated Rules Structure"
+      },
+      {
+        "level": 4,
+        "text": "Base Rules (Always Included)"
+      },
+      {
+        "level": 1,
+        "text": "Version Control"
+      },
+      {
+        "level": 1,
+        "text": "OS Files"
+      },
+      {
+        "level": 1,
+        "text": "IDE Files"
+      },
+      {
+        "level": 1,
+        "text": "Logs"
+      },
+      {
+        "level": 4,
+        "text": "Technology-Specific Rules"
+      },
+      {
+        "level": 1,
+        "text": "Node.js"
+      },
+      {
+        "level": 1,
+        "text": "Python"
+      },
+      {
+        "level": 1,
+        "text": "Java"
+      },
+      {
+        "level": 2,
+        "text": "Command Options"
+      },
+      {
+        "level": 3,
+        "text": "Tool Selection"
+      },
+      {
+        "level": 3,
+        "text": "Preview Mode"
+      },
+      {
+        "level": 3,
+        "text": "Custom Output Path"
+      },
+      {
+        "level": 3,
+        "text": "Combined Options"
+      },
+      {
+        "level": 2,
+        "text": "EXECUTION INSTRUCTIONS - START HERE"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Parse Tool Selection"
+      },
+      {
+        "level": 1,
+        "text": "Extract --tool flag (default: all)"
+      },
+      {
+        "level": 1,
+        "text": "Options: gemini, qwen, all"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Workspace Analysis (MANDATORY FIRST)"
+      },
+      {
+        "level": 1,
+        "text": "Analyze workspace structure"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Technology Detection"
+      },
+      {
+        "level": 1,
+        "text": "Check for common tech stack indicators"
+      },
+      {
+        "level": 3,
+        "text": "Step 4: Generate Configuration Files"
+      },
+      {
+        "level": 1,
+        "text": "Create .gemini/ directory and settings.json"
+      },
+      {
+        "level": 1,
+        "text": "Create .geminiignore file with detected technology rules"
+      },
+      {
+        "level": 1,
+        "text": "Backup existing files if present"
+      },
+      {
+        "level": 1,
+        "text": "Create .qwen/ directory and settings.json"
+      },
+      {
+        "level": 1,
+        "text": "Create .qwenignore file with detected technology rules"
+      },
+      {
+        "level": 1,
+        "text": "Backup existing files if present"
+      },
+      {
+        "level": 3,
+        "text": "Step 5: Validation"
+      },
+      {
+        "level": 1,
+        "text": "Verify generated files are valid"
+      },
+      {
+        "level": 2,
+        "text": "Implementation Process (Technical Details)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Tool Selection"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Workspace Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Technology Detection"
+      },
+      {
+        "level": 1,
+        "text": "Technology detection logic"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Configuration Generation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Ignore Rules Generation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 6: File Creation"
+      },
+      {
+        "level": 2,
+        "text": "Generated File Format"
+      },
+      {
+        "level": 3,
+        "text": "Configuration Files"
+      },
+      {
+        "level": 3,
+        "text": "Ignore Files"
+      },
+      {
+        "level": 1,
+        "text": ".geminiignore / .qwenignore"
+      },
+      {
+        "level": 1,
+        "text": "Generated by Claude Code /cli:cli-init command"
+      },
+      {
+        "level": 1,
+        "text": "Creation date: 2024-01-15 10:30:00"
+      },
+      {
+        "level": 1,
+        "text": "Detected technologies: Node.js, Python, Docker"
+      },
+      {
+        "level": 1,
+        "text": "This file uses gitignore syntax to filter files for CLI tool analysis"
+      },
+      {
+        "level": 1,
+        "text": "Edit this file to customize filtering rules for your project"
+      },
+      {
+        "level": 1,
+        "text": "============================================================================"
+      },
+      {
+        "level": 1,
+        "text": "Base Rules (Always Applied)"
+      },
+      {
+        "level": 1,
+        "text": "============================================================================"
+      },
+      {
+        "level": 1,
+        "text": "Version Control"
+      },
+      {
+        "level": 1,
+        "text": "============================================================================"
+      },
+      {
+        "level": 1,
+        "text": "Node.js (Detected: package.json found)"
+      },
+      {
+        "level": 1,
+        "text": "============================================================================"
+      },
+      {
+        "level": 1,
+        "text": "============================================================================"
+      },
+      {
+        "level": 1,
+        "text": "Python (Detected: requirements.txt, *.py files found)"
+      },
+      {
+        "level": 1,
+        "text": "============================================================================"
+      },
+      {
+        "level": 1,
+        "text": "============================================================================"
+      },
+      {
+        "level": 1,
+        "text": "Docker (Detected: Dockerfile found)"
+      },
+      {
+        "level": 1,
+        "text": "============================================================================"
+      },
+      {
+        "level": 1,
+        "text": "============================================================================"
+      },
+      {
+        "level": 1,
+        "text": "Custom Rules (Add your project-specific rules below)"
+      },
+      {
+        "level": 1,
+        "text": "============================================================================"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Missing Dependencies"
+      },
+      {
+        "level": 3,
+        "text": "Write Permissions"
+      },
+      {
+        "level": 3,
+        "text": "Backup Existing Files"
+      },
+      {
+        "level": 2,
+        "text": "Integration Points"
+      },
+      {
+        "level": 3,
+        "text": "Workflow Commands"
+      },
+      {
+        "level": 3,
+        "text": "CLI Tool Integration"
+      },
+      {
+        "level": 2,
+        "text": "Usage Examples"
+      },
+      {
+        "level": 3,
+        "text": "Basic Project Setup"
+      },
+      {
+        "level": 1,
+        "text": "Initialize all CLI tools (Gemini + Qwen)"
+      },
+      {
+        "level": 1,
+        "text": "Initialize only Gemini"
+      },
+      {
+        "level": 1,
+        "text": "Initialize only Qwen"
+      },
+      {
+        "level": 1,
+        "text": "Preview what would be generated"
+      },
+      {
+        "level": 1,
+        "text": "Generate in subdirectory"
+      },
+      {
+        "level": 3,
+        "text": "Technology Migration"
+      },
+      {
+        "level": 1,
+        "text": "After adding new tech stack (e.g., Docker)"
+      },
+      {
+        "level": 1,
+        "text": "Check what changed"
+      },
+      {
+        "level": 1,
+        "text": "Update only Qwen configuration"
+      },
+      {
+        "level": 3,
+        "text": "Tool-Specific Initialization"
+      },
+      {
+        "level": 1,
+        "text": "Setup for Gemini-only workflow"
+      },
+      {
+        "level": 1,
+        "text": "Setup for Qwen-only workflow"
+      },
+      {
+        "level": 1,
+        "text": "Setup both with preview"
+      },
+      {
+        "level": 2,
+        "text": "Tool Selection Guide"
+      }
+    ]
+  }
+}

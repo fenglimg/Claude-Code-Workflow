@@ -1,0 +1,14 @@
+diff --git a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-007.outline.md b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-007.outline.md
+index 21d4a3ae..8040fc07 100644
+--- a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-007.outline.md
++++ b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-007.outline.md
+@@ -44,8 +44,8 @@ allowed-tools: Read(*), Write(*)
+   - `ccw/src/tools/cli-executor-core.ts`
+   - `ccw/src/tools/cli-executor-utils.ts`
+   - `ccw/src/tools/codex-lens.ts`
+-  - `ccw/src/tools/smart-search.ts`
+   - `ccw/src/tools/cli-output-converter.ts`
++  - `ccw/src/tools/smart-search.ts`
+ 
+ ## Execution Process
+ 

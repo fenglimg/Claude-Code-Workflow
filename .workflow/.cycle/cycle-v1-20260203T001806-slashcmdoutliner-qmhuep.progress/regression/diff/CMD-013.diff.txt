@@ -1,0 +1,19 @@
+diff --git a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-013.outline.md b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-013.outline.md
+index 9dc54421..63bc37d7 100644
+--- a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-013.outline.md
++++ b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-013.outline.md
+@@ -40,13 +40,13 @@ group: issue
+   - `ccw/src/commands/issue.ts`
+   - `ccw/src/tools/command-registry.ts`
+   - `ccw/src/tools/cli-executor.ts`
+-  - `.claude/commands/issue/from-brainstorm.md`
+   - `.claude/commands/issue/queue.md`
+   - `.claude/commands/workflow/brainstorm-with-file.md`
+   - `.claude/commands/issue/new.md`
+   - `.claude/commands/issue/plan.md`
+   - `.claude/commands/issue/execute.md`
+   - `ccw/src/commands/session-path-resolver.ts`
++  - `ccw/src/tools/cli-executor-core.ts`
+ 
+ ## Execution Process
+ 

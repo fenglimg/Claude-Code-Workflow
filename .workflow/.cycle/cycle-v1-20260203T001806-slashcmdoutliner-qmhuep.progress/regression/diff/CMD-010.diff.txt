@@ -1,0 +1,19 @@
+diff --git a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-010.outline.md b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-010.outline.md
+index e8689745..594ef806 100644
+--- a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-010.outline.md
++++ b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-010.outline.md
+@@ -40,13 +40,13 @@ group: issue
+   - `ccw/src/commands/issue.ts`
+   - `ccw/src/tools/command-registry.ts`
+   - `ccw/src/tools/cli-executor.ts`
+-  - `.claude/commands/issue/discover-by-prompt.md`
+   - `.claude/commands/issue/discover.md`
+   - `.claude/commands/issue/plan.md`
+   - `ccw/src/commands/cli.ts`
+   - `ccw/src/tools/generate-module-docs.ts`
+   - `ccw/src/tools/native-session-discovery.ts`
+   - `ccw/src/tools/claude-cli-tools.ts`
++  - `ccw/src/tools/cli-executor-core.ts`
+ 
+ ## Execution Process
+ 

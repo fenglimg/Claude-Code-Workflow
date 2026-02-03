@@ -1,15 +1,30 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/memory/update-full.md",
-  "created_at": "2026-02-02T16:54:05.805Z",
+  "created_at": "2026-02-03T05:36:52.785Z",
   "command": {
-    "group": "",
+    "group": "memory",
     "name": "update-full",
     "description": "Update all CLAUDE.md files using layer-based execution (Layer 3→1) with batched agents (4 modules/agent) and gemini→qwen→codex fallback, <20 modules uses direct parallel",
     "argument_hint": "[--tool gemini|qwen|codex] [--path <directory>]",
     "allowed_tools": [
       "Read(*)",
       "Write(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/memory/update-full.md",
+    "code_pointers": [
+      "ccw/src/commands/memory.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      "ccw/src/tools/get-modules-by-depth.ts",
+      "ccw/src/tools/update-module-claude.js",
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/commands/cli.ts",
+      "ccw/src/tools/codex-lens.ts",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/tools/memory-update-queue.js"
     ]
   },
   "structure_hints": {

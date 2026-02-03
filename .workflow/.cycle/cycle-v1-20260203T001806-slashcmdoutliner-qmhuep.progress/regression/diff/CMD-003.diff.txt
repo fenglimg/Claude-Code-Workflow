@@ -1,0 +1,27 @@
+diff --git a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-003.outline.md b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-003.outline.md
+index 2adf1b07..21449c08 100644
+--- a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-003.outline.md
++++ b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-003.outline.md
+@@ -38,14 +38,14 @@ allowed-tools: SlashCommand(*), TodoWrite(*), AskUserQuestion(*), Read(*), Grep(
+ - Likely code locations:
+   - `ccw/src/tools/command-registry.ts`
+   - `ccw/src/tools/cli-executor.ts`
+-  - `ccw/src/tools/claude-cli-tools.ts`
+-  - `ccw/src/commands/install.ts`
+-  - `ccw/src/commands/issue.ts`
+-  - `ccw/src/commands/core-memory.ts`
+-  - `ccw/src/tools/cli-executor-core.ts`
+-  - `ccw/src/tools/cli-history-store.ts`
+-  - `ccw/src/tools/generate-module-docs.ts`
+-  - `ccw/src/tools/smart-search.ts`
++  - `.claude/commands/workflow/lite-lite-lite.md`
++  - `.claude/commands/workflow/lite-plan.md`
++  - `.claude/commands/workflow/lite-execute.md`
++  - `.claude/commands/workflow/test-fix-gen.md`
++  - `.claude/commands/workflow/test-cycle-execute.md`
++  - `.claude/commands/issue/convert-to-plan.md`
++  - `.claude/commands/issue/queue.md`
++  - `.claude/commands/issue/execute.md`
+ 
+ ## Execution Process
+ 

@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/test-gen.md",
-  "created_at": "2026-02-02T16:54:05.838Z",
+  "created_at": "2026-02-03T05:36:53.866Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "test-gen",
     "description": "Create independent test-fix workflow session from completed implementation session, analyzes code to generate test tasks",
     "argument_hint": "source-session-id",
@@ -12,6 +12,21 @@
       "TodoWrite(*)",
       "Read(*)",
       "Bash(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/test-gen.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/plan.md",
+      ".claude/commands/workflow/execute.md",
+      ".claude/commands/workflow/test-cycle-execute.md",
+      "ccw/src/commands/session.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/commands/session-path-resolver.ts"
     ]
   },
   "structure_hints": {

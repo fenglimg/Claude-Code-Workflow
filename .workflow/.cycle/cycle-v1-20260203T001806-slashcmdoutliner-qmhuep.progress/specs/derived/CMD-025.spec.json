@@ -1,15 +1,30 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/memory/tips.md",
-  "created_at": "2026-02-02T16:54:05.804Z",
+  "created_at": "2026-02-03T05:36:52.754Z",
   "command": {
-    "group": "",
+    "group": "memory",
     "name": "tips",
     "description": "Quick note-taking command to capture ideas, snippets, reminders, and insights for later reference",
     "argument_hint": "<note content> [--tag <tag1,tag2>] [--context <context>]",
     "allowed_tools": [
       "mcp__ccw-tools__core_memory(*)",
       "Read(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/memory/tips.md",
+    "code_pointers": [
+      "ccw/src/commands/memory.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/memory/compact.md",
+      "ccw/src/commands/cli.ts",
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/tools/generate-module-docs.ts",
+      "ccw/src/tools/core-memory.ts",
+      "ccw/src/tools/index.ts"
     ]
   },
   "structure_hints": {

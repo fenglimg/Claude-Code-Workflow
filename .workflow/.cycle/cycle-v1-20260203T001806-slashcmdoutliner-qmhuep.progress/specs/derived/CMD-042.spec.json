@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/lite-lite-lite.md",
-  "created_at": "2026-02-02T16:54:05.821Z",
+  "created_at": "2026-02-03T05:36:53.268Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "workflow:lite-lite-lite",
     "description": "Ultra-lightweight multi-tool analysis and direct execution. No artifacts for simple tasks; auto-creates planning docs in .workflow/.scratchpad/ for complex tasks. Auto tool selection based on task analysis, user-driven iteration via AskUser.",
     "argument_hint": "[-y|--yes] <task description>",
@@ -16,6 +16,21 @@
       "Write(*)",
       "mcp__ace-tool__search_context(*)",
       "mcp__ccw-tools__write_file(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/lite-lite-lite.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/issue/new.md",
+      ".claude/commands/workflow/multi-cli-plan.md",
+      ".claude/commands/workflow/lite-plan.md",
+      ".claude/commands/workflow/lite-execute.md",
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/tools/claude-cli-tools.ts"
     ]
   },
   "structure_hints": {

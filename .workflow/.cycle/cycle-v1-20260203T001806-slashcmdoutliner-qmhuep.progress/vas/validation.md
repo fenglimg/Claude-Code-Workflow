@@ -61,6 +61,10 @@ Executed (deterministic) full-corpus regression:
   - Commands processed: 82 / 82
   - P0 gaps: 0
   - P1 gaps: 164
+  - Snapshot gate: pass (see `reports/SUMMARY.json`)
 
 Notes:
 - Some legacy/non-standard command docs lack `allowed-tools` (and sometimes full frontmatter). The harness forces a minimal placeholder in derived spec to keep generated outlines CCW-aligned; P1 diffs remain for section mismatches.
+
+If snapshot gate fails:
+- Re-run with `--update-expected` to accept intentional outline changes and overwrite `regression/expected/`.

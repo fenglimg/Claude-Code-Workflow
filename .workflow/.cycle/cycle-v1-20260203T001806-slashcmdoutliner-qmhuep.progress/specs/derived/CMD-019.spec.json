@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/learn/profile.md",
-  "created_at": "2026-02-02T16:54:05.796Z",
+  "created_at": "2026-02-03T05:36:52.564Z",
   "command": {
-    "group": "",
+    "group": "learn",
     "name": "profile",
     "description": "Manage user learning profiles (validated via ccw learn:* CLI) with optional inferred-skill proposals",
     "argument_hint": "[create|update] [profile-id] [--goal=\\\"<learning goal>\\\"] [--full-assessment[=true|false]]",
@@ -13,6 +13,21 @@
       "AskUserQuestion(*)",
       "Bash(*)",
       "Read(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/learn/profile.md",
+    "code_pointers": [
+      "ccw/src/commands/learn.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/learn/plan.md",
+      ".claude/commands/learn/execute.md",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/commands/install.ts",
+      "ccw/src/commands/issue.ts",
+      "ccw/src/commands/cli.ts"
     ]
   },
   "structure_hints": {

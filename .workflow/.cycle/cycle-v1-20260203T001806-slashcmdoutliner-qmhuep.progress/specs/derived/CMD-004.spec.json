@@ -1,15 +1,30 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/ccw/learn.md",
-  "created_at": "2026-02-02T16:54:05.776Z",
+  "created_at": "2026-02-03T05:36:52.108Z",
   "command": {
-    "group": "",
+    "group": "ccw",
     "name": "learn",
     "description": "Internal CLI state API for learn workflow (abstracts file operations with validation + atomic writes)",
     "argument_hint": "learn:<subcommand> [options]",
     "allowed_tools": [
       "Bash(*)",
       "Read(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/ccw/learn.md",
+    "code_pointers": [
+      "ccw/src/commands/learn.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/workflows/cli-templates/schemas/learn-state.schema.json",
+      ".claude/workflows/cli-templates/schemas/learn-profile.schema.json",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/generate-module-docs.ts",
+      "ccw/src/commands/loop.ts"
     ]
   },
   "structure_hints": {

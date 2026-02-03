@@ -1,15 +1,30 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/tools/task-generate-tdd.md",
-  "created_at": "2026-02-02T16:54:05.843Z",
+  "created_at": "2026-02-03T05:36:54.030Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "task-generate-tdd",
     "description": "Autonomous TDD task generation using action-planning-agent with Red-Green-Refactor cycles, test-first structure, and cycle validation",
     "argument_hint": "[-y|--yes] --session WFS-session-id",
     "allowed_tools": [
       "Read(*)",
       "Write(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/tools/task-generate-tdd.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/execute.md",
+      ".claude/commands/workflow/tdd-plan.md",
+      ".claude/commands/workflow/tdd-verify.md",
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/tools/session-manager.ts"
     ]
   },
   "structure_hints": {

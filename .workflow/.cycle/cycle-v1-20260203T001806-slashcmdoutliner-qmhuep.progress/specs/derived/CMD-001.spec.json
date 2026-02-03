@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/ccw-coordinator.md",
-  "created_at": "2026-02-02T16:54:05.769Z",
+  "created_at": "2026-02-03T05:36:51.967Z",
   "command": {
     "group": "",
     "name": "ccw-coordinator",
@@ -15,6 +15,21 @@
       "Bash(*)",
       "Glob(*)",
       "Grep(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/ccw-coordinator.md",
+    "code_pointers": [
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/lite-plan.md",
+      ".claude/commands/workflow/lite-execute.md",
+      ".claude/commands/workflow/test-cycle-execute.md",
+      ".claude/commands/workflow/plan.md",
+      ".claude/commands/issue/discover.md",
+      ".claude/commands/issue/plan.md",
+      ".claude/commands/issue/queue.md",
+      ".claude/commands/issue/execute.md"
     ]
   },
   "structure_hints": {

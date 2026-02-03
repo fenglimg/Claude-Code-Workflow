@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/memory/style-skill-memory.md",
-  "created_at": "2026-02-02T16:54:05.804Z",
+  "created_at": "2026-02-03T05:36:52.725Z",
   "command": {
-    "group": "",
+    "group": "memory",
     "name": "style-skill-memory",
     "description": "Generate SKILL memory package from style reference for easy loading and consistent design system usage",
     "argument_hint": "[package-name] [--regenerate]",
@@ -12,6 +12,21 @@
       "Read",
       "Write",
       "TodoWrite"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/memory/style-skill-memory.md",
+    "code_pointers": [
+      "ccw/src/commands/memory.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      "ccw/src/commands/install.ts",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/tools/ui-generate-preview.js",
+      "ccw/src/tools/skill-context-loader.ts",
+      "ccw/src/tools/update-module-claude.js",
+      "ccw/src/commands/learn.ts",
+      "ccw/src/tools/cli-executor-core.ts"
     ]
   },
   "structure_hints": {

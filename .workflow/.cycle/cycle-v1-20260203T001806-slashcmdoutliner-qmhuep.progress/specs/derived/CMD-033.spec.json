@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/brainstorm/role-analysis.md",
-  "created_at": "2026-02-02T16:54:05.812Z",
+  "created_at": "2026-02-03T05:36:52.996Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "role-analysis",
     "description": "Unified role-specific analysis generation with interactive context gathering and incremental updates",
     "argument_hint": "[role-name] [--session session-id] [--update] [--include-questions] [--skip-questions]",
@@ -15,6 +15,21 @@
       "Write(*)",
       "Edit(*)",
       "Glob(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/brainstorm/role-analysis.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/plan.md",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/generate-module-docs.ts",
+      "ccw/src/tools/cli-executor-core.ts"
     ]
   },
   "structure_hints": {

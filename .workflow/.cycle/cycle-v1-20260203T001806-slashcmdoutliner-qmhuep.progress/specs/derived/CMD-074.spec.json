@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/ui-design/explore-auto.md",
-  "created_at": "2026-02-02T16:54:05.851Z",
+  "created_at": "2026-02-03T05:36:54.277Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "explore-auto",
     "description": "Interactive exploratory UI design workflow with style-centric batch generation, creates design variants from prompts/images with parallel execution and user selection",
     "argument_hint": "[--input \"<value>\"] [--targets \"<list>\"] [--target-type \"page|component\"] [--session <id>] [--style-variants <count>] [--layout-variants <count>]",
@@ -15,6 +15,21 @@
       "Glob(*)",
       "Write(*)",
       "Task(conceptual-planning-agent)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/ui-design/explore-auto.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/tools/generate-module-docs.ts",
+      "ccw/src/tools/ui-generate-preview.js",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/commands/install.ts",
+      "ccw/src/tools/codex-lens.ts"
     ]
   },
   "structure_hints": {

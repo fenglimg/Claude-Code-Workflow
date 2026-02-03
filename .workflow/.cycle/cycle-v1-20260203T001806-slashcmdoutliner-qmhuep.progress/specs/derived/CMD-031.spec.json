@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/brainstorm/artifacts.md",
-  "created_at": "2026-02-02T16:54:05.810Z",
+  "created_at": "2026-02-03T05:36:52.941Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "artifacts",
     "description": "Interactive clarification generating confirmed guidance specification through role-based analysis and synthesis",
     "argument_hint": "[-y|--yes] topic or challenge description [--count N]",
@@ -13,6 +13,21 @@
       "Write(*)",
       "Glob(*)",
       "AskUserQuestion(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/brainstorm/artifacts.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/commands/install.ts",
+      "ccw/src/commands/learn.ts",
+      "ccw/src/commands/session-path-resolver.ts",
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/generate-module-docs.ts",
+      "ccw/src/tools/ui-generate-preview.js"
     ]
   },
   "structure_hints": {

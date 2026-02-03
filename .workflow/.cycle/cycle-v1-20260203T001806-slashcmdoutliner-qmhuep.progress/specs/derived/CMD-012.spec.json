@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/issue/execute.md",
-  "created_at": "2026-02-02T16:54:05.788Z",
+  "created_at": "2026-02-03T05:36:52.356Z",
   "command": {
-    "group": "",
+    "group": "issue",
     "name": "execute",
     "description": "Execute queue with DAG-based parallel orchestration (one commit per solution)",
     "argument_hint": "[-y|--yes] --queue <queue-id> [--worktree [<existing-path>]]",
@@ -12,6 +12,21 @@
       "Bash(*)",
       "Read(*)",
       "AskUserQuestion(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/issue/execute.md",
+    "code_pointers": [
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/issue/queue.md",
+      ".claude/commands/issue/plan.md",
+      "ccw/src/tools/codex-lens.ts",
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/tools/smart-search.ts",
+      "ccw/src/commands/cli.ts",
+      "ccw/src/tools/command-registry.test.ts"
     ]
   },
   "structure_hints": {

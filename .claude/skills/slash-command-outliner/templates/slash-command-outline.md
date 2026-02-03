@@ -33,6 +33,12 @@ group: {{command.group}}
 - Reads:
   - {{artifacts.reads}}
 
+## Implementation Pointers
+
+- Command doc: {{implementation.command_doc}}
+- Likely code locations:
+  - {{implementation.code_pointers}}
+
 ## Execution Process
 
 {{execution.process_outline}}
@@ -44,4 +50,3 @@ group: {{command.group}}
 ## Examples
 
 {{examples}}
-

@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/unified-execute-with-file.md",
-  "created_at": "2026-02-02T16:54:05.858Z",
+  "created_at": "2026-02-03T05:36:54.524Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "unified-execute-with-file",
     "description": "Universal execution engine for consuming any planning/brainstorm/analysis output with minimal progress tracking, multi-agent coordination, and incremental execution",
     "argument_hint": "[-y|--yes] [-p|--plan <path>] [-m|--mode sequential|parallel] [\\\"execution context or task name\\\"]",
@@ -17,6 +17,21 @@
       "Bash(*)",
       "Edit(*)",
       "Write(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/unified-execute-with-file.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/plan.md",
+      ".claude/commands/workflow/brainstorm-with-file.md",
+      ".claude/commands/workflow/analyze-with-file.md",
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/tools/claude-cli-tools.ts"
     ]
   },
   "structure_hints": {

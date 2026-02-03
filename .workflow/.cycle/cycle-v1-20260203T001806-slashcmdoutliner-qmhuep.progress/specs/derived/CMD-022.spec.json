@@ -1,15 +1,30 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/memory/docs-related-cli.md",
-  "created_at": "2026-02-02T16:54:05.802Z",
+  "created_at": "2026-02-03T05:36:52.666Z",
   "command": {
-    "group": "",
+    "group": "memory",
     "name": "docs-related-cli",
     "description": "Generate/update documentation for git-changed modules using CLI execution with batched agents (4 modules/agent) and gemini→qwen→codex fallback, <15 modules uses direct parallel",
     "argument_hint": "[--tool <gemini|qwen|codex>]",
     "allowed_tools": [
       "Read(*)",
       "Write(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/memory/docs-related-cli.md",
+    "code_pointers": [
+      "ccw/src/commands/memory.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      "ccw/src/tools/detect-changed-modules.ts",
+      "ccw/src/tools/generate-module-docs.ts",
+      ".claude/commands/memory/docs-full-cli.md",
+      ".claude/commands/memory/update-related.md",
+      "ccw/src/commands/cli.ts",
+      "ccw/src/tools/update-module-claude.js",
+      "ccw/src/tools/cli-executor-core.ts"
     ]
   },
   "structure_hints": {

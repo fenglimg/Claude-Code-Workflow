@@ -1,0 +1,21 @@
+diff --git a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-073.outline.md b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-073.outline.md
+index 402af015..2ee30892 100644
+--- a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-073.outline.md
++++ b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-073.outline.md
+@@ -40,13 +40,13 @@ group: workflow
+   - `ccw/src/commands/workflow.ts`
+   - `ccw/src/tools/command-registry.ts`
+   - `ccw/src/tools/cli-executor.ts`
++  - `.claude/commands/workflow/plan.md`
+   - `ccw/src/tools/claude-cli-tools.ts`
++  - `ccw/src/tools/session-manager.ts`
+   - `ccw/src/tools/generate-module-docs.ts`
++  - `ccw/src/tools/command-registry.test.ts`
+   - `ccw/src/tools/convert-tokens-to-css.ts`
+-  - `ccw/src/tools/session-manager.ts`
+   - `ccw/src/tools/ui-generate-preview.js`
+-  - `ccw/src/commands/install.ts`
+-  - `ccw/src/tools/cli-history-store.ts`
+ 
+ ## Execution Process
+ 

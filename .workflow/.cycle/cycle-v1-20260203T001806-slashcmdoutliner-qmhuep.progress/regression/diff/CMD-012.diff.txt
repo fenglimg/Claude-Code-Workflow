@@ -1,0 +1,19 @@
+diff --git a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-012.outline.md b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-012.outline.md
+index 0008d928..166be460 100644
+--- a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-012.outline.md
++++ b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-012.outline.md
+@@ -40,13 +40,13 @@ group: issue
+   - `ccw/src/commands/issue.ts`
+   - `ccw/src/tools/command-registry.ts`
+   - `ccw/src/tools/cli-executor.ts`
+-  - `.claude/commands/issue/execute.md`
+   - `.claude/commands/issue/queue.md`
+   - `.claude/commands/issue/plan.md`
+   - `ccw/src/tools/codex-lens.ts`
+   - `ccw/src/tools/cli-executor-core.ts`
+   - `ccw/src/tools/smart-search.ts`
+   - `ccw/src/commands/cli.ts`
++  - `ccw/src/tools/command-registry.test.ts`
+ 
+ ## Execution Process
+ 

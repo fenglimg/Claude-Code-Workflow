@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/issue/convert-to-plan.md",
-  "created_at": "2026-02-02T16:54:05.784Z",
+  "created_at": "2026-02-03T05:36:52.252Z",
   "command": {
-    "group": "",
+    "group": "issue",
     "name": "convert-to-plan",
     "description": "Convert planning artifacts (lite-plan, workflow session, markdown) to issue solutions",
     "argument_hint": "[-y|--yes] [--issue <id>] [--supplement] <SOURCE>",
@@ -14,6 +14,21 @@
       "Write(*)",
       "Glob(*)",
       "AskUserQuestion(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/issue/convert-to-plan.md",
+    "code_pointers": [
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/issue/queue.md",
+      ".claude/commands/issue/plan.md",
+      ".claude/commands/issue/execute.md",
+      "ccw/src/commands/session.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/commands/session-path-resolver.ts"
     ]
   },
   "structure_hints": {

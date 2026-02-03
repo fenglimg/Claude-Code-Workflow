@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "cycle_id": "cycle-v1-20260203T001806-slashcmdoutliner-qmhuep",
-  "generated_at": "2026-02-02T16:54:05.860Z",
+  "generated_at": "2026-02-03T05:36:54.577Z",
   "corpus": {
     "slash_commands_root": ".claude/commands",
     "total_commands": 82,
@@ -14,11 +14,12 @@
         "description": "Command orchestration tool - analyze requirements, recommend chain, execute sequentially with state persistence",
         "file_path": ".claude\\commands\\ccw-coordinator.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-001.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.016Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -29,11 +30,12 @@
         "description": "Aggregated debug command - combines debugging diagnostics and test verification in a synergistic workflow supporting cli-quick / debug-first / test-first / bidirectional-verification modes",
         "file_path": ".claude\\commands\\ccw-debug.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-002.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.060Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -44,11 +46,12 @@
         "description": "Main workflow orchestrator - analyze intent, select workflow, execute command chain in main process",
         "file_path": ".claude\\commands\\ccw.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-003.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.108Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -59,11 +62,12 @@
         "description": "Internal CLI state API for learn workflow (abstracts file operations with validation + atomic writes)",
         "file_path": ".claude\\commands\\ccw\\learn.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-004.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.133Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -74,11 +78,12 @@
         "description": "Generate .gemini/ and .qwen/ config directories with settings.json and ignore files based on workspace technology detection",
         "file_path": ".claude\\commands\\cli\\cli-init.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-005.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.156Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -89,11 +94,12 @@
         "description": "Interactive code review using Codex CLI via ccw endpoint with configurable review target, model, and custom instructions",
         "file_path": ".claude\\commands\\cli\\codex-review.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-006.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.178Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -104,11 +110,12 @@
         "description": "Command orchestration tool for Codex - analyze requirements, recommend command chain, execute sequentially with state persistence",
         "file_path": ".claude\\commands\\codex-coordinator.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-007.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.214Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -119,11 +126,12 @@
         "description": "",
         "file_path": ".claude\\commands\\flow-create.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-008.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.252Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -134,11 +142,12 @@
         "description": "Convert planning artifacts (lite-plan, workflow session, markdown) to issue solutions",
         "file_path": ".claude\\commands\\issue\\convert-to-plan.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-009.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.285Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -149,11 +158,12 @@
         "description": "Discover issues from user prompt with Gemini-planned iterative multi-agent exploration. Uses ACE semantic search for context gathering and supports cross-module comparison (e.g., frontend vs backend API contracts).",
         "file_path": ".claude\\commands\\issue\\discover-by-prompt.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-010.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.322Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -164,11 +174,12 @@
         "description": "Discover potential issues from multiple perspectives (bug, UX, test, quality, security, performance, maintainability, best-practices) using CLI explore. Supports Exa external research for security and best-practices perspectives.",
         "file_path": ".claude\\commands\\issue\\discover.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-011.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.356Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -179,11 +190,12 @@
         "description": "Execute queue with DAG-based parallel orchestration (one commit per solution)",
         "file_path": ".claude\\commands\\issue\\execute.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-012.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.383Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -194,11 +206,12 @@
         "description": "Convert brainstorm session ideas into issue with executable solution for parallel-dev-cycle",
         "file_path": ".claude\\commands\\issue\\from-brainstorm.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-013.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.414Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -209,11 +222,12 @@
         "description": "Create structured issue from GitHub URL or text description",
         "file_path": ".claude\\commands\\issue\\new.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-014.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.441Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -224,11 +238,12 @@
         "description": "Batch plan issue resolution using issue-plan-agent (explore + plan closed-loop)",
         "file_path": ".claude\\commands\\issue\\plan.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-015.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.462Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -239,11 +254,12 @@
         "description": "Form execution queue from bound solutions using issue-queue-agent (solution-level)",
         "file_path": ".claude\\commands\\issue\\queue.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-016.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.485Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -254,11 +270,12 @@
         "description": "Execute a learning session plan with phase constraints, assessments, progress tracking, and profile-driven personalization",
         "file_path": ".claude\\commands\\learn\\execute.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-017.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.510Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -269,11 +286,12 @@
         "description": "Generate personalized learning plans based on user profile and learning goals using AI-driven knowledge gap analysis",
         "file_path": ".claude\\commands\\learn\\plan.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-018.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.563Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -284,11 +302,12 @@
         "description": "Manage user learning profiles (validated via ccw learn:* CLI) with optional inferred-skill proposals",
         "file_path": ".claude\\commands\\learn\\profile.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-019.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.594Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -299,11 +318,12 @@
         "description": "Compact current session memory into structured text for session recovery, extracting objective/plan/files/decisions/constraints/state, and save via MCP core_memory tool",
         "file_path": ".claude\\commands\\memory\\compact.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-020.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.626Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -314,11 +334,12 @@
         "description": "Generate full project documentation using CLI execution (Layer 3→1) with batched agents (4 modules/agent) and gemini→qwen→codex fallback, <20 modules uses direct parallel",
         "file_path": ".claude\\commands\\memory\\docs-full-cli.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-021.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.666Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -329,11 +350,12 @@
         "description": "Generate/update documentation for git-changed modules using CLI execution with batched agents (4 modules/agent) and gemini→qwen→codex fallback, <15 modules uses direct parallel",
         "file_path": ".claude\\commands\\memory\\docs-related-cli.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-022.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.699Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -344,11 +366,12 @@
         "description": "Delegate to universal-executor agent to analyze project via Gemini/Qwen CLI and return JSON core content package for task context",
         "file_path": ".claude\\commands\\memory\\load.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-023.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.725Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -359,11 +382,12 @@
         "description": "Generate SKILL memory package from style reference for easy loading and consistent design system usage",
         "file_path": ".claude\\commands\\memory\\style-skill-memory.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-024.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.754Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -374,11 +398,12 @@
         "description": "Quick note-taking command to capture ideas, snippets, reminders, and insights for later reference",
         "file_path": ".claude\\commands\\memory\\tips.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-025.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.784Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -389,11 +414,12 @@
         "description": "Update all CLAUDE.md files using layer-based execution (Layer 3→1) with batched agents (4 modules/agent) and gemini→qwen→codex fallback, <20 modules uses direct parallel",
         "file_path": ".claude\\commands\\memory\\update-full.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-026.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.813Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -404,11 +430,12 @@
         "description": "Update CLAUDE.md for git-changed modules using batched agent execution (4 modules/agent) with gemini→qwen→codex fallback, <15 modules uses direct execution",
         "file_path": ".claude\\commands\\memory\\update-related.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-027.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.836Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -419,11 +446,12 @@
         "description": "Dashboard - Open CCW workflow dashboard for managing tasks and sessions",
         "file_path": ".claude\\commands\\view.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-028.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.875Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -434,11 +462,12 @@
         "description": "Interactive collaborative analysis with documented discussions, CLI-assisted exploration, and evolving understanding",
         "file_path": ".claude\\commands\\workflow\\analyze-with-file.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-029.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.901Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -449,11 +478,12 @@
         "description": "Interactive brainstorming with multi-CLI collaboration, idea expansion, and documented thought evolution",
         "file_path": ".claude\\commands\\workflow\\brainstorm-with-file.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-030.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.941Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -464,11 +494,12 @@
         "description": "Interactive clarification generating confirmed guidance specification through role-based analysis and synthesis",
         "file_path": ".claude\\commands\\workflow\\brainstorm\\artifacts.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-031.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.963Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -479,11 +510,12 @@
         "description": "Parallel brainstorming automation with dynamic role selection and concurrent execution across multiple perspectives",
         "file_path": ".claude\\commands\\workflow\\brainstorm\\auto-parallel.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-032.outline.md",
+          "last_regression_at": "2026-02-03T05:36:52.996Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -494,11 +526,12 @@
         "description": "Unified role-specific analysis generation with interactive context gathering and incremental updates",
         "file_path": ".claude\\commands\\workflow\\brainstorm\\role-analysis.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-033.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.027Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -509,11 +542,12 @@
         "description": "Clarify and refine role analyses through intelligent Q&A and targeted updates with synthesis agent",
         "file_path": ".claude\\commands\\workflow\\brainstorm\\synthesis.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-034.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.053Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -524,11 +558,12 @@
         "description": "Intelligent code cleanup with mainline detection, stale artifact discovery, and safe execution",
         "file_path": ".claude\\commands\\workflow\\clean.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-035.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.090Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -539,11 +574,12 @@
         "description": "Unified collaborative planning with dynamic requirement splitting, parallel sub-agent exploration/understanding/planning, and automatic merge. Each agent maintains process files for full traceability.",
         "file_path": ".claude\\commands\\workflow\\collaborative-plan-with-file.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-036.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.119Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -554,11 +590,12 @@
         "description": "Interactive hypothesis-driven debugging with documented exploration, understanding evolution, and Gemini-assisted correction",
         "file_path": ".claude\\commands\\workflow\\debug-with-file.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-037.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.144Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -569,11 +606,12 @@
         "description": "Coordinate agent execution for workflow tasks with automatic session discovery, parallel task processing, and status tracking",
         "file_path": ".claude\\commands\\workflow\\execute.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-038.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.176Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -584,11 +622,12 @@
         "description": "Initialize project-level state with intelligent project analysis using cli-explore-agent",
         "file_path": ".claude\\commands\\workflow\\init.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-039.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.203Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -599,11 +638,12 @@
         "description": "Execute tasks based on in-memory plan, prompt description, or file content",
         "file_path": ".claude\\commands\\workflow\\lite-execute.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-040.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.235Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -614,11 +654,12 @@
         "description": "Lightweight bug diagnosis and fix workflow with intelligent severity assessment and optional hotfix mode for production incidents",
         "file_path": ".claude\\commands\\workflow\\lite-fix.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-041.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.268Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -629,11 +670,12 @@
         "description": "Ultra-lightweight multi-tool analysis and direct execution. No artifacts for simple tasks; auto-creates planning docs in .workflow/.scratchpad/ for complex tasks. Auto tool selection based on task analysis, user-driven iteration via AskUser.",
         "file_path": ".claude\\commands\\workflow\\lite-lite-lite.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-042.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.299Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -644,11 +686,12 @@
         "description": "Lightweight interactive planning workflow with in-memory planning, code exploration, and execution execute to lite-execute after user confirmation",
         "file_path": ".claude\\commands\\workflow\\lite-plan.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-043.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.333Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -659,11 +702,12 @@
         "description": "Multi-CLI collaborative planning workflow with ACE context gathering and iterative cross-verification. Uses cli-discuss-agent for Gemini+Codex+Claude analysis to converge on optimal execution plan.",
         "file_path": ".claude\\commands\\workflow\\multi-cli-plan.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-044.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.365Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -674,11 +718,12 @@
         "description": "Perform READ-ONLY verification analysis between IMPL_PLAN.md, task JSONs, and brainstorming artifacts. Generates structured report with quality gate recommendation. Does NOT modify any files.",
         "file_path": ".claude\\commands\\workflow\\plan-verify.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-045.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.400Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -689,11 +734,12 @@
         "description": "5-phase planning workflow with action-planning-agent task generation, outputs IMPL_PLAN.md and task JSONs",
         "file_path": ".claude\\commands\\workflow\\plan.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-046.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.437Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -704,11 +750,12 @@
         "description": "Interactive workflow replanning with session-level artifact updates and boundary clarification through guided questioning",
         "file_path": ".claude\\commands\\workflow\\replan.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-047.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.464Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -719,11 +766,12 @@
         "description": "Automated fixing of code review findings with AI-powered planning and coordinated execution. Uses intelligent grouping, multi-stage timeline coordination, and test-driven verification.",
         "file_path": ".claude\\commands\\workflow\\review-cycle-fix.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-048.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.501Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -734,11 +782,12 @@
         "description": "Independent multi-dimensional code review for specified modules/files. Analyzes specific code paths across 7 dimensions with hybrid parallel-iterative execution, independent of workflow sessions.",
         "file_path": ".claude\\commands\\workflow\\review-module-cycle.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-049.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.542Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -749,11 +798,12 @@
         "description": "Session-based comprehensive multi-dimensional code review. Analyzes git changes from workflow session across 7 dimensions with hybrid parallel-iterative execution, aggregates findings, and performs focused deep-dives on critical issues until quality gates met.",
         "file_path": ".claude\\commands\\workflow\\review-session-cycle.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-050.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.579Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -764,11 +814,12 @@
         "description": "Post-implementation review with specialized types (security/architecture/action-items/quality) using analysis agents and Gemini",
         "file_path": ".claude\\commands\\workflow\\review.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-051.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.609Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -779,11 +830,12 @@
         "description": "Mark active workflow session as complete, archive with lessons learned, update manifest, remove active flag",
         "file_path": ".claude\\commands\\workflow\\session\\complete.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-052.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.636Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -794,11 +846,12 @@
         "description": "List all workflow sessions with status filtering, shows session metadata and progress information",
         "file_path": ".claude\\commands\\workflow\\session\\list.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-053.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.659Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -809,11 +862,12 @@
         "description": "Resume the most recently paused workflow session with automatic session discovery and status update",
         "file_path": ".claude\\commands\\workflow\\session\\resume.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-054.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.680Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -824,11 +878,12 @@
         "description": "Crystallize session learnings and user-defined constraints into permanent project guidelines",
         "file_path": ".claude\\commands\\workflow\\session\\solidify.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-055.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.702Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -839,11 +894,12 @@
         "description": "Discover existing sessions or start new workflow session with intelligent session management and conflict detection",
         "file_path": ".claude\\commands\\workflow\\session\\start.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-056.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.730Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -854,11 +910,12 @@
         "description": "TDD workflow planning with Red-Green-Refactor task chain generation, test-first development structure, and cycle tracking",
         "file_path": ".claude\\commands\\workflow\\tdd-plan.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-057.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.772Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -869,11 +926,12 @@
         "description": "Verify TDD workflow compliance against Red-Green-Refactor cycles. Generates quality report with coverage analysis and quality gate recommendation. Orchestrates sub-commands for comprehensive validation.",
         "file_path": ".claude\\commands\\workflow\\tdd-verify.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-058.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.797Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -884,11 +942,12 @@
         "description": "Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.",
         "file_path": ".claude\\commands\\workflow\\test-cycle-execute.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-059.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.831Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -899,11 +958,12 @@
         "description": "Create test-fix workflow session from session ID, description, or file path with test strategy generation and task planning",
         "file_path": ".claude\\commands\\workflow\\test-fix-gen.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-060.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.866Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -914,11 +974,12 @@
         "description": "Create independent test-fix workflow session from completed implementation session, analyzes code to generate test tasks",
         "file_path": ".claude\\commands\\workflow\\test-gen.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-061.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.896Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -929,11 +990,12 @@
         "description": "Validate AI-generated code for common errors (imports, variables, types) before test execution",
         "file_path": ".claude\\commands\\workflow\\tools\\code-validation-gate.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-062.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.927Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -944,11 +1006,12 @@
         "description": "Detect and resolve conflicts between plan and existing codebase using CLI-powered analysis with Gemini/Qwen",
         "file_path": ".claude\\commands\\workflow\\tools\\conflict-resolution.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-063.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.960Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -959,11 +1022,12 @@
         "description": "Intelligently collect project context using context-search-agent based on task description, packages into standardized JSON",
         "file_path": ".claude\\commands\\workflow\\tools\\context-gather.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-064.outline.md",
+          "last_regression_at": "2026-02-03T05:36:53.997Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -974,11 +1038,12 @@
         "description": "Generate implementation plan documents (IMPL_PLAN.md, task JSONs, TODO_LIST.md) using action-planning-agent - produces planning artifacts, does NOT execute code implementation",
         "file_path": ".claude\\commands\\workflow\\tools\\task-generate-agent.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-065.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.030Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -989,11 +1054,12 @@
         "description": "Autonomous TDD task generation using action-planning-agent with Red-Green-Refactor cycles, test-first structure, and cycle validation",
         "file_path": ".claude\\commands\\workflow\\tools\\task-generate-tdd.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-066.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.069Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1004,11 +1070,12 @@
         "description": "Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification",
         "file_path": ".claude\\commands\\workflow\\tools\\tdd-coverage-analysis.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-067.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.098Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1019,11 +1086,12 @@
         "description": "Coordinate test analysis workflow using cli-execution-agent to generate test strategy via Gemini",
         "file_path": ".claude\\commands\\workflow\\tools\\test-concept-enhanced.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-068.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.124Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1034,11 +1102,12 @@
         "description": "Collect test coverage context using test-context-search-agent and package into standardized test-context JSON",
         "file_path": ".claude\\commands\\workflow\\tools\\test-context-gather.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-069.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.146Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1049,11 +1118,12 @@
         "description": "Generate test planning documents (IMPL_PLAN.md, test task JSONs, TODO_LIST.md) using action-planning-agent - produces test planning artifacts, does NOT execute tests",
         "file_path": ".claude\\commands\\workflow\\tools\\test-task-generate.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-070.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.178Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1064,11 +1134,12 @@
         "description": "Extract animation and transition patterns from prompt inference and image references for design system documentation",
         "file_path": ".claude\\commands\\workflow\\ui-design\\animation-extract.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-071.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.209Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1079,11 +1150,12 @@
         "description": "Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)",
         "file_path": ".claude\\commands\\workflow\\ui-design\\codify-style.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-072.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.241Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1094,11 +1166,12 @@
         "description": "Synchronize finalized design system references to brainstorming artifacts, preparing them for /workflow:plan consumption",
         "file_path": ".claude\\commands\\workflow\\ui-design\\design-sync.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-073.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.277Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1109,11 +1182,12 @@
         "description": "Interactive exploratory UI design workflow with style-centric batch generation, creates design variants from prompts/images with parallel execution and user selection",
         "file_path": ".claude\\commands\\workflow\\ui-design\\explore-auto.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-074.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.315Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1124,11 +1198,12 @@
         "description": "Assemble UI prototypes by combining layout templates with design tokens (default animation support), pure assembler without new content generation",
         "file_path": ".claude\\commands\\workflow\\ui-design\\generate.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-075.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.346Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1139,11 +1214,12 @@
         "description": "UI design workflow with direct code/image input for design token extraction and prototype generation",
         "file_path": ".claude\\commands\\workflow\\ui-design\\imitate-auto.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-076.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.384Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1154,11 +1230,12 @@
         "description": "Import design system from code files (CSS/JS/HTML/SCSS) with automatic file discovery and parallel agent analysis",
         "file_path": ".claude\\commands\\workflow\\ui-design\\import-from-code.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-077.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.426Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1169,11 +1246,12 @@
         "description": "Extract structural layout information from reference images or text prompts using Claude analysis with variant generation or refinement mode",
         "file_path": ".claude\\commands\\workflow\\ui-design\\layout-extract.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-078.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.458Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1184,11 +1262,12 @@
         "description": "Generate multi-component reference pages and documentation from design run extraction",
         "file_path": ".claude\\commands\\workflow\\ui-design\\reference-page-generator.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-079.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.485Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1199,11 +1278,12 @@
         "description": "Extract design style from reference images or text prompts using Claude analysis with variant generation or refinement mode",
         "file_path": ".claude\\commands\\workflow\\ui-design\\style-extract.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-080.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.523Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1214,11 +1294,12 @@
         "description": "Universal execution engine for consuming any planning/brainstorm/analysis output with minimal progress tracking, multi-agent coordination, and incremental execution",
         "file_path": ".claude\\commands\\workflow\\unified-execute-with-file.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-081.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.557Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       },
       {
@@ -1229,11 +1310,12 @@
         "description": "Generate comprehensive Mermaid flowcharts visualizing workflow execution flow, CCW interactions, and Agent orchestration",
         "file_path": ".claude\\commands\\workflow\\visualize.md",
         "status": "completed",
-        "iterations": 2,
+        "iterations": 11,
         "regression": {
-          "expected_snapshot": null,
-          "last_regression_at": null,
-          "p0_gaps": 0
+          "expected_snapshot": ".workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-082.outline.md",
+          "last_regression_at": "2026-02-03T05:36:54.577Z",
+          "p0_gaps": 0,
+          "snapshot_changed": false
         }
       }
     ]

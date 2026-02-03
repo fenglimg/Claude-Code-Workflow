@@ -1,0 +1,19 @@
+diff --git a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-024.outline.md b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-024.outline.md
+index 46695f15..9beb59e6 100644
+--- a/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/expected/CMD-024.outline.md
++++ b/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/regression/current/CMD-024.outline.md
+@@ -40,13 +40,13 @@ group: memory
+   - `ccw/src/commands/memory.ts`
+   - `ccw/src/tools/command-registry.ts`
+   - `ccw/src/tools/cli-executor.ts`
+-  - `.claude/commands/memory/style-skill-memory.md`
+   - `ccw/src/commands/install.ts`
+   - `ccw/src/tools/claude-cli-tools.ts`
+   - `ccw/src/tools/ui-generate-preview.js`
+   - `ccw/src/tools/skill-context-loader.ts`
+   - `ccw/src/tools/update-module-claude.js`
+   - `ccw/src/commands/learn.ts`
++  - `ccw/src/tools/cli-executor-core.ts`
+ 
+ ## Execution Process
+ 

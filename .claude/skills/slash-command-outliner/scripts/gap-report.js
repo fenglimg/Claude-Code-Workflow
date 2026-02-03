@@ -48,7 +48,7 @@ function main() {
   const outlineMd = fs.readFileSync(path.resolve(repoRoot, outlinePath), 'utf8');
   const refMd = fs.readFileSync(path.resolve(repoRoot, referencePath), 'utf8');
   const tooling = JSON.parse(fs.readFileSync(path.resolve(repoRoot, toolingManifestPath), 'utf8'));
-  const { p0, p1, toolingHints } = computeGapReport(spec, outlineMd, refMd, tooling);
+  const { p0, p1, implementationHints } = computeGapReport(repoRoot, spec, outlineMd, refMd, tooling);
 
   const lines = [];
   lines.push(`# Gap Report: ${spec?.command?.group ? `${spec.command.group}:` : ''}${spec?.command?.name || ''}`);
@@ -65,9 +65,9 @@ function main() {
   lines.push('');
   lines.push(p1.length ? p1.map((x) => `- ${x}`).join('\n') : '- None');
   lines.push('');
-  lines.push('## Tooling/Server Hints');
+  lines.push('## Implementation Hints (Tooling/Server)');
   lines.push('');
-  lines.push(toolingHints.length ? toolingHints.map((f) => `- \`${f}\``).join('\n') : '- None');
+  lines.push(implementationHints.length ? implementationHints.map((f) => `- \`${f}\``).join('\n') : '- None');
   lines.push('');
   writeText(repoRoot, outPath, lines.join('\n'));
   console.log(`Wrote gap-report -> ${outPath}`);

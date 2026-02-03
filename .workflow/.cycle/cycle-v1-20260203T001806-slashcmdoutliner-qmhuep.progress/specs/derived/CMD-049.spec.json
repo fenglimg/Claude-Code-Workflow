@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/review-module-cycle.md",
-  "created_at": "2026-02-02T16:54:05.828Z",
+  "created_at": "2026-02-03T05:36:53.501Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "review-module-cycle",
     "description": "Independent multi-dimensional code review for specified modules/files. Analyzes specific code paths across 7 dimensions with hybrid parallel-iterative execution, independent of workflow sessions.",
     "argument_hint": "<path-pattern> [--dimensions=security,architecture,...] [--max-iterations=N]",
@@ -13,6 +13,21 @@
       "Read(*)",
       "Bash(*)",
       "Task(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/review-module-cycle.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/review-cycle-fix.md",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/commands/session-path-resolver.ts",
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/commands/cli.ts",
+      "ccw/src/tools/session-manager.ts"
     ]
   },
   "structure_hints": {

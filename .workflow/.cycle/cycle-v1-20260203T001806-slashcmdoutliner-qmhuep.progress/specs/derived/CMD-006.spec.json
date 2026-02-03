@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/cli/codex-review.md",
-  "created_at": "2026-02-02T16:54:05.780Z",
+  "created_at": "2026-02-03T05:36:52.156Z",
   "command": {
-    "group": "",
+    "group": "cli",
     "name": "codex-review",
     "description": "Interactive code review using Codex CLI via ccw endpoint with configurable review target, model, and custom instructions",
     "argument_hint": "[--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]",
@@ -11,6 +11,21 @@
       "Bash(*)",
       "AskUserQuestion(*)",
       "Read(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/cli/codex-review.md",
+    "code_pointers": [
+      "ccw/src/commands/cli.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/tools/cli-executor-utils.ts",
+      "ccw/src/tools/cli-history-store.ts",
+      "ccw/src/tools/codex-lens.ts",
+      "ccw/src/commands/memory.ts",
+      "ccw/src/tools/cli-executor-state.ts"
     ]
   },
   "structure_hints": {

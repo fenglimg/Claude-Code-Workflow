@@ -1,15 +1,30 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/tools/test-task-generate.md",
-  "created_at": "2026-02-02T16:54:05.847Z",
+  "created_at": "2026-02-03T05:36:54.146Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "test-task-generate",
     "description": "Generate test planning documents (IMPL_PLAN.md, test task JSONs, TODO_LIST.md) using action-planning-agent - produces test planning artifacts, does NOT execute tests",
     "argument_hint": "--session WFS-test-session-id",
     "allowed_tools": [
       "Read(*)",
       "Write(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/tools/test-task-generate.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/test-cycle-execute.md",
+      ".claude/commands/workflow/test-gen.md",
+      ".claude/commands/workflow/test-fix-gen.md",
+      ".claude/commands/workflow/execute.md",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/commands/session.ts",
+      "ccw/src/tools/session-manager.ts"
     ]
   },
   "structure_hints": {

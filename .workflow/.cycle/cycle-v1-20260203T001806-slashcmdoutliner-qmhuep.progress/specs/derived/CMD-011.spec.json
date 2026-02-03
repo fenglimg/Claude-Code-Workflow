@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/issue/discover.md",
-  "created_at": "2026-02-02T16:54:05.787Z",
+  "created_at": "2026-02-03T05:36:52.322Z",
   "command": {
-    "group": "",
+    "group": "issue",
     "name": "issue:discover",
     "description": "Discover potential issues from multiple perspectives (bug, UX, test, quality, security, performance, maintainability, best-practices) using CLI explore. Supports Exa external research for security and best-practices perspectives.",
     "argument_hint": "[-y|--yes] <path-pattern> [--perspectives=bug,ux,...] [--external]",
@@ -16,6 +16,21 @@
       "AskUserQuestion(*)",
       "Glob(*)",
       "Grep(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/issue/discover.md",
+    "code_pointers": [
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/issue/plan.md",
+      "ccw/src/tools/generate-module-docs.ts",
+      "ccw/src/commands/cli.ts",
+      "ccw/src/tools/smart-search.ts",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/tools/template-discovery.ts"
     ]
   },
   "structure_hints": {

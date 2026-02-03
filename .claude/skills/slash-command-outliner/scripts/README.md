@@ -18,8 +18,21 @@ node .claude/skills/slash-command-outliner/scripts/scan-corpus.js --root=.claude
 node .claude/skills/slash-command-outliner/scripts/regress-all.js --cycle-id=cycle-v1-20260203T001806-slashcmdoutliner-qmhuep
 ```
 
+Implementation pointers:
+- The generated outlines include `## Implementation Pointers`.
+- Hints are derived from:
+  - command doc references (e.g. `ccw tool exec <tool>`, `*.sh`, referenced `/group:subcommand` slashes)
+  - tooling corpus (paths + content match) as fallback
+
+Accept snapshot updates (when outlines intentionally change):
+
+```bash
+node .claude/skills/slash-command-outliner/scripts/regress-all.js --cycle-id=<id> --update-expected
+```
+
 Outputs go to:
 - `.workflow/.cycle/<cycle-id>.progress/specs/derived/`
 - `.workflow/.cycle/<cycle-id>.progress/regression/current/`
+- `.workflow/.cycle/<cycle-id>.progress/regression/expected/`
+- `.workflow/.cycle/<cycle-id>.progress/regression/diff/`
 - `.workflow/.cycle/<cycle-id>.progress/reports/`
-

@@ -1,15 +1,30 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/session/start.md",
-  "created_at": "2026-02-02T16:54:05.834Z",
+  "created_at": "2026-02-03T05:36:53.702Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "start",
     "description": "Discover existing sessions or start new workflow session with intelligent session management and conflict detection",
     "argument_hint": "[--type <workflow|review|tdd|test|docs>] [--auto|--new] [optional: task description for new session]",
     "allowed_tools": [
       "Read(*)",
       "Write(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/session/start.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/plan.md",
+      ".claude/commands/workflow/review-module-cycle.md",
+      ".claude/commands/workflow/tdd-plan.md",
+      ".claude/commands/workflow/test-fix-gen.md",
+      ".claude/commands/workflow/init.md",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/commands/memory.ts"
     ]
   },
   "structure_hints": {

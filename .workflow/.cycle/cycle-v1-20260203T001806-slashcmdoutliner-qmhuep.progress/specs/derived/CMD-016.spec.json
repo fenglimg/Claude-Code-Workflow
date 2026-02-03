@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/issue/queue.md",
-  "created_at": "2026-02-02T16:54:05.792Z",
+  "created_at": "2026-02-03T05:36:52.462Z",
   "command": {
-    "group": "",
+    "group": "issue",
     "name": "queue",
     "description": "Form execution queue from bound solutions using issue-queue-agent (solution-level)",
     "argument_hint": "[-y|--yes] [--queues <n>] [--issue <id>]",
@@ -13,6 +13,21 @@
       "Bash(*)",
       "Read(*)",
       "Write(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/issue/queue.md",
+    "code_pointers": [
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/issue/plan.md",
+      ".claude/commands/issue/execute.md",
+      "ccw/src/tools/codex-lens.ts",
+      "ccw/src/commands/cli.ts",
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/tools/smart-search.ts",
+      "ccw/src/tools/update-module-claude.js"
     ]
   },
   "structure_hints": {

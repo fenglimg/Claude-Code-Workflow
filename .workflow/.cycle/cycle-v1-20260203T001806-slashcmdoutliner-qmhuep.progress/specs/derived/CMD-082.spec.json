@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/visualize.md",
-  "created_at": "2026-02-02T16:54:05.859Z",
+  "created_at": "2026-02-03T05:36:54.557Z",
   "command": {
     "group": "workflow",
     "name": "visualize",
@@ -10,6 +10,21 @@
     "allowed_tools": [
       "Read(*)",
       "Write(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/visualize.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/ccw.md",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/tools/generate-module-docs.ts",
+      "ccw/src/commands/issue.ts",
+      "ccw/src/commands/install.ts",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/tools/session-manager.ts"
     ]
   },
   "structure_hints": {

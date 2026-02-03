@@ -16,11 +16,10 @@
 
 {{gaps.p2}}
 
-## Tooling/Server Notes
+## Implementation Hints (Tooling/Server)
 
 {{tooling.notes}}
 
 ## Proposed Fix Plan (Minimal)
 
 {{fix_plan}}
-

@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/brainstorm-with-file.md",
-  "created_at": "2026-02-02T16:54:05.809Z",
+  "created_at": "2026-02-03T05:36:52.901Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "brainstorm-with-file",
     "description": "Interactive brainstorming with multi-CLI collaboration, idea expansion, and documented thought evolution",
     "argument_hint": "[-y|--yes] [-c|--continue] [-m|--mode creative|structured] \\\"idea or topic\\\"",
@@ -17,6 +17,21 @@
       "Bash(*)",
       "Edit(*)",
       "Write(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/brainstorm-with-file.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/plan.md",
+      ".claude/commands/issue/new.md",
+      ".claude/commands/workflow/analyze-with-file.md",
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/commands/install.ts",
+      "ccw/src/tools/claude-cli-tools.ts"
     ]
   },
   "structure_hints": {

@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/ui-design/imitate-auto.md",
-  "created_at": "2026-02-02T16:54:05.853Z",
+  "created_at": "2026-02-03T05:36:54.346Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "imitate-auto",
     "description": "UI design workflow with direct code/image input for design token extraction and prototype generation",
     "argument_hint": "[--input \"<value>\"] [--session <id>]",
@@ -13,6 +13,21 @@
       "Read(*)",
       "Write(*)",
       "Bash(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/ui-design/imitate-auto.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/plan.md",
+      ".claude/commands/workflow/test-gen.md",
+      ".claude/commands/workflow/execute.md",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/tools/generate-module-docs.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/commands/install.ts"
     ]
   },
   "structure_hints": {

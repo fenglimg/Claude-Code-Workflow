@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/tools/tdd-coverage-analysis.md",
-  "created_at": "2026-02-02T16:54:05.844Z",
+  "created_at": "2026-02-03T05:36:54.069Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "tdd-coverage-analysis",
     "description": "Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification",
     "argument_hint": "--session WFS-session-id",
@@ -11,6 +11,21 @@
       "Read(*)",
       "Write(*)",
       "Bash(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/tools/tdd-coverage-analysis.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/tdd-verify.md",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/commands/session-path-resolver.ts",
+      "ccw/src/commands/learn.ts",
+      "ccw/src/tools/claude-cli-tools.ts"
     ]
   },
   "structure_hints": {

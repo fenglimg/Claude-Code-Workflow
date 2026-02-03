@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/ui-design/import-from-code.md",
-  "created_at": "2026-02-02T16:54:05.854Z",
+  "created_at": "2026-02-03T05:36:54.384Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "workflow:ui-design:import-from-code",
     "description": "Import design system from code files (CSS/JS/HTML/SCSS) with automatic file discovery and parallel agent analysis",
     "argument_hint": "[--design-id <id>] [--session <id>] [--source <path>]",
@@ -15,6 +15,21 @@
       "Grep",
       "Task",
       "TodoWrite"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/ui-design/import-from-code.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      "ccw/src/tools/discover-design-files.ts",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/tools/generate-module-docs.ts",
+      "ccw/src/commands/install.ts",
+      "ccw/src/tools/codex-lens.ts",
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/command-registry.test.ts"
     ]
   },
   "structure_hints": {

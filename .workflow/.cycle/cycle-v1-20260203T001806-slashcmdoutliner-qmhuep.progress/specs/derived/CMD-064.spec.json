@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/tools/context-gather.md",
-  "created_at": "2026-02-02T16:54:05.841Z",
+  "created_at": "2026-02-03T05:36:53.960Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "gather",
     "description": "Intelligently collect project context using context-search-agent based on task description, packages into standardized JSON",
     "argument_hint": "--session WFS-session-id \\\"task description\\\"",
@@ -11,6 +11,21 @@
       "Task(*)",
       "Read(*)",
       "Glob(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/tools/context-gather.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      "ccw/src/tools/get-modules-by-depth.ts",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/tools/smart-search.ts",
+      "ccw/src/commands/issue.ts",
+      "ccw/src/commands/session-path-resolver.ts",
+      "ccw/src/commands/session.ts"
     ]
   },
   "structure_hints": {

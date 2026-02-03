@@ -1,15 +1,30 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/tools/test-concept-enhanced.md",
-  "created_at": "2026-02-02T16:54:05.845Z",
+  "created_at": "2026-02-03T05:36:54.098Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "test-concept-enhanced",
     "description": "Coordinate test analysis workflow using cli-execution-agent to generate test strategy via Gemini",
     "argument_hint": "--session WFS-test-session-id --context path/to/test-context-package.json",
     "allowed_tools": [
       "Read(*)",
       "Write(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/tools/test-concept-enhanced.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/test-gen.md",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/tools/generate-module-docs.ts",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/tools/update-module-claude.js",
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/commands/issue.ts"
     ]
   },
   "structure_hints": {

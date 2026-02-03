@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/plan-verify.md",
-  "created_at": "2026-02-02T16:54:05.824Z",
+  "created_at": "2026-02-03T05:36:53.366Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "plan-verify",
     "description": "Perform READ-ONLY verification analysis between IMPL_PLAN.md, task JSONs, and brainstorming artifacts. Generates structured report with quality gate recommendation. Does NOT modify any files.",
     "argument_hint": "[optional: --session session-id]",
@@ -12,6 +12,21 @@
       "Write(*)",
       "Glob(*)",
       "Bash(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/plan-verify.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/plan.md",
+      ".claude/commands/workflow/execute.md",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/commands/session.ts",
+      "ccw/src/tools/claude-cli-tools.ts"
     ]
   },
   "structure_hints": {

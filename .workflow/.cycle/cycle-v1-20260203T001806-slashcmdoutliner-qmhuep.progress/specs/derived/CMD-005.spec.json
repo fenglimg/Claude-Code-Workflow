@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/cli/cli-init.md",
-  "created_at": "2026-02-02T16:54:05.778Z",
+  "created_at": "2026-02-03T05:36:52.134Z",
   "command": {
     "group": "cli",
     "name": "cli-init",
@@ -12,6 +12,21 @@
       "Read(*)",
       "Write(*)",
       "Glob(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/cli/cli-init.md",
+    "code_pointers": [
+      "ccw/src/commands/cli.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      "ccw/src/tools/get-modules-by-depth.ts",
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/tools/generate-module-docs.ts",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/commands/install.ts",
+      "ccw/src/tools/cli-executor-utils.ts",
+      "ccw/src/tools/update-module-claude.js"
     ]
   },
   "structure_hints": {

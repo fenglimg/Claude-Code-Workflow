@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/tools/test-context-gather.md",
-  "created_at": "2026-02-02T16:54:05.846Z",
+  "created_at": "2026-02-03T05:36:54.124Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "test-context-gather",
     "description": "Collect test coverage context using test-context-search-agent and package into standardized test-context JSON",
     "argument_hint": "--session WFS-test-session-id",
@@ -11,6 +11,21 @@
       "Task(*)",
       "Read(*)",
       "Glob(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/tools/test-context-gather.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/test-gen.md",
+      "ccw/src/commands/issue.ts",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/tools/smart-search.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/commands/learn.ts"
     ]
   },
   "structure_hints": {

@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "derived_from": ".claude/commands/workflow/ui-design/animation-extract.md",
-  "created_at": "2026-02-02T16:54:05.847Z",
+  "created_at": "2026-02-03T05:36:54.178Z",
   "command": {
-    "group": "",
+    "group": "workflow",
     "name": "animation-extract",
     "description": "Extract animation and transition patterns from prompt inference and image references for design system documentation",
     "argument_hint": "[-y|--yes] [--design-id <id>] [--session <id>] [--images \"<glob>\"] [--focus \"<types>\"] [--interactive] [--refine]",
@@ -15,6 +15,21 @@
       "Bash(*)",
       "AskUserQuestion(*)",
       "Task(ui-design-agent)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/ui-design/animation-extract.md",
+    "code_pointers": [
+      "ccw/src/commands/workflow.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/view.md",
+      "ccw/src/tools/claude-cli-tools.ts",
+      "ccw/src/tools/command-registry.test.ts",
+      "ccw/src/commands/session-path-resolver.ts",
+      "ccw/src/commands/install.ts",
+      "ccw/src/commands/cli.ts",
+      "ccw/src/tools/generate-module-docs.ts"
     ]
   },
   "structure_hints": {

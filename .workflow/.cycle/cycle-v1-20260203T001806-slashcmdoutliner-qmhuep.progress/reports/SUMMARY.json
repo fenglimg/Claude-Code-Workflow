@@ -1,9 +1,13 @@
 {
   "cycle_id": "cycle-v1-20260203T001806-slashcmdoutliner-qmhuep",
-  "generated_at": "2026-02-02T16:54:05.861Z",
+  "generated_at": "2026-02-03T05:36:54.577Z",
   "commands_processed": 82,
   "total_commands": 82,
   "total_p0_gaps": 0,
   "total_p1_gaps": 164,
+  "snapshot_initialized": 0,
+  "snapshot_diffs": 0,
+  "gate_enabled": true,
+  "gate_passed": true,
   "completed_commands": 82
 }
