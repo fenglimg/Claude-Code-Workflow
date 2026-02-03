@@ -1,0 +1,191 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/session/start.md",
+  "created_at": "2026-02-02T16:54:05.834Z",
+  "command": {
+    "group": "",
+    "name": "start",
+    "description": "Discover existing sessions or start new workflow session with intelligent session management and conflict detection",
+    "argument_hint": "[--type <workflow|review|tdd|test|docs>] [--auto|--new] [optional: task description for new session]",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Start Workflow Session (/workflow:session:start)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Session Types"
+      },
+      {
+        "level": 2,
+        "text": "Step 0: Initialize Project State (First-time Only)"
+      },
+      {
+        "level": 3,
+        "text": "Check and Initialize"
+      },
+      {
+        "level": 1,
+        "text": "Check if project state exists (both files required)"
+      },
+      {
+        "level": 2,
+        "text": "Mode 1: Discovery Mode (Default)"
+      },
+      {
+        "level": 3,
+        "text": "Usage"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: List Active Sessions"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Display Session Metadata"
+      },
+      {
+        "level": 3,
+        "text": "Step 4: User Decision"
+      },
+      {
+        "level": 2,
+        "text": "Mode 2: Auto Mode (Intelligent)"
+      },
+      {
+        "level": 3,
+        "text": "Usage"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Check Active Sessions Count"
+      },
+      {
+        "level": 3,
+        "text": "Step 2a: No Active Sessions → Create New"
+      },
+      {
+        "level": 1,
+        "text": "Generate session slug"
+      },
+      {
+        "level": 1,
+        "text": "Create directory structure"
+      },
+      {
+        "level": 1,
+        "text": "Create metadata (include type field, default to \"workflow\" if not specified)"
+      },
+      {
+        "level": 3,
+        "text": "Step 2b: Single Active Session → Check Relevance"
+      },
+      {
+        "level": 1,
+        "text": "Extract session ID"
+      },
+      {
+        "level": 1,
+        "text": "Read project name from metadata"
+      },
+      {
+        "level": 1,
+        "text": "Check keyword match (manual comparison)"
+      },
+      {
+        "level": 1,
+        "text": "If task contains project keywords → Reuse session"
+      },
+      {
+        "level": 1,
+        "text": "If task unrelated → Create new session (use Step 2a)"
+      },
+      {
+        "level": 3,
+        "text": "Step 2c: Multiple Active Sessions → Use First"
+      },
+      {
+        "level": 1,
+        "text": "Get first active session"
+      },
+      {
+        "level": 1,
+        "text": "Output warning and session ID"
+      },
+      {
+        "level": 1,
+        "text": "WARNING: Multiple active sessions detected"
+      },
+      {
+        "level": 1,
+        "text": "SESSION_ID: WFS-first-session"
+      },
+      {
+        "level": 2,
+        "text": "Mode 3: Force New Mode"
+      },
+      {
+        "level": 3,
+        "text": "Usage"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Generate Unique Session Slug"
+      },
+      {
+        "level": 1,
+        "text": "Convert to slug"
+      },
+      {
+        "level": 1,
+        "text": "Check if exists, add counter if needed"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Create Session Structure"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Create Metadata"
+      },
+      {
+        "level": 1,
+        "text": "Include type field from --type parameter (default: \"workflow\")"
+      },
+      {
+        "level": 2,
+        "text": "Execution Guideline"
+      },
+      {
+        "level": 2,
+        "text": "Output Format Specification"
+      },
+      {
+        "level": 3,
+        "text": "Success"
+      },
+      {
+        "level": 3,
+        "text": "Error"
+      },
+      {
+        "level": 3,
+        "text": "Analysis (Auto Mode)"
+      },
+      {
+        "level": 2,
+        "text": "Session ID Format"
+      }
+    ]
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/tools/context-gather.md",
+  "created_at": "2026-02-02T16:54:05.841Z",
+  "command": {
+    "group": "",
+    "name": "gather",
+    "description": "Intelligently collect project context using context-search-agent based on task description, packages into standardized JSON",
+    "argument_hint": "--session WFS-session-id \\\"task description\\\"",
+    "allowed_tools": [
+      "Task(*)",
+      "Read(*)",
+      "Glob(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Context Gather Command (/workflow:tools:context-gather)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Core Philosophy"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Context-Package Detection"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Complexity Assessment & Parallel Explore"
+      },
+      {
+        "level": 2,
+        "text": "Task Objective"
+      },
+      {
+        "level": 2,
+        "text": "Assigned Context"
+      },
+      {
+        "level": 2,
+        "text": "MANDATORY FIRST STEPS (Execute by Agent)"
+      },
+      {
+        "level": 2,
+        "text": "Exploration Strategy (${angle} focus)"
+      },
+      {
+        "level": 2,
+        "text": "Expected Output"
+      },
+      {
+        "level": 2,
+        "text": "Success Criteria"
+      },
+      {
+        "level": 2,
+        "text": "Output"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Invoke Context-Search Agent"
+      },
+      {
+        "level": 2,
+        "text": "Execution Mode"
+      },
+      {
+        "level": 2,
+        "text": "Session Information"
+      },
+      {
+        "level": 2,
+        "text": "User Intent (from Phase 1 - Planning Notes)"
+      },
+      {
+        "level": 2,
+        "text": "Exploration Input (from Step 2)"
+      },
+      {
+        "level": 2,
+        "text": "Mission"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Initialization & Pre-Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Multi-Source Context Discovery"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Synthesis, Assessment & Packaging"
+      },
+      {
+        "level": 2,
+        "text": "Output Requirements"
+      },
+      {
+        "level": 2,
+        "text": "Quality Validation"
+      },
+      {
+        "level": 2,
+        "text": "Planning Notes Record (REQUIRED)"
+      },
+      {
+        "level": 3,
+        "text": "[Context-Search Agent] YYYY-MM-DD"
+      },
+      {
+        "level": 3,
+        "text": "Step 4: Output Verification"
+      },
+      {
+        "level": 2,
+        "text": "Parameter Reference"
+      },
+      {
+        "level": 2,
+        "text": "Output Schema"
+      },
+      {
+        "level": 2,
+        "text": "Notes"
+      }
+    ]
+  }
+}

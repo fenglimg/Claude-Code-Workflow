@@ -1,0 +1,287 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/tdd-verify.md",
+  "created_at": "2026-02-02T16:54:05.835Z",
+  "command": {
+    "group": "",
+    "name": "tdd-verify",
+    "description": "Verify TDD workflow compliance against Red-Green-Refactor cycles. Generates quality report with coverage analysis and quality gate recommendation. Orchestrates sub-commands for comprehensive validation.",
+    "argument_hint": "[optional: --session WFS-session-id]",
+    "allowed_tools": [
+      "SlashCommand(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Bash(*)",
+      "Glob(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "TDD Verification Command (/workflow:tdd-verify)"
+      },
+      {
+        "level": 2,
+        "text": "Goal"
+      },
+      {
+        "level": 2,
+        "text": "Operating Constraints"
+      },
+      {
+        "level": 2,
+        "text": "Coordinator Role"
+      },
+      {
+        "level": 2,
+        "text": "Core Responsibilities"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "4-Phase Execution"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Session Discovery & Validation"
+      },
+      {
+        "level": 1,
+        "text": "Derive paths"
+      },
+      {
+        "level": 1,
+        "text": "Check task files exist"
+      },
+      {
+        "level": 1,
+        "text": "Check summaries exist (optional but recommended for full analysis)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Task Chain Structure Validation"
+      },
+      {
+        "level": 1,
+        "text": "Single-pass JSON extraction using jq"
+      },
+      {
+        "level": 1,
+        "text": "Load all tasks and extract structured data"
+      },
+      {
+        "level": 1,
+        "text": "Extract all task IDs"
+      },
+      {
+        "level": 1,
+        "text": "Extract dependencies for IMPL tasks"
+      },
+      {
+        "level": 1,
+        "text": "Extract dependencies for REFACTOR tasks"
+      },
+      {
+        "level": 1,
+        "text": "Extract meta fields"
+      },
+      {
+        "level": 1,
+        "text": "Output as JSON"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Coverage & Cycle Analysis"
+      },
+      {
+        "level": 1,
+        "text": "Check required outputs exist"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Compliance Report Generation"
+      },
+      {
+        "level": 2,
+        "text": "TodoWrite Pattern (Optional)"
+      },
+      {
+        "level": 2,
+        "text": "Validation Logic"
+      },
+      {
+        "level": 3,
+        "text": "Chain Validation Algorithm"
+      },
+      {
+        "level": 3,
+        "text": "Quality Gate Criteria"
+      },
+      {
+        "level": 2,
+        "text": "Output Files"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Session Discovery Errors"
+      },
+      {
+        "level": 3,
+        "text": "Validation Errors"
+      },
+      {
+        "level": 3,
+        "text": "Analysis Errors"
+      },
+      {
+        "level": 2,
+        "text": "Integration & Usage"
+      },
+      {
+        "level": 3,
+        "text": "Command Chain"
+      },
+      {
+        "level": 3,
+        "text": "Basic Usage"
+      },
+      {
+        "level": 1,
+        "text": "Auto-detect active session"
+      },
+      {
+        "level": 1,
+        "text": "Specify session"
+      },
+      {
+        "level": 3,
+        "text": "When to Use"
+      },
+      {
+        "level": 2,
+        "text": "TDD Compliance Report Structure"
+      },
+      {
+        "level": 1,
+        "text": "TDD Compliance Report - {Session ID}"
+      },
+      {
+        "level": 2,
+        "text": "Executive Summary"
+      },
+      {
+        "level": 3,
+        "text": "Quality Gate Decision"
+      },
+      {
+        "level": 3,
+        "text": "Recommendation"
+      },
+      {
+        "level": 2,
+        "text": "Chain Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Feature 1: {Feature Name}"
+      },
+      {
+        "level": 3,
+        "text": "Feature 2: {Feature Name}"
+      },
+      {
+        "level": 3,
+        "text": "Chain Validation Summary"
+      },
+      {
+        "level": 2,
+        "text": "Test Coverage Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Coverage Metrics"
+      },
+      {
+        "level": 3,
+        "text": "Coverage Gaps"
+      },
+      {
+        "level": 2,
+        "text": "TDD Cycle Validation"
+      },
+      {
+        "level": 3,
+        "text": "Red Phase (Write Failing Test)"
+      },
+      {
+        "level": 3,
+        "text": "Green Phase (Make Test Pass)"
+      },
+      {
+        "level": 3,
+        "text": "Refactor Phase (Improve Quality)"
+      },
+      {
+        "level": 2,
+        "text": "Best Practices Assessment"
+      },
+      {
+        "level": 3,
+        "text": "Strengths"
+      },
+      {
+        "level": 3,
+        "text": "Areas for Improvement"
+      },
+      {
+        "level": 2,
+        "text": "Detailed Findings by Severity"
+      },
+      {
+        "level": 3,
+        "text": "Critical Issues ({count})"
+      },
+      {
+        "level": 3,
+        "text": "High Priority Issues ({count})"
+      },
+      {
+        "level": 3,
+        "text": "Medium Priority Issues ({count})"
+      },
+      {
+        "level": 3,
+        "text": "Low Priority Issues ({count})"
+      },
+      {
+        "level": 2,
+        "text": "Recommendations"
+      },
+      {
+        "level": 3,
+        "text": "Required Fixes (Before Merge)"
+      },
+      {
+        "level": 3,
+        "text": "Recommended Improvements"
+      },
+      {
+        "level": 3,
+        "text": "Optional Enhancements"
+      },
+      {
+        "level": 2,
+        "text": "Metrics Summary"
+      }
+    ]
+  }
+}

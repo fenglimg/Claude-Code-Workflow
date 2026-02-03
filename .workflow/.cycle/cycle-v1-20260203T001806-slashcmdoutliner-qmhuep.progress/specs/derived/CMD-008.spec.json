@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/flow-create.md",
+  "created_at": "2026-02-02T16:54:05.783Z",
+  "command": {
+    "group": "",
+    "name": "flow-create",
+    "description": "TBD",
+    "argument_hint": "",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Flow Template Generator"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 2,
+        "text": "Phase 1: Template Design"
+      },
+      {
+        "level": 2,
+        "text": "Phase 2: Step Definition"
+      },
+      {
+        "level": 3,
+        "text": "Step 2.1: Select Command Category"
+      },
+      {
+        "level": 3,
+        "text": "Step 2.2: Select Specific Command"
+      },
+      {
+        "level": 3,
+        "text": "Step 2.3: Select Execution Unit"
+      },
+      {
+        "level": 3,
+        "text": "Step 2.4: Select Execution Mode"
+      },
+      {
+        "level": 3,
+        "text": "Complete Step Definition Flow"
+      },
+      {
+        "level": 2,
+        "text": "Suggested Step Templates"
+      },
+      {
+        "level": 3,
+        "text": "Feature Development (Level 2 - Rapid)"
+      },
+      {
+        "level": 3,
+        "text": "Feature Development (Level 3 - Coupled)"
+      },
+      {
+        "level": 3,
+        "text": "Bug Fix (Level 2)"
+      },
+      {
+        "level": 3,
+        "text": "Bug Fix Hotfix (Level 2)"
+      },
+      {
+        "level": 3,
+        "text": "TDD Development (Level 3)"
+      },
+      {
+        "level": 3,
+        "text": "Code Review (Level 3)"
+      },
+      {
+        "level": 3,
+        "text": "Test Fix (Level 3)"
+      },
+      {
+        "level": 3,
+        "text": "Issue Workflow (Level Issue)"
+      },
+      {
+        "level": 3,
+        "text": "Rapid to Issue (Level 2.5)"
+      },
+      {
+        "level": 3,
+        "text": "Brainstorm to Issue (Level 4)"
+      },
+      {
+        "level": 3,
+        "text": "With-File: Brainstorm (Level 4)"
+      },
+      {
+        "level": 3,
+        "text": "With-File: Debug (Level 3)"
+      },
+      {
+        "level": 3,
+        "text": "With-File: Analyze (Level 3)"
+      },
+      {
+        "level": 3,
+        "text": "Full Workflow (Level 4)"
+      },
+      {
+        "level": 3,
+        "text": "Multi-CLI Planning (Level 3)"
+      },
+      {
+        "level": 3,
+        "text": "Ultra-Lightweight (Level 1)"
+      },
+      {
+        "level": 2,
+        "text": "Command Port Reference"
+      },
+      {
+        "level": 2,
+        "text": "Minimum Execution Units (最小执行单元)"
+      },
+      {
+        "level": 2,
+        "text": "Phase 3: Generate JSON"
+      },
+      {
+        "level": 2,
+        "text": "Output Format"
+      },
+      {
+        "level": 2,
+        "text": "Examples"
+      }
+    ]
+  }
+}

@@ -1,0 +1,375 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/view.md",
+  "created_at": "2026-02-02T16:54:05.807Z",
+  "command": {
+    "group": "",
+    "name": "ccw view",
+    "description": "Dashboard - Open CCW workflow dashboard for managing tasks and sessions",
+    "argument_hint": "",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "CCW View Command"
+      },
+      {
+        "level": 2,
+        "text": "Description"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      },
+      {
+        "level": 1,
+        "text": "Open dashboard for current workspace"
+      },
+      {
+        "level": 1,
+        "text": "Specify workspace path"
+      },
+      {
+        "level": 1,
+        "text": "Custom port (default: 3456)"
+      },
+      {
+        "level": 1,
+        "text": "Bind to specific host"
+      },
+      {
+        "level": 1,
+        "text": "Open without launching browser"
+      },
+      {
+        "level": 1,
+        "text": "Show URL without opening browser"
+      },
+      {
+        "level": 2,
+        "text": "Options"
+      },
+      {
+        "level": 2,
+        "text": "Features"
+      },
+      {
+        "level": 3,
+        "text": "Dashboard Sections"
+      },
+      {
+        "level": 4,
+        "text": "1. **Workflow Overview**"
+      },
+      {
+        "level": 4,
+        "text": "2. **Session Management**"
+      },
+      {
+        "level": 4,
+        "text": "3. **Task Tracking**"
+      },
+      {
+        "level": 4,
+        "text": "4. **Workspace Switcher**"
+      },
+      {
+        "level": 4,
+        "text": "5. **Command History**"
+      },
+      {
+        "level": 3,
+        "text": "Keyboard Shortcuts"
+      },
+      {
+        "level": 2,
+        "text": "Multi-Instance Support"
+      },
+      {
+        "level": 1,
+        "text": "Terminal 1: Workspace A on port 3456"
+      },
+      {
+        "level": 1,
+        "text": "Terminal 2: Workspace B on port 3457"
+      },
+      {
+        "level": 1,
+        "text": "Switching workspaces on the same port"
+      },
+      {
+        "level": 2,
+        "text": "Server Lifecycle"
+      },
+      {
+        "level": 3,
+        "text": "Startup"
+      },
+      {
+        "level": 3,
+        "text": "Running"
+      },
+      {
+        "level": 3,
+        "text": "Multiple Workspaces"
+      },
+      {
+        "level": 2,
+        "text": "Environment Variables"
+      },
+      {
+        "level": 1,
+        "text": "Set default port"
+      },
+      {
+        "level": 1,
+        "text": "Set default host"
+      },
+      {
+        "level": 1,
+        "text": "Disable browser launch by default"
+      },
+      {
+        "level": 2,
+        "text": "Integration with CCW Workflows"
+      },
+      {
+        "level": 3,
+        "text": "Viewing Workflow Progress"
+      },
+      {
+        "level": 1,
+        "text": "Start a workflow"
+      },
+      {
+        "level": 1,
+        "text": "In another terminal, view progress"
+      },
+      {
+        "level": 3,
+        "text": "Session Management from Dashboard"
+      },
+      {
+        "level": 3,
+        "text": "Real-time Command Execution"
+      },
+      {
+        "level": 2,
+        "text": "Troubleshooting"
+      },
+      {
+        "level": 3,
+        "text": "Port Already in Use"
+      },
+      {
+        "level": 1,
+        "text": "Use different port"
+      },
+      {
+        "level": 1,
+        "text": "Or kill existing server"
+      },
+      {
+        "level": 3,
+        "text": "Dashboard Not Loading"
+      },
+      {
+        "level": 1,
+        "text": "Try without browser"
+      },
+      {
+        "level": 1,
+        "text": "Check server logs"
+      },
+      {
+        "level": 1,
+        "text": "Verify network access"
+      },
+      {
+        "level": 3,
+        "text": "Workspace Path Not Found"
+      },
+      {
+        "level": 1,
+        "text": "Use full absolute path"
+      },
+      {
+        "level": 1,
+        "text": "Or specify explicit path"
+      },
+      {
+        "level": 2,
+        "text": "Related Commands"
+      },
+      {
+        "level": 2,
+        "text": "Examples"
+      },
+      {
+        "level": 3,
+        "text": "Basic Dashboard View"
+      },
+      {
+        "level": 1,
+        "text": "→ Launches http://localhost:3456 in browser"
+      },
+      {
+        "level": 3,
+        "text": "Network-Accessible Dashboard"
+      },
+      {
+        "level": 1,
+        "text": "Allow remote access"
+      },
+      {
+        "level": 1,
+        "text": "→ Dashboard accessible at http://machine-ip:3000"
+      },
+      {
+        "level": 3,
+        "text": "Multiple Workspaces on Different Ports"
+      },
+      {
+        "level": 1,
+        "text": "Terminal 1: Main project"
+      },
+      {
+        "level": 1,
+        "text": "Terminal 2: Side project"
+      },
+      {
+        "level": 1,
+        "text": "View both simultaneously"
+      },
+      {
+        "level": 1,
+        "text": "→ http://localhost:3456 (main)"
+      },
+      {
+        "level": 1,
+        "text": "→ http://localhost:3457 (side)"
+      },
+      {
+        "level": 3,
+        "text": "Headless Dashboard"
+      },
+      {
+        "level": 1,
+        "text": "Run dashboard without browser"
+      },
+      {
+        "level": 1,
+        "text": "Share URL with team"
+      },
+      {
+        "level": 1,
+        "text": "Can be proxied through nginx/port forwarding"
+      },
+      {
+        "level": 3,
+        "text": "Environment-Based Configuration"
+      },
+      {
+        "level": 1,
+        "text": "Script for CI/CD"
+      },
+      {
+        "level": 1,
+        "text": "→ Dashboard accessible on port 8080 to all interfaces"
+      },
+      {
+        "level": 2,
+        "text": "Dashboard Pages"
+      },
+      {
+        "level": 3,
+        "text": "Overview Page (`/`)"
+      },
+      {
+        "level": 3,
+        "text": "Sessions Page (`/sessions`)"
+      },
+      {
+        "level": 3,
+        "text": "Tasks Page (`/tasks`)"
+      },
+      {
+        "level": 3,
+        "text": "Workspace Page (`/workspace`)"
+      },
+      {
+        "level": 3,
+        "text": "Settings Page (`/settings`)"
+      },
+      {
+        "level": 2,
+        "text": "Server Health Monitoring"
+      },
+      {
+        "level": 1,
+        "text": "Check health endpoint"
+      },
+      {
+        "level": 1,
+        "text": "→ { \"status\": \"ok\", \"uptime\": 12345 }"
+      },
+      {
+        "level": 1,
+        "text": "Monitor metrics"
+      },
+      {
+        "level": 1,
+        "text": "→ { \"sessions\": 3, \"tasks\": 15, \"lastUpdate\": \"2025-01-29T10:30:00Z\" }"
+      },
+      {
+        "level": 2,
+        "text": "Advanced Usage"
+      },
+      {
+        "level": 3,
+        "text": "Custom Port with Dynamic Discovery"
+      },
+      {
+        "level": 1,
+        "text": "Find next available port"
+      },
+      {
+        "level": 1,
+        "text": "Display in CI/CD"
+      },
+      {
+        "level": 3,
+        "text": "Dashboard Behind Proxy"
+      },
+      {
+        "level": 1,
+        "text": "Configure nginx reverse proxy"
+      },
+      {
+        "level": 1,
+        "text": "Proxy http://proxy.example.com/dashboard → http://localhost:3456"
+      },
+      {
+        "level": 1,
+        "text": "Access via proxy"
+      },
+      {
+        "level": 1,
+        "text": "http://proxy.example.com/dashboard"
+      },
+      {
+        "level": 3,
+        "text": "Session Export from Dashboard"
+      },
+      {
+        "level": 2,
+        "text": "See Also"
+      }
+    ]
+  }
+}

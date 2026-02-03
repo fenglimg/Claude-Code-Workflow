@@ -1,0 +1,242 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/collaborative-plan-with-file.md",
+  "created_at": "2026-02-02T16:54:05.815Z",
+  "command": {
+    "group": "",
+    "name": "workflow:collaborative-plan-with-file",
+    "description": "Unified collaborative planning with dynamic requirement splitting, parallel sub-agent exploration/understanding/planning, and automatic merge. Each agent maintains process files for full traceability.",
+    "argument_hint": "[-y|--yes] <task description> [--max-agents=5] [--depth=normal|deep] [--merge-rule=consensus|priority]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Bash(*)",
+      "Write(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "mcp__ace-tool__search_context(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Collaborative Planning Command"
+      },
+      {
+        "level": 2,
+        "text": "Quick Start"
+      },
+      {
+        "level": 1,
+        "text": "Basic usage"
+      },
+      {
+        "level": 1,
+        "text": "With options"
+      },
+      {
+        "level": 2,
+        "text": "Output Artifacts"
+      },
+      {
+        "level": 3,
+        "text": "Per Sub-Agent (Phase 2)"
+      },
+      {
+        "level": 3,
+        "text": "Final Output (Phase 4)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Output Structure"
+      },
+      {
+        "level": 2,
+        "text": "Implementation"
+      },
+      {
+        "level": 3,
+        "text": "Session Initialization"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Requirement Analysis & Splitting"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Parallel Sub-Agent Execution"
+      },
+      {
+        "level": 2,
+        "text": "Sub-Agent Context"
+      },
+      {
+        "level": 2,
+        "text": "Input Context"
+      },
+      {
+        "level": 2,
+        "text": "Output Requirements"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Cross-Verification & Conflict Detection"
+      },
+      {
+        "level": 2,
+        "text": "Conflict Detection Complete"
+      },
+      {
+        "level": 3,
+        "text": "Conflicts:"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Merge & Synthesis"
+      },
+      {
+        "level": 2,
+        "text": "Mission: Merge Multiple Sub-Plans"
+      },
+      {
+        "level": 2,
+        "text": "Schema Reference"
+      },
+      {
+        "level": 2,
+        "text": "Project Context"
+      },
+      {
+        "level": 2,
+        "text": "Original Requirement"
+      },
+      {
+        "level": 2,
+        "text": "Sub-Plans to Merge"
+      },
+      {
+        "level": 3,
+        "text": "Sub-Plan: ${sp.focus_area}"
+      },
+      {
+        "level": 2,
+        "text": "Planning Context Documents"
+      },
+      {
+        "level": 3,
+        "text": "Context: ${cd.focus_area}"
+      },
+      {
+        "level": 2,
+        "text": "Detected Conflicts"
+      },
+      {
+        "level": 2,
+        "text": "Merge Rules"
+      },
+      {
+        "level": 2,
+        "text": "Requirements"
+      },
+      {
+        "level": 2,
+        "text": "Output"
+      },
+      {
+        "level": 2,
+        "text": "Success Criteria"
+      },
+      {
+        "level": 2,
+        "text": "Sub-Requirements Analyzed"
+      },
+      {
+        "level": 3,
+        "text": "${i+1}. ${sub.focus_area}"
+      },
+      {
+        "level": 2,
+        "text": "Conflict Resolution"
+      },
+      {
+        "level": 2,
+        "text": "Merged Plan"
+      },
+      {
+        "level": 3,
+        "text": "Summary"
+      },
+      {
+        "level": 3,
+        "text": "Approach"
+      },
+      {
+        "level": 2,
+        "text": "Tasks"
+      },
+      {
+        "level": 3,
+        "text": "${task.id}: ${task.title}"
+      },
+      {
+        "level": 2,
+        "text": "Execution"
+      },
+      {
+        "level": 1,
+        "text": "Execute this plan"
+      },
+      {
+        "level": 1,
+        "text": "Or with auto-confirmation"
+      },
+      {
+        "level": 2,
+        "text": "Agent Process Files"
+      },
+      {
+        "level": 3,
+        "text": "${sub.focus_area}"
+      },
+      {
+        "level": 3,
+        "text": "Completion"
+      },
+      {
+        "level": 2,
+        "text": "Output Files"
+      },
+      {
+        "level": 2,
+        "text": "Next Steps"
+      },
+      {
+        "level": 2,
+        "text": "Configuration"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "vs Other Planning Commands"
+      },
+      {
+        "level": 2,
+        "text": "Best Practices"
+      }
+    ]
+  }
+}

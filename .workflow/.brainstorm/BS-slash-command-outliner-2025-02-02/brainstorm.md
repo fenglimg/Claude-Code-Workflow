@@ -860,6 +860,7 @@ ACE-tool + 模式库
 
 1) **Corpus Scope（命令全集范围）**
    - 默认：以 `.claude/commands/**/*.md` 为“slash 命令全集”来源（排除 `node_modules/`）。
+   - 额外纳入：**server/tooling 命令与能力面**（用于对照与 gap-report 归因，不一定等同于“需要生成的 slash 命令”）。
    - 产物：生成 `corpus-manifest.json`（命令列表 + 类目 + 参考/回归状态）。
 2) **Per-Command 进度跟踪（TODO）**
    - 在 session 下维护 `TODO_LIST.md`，每条任务对应一个命令（以及可能的“跨命令修复项”）。
@@ -889,4 +890,12 @@ ACE-tool + 模式库
 
 如果你同意，我会把这套作为进入 brainstorm-with-cycle 的核心 cycle：**选命令 → 生成 → 对比 → 修复 → 回归**，直到覆盖全部 slash 命令。
 
-下一步：你只要对以上 3 条给出“确认/修改”，就可以无痛切换到 brainstorm-with-cycle（实现迭代）。
+#### Cycle Started (2026-02-03 00:20)
+
+已创建并进入 cycle（brainstorm-to-cycle）：
+- Cycle ID: `cycle-v1-20260203T001806-slashcmdoutliner-qmhuep`
+- Cycle folder: `.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/`
+- TODO: `.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/TODO_LIST.md`
+- Slash corpus manifest: `.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/corpus/corpus-manifest.json` (82 commands)
+- Tooling manifest: `.workflow/.cycle/cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress/corpus/tooling-manifest.json` (71 files)
+- Skill skeleton: `.claude/skills/slash-command-outliner/SKILL.md`

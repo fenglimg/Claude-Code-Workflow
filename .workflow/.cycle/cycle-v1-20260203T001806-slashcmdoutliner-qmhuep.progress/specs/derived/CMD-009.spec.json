@@ -1,0 +1,139 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/issue/convert-to-plan.md",
+  "created_at": "2026-02-02T16:54:05.784Z",
+  "command": {
+    "group": "",
+    "name": "convert-to-plan",
+    "description": "Convert planning artifacts (lite-plan, workflow session, markdown) to issue solutions",
+    "argument_hint": "[-y|--yes] [--issue <id>] [--supplement] <SOURCE>",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Glob(*)",
+      "AskUserQuestion(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Issue Convert-to-Plan Command (/issue:convert-to-plan)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Quick Reference"
+      },
+      {
+        "level": 1,
+        "text": "Convert lite-plan to new issue (auto-creates issue)"
+      },
+      {
+        "level": 1,
+        "text": "Convert workflow session to existing issue"
+      },
+      {
+        "level": 1,
+        "text": "Supplement existing solution with additional tasks"
+      },
+      {
+        "level": 1,
+        "text": "Auto mode - skip confirmations"
+      },
+      {
+        "level": 2,
+        "text": "Command Options"
+      },
+      {
+        "level": 2,
+        "text": "Core Data Access Principle"
+      },
+      {
+        "level": 2,
+        "text": "Solution Schema Reference"
+      },
+      {
+        "level": 2,
+        "text": "Implementation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Parse Arguments & Detect Source Type"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Extract Data Using Format-Specific Extractor"
+      },
+      {
+        "level": 4,
+        "text": "Extractor: Lite-Plan"
+      },
+      {
+        "level": 4,
+        "text": "Extractor: Workflow Session"
+      },
+      {
+        "level": 4,
+        "text": "Extractor: Markdown (AI-Assisted via Gemini)"
+      },
+      {
+        "level": 4,
+        "text": "Extractor: JSON File"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Normalize Task IDs"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Resolve Issue (Create or Find)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Generate Solution"
+      },
+      {
+        "level": 3,
+        "text": "Phase 6: Confirm & Persist"
+      },
+      {
+        "level": 2,
+        "text": "Conversion Summary"
+      },
+      {
+        "level": 3,
+        "text": "Tasks:"
+      },
+      {
+        "level": 3,
+        "text": "Phase 7: Summary"
+      },
+      {
+        "level": 2,
+        "text": "Done"
+      },
+      {
+        "level": 3,
+        "text": "Next Steps:"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Related Commands"
+      }
+    ]
+  }
+}

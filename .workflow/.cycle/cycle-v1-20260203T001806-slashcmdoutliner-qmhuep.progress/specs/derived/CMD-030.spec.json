@@ -1,0 +1,366 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/brainstorm-with-file.md",
+  "created_at": "2026-02-02T16:54:05.809Z",
+  "command": {
+    "group": "",
+    "name": "brainstorm-with-file",
+    "description": "Interactive brainstorming with multi-CLI collaboration, idea expansion, and documented thought evolution",
+    "argument_hint": "[-y|--yes] [-c|--continue] [-m|--mode creative|structured] \\\"idea or topic\\\"",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Grep(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Workflow Brainstorm-With-File Command (/workflow:brainstorm-with-file)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      },
+      {
+        "level": 1,
+        "text": "Flags"
+      },
+      {
+        "level": 1,
+        "text": "Arguments"
+      },
+      {
+        "level": 1,
+        "text": "Examples"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Implementation"
+      },
+      {
+        "level": 3,
+        "text": "Session Setup & Mode Detection"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Seed Understanding"
+      },
+      {
+        "level": 1,
+        "text": "Brainstorm Session"
+      },
+      {
+        "level": 2,
+        "text": "Initial Context"
+      },
+      {
+        "level": 2,
+        "text": "Seed Expansion"
+      },
+      {
+        "level": 3,
+        "text": "Original Idea"
+      },
+      {
+        "level": 3,
+        "text": "Exploration Vectors"
+      },
+      {
+        "level": 4,
+        "text": "Vector ${i+1}: ${v.title}"
+      },
+      {
+        "level": 2,
+        "text": "Thought Evolution Timeline"
+      },
+      {
+        "level": 3,
+        "text": "Round 1 - Seed Understanding (${timestamp})"
+      },
+      {
+        "level": 4,
+        "text": "Initial Parsing"
+      },
+      {
+        "level": 4,
+        "text": "Key Questions to Explore"
+      },
+      {
+        "level": 2,
+        "text": "Current Ideas"
+      },
+      {
+        "level": 2,
+        "text": "Idea Graveyard"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Divergent Exploration (Multi-CLI Parallel)"
+      },
+      {
+        "level": 3,
+        "text": "Round 2 - Multi-Perspective Exploration (${timestamp})"
+      },
+      {
+        "level": 4,
+        "text": "Creative Perspective (Gemini)"
+      },
+      {
+        "level": 4,
+        "text": "Pragmatic Perspective (Codex)"
+      },
+      {
+        "level": 4,
+        "text": "Systematic Perspective (Claude)"
+      },
+      {
+        "level": 4,
+        "text": "Perspective Synthesis"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Interactive Refinement (Multi-Round)"
+      },
+      {
+        "level": 2,
+        "text": "Brainstorm Round ${roundNumber}"
+      },
+      {
+        "level": 3,
+        "text": "Top Ideas So Far"
+      },
+      {
+        "level": 3,
+        "text": "Open Questions"
+      },
+      {
+        "level": 3,
+        "text": "Round ${n} - ${roundType} (${timestamp})"
+      },
+      {
+        "level": 4,
+        "text": "User Direction"
+      },
+      {
+        "level": 4,
+        "text": "Deep Dive: ${ideaTitle}"
+      },
+      {
+        "level": 4,
+        "text": "Devil's Advocate Results"
+      },
+      {
+        "level": 4,
+        "text": "Merged Idea: ${mergedIdea.title}"
+      },
+      {
+        "level": 4,
+        "text": "Updated Idea Ranking"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Convergence & Crystallization"
+      },
+      {
+        "level": 2,
+        "text": "Synthesis & Conclusions (${timestamp})"
+      },
+      {
+        "level": 3,
+        "text": "Executive Summary"
+      },
+      {
+        "level": 3,
+        "text": "Top Ideas (Final Ranking)"
+      },
+      {
+        "level": 4,
+        "text": "${i+1}. ${idea.title} ⭐ Score: ${idea.score}/10"
+      },
+      {
+        "level": 3,
+        "text": "Primary Recommendation"
+      },
+      {
+        "level": 3,
+        "text": "Alternative Approaches"
+      },
+      {
+        "level": 3,
+        "text": "Ideas Parked for Future"
+      },
+      {
+        "level": 2,
+        "text": "Key Insights"
+      },
+      {
+        "level": 3,
+        "text": "Process Discoveries"
+      },
+      {
+        "level": 3,
+        "text": "Assumptions Challenged"
+      },
+      {
+        "level": 3,
+        "text": "Unexpected Connections"
+      },
+      {
+        "level": 2,
+        "text": "Current Understanding (Final)"
+      },
+      {
+        "level": 3,
+        "text": "Problem Reframed"
+      },
+      {
+        "level": 3,
+        "text": "Solution Space Mapped"
+      },
+      {
+        "level": 3,
+        "text": "Decision Framework"
+      },
+      {
+        "level": 2,
+        "text": "Session Statistics"
+      },
+      {
+        "level": 2,
+        "text": "Session Folder Structure"
+      },
+      {
+        "level": 2,
+        "text": "Brainstorm Document Template"
+      },
+      {
+        "level": 1,
+        "text": "Brainstorm Session"
+      },
+      {
+        "level": 2,
+        "text": "Initial Context"
+      },
+      {
+        "level": 2,
+        "text": "Seed Expansion"
+      },
+      {
+        "level": 3,
+        "text": "Original Idea"
+      },
+      {
+        "level": 3,
+        "text": "Exploration Vectors"
+      },
+      {
+        "level": 2,
+        "text": "Thought Evolution Timeline"
+      },
+      {
+        "level": 3,
+        "text": "Round 1 - Seed Understanding"
+      },
+      {
+        "level": 3,
+        "text": "Round 2 - Multi-Perspective Exploration"
+      },
+      {
+        "level": 4,
+        "text": "Creative Perspective (Gemini)"
+      },
+      {
+        "level": 4,
+        "text": "Pragmatic Perspective (Codex)"
+      },
+      {
+        "level": 4,
+        "text": "Systematic Perspective (Claude)"
+      },
+      {
+        "level": 4,
+        "text": "Perspective Synthesis"
+      },
+      {
+        "level": 3,
+        "text": "Round 3 - Deep Dive"
+      },
+      {
+        "level": 3,
+        "text": "Round 4 - Challenge"
+      },
+      {
+        "level": 2,
+        "text": "Synthesis & Conclusions"
+      },
+      {
+        "level": 3,
+        "text": "Executive Summary"
+      },
+      {
+        "level": 3,
+        "text": "Top Ideas (Final Ranking)"
+      },
+      {
+        "level": 3,
+        "text": "Primary Recommendation"
+      },
+      {
+        "level": 2,
+        "text": "Key Insights"
+      },
+      {
+        "level": 2,
+        "text": "Current Understanding (Final)"
+      },
+      {
+        "level": 2,
+        "text": "Session Statistics"
+      },
+      {
+        "level": 2,
+        "text": "Multi-CLI Collaboration Strategy"
+      },
+      {
+        "level": 3,
+        "text": "Perspective Roles"
+      },
+      {
+        "level": 3,
+        "text": "Collaboration Patterns"
+      },
+      {
+        "level": 3,
+        "text": "When to Use Each Pattern"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Usage Recommendations"
+      }
+    ]
+  }
+}

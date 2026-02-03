@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/tools/conflict-resolution.md",
+  "created_at": "2026-02-02T16:54:05.840Z",
+  "command": {
+    "group": "",
+    "name": "conflict-resolution",
+    "description": "Detect and resolve conflicts between plan and existing codebase using CLI-powered analysis with Gemini/Qwen",
+    "argument_hint": "[-y|--yes] --session WFS-session-id --context path/to/context-package.json",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Conflict Resolution Command"
+      },
+      {
+        "level": 2,
+        "text": "Purpose"
+      },
+      {
+        "level": 2,
+        "text": "Core Responsibilities"
+      },
+      {
+        "level": 2,
+        "text": "Conflict Categories"
+      },
+      {
+        "level": 3,
+        "text": "1. Architecture Conflicts"
+      },
+      {
+        "level": 3,
+        "text": "2. API Conflicts"
+      },
+      {
+        "level": 3,
+        "text": "3. Data Model Conflicts"
+      },
+      {
+        "level": 3,
+        "text": "4. Dependency Conflicts"
+      },
+      {
+        "level": 3,
+        "text": "5. Module Scenario Overlap"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Validation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: CLI-Powered Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: User Interaction Loop"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Apply Modifications"
+      },
+      {
+        "level": 2,
+        "text": "Output Format"
+      },
+      {
+        "level": 3,
+        "text": "Primary Output: conflict-resolution.json"
+      },
+      {
+        "level": 3,
+        "text": "Secondary: Agent JSON Response (stdout)"
+      },
+      {
+        "level": 3,
+        "text": "Key Requirements"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Recovery Strategy"
+      },
+      {
+        "level": 3,
+        "text": "Rollback Handling"
+      },
+      {
+        "level": 2,
+        "text": "Integration"
+      },
+      {
+        "level": 3,
+        "text": "Interface"
+      },
+      {
+        "level": 3,
+        "text": "Success Criteria"
+      }
+    ]
+  }
+}

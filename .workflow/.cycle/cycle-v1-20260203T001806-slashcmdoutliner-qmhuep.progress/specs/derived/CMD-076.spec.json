@@ -1,0 +1,182 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/ui-design/imitate-auto.md",
+  "created_at": "2026-02-02T16:54:05.853Z",
+  "command": {
+    "group": "",
+    "name": "imitate-auto",
+    "description": "UI design workflow with direct code/image input for design token extraction and prototype generation",
+    "argument_hint": "[--input \"<value>\"] [--session <id>]",
+    "allowed_tools": [
+      "SlashCommand(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Bash(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "UI Design Imitate-Auto Workflow Command"
+      },
+      {
+        "level": 2,
+        "text": "Overview & Execution Model"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Core Rules"
+      },
+      {
+        "level": 2,
+        "text": "Parameter Requirements"
+      },
+      {
+        "level": 2,
+        "text": "Execution Modes"
+      },
+      {
+        "level": 2,
+        "text": "5-Phase Execution"
+      },
+      {
+        "level": 3,
+        "text": "Phase 0: Parameter Parsing & Input Detection"
+      },
+      {
+        "level": 1,
+        "text": "Step 0: Parse and normalize parameters"
+      },
+      {
+        "level": 1,
+        "text": "Handle legacy parameters with deprecation warning"
+      },
+      {
+        "level": 1,
+        "text": "Parse unified --input parameter"
+      },
+      {
+        "level": 1,
+        "text": "Validation"
+      },
+      {
+        "level": 1,
+        "text": "Step 1: Detect design source from parsed inputs"
+      },
+      {
+        "level": 1,
+        "text": "Step 2: Determine design source strategy"
+      },
+      {
+        "level": 1,
+        "text": "Step 3: Initialize directories"
+      },
+      {
+        "level": 1,
+        "text": "Create base directory and convert to absolute path"
+      },
+      {
+        "level": 1,
+        "text": "Write metadata"
+      },
+      {
+        "level": 1,
+        "text": "Initialize default flags"
+      },
+      {
+        "level": 1,
+        "text": "Initialize TodoWrite"
+      },
+      {
+        "level": 3,
+        "text": "Phase 0.5: Code Import & Completeness Assessment (Conditional)"
+      },
+      {
+        "level": 1,
+        "text": "Only execute if code files detected"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Style Extraction"
+      },
+      {
+        "level": 1,
+        "text": "Determine if style extraction needed"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2.3: Animation Extraction"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2.5: Layout Extraction"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: UI Assembly"
+      },
+      {
+        "level": 1,
+        "text": "SlashCommand execute ATTACHES generate's tasks to current workflow"
+      },
+      {
+        "level": 1,
+        "text": "Orchestrator will EXECUTE these attached tasks itself"
+      },
+      {
+        "level": 1,
+        "text": "After executing all attached tasks, collapse them into phase summary"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Design System Integration"
+      },
+      {
+        "level": 1,
+        "text": "Update metadata"
+      },
+      {
+        "level": 1,
+        "text": "Mark all phases complete"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Completion Report"
+      },
+      {
+        "level": 2,
+        "text": "TodoWrite Pattern"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Pre-execution Checks"
+      },
+      {
+        "level": 3,
+        "text": "Phase-Specific Errors"
+      },
+      {
+        "level": 3,
+        "text": "Recovery Strategies"
+      },
+      {
+        "level": 2,
+        "text": "Integration Points"
+      },
+      {
+        "level": 2,
+        "text": "Completion Output"
+      }
+    ]
+  }
+}

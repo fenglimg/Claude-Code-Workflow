@@ -1,0 +1,231 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/tools/task-generate-tdd.md",
+  "created_at": "2026-02-02T16:54:05.843Z",
+  "command": {
+    "group": "",
+    "name": "task-generate-tdd",
+    "description": "Autonomous TDD task generation using action-planning-agent with Red-Green-Refactor cycles, test-first structure, and cycle validation",
+    "argument_hint": "[-y|--yes] --session WFS-session-id",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Autonomous TDD Task Generation Command"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Core Philosophy"
+      },
+      {
+        "level": 2,
+        "text": "Task Strategy & Philosophy"
+      },
+      {
+        "level": 3,
+        "text": "Optimized Task Structure (Current)"
+      },
+      {
+        "level": 3,
+        "text": "When to Use Subtasks"
+      },
+      {
+        "level": 3,
+        "text": "Task Limits"
+      },
+      {
+        "level": 3,
+        "text": "TDD Cycle Mapping"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Execution Lifecycle"
+      },
+      {
+        "level": 3,
+        "text": "Phase 0: User Configuration (Interactive)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Context Preparation & Discovery"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Agent Execution (TDD Document Generation)"
+      },
+      {
+        "level": 2,
+        "text": "TASK OBJECTIVE"
+      },
+      {
+        "level": 2,
+        "text": "SESSION PATHS"
+      },
+      {
+        "level": 2,
+        "text": "CONTEXT METADATA"
+      },
+      {
+        "level": 2,
+        "text": "USER CONFIGURATION (from Phase 0)"
+      },
+      {
+        "level": 2,
+        "text": "CLI TOOL SELECTION"
+      },
+      {
+        "level": 2,
+        "text": "EXPLORATION CONTEXT (from context-package.exploration_results)"
+      },
+      {
+        "level": 2,
+        "text": "CONFLICT RESOLUTION CONTEXT (if exists)"
+      },
+      {
+        "level": 2,
+        "text": "TEST CONTEXT INTEGRATION"
+      },
+      {
+        "level": 2,
+        "text": "TDD DOCUMENT GENERATION TASK"
+      },
+      {
+        "level": 3,
+        "text": "TDD-Specific Requirements Summary"
+      },
+      {
+        "level": 4,
+        "text": "Task Structure Philosophy"
+      },
+      {
+        "level": 4,
+        "text": "TDD Cycle Mapping"
+      },
+      {
+        "level": 4,
+        "text": "Required Outputs Summary"
+      },
+      {
+        "level": 5,
+        "text": "1. TDD Task JSON Files (.task/IMPL-*.json)"
+      },
+      {
+        "level": 5,
+        "text": "2. IMPL_PLAN.md (TDD Variant)"
+      },
+      {
+        "level": 5,
+        "text": "3. TODO_LIST.md"
+      },
+      {
+        "level": 3,
+        "text": "CLI EXECUTION ID REQUIREMENTS (MANDATORY)"
+      },
+      {
+        "level": 3,
+        "text": "Quantification Requirements (MANDATORY)"
+      },
+      {
+        "level": 3,
+        "text": "Agent Execution Summary"
+      },
+      {
+        "level": 2,
+        "text": "SUCCESS CRITERIA"
+      },
+      {
+        "level": 2,
+        "text": "OUTPUT SUMMARY"
+      },
+      {
+        "level": 3,
+        "text": "Agent Context Passing"
+      },
+      {
+        "level": 2,
+        "text": "TDD Task Structure Reference"
+      },
+      {
+        "level": 2,
+        "text": "Output Files Structure"
+      },
+      {
+        "level": 2,
+        "text": "Validation Rules"
+      },
+      {
+        "level": 3,
+        "text": "Task Completeness"
+      },
+      {
+        "level": 3,
+        "text": "Dependency Enforcement"
+      },
+      {
+        "level": 3,
+        "text": "Task Limits"
+      },
+      {
+        "level": 3,
+        "text": "TDD Workflow Validation"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Input Validation Errors"
+      },
+      {
+        "level": 3,
+        "text": "TDD Generation Errors"
+      },
+      {
+        "level": 2,
+        "text": "Integration & Usage"
+      },
+      {
+        "level": 1,
+        "text": "Standard execution"
+      },
+      {
+        "level": 1,
+        "text": "With semantic CLI request (include in task description)"
+      },
+      {
+        "level": 1,
+        "text": "e.g., \"Generate TDD tasks for auth module, use Codex for implementation\""
+      },
+      {
+        "level": 2,
+        "text": "Test Coverage Analysis Integration"
+      },
+      {
+        "level": 2,
+        "text": "Iterative Green Phase with Test-Fix Cycle"
+      },
+      {
+        "level": 2,
+        "text": "Configuration Options"
+      }
+    ]
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/brainstorm/auto-parallel.md",
+  "created_at": "2026-02-02T16:54:05.811Z",
+  "command": {
+    "group": "",
+    "name": "auto-parallel",
+    "description": "Parallel brainstorming automation with dynamic role selection and concurrent execution across multiple perspectives",
+    "argument_hint": "[-y|--yes] topic or challenge description [--count N]",
+    "allowed_tools": [
+      "SlashCommand(*)",
+      "Task(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Bash(*)",
+      "Glob(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Workflow Brainstorm Parallel Auto Command"
+      },
+      {
+        "level": 2,
+        "text": "Coordinator Role"
+      },
+      {
+        "level": 2,
+        "text": "Core Rules"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      },
+      {
+        "level": 2,
+        "text": "3-Phase Execution"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Interactive Framework Generation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Parallel Role Analysis Execution"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Synthesis Generation"
+      },
+      {
+        "level": 2,
+        "text": "TodoWrite Pattern"
+      },
+      {
+        "level": 3,
+        "text": "Key Principles"
+      },
+      {
+        "level": 3,
+        "text": "Brainstorming Workflow Specific Features"
+      },
+      {
+        "level": 2,
+        "text": "Input Processing"
+      },
+      {
+        "level": 2,
+        "text": "Session Management"
+      },
+      {
+        "level": 2,
+        "text": "Output Structure"
+      },
+      {
+        "level": 2,
+        "text": "Available Roles"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Context Overflow Protection"
+      },
+      {
+        "level": 2,
+        "text": "Reference Information"
+      }
+    ]
+  }
+}

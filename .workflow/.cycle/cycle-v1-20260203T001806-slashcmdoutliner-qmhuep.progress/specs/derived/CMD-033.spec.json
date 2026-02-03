@@ -1,0 +1,324 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/brainstorm/role-analysis.md",
+  "created_at": "2026-02-02T16:54:05.812Z",
+  "command": {
+    "group": "",
+    "name": "role-analysis",
+    "description": "Unified role-specific analysis generation with interactive context gathering and incremental updates",
+    "argument_hint": "[role-name] [--session session-id] [--update] [--include-questions] [--skip-questions]",
+    "allowed_tools": [
+      "Task(conceptual-planning-agent)",
+      "AskUserQuestion(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Glob(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "🎯 **Unified Role Analysis Generator**"
+      },
+      {
+        "level": 3,
+        "text": "Purpose"
+      },
+      {
+        "level": 3,
+        "text": "Core Function"
+      },
+      {
+        "level": 3,
+        "text": "Supported Roles"
+      },
+      {
+        "level": 2,
+        "text": "📋 **Usage**"
+      },
+      {
+        "level": 1,
+        "text": "Generate new analysis with interactive context"
+      },
+      {
+        "level": 1,
+        "text": "Generate with existing framework + context questions"
+      },
+      {
+        "level": 1,
+        "text": "Update existing analysis (incremental merge)"
+      },
+      {
+        "level": 1,
+        "text": "Quick generation (skip interactive context)"
+      },
+      {
+        "level": 2,
+        "text": "⚙️ **Execution Protocol**"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Detection & Validation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Interactive Context Gathering"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Agent Execution"
+      },
+      {
+        "level": 2,
+        "text": "Context Loading"
+      },
+      {
+        "level": 2,
+        "text": "Flow Control Steps"
+      },
+      {
+        "level": 2,
+        "text": "Analysis Requirements"
+      },
+      {
+        "level": 2,
+        "text": "Expected Deliverables"
+      },
+      {
+        "level": 2,
+        "text": "Update Requirements (if UPDATE_MODE)"
+      },
+      {
+        "level": 2,
+        "text": "Completion Criteria"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Validation & Finalization"
+      },
+      {
+        "level": 2,
+        "text": "📋 **TodoWrite Integration**"
+      },
+      {
+        "level": 3,
+        "text": "Workflow Progress Tracking"
+      },
+      {
+        "level": 2,
+        "text": "📊 **Output Structure**"
+      },
+      {
+        "level": 3,
+        "text": "Directory Layout"
+      },
+      {
+        "level": 3,
+        "text": "Analysis Document Structure (New Generation)"
+      },
+      {
+        "level": 1,
+        "text": "${roleConfig[role_name].title} Analysis: [Topic from Framework]"
+      },
+      {
+        "level": 2,
+        "text": "Framework Reference"
+      },
+      {
+        "level": 2,
+        "text": "User Context Summary"
+      },
+      {
+        "level": 2,
+        "text": "Discussion Points Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Core Requirements (from framework)"
+      },
+      {
+        "level": 3,
+        "text": "Technical Considerations (from framework)"
+      },
+      {
+        "level": 3,
+        "text": "User Experience Factors (from framework)"
+      },
+      {
+        "level": 3,
+        "text": "Implementation Challenges (from framework)"
+      },
+      {
+        "level": 3,
+        "text": "Success Metrics (from framework)"
+      },
+      {
+        "level": 2,
+        "text": "${roleConfig[role_name].title} Specific Recommendations"
+      },
+      {
+        "level": 3,
+        "text": "Analysis Document Structure (Incremental Update)"
+      },
+      {
+        "level": 1,
+        "text": "${roleConfig[role_name].title} Analysis: [Topic]"
+      },
+      {
+        "level": 2,
+        "text": "Framework Reference"
+      },
+      {
+        "level": 2,
+        "text": "Clarifications"
+      },
+      {
+        "level": 3,
+        "text": "Session ${new Date().toISOString().split('T')[0]}"
+      },
+      {
+        "level": 2,
+        "text": "User Context Summary"
+      },
+      {
+        "level": 2,
+        "text": "Discussion Points Analysis"
+      },
+      {
+        "level": 2,
+        "text": "🔄 **Integration with Other Commands**"
+      },
+      {
+        "level": 3,
+        "text": "Called By"
+      },
+      {
+        "level": 3,
+        "text": "Calls To"
+      },
+      {
+        "level": 3,
+        "text": "Coordinates With"
+      },
+      {
+        "level": 2,
+        "text": "✅ **Quality Assurance**"
+      },
+      {
+        "level": 3,
+        "text": "Required Analysis Elements"
+      },
+      {
+        "level": 3,
+        "text": "Context Quality"
+      },
+      {
+        "level": 3,
+        "text": "Update Quality (if update_mode)"
+      },
+      {
+        "level": 2,
+        "text": "🎛️ **Command Parameters**"
+      },
+      {
+        "level": 3,
+        "text": "Required Parameters"
+      },
+      {
+        "level": 3,
+        "text": "Optional Parameters"
+      },
+      {
+        "level": 3,
+        "text": "Parameter Combinations"
+      },
+      {
+        "level": 2,
+        "text": "🚫 **Error Handling**"
+      },
+      {
+        "level": 3,
+        "text": "Invalid Role Name"
+      },
+      {
+        "level": 3,
+        "text": "No Active Session"
+      },
+      {
+        "level": 3,
+        "text": "Missing Framework (with warning)"
+      },
+      {
+        "level": 3,
+        "text": "Agent Execution Failure"
+      },
+      {
+        "level": 2,
+        "text": "🔧 **Advanced Usage**"
+      },
+      {
+        "level": 3,
+        "text": "Batch Role Generation (via auto-parallel)"
+      },
+      {
+        "level": 1,
+        "text": "This command handles multiple roles in parallel"
+      },
+      {
+        "level": 1,
+        "text": "→ Internally calls role-analysis for each selected role"
+      },
+      {
+        "level": 3,
+        "text": "Manual Multi-Role Workflow"
+      },
+      {
+        "level": 1,
+        "text": "1. Create framework"
+      },
+      {
+        "level": 1,
+        "text": "2. Generate each role with context"
+      },
+      {
+        "level": 1,
+        "text": "3. Synthesize insights"
+      },
+      {
+        "level": 3,
+        "text": "Iterative Refinement"
+      },
+      {
+        "level": 1,
+        "text": "Initial generation"
+      },
+      {
+        "level": 1,
+        "text": "User reviews and wants more depth"
+      },
+      {
+        "level": 1,
+        "text": "→ Asks clarification questions, merges new insights"
+      },
+      {
+        "level": 2,
+        "text": "📚 **Reference Information**"
+      },
+      {
+        "level": 3,
+        "text": "Role Template Locations"
+      },
+      {
+        "level": 3,
+        "text": "Related Commands"
+      },
+      {
+        "level": 3,
+        "text": "Context Package"
+      }
+    ]
+  }
+}

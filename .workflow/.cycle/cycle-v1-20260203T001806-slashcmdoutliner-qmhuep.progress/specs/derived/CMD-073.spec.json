@@ -1,0 +1,227 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/ui-design/design-sync.md",
+  "created_at": "2026-02-02T16:54:05.850Z",
+  "command": {
+    "group": "",
+    "name": "design-sync",
+    "description": "Synchronize finalized design system references to brainstorming artifacts, preparing them for /workflow:plan consumption",
+    "argument_hint": "--session <session_id> [--selected-prototypes \"<list>\"]",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "TodoWrite(*)",
+      "Glob(*)",
+      "Bash(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Design Sync Command"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Core Philosophy"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Execution Protocol"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Session & Artifact Validation"
+      },
+      {
+        "level": 1,
+        "text": "Validate session"
+      },
+      {
+        "level": 1,
+        "text": "Verify design artifacts in latest design run"
+      },
+      {
+        "level": 1,
+        "text": "Detect design system structure"
+      },
+      {
+        "level": 1,
+        "text": "Prototype selection"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1.1: Memory Check (Skip if Already Updated)"
+      },
+      {
+        "level": 1,
+        "text": "Check if role analysis documents contains current design run reference"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Load Target Artifacts Only"
+      },
+      {
+        "level": 1,
+        "text": "Load target brainstorming artifacts (files to be updated)"
+      },
+      {
+        "level": 1,
+        "text": "Optional: Read prototype notes for descriptions (minimal context)"
+      },
+      {
+        "level": 1,
+        "text": "Note: Do NOT read design-tokens.json, style-guide.md, or prototype HTML. Only verify existence and generate @ references."
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Update Synthesis Specification"
+      },
+      {
+        "level": 2,
+        "text": "UI/UX Guidelines"
+      },
+      {
+        "level": 3,
+        "text": "Design System Reference"
+      },
+      {
+        "level": 3,
+        "text": "Implementation Requirements"
+      },
+      {
+        "level": 3,
+        "text": "Reference Prototypes"
+      },
+      {
+        "level": 3,
+        "text": "Design System Assets"
+      },
+      {
+        "level": 1,
+        "text": "Option 1: Edit existing section"
+      },
+      {
+        "level": 1,
+        "text": "Option 2: Append if section doesn't exist"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4A: Update Relevant Role Analysis Documents"
+      },
+      {
+        "level": 1,
+        "text": "Always update ui-designer"
+      },
+      {
+        "level": 1,
+        "text": "Conditionally update other roles"
+      },
+      {
+        "level": 2,
+        "text": "Design System Implementation Reference"
+      },
+      {
+        "level": 2,
+        "text": "Animation & Interaction Reference"
+      },
+      {
+        "level": 2,
+        "text": "Layout Structure Reference"
+      },
+      {
+        "level": 2,
+        "text": "Prototype Validation Reference"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4B: Create UI Designer Design System Reference"
+      },
+      {
+        "level": 1,
+        "text": "UI Designer Design System Reference"
+      },
+      {
+        "level": 2,
+        "text": "Design System Integration"
+      },
+      {
+        "level": 2,
+        "text": "Implementation Guidelines"
+      },
+      {
+        "level": 2,
+        "text": "Reference Prototypes"
+      },
+      {
+        "level": 2,
+        "text": "Token System"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Update Context Package"
+      },
+      {
+        "level": 1,
+        "text": "1. Read existing package"
+      },
+      {
+        "level": 1,
+        "text": "2. Update brainstorm_artifacts (role analyses now contain @ design references)"
+      },
+      {
+        "level": 1,
+        "text": "3. Add design_system_references field"
+      },
+      {
+        "level": 1,
+        "text": "4. Optional: Add animations and layouts if they exist"
+      },
+      {
+        "level": 1,
+        "text": "5. Update metadata"
+      },
+      {
+        "level": 1,
+        "text": "6. Write back"
+      },
+      {
+        "level": 3,
+        "text": "Phase 6: Completion"
+      },
+      {
+        "level": 2,
+        "text": "Output Structure"
+      },
+      {
+        "level": 2,
+        "text": "Integration with /workflow:plan"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Validation Checks"
+      },
+      {
+        "level": 2,
+        "text": "Key Features"
+      },
+      {
+        "level": 2,
+        "text": "Integration Points"
+      }
+    ]
+  }
+}

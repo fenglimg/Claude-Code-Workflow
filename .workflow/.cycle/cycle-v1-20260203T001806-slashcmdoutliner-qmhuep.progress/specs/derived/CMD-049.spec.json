@@ -1,0 +1,170 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/review-module-cycle.md",
+  "created_at": "2026-02-02T16:54:05.828Z",
+  "command": {
+    "group": "",
+    "name": "review-module-cycle",
+    "description": "Independent multi-dimensional code review for specified modules/files. Analyzes specific code paths across 7 dimensions with hybrid parallel-iterative execution, independent of workflow sessions.",
+    "argument_hint": "<path-pattern> [--dimensions=security,architecture,...] [--max-iterations=N]",
+    "allowed_tools": [
+      "SlashCommand(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Bash(*)",
+      "Task(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Workflow Review-Module-Cycle Command"
+      },
+      {
+        "level": 2,
+        "text": "Quick Start"
+      },
+      {
+        "level": 1,
+        "text": "Review specific module (all 7 dimensions)"
+      },
+      {
+        "level": 1,
+        "text": "Review multiple modules"
+      },
+      {
+        "level": 1,
+        "text": "Review with custom dimensions"
+      },
+      {
+        "level": 1,
+        "text": "Review specific files"
+      },
+      {
+        "level": 2,
+        "text": "What & Why"
+      },
+      {
+        "level": 3,
+        "text": "Core Concept"
+      },
+      {
+        "level": 3,
+        "text": "Value Proposition"
+      },
+      {
+        "level": 3,
+        "text": "Orchestrator Boundary (CRITICAL)"
+      },
+      {
+        "level": 2,
+        "text": "How It Works"
+      },
+      {
+        "level": 3,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 3,
+        "text": "Agent Roles"
+      },
+      {
+        "level": 2,
+        "text": "Enhanced Features"
+      },
+      {
+        "level": 3,
+        "text": "1. Review Dimensions Configuration"
+      },
+      {
+        "level": 3,
+        "text": "2. Path Pattern Resolution"
+      },
+      {
+        "level": 3,
+        "text": "3. Aggregation Logic"
+      },
+      {
+        "level": 3,
+        "text": "4. Severity Assessment"
+      },
+      {
+        "level": 2,
+        "text": "Core Responsibilities"
+      },
+      {
+        "level": 3,
+        "text": "Orchestrator"
+      },
+      {
+        "level": 1,
+        "text": "Expand glob pattern to file list (relative paths from project root)"
+      },
+      {
+        "level": 1,
+        "text": "Validate files exist and are readable"
+      },
+      {
+        "level": 3,
+        "text": "Output File Structure"
+      },
+      {
+        "level": 3,
+        "text": "Review State JSON"
+      },
+      {
+        "level": 3,
+        "text": "Review Progress JSON"
+      },
+      {
+        "level": 3,
+        "text": "Agent Output Schemas"
+      },
+      {
+        "level": 3,
+        "text": "Agent Invocation Template"
+      },
+      {
+        "level": 3,
+        "text": "Dimension Guidance Reference"
+      },
+      {
+        "level": 3,
+        "text": "Completion Conditions"
+      },
+      {
+        "level": 3,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "TodoWrite Structure"
+      },
+      {
+        "level": 2,
+        "text": "Best Practices"
+      },
+      {
+        "level": 2,
+        "text": "Related Commands"
+      },
+      {
+        "level": 3,
+        "text": "View Review Progress"
+      },
+      {
+        "level": 3,
+        "text": "Automated Fix Workflow"
+      },
+      {
+        "level": 1,
+        "text": "Step 1: Complete review (this command)"
+      },
+      {
+        "level": 1,
+        "text": "Step 2: Run automated fixes using dimension findings"
+      }
+    ]
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/memory/load.md",
+  "created_at": "2026-02-02T16:54:05.803Z",
+  "command": {
+    "group": "",
+    "name": "load",
+    "description": "Delegate to universal-executor agent to analyze project via Gemini/Qwen CLI and return JSON core content package for task context",
+    "argument_hint": "[--tool gemini|qwen] \\\"task context description\\\"",
+    "allowed_tools": [
+      "Task(*)",
+      "Bash(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Memory Load Command (/memory:load)"
+      },
+      {
+        "level": 2,
+        "text": "1. Overview"
+      },
+      {
+        "level": 2,
+        "text": "2. Parameters"
+      },
+      {
+        "level": 2,
+        "text": "3. Agent-Driven Execution Flow"
+      },
+      {
+        "level": 2,
+        "text": "4. Core Content Package Structure"
+      },
+      {
+        "level": 2,
+        "text": "5. Agent Invocation"
+      },
+      {
+        "level": 2,
+        "text": "Mission: Load Project Memory Context"
+      },
+      {
+        "level": 2,
+        "text": "Execution Steps"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Foundation Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Keyword Extraction & File Discovery"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Deep Analysis via CLI"
+      },
+      {
+        "level": 3,
+        "text": "Step 4: Generate Core Content Package"
+      },
+      {
+        "level": 3,
+        "text": "Step 5: Return Content Package"
+      },
+      {
+        "level": 2,
+        "text": "Quality Checklist"
+      },
+      {
+        "level": 2,
+        "text": "6. Usage Examples"
+      },
+      {
+        "level": 3,
+        "text": "Example 1: Load Context for New Feature"
+      },
+      {
+        "level": 3,
+        "text": "Example 2: Using Qwen Tool"
+      },
+      {
+        "level": 3,
+        "text": "Example 3: Bug Fix Context"
+      },
+      {
+        "level": 3,
+        "text": "Memory Persistence"
+      },
+      {
+        "level": 2,
+        "text": "8. Notes"
+      }
+    ]
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/lite-lite-lite.md",
+  "created_at": "2026-02-02T16:54:05.821Z",
+  "command": {
+    "group": "",
+    "name": "workflow:lite-lite-lite",
+    "description": "Ultra-lightweight multi-tool analysis and direct execution. No artifacts for simple tasks; auto-creates planning docs in .workflow/.scratchpad/ for complex tasks. Auto tool selection based on task analysis, user-driven iteration via AskUser.",
+    "argument_hint": "[-y|--yes] <task description>",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Bash(*)",
+      "Write(*)",
+      "mcp__ace-tool__search_context(*)",
+      "mcp__ccw-tools__write_file(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Ultra-Lite Multi-Tool Workflow"
+      },
+      {
+        "level": 2,
+        "text": "Quick Start"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 2,
+        "text": "Phase 1: Clarify Requirements"
+      },
+      {
+        "level": 2,
+        "text": "Phase 1.5: Assess Complexity"
+      },
+      {
+        "level": 2,
+        "text": "Phase 2: Select Tools"
+      },
+      {
+        "level": 3,
+        "text": "Tool Definitions"
+      },
+      {
+        "level": 3,
+        "text": "Three-Step Selection Flow"
+      },
+      {
+        "level": 2,
+        "text": "Phase 3: Multi-Mode Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Universal CLI Prompt Template"
+      },
+      {
+        "level": 3,
+        "text": "Prompt Presets by Role"
+      },
+      {
+        "level": 3,
+        "text": "Mode Implementations"
+      },
+      {
+        "level": 3,
+        "text": "Mode Router & Result Aggregation"
+      },
+      {
+        "level": 2,
+        "text": "Phase 4: User Decision"
+      },
+      {
+        "level": 2,
+        "text": "Phase 5: Direct Execution"
+      },
+      {
+        "level": 2,
+        "text": "TodoWrite Structure"
+      },
+      {
+        "level": 2,
+        "text": "Iteration Patterns"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Comparison with multi-cli-plan"
+      },
+      {
+        "level": 2,
+        "text": "Post-Completion Expansion"
+      },
+      {
+        "level": 2,
+        "text": "Related Commands"
+      }
+    ]
+  }
+}

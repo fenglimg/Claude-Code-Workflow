@@ -1,0 +1,149 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/plan-verify.md",
+  "created_at": "2026-02-02T16:54:05.824Z",
+  "command": {
+    "group": "",
+    "name": "plan-verify",
+    "description": "Perform READ-ONLY verification analysis between IMPL_PLAN.md, task JSONs, and brainstorming artifacts. Generates structured report with quality gate recommendation. Does NOT modify any files.",
+    "argument_hint": "[optional: --session session-id]",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)",
+      "Glob(*)",
+      "Bash(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "User Input"
+      },
+      {
+        "level": 2,
+        "text": "Goal"
+      },
+      {
+        "level": 2,
+        "text": "Operating Constraints"
+      },
+      {
+        "level": 2,
+        "text": "Execution Steps"
+      },
+      {
+        "level": 3,
+        "text": "1. Initialize Analysis Context"
+      },
+      {
+        "level": 1,
+        "text": "Detect active workflow session"
+      },
+      {
+        "level": 1,
+        "text": "Derive absolute paths"
+      },
+      {
+        "level": 1,
+        "text": "Create .process directory if not exists (report output location)"
+      },
+      {
+        "level": 1,
+        "text": "Validate required artifacts"
+      },
+      {
+        "level": 1,
+        "text": "Note: \"role analysis documents\" refers to [role]/analysis.md files (e.g., product-manager/analysis.md)"
+      },
+      {
+        "level": 1,
+        "text": "Abort if missing - in order of dependency"
+      },
+      {
+        "level": 3,
+        "text": "2. Load Artifacts (Progressive Disclosure)"
+      },
+      {
+        "level": 3,
+        "text": "3. Build Semantic Models"
+      },
+      {
+        "level": 3,
+        "text": "4. Detection Passes (Agent-Driven Multi-Dimensional Analysis)"
+      },
+      {
+        "level": 4,
+        "text": "Phase 4.1: Launch Unified Verification Agent"
+      },
+      {
+        "level": 2,
+        "text": "Plan Verification Task"
+      },
+      {
+        "level": 3,
+        "text": "MANDATORY FIRST STEPS"
+      },
+      {
+        "level": 3,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 3,
+        "text": "Output"
+      },
+      {
+        "level": 4,
+        "text": "Phase 4.2: Load and Organize Findings"
+      },
+      {
+        "level": 3,
+        "text": "5. Generate Report"
+      },
+      {
+        "level": 1,
+        "text": "Plan Verification Report"
+      },
+      {
+        "level": 2,
+        "text": "Executive Summary"
+      },
+      {
+        "level": 2,
+        "text": "Findings Summary"
+      },
+      {
+        "level": 2,
+        "text": "Analysis by Dimension"
+      },
+      {
+        "level": 2,
+        "text": "Findings by Severity"
+      },
+      {
+        "level": 3,
+        "text": "CRITICAL (${critical_count})"
+      },
+      {
+        "level": 3,
+        "text": "HIGH (${high_count})"
+      },
+      {
+        "level": 3,
+        "text": "MEDIUM (${medium_count})"
+      },
+      {
+        "level": 3,
+        "text": "LOW (${low_count})"
+      },
+      {
+        "level": 2,
+        "text": "Next Steps"
+      },
+      {
+        "level": 3,
+        "text": "6. Next Step Selection"
+      }
+    ]
+  }
+}

@@ -1,0 +1,292 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/ui-design/animation-extract.md",
+  "created_at": "2026-02-02T16:54:05.847Z",
+  "command": {
+    "group": "",
+    "name": "animation-extract",
+    "description": "Extract animation and transition patterns from prompt inference and image references for design system documentation",
+    "argument_hint": "[-y|--yes] [--design-id <id>] [--session <id>] [--images \"<glob>\"] [--focus \"<types>\"] [--interactive] [--refine]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "AskUserQuestion(*)",
+      "Task(ui-design-agent)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Animation Extraction Command"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Phase 0: Setup & Input Validation"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Detect Input Mode & Base Path"
+      },
+      {
+        "level": 1,
+        "text": "Detect input source"
+      },
+      {
+        "level": 1,
+        "text": "Priority: --images → visual references available | no --images → prompt-only mode"
+      },
+      {
+        "level": 1,
+        "text": "Parse images if provided (glob pattern)"
+      },
+      {
+        "level": 1,
+        "text": "Parse animation focus (if provided)"
+      },
+      {
+        "level": 1,
+        "text": "Check interactive mode flag"
+      },
+      {
+        "level": 1,
+        "text": "Check refinement mode flag"
+      },
+      {
+        "level": 1,
+        "text": "Determine base path with priority: --design-id > --session > auto-detect"
+      },
+      {
+        "level": 1,
+        "text": "Validate and convert to absolute path"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Prepare Image References (If Available)"
+      },
+      {
+        "level": 1,
+        "text": "Load image references if provided"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Load Design Tokens Context"
+      },
+      {
+        "level": 1,
+        "text": "Load existing design tokens for duration/easing alignment"
+      },
+      {
+        "level": 1,
+        "text": "Create output directory"
+      },
+      {
+        "level": 3,
+        "text": "Step 4: Memory Check"
+      },
+      {
+        "level": 1,
+        "text": "Check if output already exists"
+      },
+      {
+        "level": 2,
+        "text": "Phase 1: Animation Specification Generation"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Load Project Context"
+      },
+      {
+        "level": 1,
+        "text": "Load brainstorming context if available"
+      },
+      {
+        "level": 1,
+        "text": "Load image references if available"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Generate Animation Specification Options (Agent Task 1)"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Verify Options File Created"
+      },
+      {
+        "level": 2,
+        "text": "Phase 1.5: User Confirmation (Optional - Triggered by --interactive)"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Check Interactive Flag"
+      },
+      {
+        "level": 1,
+        "text": "Skip this entire phase if --interactive flag is not present"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Load and Present Options"
+      },
+      {
+        "level": 1,
+        "text": "Read options file based on mode"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Present Options to User"
+      },
+      {
+        "level": 3,
+        "text": "Step 4: Capture User Selection"
+      },
+      {
+        "level": 3,
+        "text": "Step 5: Update Options File with User Selection"
+      },
+      {
+        "level": 3,
+        "text": "Step 6: Confirmation Message"
+      },
+      {
+        "level": 2,
+        "text": "Phase 2: Animation System Generation (Agent Task 2)"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Load User Selection or Use Defaults"
+      },
+      {
+        "level": 1,
+        "text": "Load image references if available for agent context"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Create Output Directory"
+      },
+      {
+        "level": 1,
+        "text": "Create directory for animation system"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Launch Animation Generation Task"
+      },
+      {
+        "level": 2,
+        "text": "Phase 3: Verify Output"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Check Files Created"
+      },
+      {
+        "level": 1,
+        "text": "Verify animation system created"
+      },
+      {
+        "level": 1,
+        "text": "Validate structure"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Verify File Sizes"
+      },
+      {
+        "level": 2,
+        "text": "Completion"
+      },
+      {
+        "level": 3,
+        "text": "Todo Update"
+      },
+      {
+        "level": 3,
+        "text": "Output Message"
+      },
+      {
+        "level": 2,
+        "text": "Simple Bash Commands"
+      },
+      {
+        "level": 3,
+        "text": "Path Operations"
+      },
+      {
+        "level": 1,
+        "text": "Find design directory"
+      },
+      {
+        "level": 1,
+        "text": "Create output directories"
+      },
+      {
+        "level": 3,
+        "text": "Validation Commands"
+      },
+      {
+        "level": 1,
+        "text": "Check if already extracted"
+      },
+      {
+        "level": 1,
+        "text": "Validate JSON structure"
+      },
+      {
+        "level": 1,
+        "text": "Count animation types"
+      },
+      {
+        "level": 3,
+        "text": "File Operations"
+      },
+      {
+        "level": 1,
+        "text": "Load design tokens context"
+      },
+      {
+        "level": 1,
+        "text": "Verify output"
+      },
+      {
+        "level": 2,
+        "text": "Output Structure"
+      },
+      {
+        "level": 2,
+        "text": "animation-tokens.json Format"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Common Errors"
+      },
+      {
+        "level": 3,
+        "text": "Recovery Strategies"
+      },
+      {
+        "level": 2,
+        "text": "Key Features"
+      }
+    ]
+  }
+}

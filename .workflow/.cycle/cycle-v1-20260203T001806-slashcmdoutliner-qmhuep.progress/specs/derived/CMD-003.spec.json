@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/ccw.md",
+  "created_at": "2026-02-02T16:54:05.774Z",
+  "command": {
+    "group": "",
+    "name": "ccw",
+    "description": "Main workflow orchestrator - analyze intent, select workflow, execute command chain in main process",
+    "argument_hint": "\\\"task description\\\"",
+    "allowed_tools": [
+      "SlashCommand(*)",
+      "TodoWrite(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Grep(*)",
+      "Glob(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "CCW Command - Main Workflow Orchestrator"
+      },
+      {
+        "level": 2,
+        "text": "Core Concept: Minimum Execution Units (最小执行单元)"
+      },
+      {
+        "level": 2,
+        "text": "Execution Model"
+      },
+      {
+        "level": 2,
+        "text": "5-Phase Workflow"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Analyze Intent"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1.5: Requirement Clarification (if clarity_score < 2)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Select Workflow & Build Command Chain"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: User Confirmation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Setup TODO Tracking"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Execute Command Chain"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow Summary"
+      },
+      {
+        "level": 2,
+        "text": "Pipeline Examples (with Minimum Execution Units)"
+      },
+      {
+        "level": 2,
+        "text": "Key Design Principles"
+      },
+      {
+        "level": 2,
+        "text": "State Management"
+      },
+      {
+        "level": 2,
+        "text": "With-File Workflows"
+      },
+      {
+        "level": 2,
+        "text": "Type Comparison: ccw vs ccw-coordinator"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      },
+      {
+        "level": 1,
+        "text": "Auto-select workflow"
+      },
+      {
+        "level": 1,
+        "text": "Complex requirement (triggers clarification)"
+      },
+      {
+        "level": 1,
+        "text": "Bug fix"
+      },
+      {
+        "level": 1,
+        "text": "TDD development"
+      },
+      {
+        "level": 1,
+        "text": "Exploratory task"
+      },
+      {
+        "level": 1,
+        "text": "With-File workflows (documented exploration with multi-CLI collaboration)"
+      }
+    ]
+  }
+}

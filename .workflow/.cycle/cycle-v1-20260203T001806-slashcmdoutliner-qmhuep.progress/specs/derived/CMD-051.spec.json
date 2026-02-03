@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/review.md",
+  "created_at": "2026-02-02T16:54:05.830Z",
+  "command": {
+    "group": "",
+    "name": "review",
+    "description": "Post-implementation review with specialized types (security/architecture/action-items/quality) using analysis agents and Gemini",
+    "argument_hint": "[--type=security|architecture|action-items|quality] [--archived] [optional: session-id]",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Command Overview: /workflow:review"
+      },
+      {
+        "level": 2,
+        "text": "Philosophy: \"Tests Are the Review\""
+      },
+      {
+        "level": 2,
+        "text": "Review Types"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Execution Template"
+      },
+      {
+        "level": 1,
+        "text": "Optional specialized review for completed implementation"
+      },
+      {
+        "level": 1,
+        "text": "Step 1: Session ID resolution and location detection"
+      },
+      {
+        "level": 1,
+        "text": "Step 2: Resolve session path (active or archived)"
+      },
+      {
+        "level": 1,
+        "text": "Priority: --archived flag → active → archives"
+      },
+      {
+        "level": 1,
+        "text": "Check for completed tasks"
+      },
+      {
+        "level": 1,
+        "text": "Step 3: Determine review type (default: quality)"
+      },
+      {
+        "level": 1,
+        "text": "Redirect docs review to specialized command"
+      },
+      {
+        "level": 1,
+        "text": "Step 4: Analysis handover → Model takes control"
+      },
+      {
+        "level": 1,
+        "text": "BASH_EXECUTION_STOPS → MODEL_ANALYSIS_BEGINS"
+      },
+      {
+        "level": 3,
+        "text": "Model Analysis Phase"
+      },
+      {
+        "level": 2,
+        "text": "Usage Examples"
+      },
+      {
+        "level": 1,
+        "text": "General quality review after implementation"
+      },
+      {
+        "level": 1,
+        "text": "Security audit before deployment"
+      },
+      {
+        "level": 1,
+        "text": "Architecture review for specific session"
+      },
+      {
+        "level": 1,
+        "text": "Review an archived session (auto-detects if not in active)"
+      },
+      {
+        "level": 1,
+        "text": "Explicitly review archived session"
+      },
+      {
+        "level": 1,
+        "text": "Documentation review"
+      },
+      {
+        "level": 2,
+        "text": "Features"
+      },
+      {
+        "level": 2,
+        "text": "Integration with Workflow"
+      },
+      {
+        "level": 2,
+        "text": "Post-Review Action"
+      }
+    ]
+  }
+}

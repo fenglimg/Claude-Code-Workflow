@@ -1,0 +1,180 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/multi-cli-plan.md",
+  "created_at": "2026-02-02T16:54:05.823Z",
+  "command": {
+    "group": "",
+    "name": "workflow:multi-cli-plan",
+    "description": "Multi-CLI collaborative planning workflow with ACE context gathering and iterative cross-verification. Uses cli-discuss-agent for Gemini+Codex+Claude analysis to converge on optimal execution plan.",
+    "argument_hint": "[-y|--yes] <task description> [--max-rounds=3] [--tools=gemini,codex] [--mode=parallel|serial]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Bash(*)",
+      "Write(*)",
+      "mcp__ace-tool__search_context(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Multi-CLI Collaborative Planning Command"
+      },
+      {
+        "level": 2,
+        "text": "Quick Start"
+      },
+      {
+        "level": 1,
+        "text": "Basic usage"
+      },
+      {
+        "level": 1,
+        "text": "With options"
+      },
+      {
+        "level": 2,
+        "text": "What & Why"
+      },
+      {
+        "level": 3,
+        "text": "Core Concept"
+      },
+      {
+        "level": 3,
+        "text": "Value Proposition"
+      },
+      {
+        "level": 3,
+        "text": "Orchestrator Boundary (CRITICAL)"
+      },
+      {
+        "level": 3,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 3,
+        "text": "Agent Roles"
+      },
+      {
+        "level": 2,
+        "text": "Core Responsibilities"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Context Gathering"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Agent Delegation"
+      },
+      {
+        "level": 2,
+        "text": "Input Context"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Output"
+      },
+      {
+        "level": 2,
+        "text": "Completion Checklist"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Present Options"
+      },
+      {
+        "level": 2,
+        "text": "Solution Options"
+      },
+      {
+        "level": 2,
+        "text": "Cross-Verification"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: User Decision"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Plan Generation & Execution Handoff"
+      },
+      {
+        "level": 2,
+        "text": "Schema Reference"
+      },
+      {
+        "level": 2,
+        "text": "Context-Package (from orchestrator)"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Output"
+      },
+      {
+        "level": 2,
+        "text": "Completion Checklist"
+      },
+      {
+        "level": 2,
+        "text": "Output File Structure"
+      },
+      {
+        "level": 2,
+        "text": "synthesis.json Schema"
+      },
+      {
+        "level": 2,
+        "text": "TodoWrite Structure"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Configuration"
+      },
+      {
+        "level": 2,
+        "text": "Best Practices"
+      },
+      {
+        "level": 2,
+        "text": "Related Commands"
+      },
+      {
+        "level": 1,
+        "text": "Simpler single-round planning"
+      },
+      {
+        "level": 1,
+        "text": "Issue-driven discovery"
+      },
+      {
+        "level": 1,
+        "text": "View session files"
+      },
+      {
+        "level": 1,
+        "text": "Direct execution (if you have plan.json)"
+      }
+    ]
+  }
+}

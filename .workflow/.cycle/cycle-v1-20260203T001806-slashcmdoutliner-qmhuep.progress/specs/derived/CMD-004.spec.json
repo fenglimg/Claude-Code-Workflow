@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/ccw/learn.md",
+  "created_at": "2026-02-02T16:54:05.776Z",
+  "command": {
+    "group": "",
+    "name": "learn",
+    "description": "Internal CLI state API for learn workflow (abstracts file operations with validation + atomic writes)",
+    "argument_hint": "learn:<subcommand> [options]",
+    "allowed_tools": [
+      "Bash(*)",
+      "Read(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "CCW Learn State Commands (Internal API)"
+      },
+      {
+        "level": 2,
+        "text": "Data Access Principle"
+      },
+      {
+        "level": 2,
+        "text": "Canonical Schemas"
+      },
+      {
+        "level": 2,
+        "text": "Output Contract (All Commands)"
+      },
+      {
+        "level": 2,
+        "text": "Atomic Write Strategy"
+      },
+      {
+        "level": 2,
+        "text": "Security Considerations"
+      },
+      {
+        "level": 2,
+        "text": "Commands"
+      },
+      {
+        "level": 3,
+        "text": "1) `ccw learn:read-state`"
+      },
+      {
+        "level": 3,
+        "text": "2) `ccw learn:update-state`"
+      },
+      {
+        "level": 3,
+        "text": "3) `ccw learn:read-profile`"
+      },
+      {
+        "level": 3,
+        "text": "4) `ccw learn:write-profile`"
+      },
+      {
+        "level": 2,
+        "text": "Examples"
+      }
+    ]
+  }
+}

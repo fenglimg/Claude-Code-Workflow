@@ -1,0 +1,143 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/tools/test-task-generate.md",
+  "created_at": "2026-02-02T16:54:05.847Z",
+  "command": {
+    "group": "",
+    "name": "test-task-generate",
+    "description": "Generate test planning documents (IMPL_PLAN.md, test task JSONs, TODO_LIST.md) using action-planning-agent - produces test planning artifacts, does NOT execute tests",
+    "argument_hint": "--session WFS-test-session-id",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Generate Test Planning Documents Command"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Core Philosophy"
+      },
+      {
+        "level": 2,
+        "text": "Test-Specific Execution Modes"
+      },
+      {
+        "level": 3,
+        "text": "Test Generation (IMPL-001)"
+      },
+      {
+        "level": 3,
+        "text": "Test Execution & Fix (IMPL-002+)"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Document Generation Lifecycle"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Context Preparation (Command Responsibility)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Test Document Generation (Agent Responsibility)"
+      },
+      {
+        "level": 2,
+        "text": "TASK OBJECTIVE"
+      },
+      {
+        "level": 2,
+        "text": "AGENT CONFIGURATION REFERENCE"
+      },
+      {
+        "level": 2,
+        "text": "SESSION PATHS"
+      },
+      {
+        "level": 2,
+        "text": "CONTEXT METADATA"
+      },
+      {
+        "level": 2,
+        "text": "CLI TOOL SELECTION"
+      },
+      {
+        "level": 2,
+        "text": "TEST-SPECIFIC REQUIREMENTS SUMMARY"
+      },
+      {
+        "level": 3,
+        "text": "Task Structure Requirements"
+      },
+      {
+        "level": 3,
+        "text": "Test-Fix Cycle Specification (IMPL-002+)"
+      },
+      {
+        "level": 3,
+        "text": "Automation Framework Configuration"
+      },
+      {
+        "level": 3,
+        "text": "TEST_ANALYSIS_RESULTS.md Mapping"
+      },
+      {
+        "level": 2,
+        "text": "EXPECTED DELIVERABLES"
+      },
+      {
+        "level": 2,
+        "text": "QUALITY STANDARDS"
+      },
+      {
+        "level": 2,
+        "text": "SUCCESS CRITERIA"
+      },
+      {
+        "level": 2,
+        "text": "Integration & Usage"
+      },
+      {
+        "level": 3,
+        "text": "Command Chain"
+      },
+      {
+        "level": 3,
+        "text": "Usage Examples"
+      },
+      {
+        "level": 1,
+        "text": "Standard execution"
+      },
+      {
+        "level": 1,
+        "text": "With semantic CLI request (include in task description)"
+      },
+      {
+        "level": 1,
+        "text": "e.g., \"Generate tests, use Codex for implementation and fixes\""
+      },
+      {
+        "level": 3,
+        "text": "CLI Tool Selection"
+      },
+      {
+        "level": 3,
+        "text": "Output"
+      }
+    ]
+  }
+}

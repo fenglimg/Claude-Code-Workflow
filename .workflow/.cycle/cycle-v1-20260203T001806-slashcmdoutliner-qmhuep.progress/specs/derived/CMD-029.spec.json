@@ -1,0 +1,350 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/analyze-with-file.md",
+  "created_at": "2026-02-02T16:54:05.808Z",
+  "command": {
+    "group": "",
+    "name": "analyze-with-file",
+    "description": "Interactive collaborative analysis with documented discussions, CLI-assisted exploration, and evolving understanding",
+    "argument_hint": "[-y|--yes] [-c|--continue] \\\"topic or question\\\"",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Grep(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Workflow Analyze-With-File Command (/workflow:analyze-with-file)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      },
+      {
+        "level": 1,
+        "text": "Flags"
+      },
+      {
+        "level": 1,
+        "text": "Arguments"
+      },
+      {
+        "level": 1,
+        "text": "Examples"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Implementation"
+      },
+      {
+        "level": 3,
+        "text": "Session Setup & Mode Detection"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Topic Understanding"
+      },
+      {
+        "level": 1,
+        "text": "Analysis Discussion"
+      },
+      {
+        "level": 2,
+        "text": "User Context"
+      },
+      {
+        "level": 2,
+        "text": "Discussion Timeline"
+      },
+      {
+        "level": 3,
+        "text": "Round 1 - Initial Understanding (${timestamp})"
+      },
+      {
+        "level": 4,
+        "text": "Topic Analysis"
+      },
+      {
+        "level": 4,
+        "text": "Next Steps"
+      },
+      {
+        "level": 2,
+        "text": "Current Understanding"
+      },
+      {
+        "level": 3,
+        "text": "Round ${n} - Continuation (${timestamp})"
+      },
+      {
+        "level": 4,
+        "text": "Previous Context"
+      },
+      {
+        "level": 4,
+        "text": "New Focus"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: CLI Exploration"
+      },
+      {
+        "level": 2,
+        "text": "Analysis Context"
+      },
+      {
+        "level": 2,
+        "text": "MANDATORY FIRST STEPS"
+      },
+      {
+        "level": 2,
+        "text": "Exploration Focus"
+      },
+      {
+        "level": 2,
+        "text": "Output"
+      },
+      {
+        "level": 4,
+        "text": "Exploration Results (${timestamp})"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Interactive Discussion (Multi-Round)"
+      },
+      {
+        "level": 2,
+        "text": "Discussion Round ${roundNumber}"
+      },
+      {
+        "level": 3,
+        "text": "Key Points for Your Input"
+      },
+      {
+        "level": 3,
+        "text": "Round ${n} - Discussion (${timestamp})"
+      },
+      {
+        "level": 4,
+        "text": "User Input"
+      },
+      {
+        "level": 4,
+        "text": "Updated Understanding"
+      },
+      {
+        "level": 4,
+        "text": "Corrected Assumptions"
+      },
+      {
+        "level": 4,
+        "text": "New Insights"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Synthesis & Conclusion"
+      },
+      {
+        "level": 2,
+        "text": "Conclusions (${timestamp})"
+      },
+      {
+        "level": 3,
+        "text": "Summary"
+      },
+      {
+        "level": 3,
+        "text": "Key Conclusions"
+      },
+      {
+        "level": 3,
+        "text": "Recommendations"
+      },
+      {
+        "level": 3,
+        "text": "Remaining Questions"
+      },
+      {
+        "level": 2,
+        "text": "Current Understanding (Final)"
+      },
+      {
+        "level": 3,
+        "text": "What We Established"
+      },
+      {
+        "level": 3,
+        "text": "What Was Clarified/Corrected"
+      },
+      {
+        "level": 3,
+        "text": "Key Insights"
+      },
+      {
+        "level": 2,
+        "text": "Session Statistics"
+      },
+      {
+        "level": 2,
+        "text": "Session Folder Structure"
+      },
+      {
+        "level": 2,
+        "text": "Discussion Document Template"
+      },
+      {
+        "level": 1,
+        "text": "Analysis Discussion"
+      },
+      {
+        "level": 2,
+        "text": "User Context"
+      },
+      {
+        "level": 2,
+        "text": "Discussion Timeline"
+      },
+      {
+        "level": 3,
+        "text": "Round 1 - Initial Understanding (2025-01-25 10:00)"
+      },
+      {
+        "level": 4,
+        "text": "Topic Analysis"
+      },
+      {
+        "level": 4,
+        "text": "Exploration Results"
+      },
+      {
+        "level": 3,
+        "text": "Round 2 - Discussion (2025-01-25 10:15)"
+      },
+      {
+        "level": 4,
+        "text": "User Input"
+      },
+      {
+        "level": 4,
+        "text": "Updated Understanding"
+      },
+      {
+        "level": 4,
+        "text": "Corrected Assumptions"
+      },
+      {
+        "level": 3,
+        "text": "Round 3 - Deep Dive (2025-01-25 10:30)"
+      },
+      {
+        "level": 2,
+        "text": "Conclusions (2025-01-25 11:00)"
+      },
+      {
+        "level": 3,
+        "text": "Summary"
+      },
+      {
+        "level": 3,
+        "text": "Key Conclusions"
+      },
+      {
+        "level": 3,
+        "text": "Recommendations"
+      },
+      {
+        "level": 2,
+        "text": "Current Understanding (Final)"
+      },
+      {
+        "level": 3,
+        "text": "What We Established"
+      },
+      {
+        "level": 3,
+        "text": "What Was Clarified/Corrected"
+      },
+      {
+        "level": 3,
+        "text": "Key Insights"
+      },
+      {
+        "level": 2,
+        "text": "Session Statistics"
+      },
+      {
+        "level": 2,
+        "text": "Iteration Flow"
+      },
+      {
+        "level": 2,
+        "text": "CLI Integration Points"
+      },
+      {
+        "level": 3,
+        "text": "1. Codebase Exploration (cli-explore-agent)"
+      },
+      {
+        "level": 3,
+        "text": "2. Gemini Deep Analysis"
+      },
+      {
+        "level": 3,
+        "text": "3. Follow-up CLI Calls"
+      },
+      {
+        "level": 2,
+        "text": "Consolidation Rules"
+      },
+      {
+        "level": 2,
+        "text": "Current Understanding"
+      },
+      {
+        "level": 2,
+        "text": "Current Understanding"
+      },
+      {
+        "level": 3,
+        "text": "What We Established"
+      },
+      {
+        "level": 3,
+        "text": "What Was Clarified"
+      },
+      {
+        "level": 3,
+        "text": "Key Insights"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Usage Recommendations"
+      }
+    ]
+  }
+}

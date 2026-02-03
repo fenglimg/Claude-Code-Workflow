@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/memory/update-related.md",
+  "created_at": "2026-02-02T16:54:05.806Z",
+  "command": {
+    "group": "",
+    "name": "update-related",
+    "description": "Update CLAUDE.md for git-changed modules using batched agent execution (4 modules/agent) with gemini→qwen→codex fallback, <15 modules uses direct execution",
+    "argument_hint": "[--tool gemini|qwen|codex]",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Related Documentation Update (/memory:update-related)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Core Rules"
+      },
+      {
+        "level": 2,
+        "text": "Tool Fallback Hierarchy"
+      },
+      {
+        "level": 2,
+        "text": "Phase 1: Change Detection & Analysis"
+      },
+      {
+        "level": 2,
+        "text": "Phase 2: Plan Presentation"
+      },
+      {
+        "level": 2,
+        "text": "Phase 3A: Direct Execution (<15 modules)"
+      },
+      {
+        "level": 2,
+        "text": "Phase 3B: Agent Batch Execution (≥15 modules)"
+      },
+      {
+        "level": 3,
+        "text": "Batching Strategy"
+      },
+      {
+        "level": 3,
+        "text": "Coordinator Orchestration"
+      },
+      {
+        "level": 3,
+        "text": "Batch Worker Prompt Template"
+      },
+      {
+        "level": 2,
+        "text": "Phase 4: Safety Verification"
+      },
+      {
+        "level": 2,
+        "text": "Execution Summary"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Tool Reference"
+      },
+      {
+        "level": 2,
+        "text": "Usage Examples"
+      },
+      {
+        "level": 1,
+        "text": "Daily development update"
+      },
+      {
+        "level": 1,
+        "text": "After feature work with specific tool"
+      },
+      {
+        "level": 1,
+        "text": "Code quality review after implementation"
+      },
+      {
+        "level": 2,
+        "text": "Key Advantages"
+      },
+      {
+        "level": 2,
+        "text": "Coordinator Checklist"
+      },
+      {
+        "level": 2,
+        "text": "Comparison with Full Update"
+      }
+    ]
+  }
+}

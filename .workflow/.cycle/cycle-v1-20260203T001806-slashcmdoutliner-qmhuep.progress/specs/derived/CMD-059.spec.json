@@ -1,0 +1,142 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/test-cycle-execute.md",
+  "created_at": "2026-02-02T16:54:05.836Z",
+  "command": {
+    "group": "",
+    "name": "test-cycle-execute",
+    "description": "Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.",
+    "argument_hint": "[--resume-session=\\\"session-id\\\"] [--max-iterations=N]",
+    "allowed_tools": [
+      "SlashCommand(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Bash(*)",
+      "Task(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Workflow Test-Cycle-Execute Command"
+      },
+      {
+        "level": 2,
+        "text": "Quick Start"
+      },
+      {
+        "level": 1,
+        "text": "Execute test-fix workflow (auto-discovers active session)"
+      },
+      {
+        "level": 1,
+        "text": "Resume interrupted session"
+      },
+      {
+        "level": 1,
+        "text": "Custom iteration limit (default: 10)"
+      },
+      {
+        "level": 2,
+        "text": "What & Why"
+      },
+      {
+        "level": 3,
+        "text": "Core Concept"
+      },
+      {
+        "level": 3,
+        "text": "Value Proposition"
+      },
+      {
+        "level": 3,
+        "text": "Orchestrator Boundary (CRITICAL)"
+      },
+      {
+        "level": 2,
+        "text": "How It Works"
+      },
+      {
+        "level": 3,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 3,
+        "text": "Agent Roles"
+      },
+      {
+        "level": 2,
+        "text": "Enhanced Features"
+      },
+      {
+        "level": 3,
+        "text": "1. Intelligent Strategy Engine"
+      },
+      {
+        "level": 3,
+        "text": "2. Progressive Testing"
+      },
+      {
+        "level": 2,
+        "text": "Core Responsibilities"
+      },
+      {
+        "level": 3,
+        "text": "Orchestrator"
+      },
+      {
+        "level": 3,
+        "text": "@cli-planning-agent"
+      },
+      {
+        "level": 3,
+        "text": "@test-fix-agent"
+      },
+      {
+        "level": 2,
+        "text": "Reference"
+      },
+      {
+        "level": 3,
+        "text": "CLI Tool Configuration"
+      },
+      {
+        "level": 3,
+        "text": "Session File Structure"
+      },
+      {
+        "level": 3,
+        "text": "Iteration State JSON"
+      },
+      {
+        "level": 3,
+        "text": "Agent Invocation Template"
+      },
+      {
+        "level": 3,
+        "text": "Completion Conditions"
+      },
+      {
+        "level": 3,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "TodoWrite Structure"
+      },
+      {
+        "level": 2,
+        "text": "Commit Strategy"
+      },
+      {
+        "level": 2,
+        "text": "Post-Completion Expansion"
+      },
+      {
+        "level": 2,
+        "text": "Best Practices"
+      }
+    ]
+  }
+}

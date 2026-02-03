@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/tools/test-concept-enhanced.md",
+  "created_at": "2026-02-02T16:54:05.845Z",
+  "command": {
+    "group": "",
+    "name": "test-concept-enhanced",
+    "description": "Coordinate test analysis workflow using cli-execution-agent to generate test strategy via Gemini",
+    "argument_hint": "--session WFS-test-session-id --context path/to/test-context-package.json",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Test Concept Enhanced Command"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Core Philosophy"
+      },
+      {
+        "level": 2,
+        "text": "Core Responsibilities"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Execution Lifecycle"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Context Preparation (Command Responsibility)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Test Analysis Execution (Agent Responsibility)"
+      },
+      {
+        "level": 2,
+        "text": "TASK OBJECTIVE"
+      },
+      {
+        "level": 2,
+        "text": "EXECUTION CONTEXT"
+      },
+      {
+        "level": 2,
+        "text": "EXECUTION STEPS"
+      },
+      {
+        "level": 2,
+        "text": "EXPECTED OUTPUTS"
+      },
+      {
+        "level": 2,
+        "text": "QUALITY VALIDATION"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Output Validation (Command Responsibility)"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Validation Errors"
+      },
+      {
+        "level": 3,
+        "text": "Execution Errors"
+      },
+      {
+        "level": 2,
+        "text": "Integration & Usage"
+      },
+      {
+        "level": 3,
+        "text": "Command Chain"
+      },
+      {
+        "level": 3,
+        "text": "Performance"
+      },
+      {
+        "level": 3,
+        "text": "Success Criteria"
+      }
+    ]
+  }
+}

@@ -1,0 +1,251 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/issue/from-brainstorm.md",
+  "created_at": "2026-02-02T16:54:05.789Z",
+  "command": {
+    "group": "",
+    "name": "from-brainstorm",
+    "description": "Convert brainstorm session ideas into issue with executable solution for parallel-dev-cycle",
+    "argument_hint": "SESSION=\\\"<session-id>\\\" [--idea=<index>] [--auto] [-y|--yes]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Glob(*)",
+      "AskUserQuestion(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Issue From-Brainstorm Command (/issue:from-brainstorm)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Quick Reference"
+      },
+      {
+        "level": 1,
+        "text": "Interactive mode - select idea, confirm before creation"
+      },
+      {
+        "level": 1,
+        "text": "Pre-select idea by index"
+      },
+      {
+        "level": 1,
+        "text": "Auto mode - select highest scored, no confirmations"
+      },
+      {
+        "level": 2,
+        "text": "Arguments"
+      },
+      {
+        "level": 2,
+        "text": "Data Structures"
+      },
+      {
+        "level": 3,
+        "text": "Issue Schema (Output)"
+      },
+      {
+        "level": 3,
+        "text": "Solution Schema (Output)"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 2,
+        "text": "Context Enrichment Logic"
+      },
+      {
+        "level": 3,
+        "text": "Base Context (Always Included)"
+      },
+      {
+        "level": 3,
+        "text": "Enhanced Context (If Available)"
+      },
+      {
+        "level": 2,
+        "text": "Task Generation Strategy"
+      },
+      {
+        "level": 3,
+        "text": "Task 1: Research & Validation"
+      },
+      {
+        "level": 3,
+        "text": "Task 2: Design & Specification"
+      },
+      {
+        "level": 3,
+        "text": "Task 3+: Implementation Tasks"
+      },
+      {
+        "level": 3,
+        "text": "Fallback Task"
+      },
+      {
+        "level": 2,
+        "text": "Priority Calculation"
+      },
+      {
+        "level": 3,
+        "text": "Issue Priority (1-5)"
+      },
+      {
+        "level": 3,
+        "text": "Task Priority (1-5)"
+      },
+      {
+        "level": 3,
+        "text": "Complexity Analysis"
+      },
+      {
+        "level": 2,
+        "text": "CLI Integration"
+      },
+      {
+        "level": 3,
+        "text": "Issue Creation"
+      },
+      {
+        "level": 1,
+        "text": "Uses heredoc to avoid shell escaping"
+      },
+      {
+        "level": 3,
+        "text": "Solution Binding"
+      },
+      {
+        "level": 1,
+        "text": "Append solution to JSONL file"
+      },
+      {
+        "level": 1,
+        "text": "Bind to issue"
+      },
+      {
+        "level": 1,
+        "text": "Update status"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Examples"
+      },
+      {
+        "level": 3,
+        "text": "Interactive Mode"
+      },
+      {
+        "level": 1,
+        "text": "Output:"
+      },
+      {
+        "level": 1,
+        "text": "| # | Title | Score | Feasibility |"
+      },
+      {
+        "level": 1,
+        "text": "|---|-------|-------|-------------|"
+      },
+      {
+        "level": 1,
+        "text": "| 0 | Token Bucket Algorithm | 8.5 | High |"
+      },
+      {
+        "level": 1,
+        "text": "| 1 | Sliding Window Counter | 7.2 | Medium |"
+      },
+      {
+        "level": 1,
+        "text": "| 2 | Fixed Window | 6.1 | High |"
+      },
+      {
+        "level": 1,
+        "text": "User selects: #0"
+      },
+      {
+        "level": 1,
+        "text": "Result:"
+      },
+      {
+        "level": 1,
+        "text": "✓ Created issue: ISS-20250128-001"
+      },
+      {
+        "level": 1,
+        "text": "✓ Created solution: SOL-ISS-20250128-001-ab3d"
+      },
+      {
+        "level": 1,
+        "text": "✓ Bound solution to issue"
+      },
+      {
+        "level": 1,
+        "text": "→ Next: /issue:queue"
+      },
+      {
+        "level": 3,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Result:"
+      },
+      {
+        "level": 1,
+        "text": "Auto-selected: Redis Cache Layer (Score: 9.2/10)"
+      },
+      {
+        "level": 1,
+        "text": "✓ Created issue: ISS-20250128-002"
+      },
+      {
+        "level": 1,
+        "text": "✓ Solution with 4 tasks"
+      },
+      {
+        "level": 1,
+        "text": "→ Status: planned"
+      },
+      {
+        "level": 2,
+        "text": "Integration Flow"
+      },
+      {
+        "level": 2,
+        "text": "Session Files Reference"
+      },
+      {
+        "level": 3,
+        "text": "Input Files"
+      },
+      {
+        "level": 3,
+        "text": "Output Files"
+      },
+      {
+        "level": 2,
+        "text": "Related Commands"
+      }
+    ]
+  }
+}

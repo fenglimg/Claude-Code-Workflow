@@ -1,0 +1,182 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/issue/new.md",
+  "created_at": "2026-02-02T16:54:05.790Z",
+  "command": {
+    "group": "",
+    "name": "new",
+    "description": "Create structured issue from GitHub URL or text description",
+    "argument_hint": "[-y|--yes] <github-url | text-description> [--priority 1-5]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Bash(*)",
+      "Read(*)",
+      "AskUserQuestion(*)",
+      "mcp__ace-tool__search_context(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Issue New Command (/issue:new)"
+      },
+      {
+        "level": 2,
+        "text": "Core Principle"
+      },
+      {
+        "level": 2,
+        "text": "Issue Structure"
+      },
+      {
+        "level": 2,
+        "text": "Quick Reference"
+      },
+      {
+        "level": 1,
+        "text": "Clear inputs - direct creation"
+      },
+      {
+        "level": 1,
+        "text": "Vague input - will ask clarifying questions"
+      },
+      {
+        "level": 2,
+        "text": "Implementation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Input Analysis & Clarity Detection"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Data Extraction (GitHub or Text)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Lightweight Context Hint (Conditional)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Conditional Clarification (Only if Unclear)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: GitHub Publishing Decision (Non-GitHub Sources)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 6: Create Issue"
+      },
+      {
+        "level": 1,
+        "text": "Option 1: Pipe input (recommended for complex JSON - avoids shell escaping)"
+      },
+      {
+        "level": 1,
+        "text": "Option 2: Heredoc (for multi-line JSON)"
+      },
+      {
+        "level": 1,
+        "text": "Option 3: --data parameter (simple cases only)"
+      },
+      {
+        "level": 1,
+        "text": "Create issue via pipe (recommended)"
+      },
+      {
+        "level": 1,
+        "text": "Or with heredoc for complex JSON"
+      },
+      {
+        "level": 1,
+        "text": "Output (JSON)"
+      },
+      {
+        "level": 1,
+        "text": "User creates text issue"
+      },
+      {
+        "level": 1,
+        "text": "System asks: \"Would you like to publish this issue to GitHub?\""
+      },
+      {
+        "level": 1,
+        "text": "User selects: \"Yes, publish to GitHub\""
+      },
+      {
+        "level": 1,
+        "text": "Output:"
+      },
+      {
+        "level": 1,
+        "text": "✓ Local issue created: ISS-20251229-001"
+      },
+      {
+        "level": 1,
+        "text": "✓ Published to GitHub: https://github.com/org/repo/issues/123"
+      },
+      {
+        "level": 1,
+        "text": "✓ GitHub binding saved to local issue"
+      },
+      {
+        "level": 1,
+        "text": "→ Next step: /issue:plan ISS-20251229-001"
+      },
+      {
+        "level": 1,
+        "text": "Resulting issue JSON:"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 2,
+        "text": "Helper Functions"
+      },
+      {
+        "level": 2,
+        "text": "Examples"
+      },
+      {
+        "level": 3,
+        "text": "Clear Input (No Questions)"
+      },
+      {
+        "level": 1,
+        "text": "→ Fetches, parses, creates immediately"
+      },
+      {
+        "level": 1,
+        "text": "→ Parses structure, creates immediately"
+      },
+      {
+        "level": 3,
+        "text": "Vague Input (1 Question)"
+      },
+      {
+        "level": 1,
+        "text": "→ Asks: \"Input unclear. What is the issue about?\""
+      },
+      {
+        "level": 1,
+        "text": "→ User provides details → saved to feedback[]"
+      },
+      {
+        "level": 1,
+        "text": "→ Creates issue"
+      },
+      {
+        "level": 2,
+        "text": "Related Commands"
+      }
+    ]
+  }
+}

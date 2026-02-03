@@ -1,0 +1,185 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/memory/style-skill-memory.md",
+  "created_at": "2026-02-02T16:54:05.804Z",
+  "command": {
+    "group": "",
+    "name": "style-skill-memory",
+    "description": "Generate SKILL memory package from style reference for easy loading and consistent design system usage",
+    "argument_hint": "[package-name] [--regenerate]",
+    "allowed_tools": [
+      "Bash",
+      "Read",
+      "Write",
+      "TodoWrite"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Memory: Style SKILL Memory Generator"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Quick Reference"
+      },
+      {
+        "level": 3,
+        "text": "Command Syntax"
+      },
+      {
+        "level": 1,
+        "text": "Arguments"
+      },
+      {
+        "level": 3,
+        "text": "Usage Examples"
+      },
+      {
+        "level": 1,
+        "text": "Generate SKILL memory for package"
+      },
+      {
+        "level": 1,
+        "text": "Regenerate SKILL memory"
+      },
+      {
+        "level": 1,
+        "text": "Package name from current directory or default"
+      },
+      {
+        "level": 3,
+        "text": "Key Variables"
+      },
+      {
+        "level": 3,
+        "text": "Common Errors"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Validate Package"
+      },
+      {
+        "level": 1,
+        "text": "Get package name from argument or auto-detect"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Read Package Data & Analyze Design System"
+      },
+      {
+        "level": 1,
+        "text": "Read layout templates"
+      },
+      {
+        "level": 1,
+        "text": "Read design tokens"
+      },
+      {
+        "level": 1,
+        "text": "Read animation tokens (if exists)"
+      },
+      {
+        "level": 1,
+        "text": "Count components and classify by type"
+      },
+      {
+        "level": 1,
+        "text": "Color system characteristics"
+      },
+      {
+        "level": 1,
+        "text": "Check for modern color spaces"
+      },
+      {
+        "level": 1,
+        "text": "Check for dark mode variants"
+      },
+      {
+        "level": 1,
+        "text": "→ Store: has_colors, color_semantic, uses_oklch, has_dark_mode"
+      },
+      {
+        "level": 1,
+        "text": "Spacing pattern detection"
+      },
+      {
+        "level": 1,
+        "text": "Analyze pattern: linear (4-8-12-16) vs geometric (4-8-16-32) vs custom"
+      },
+      {
+        "level": 1,
+        "text": "→ Store: spacing_pattern, spacing_scale"
+      },
+      {
+        "level": 1,
+        "text": "Typography characteristics"
+      },
+      {
+        "level": 1,
+        "text": "Check for calc() usage"
+      },
+      {
+        "level": 1,
+        "text": "→ Store: has_typography, typography_hierarchy, uses_calc"
+      },
+      {
+        "level": 1,
+        "text": "Border radius style"
+      },
+      {
+        "level": 1,
+        "text": "Check range: small (sharp <4px) vs moderate (4-8px) vs large (rounded >8px)"
+      },
+      {
+        "level": 1,
+        "text": "→ Store: has_radius, radius_style"
+      },
+      {
+        "level": 1,
+        "text": "Shadow characteristics"
+      },
+      {
+        "level": 1,
+        "text": "→ Store: has_shadows, shadow_pattern"
+      },
+      {
+        "level": 1,
+        "text": "Animations (if available)"
+      },
+      {
+        "level": 1,
+        "text": "→ Store: has_animations, animation_range, easing_variety"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Generate SKILL.md"
+      },
+      {
+        "level": 3,
+        "text": "Completion Message"
+      },
+      {
+        "level": 2,
+        "text": "Implementation Details"
+      },
+      {
+        "level": 3,
+        "text": "Critical Rules"
+      },
+      {
+        "level": 3,
+        "text": "Template Files Location"
+      }
+    ]
+  }
+}

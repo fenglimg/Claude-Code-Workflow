@@ -1,0 +1,166 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/brainstorm/artifacts.md",
+  "created_at": "2026-02-02T16:54:05.810Z",
+  "command": {
+    "group": "",
+    "name": "artifacts",
+    "description": "Interactive clarification generating confirmed guidance specification through role-based analysis and synthesis",
+    "argument_hint": "[-y|--yes] topic or challenge description [--count N]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Glob(*)",
+      "AskUserQuestion(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Quick Reference"
+      },
+      {
+        "level": 3,
+        "text": "Phase Summary"
+      },
+      {
+        "level": 3,
+        "text": "AskUserQuestion Pattern"
+      },
+      {
+        "level": 3,
+        "text": "Multi-Round Execution"
+      },
+      {
+        "level": 2,
+        "text": "Task Tracking"
+      },
+      {
+        "level": 2,
+        "text": "Execution Phases"
+      },
+      {
+        "level": 3,
+        "text": "Session Management"
+      },
+      {
+        "level": 3,
+        "text": "Phase 0: Context Collection"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Topic Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Role Selection"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Role-Specific Questions"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Conflict Resolution"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4.5: Final Clarification"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Generate Specification"
+      },
+      {
+        "level": 2,
+        "text": "Question Guidelines"
+      },
+      {
+        "level": 3,
+        "text": "Core Principle"
+      },
+      {
+        "level": 3,
+        "text": "Quality Rules"
+      },
+      {
+        "level": 3,
+        "text": "Phase-Specific Requirements"
+      },
+      {
+        "level": 2,
+        "text": "Output & Governance"
+      },
+      {
+        "level": 3,
+        "text": "Output Template"
+      },
+      {
+        "level": 1,
+        "text": "[Project] - Confirmed Guidance Specification"
+      },
+      {
+        "level": 2,
+        "text": "1. Project Positioning & Goals"
+      },
+      {
+        "level": 2,
+        "text": "2-N. [Role] Decisions"
+      },
+      {
+        "level": 3,
+        "text": "SELECTED Choices"
+      },
+      {
+        "level": 3,
+        "text": "Cross-Role Considerations"
+      },
+      {
+        "level": 2,
+        "text": "Cross-Role Integration"
+      },
+      {
+        "level": 2,
+        "text": "Risks & Constraints"
+      },
+      {
+        "level": 2,
+        "text": "Next Steps"
+      },
+      {
+        "level": 2,
+        "text": "Appendix: Decision Tracking"
+      },
+      {
+        "level": 3,
+        "text": "File Structure"
+      },
+      {
+        "level": 3,
+        "text": "Session Metadata"
+      },
+      {
+        "level": 3,
+        "text": "Validation Checklist"
+      },
+      {
+        "level": 3,
+        "text": "Update Mechanism"
+      },
+      {
+        "level": 3,
+        "text": "Governance Rules"
+      }
+    ]
+  }
+}

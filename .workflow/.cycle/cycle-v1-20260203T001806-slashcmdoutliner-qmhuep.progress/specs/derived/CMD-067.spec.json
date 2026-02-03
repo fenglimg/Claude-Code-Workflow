@@ -1,0 +1,192 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/tools/tdd-coverage-analysis.md",
+  "created_at": "2026-02-02T16:54:05.844Z",
+  "command": {
+    "group": "",
+    "name": "tdd-coverage-analysis",
+    "description": "Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification",
+    "argument_hint": "--session WFS-session-id",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)",
+      "Bash(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "TDD Coverage Analysis Command"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Core Responsibilities"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Execution Lifecycle"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Extract Test Tasks"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Run Test Suite"
+      },
+      {
+        "level": 1,
+        "text": "Node.js/JavaScript"
+      },
+      {
+        "level": 1,
+        "text": "Python"
+      },
+      {
+        "level": 1,
+        "text": "Other frameworks (detect from project)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Parse Coverage Data"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Verify TDD Cycle"
+      },
+      {
+        "level": 1,
+        "text": "Check TEST task summary"
+      },
+      {
+        "level": 1,
+        "text": "Check IMPL task summary"
+      },
+      {
+        "level": 1,
+        "text": "Check REFACTOR task summary"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Generate Analysis Report"
+      },
+      {
+        "level": 1,
+        "text": "TDD Cycle Analysis - {Session ID}"
+      },
+      {
+        "level": 2,
+        "text": "Coverage Metrics"
+      },
+      {
+        "level": 2,
+        "text": "Coverage Details"
+      },
+      {
+        "level": 3,
+        "text": "Covered"
+      },
+      {
+        "level": 3,
+        "text": "Uncovered"
+      },
+      {
+        "level": 2,
+        "text": "TDD Cycle Verification"
+      },
+      {
+        "level": 3,
+        "text": "Feature 1: {Feature Name}"
+      },
+      {
+        "level": 3,
+        "text": "Feature 2: {Feature Name}"
+      },
+      {
+        "level": 2,
+        "text": "TDD Compliance Summary"
+      },
+      {
+        "level": 2,
+        "text": "Gaps Identified"
+      },
+      {
+        "level": 2,
+        "text": "Recommendations"
+      },
+      {
+        "level": 2,
+        "text": "Output Files"
+      },
+      {
+        "level": 2,
+        "text": "Test Framework Detection"
+      },
+      {
+        "level": 1,
+        "text": "Check for test frameworks"
+      },
+      {
+        "level": 2,
+        "text": "TDD Cycle Verification Algorithm"
+      },
+      {
+        "level": 2,
+        "text": "Coverage Metrics Calculation"
+      },
+      {
+        "level": 1,
+        "text": "Parse coverage from test-results.json"
+      },
+      {
+        "level": 1,
+        "text": "Calculate overall score"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Test Execution Errors"
+      },
+      {
+        "level": 3,
+        "text": "Cycle Verification Errors"
+      },
+      {
+        "level": 2,
+        "text": "Integration & Usage"
+      },
+      {
+        "level": 3,
+        "text": "Command Chain"
+      },
+      {
+        "level": 3,
+        "text": "Basic Usage"
+      },
+      {
+        "level": 3,
+        "text": "Expected Output"
+      },
+      {
+        "level": 2,
+        "text": "Coverage Results"
+      },
+      {
+        "level": 2,
+        "text": "TDD Cycle Verification"
+      }
+    ]
+  }
+}

@@ -1,0 +1,231 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/memory/compact.md",
+  "created_at": "2026-02-02T16:54:05.799Z",
+  "command": {
+    "group": "",
+    "name": "compact",
+    "description": "Compact current session memory into structured text for session recovery, extracting objective/plan/files/decisions/constraints/state, and save via MCP core_memory tool",
+    "argument_hint": "[optional: session description]",
+    "allowed_tools": [
+      "mcp__ccw-tools__core_memory(*)",
+      "Read(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Memory Compact Command (/memory:compact)"
+      },
+      {
+        "level": 2,
+        "text": "1. Overview"
+      },
+      {
+        "level": 2,
+        "text": "2. Parameters"
+      },
+      {
+        "level": 2,
+        "text": "3. Structured Output Format"
+      },
+      {
+        "level": 2,
+        "text": "Session ID"
+      },
+      {
+        "level": 2,
+        "text": "Project Root"
+      },
+      {
+        "level": 2,
+        "text": "Objective"
+      },
+      {
+        "level": 2,
+        "text": "Execution Plan"
+      },
+      {
+        "level": 3,
+        "text": "Source: [workflow | todo | user-stated | inferred]"
+      },
+      {
+        "level": 2,
+        "text": "Phase 1: Setup"
+      },
+      {
+        "level": 2,
+        "text": "Phase 2: Implementation"
+      },
+      {
+        "level": 2,
+        "text": "Working Files (Modified)"
+      },
+      {
+        "level": 2,
+        "text": "Reference Files (Read-Only)"
+      },
+      {
+        "level": 2,
+        "text": "Last Action"
+      },
+      {
+        "level": 2,
+        "text": "Decisions"
+      },
+      {
+        "level": 2,
+        "text": "Constraints"
+      },
+      {
+        "level": 2,
+        "text": "Dependencies"
+      },
+      {
+        "level": 2,
+        "text": "Known Issues"
+      },
+      {
+        "level": 2,
+        "text": "Changes Made"
+      },
+      {
+        "level": 2,
+        "text": "Pending"
+      },
+      {
+        "level": 2,
+        "text": "Notes"
+      },
+      {
+        "level": 2,
+        "text": "4. Field Definitions"
+      },
+      {
+        "level": 2,
+        "text": "5. Execution Flow"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Analyze Current Session"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Generate Structured Text"
+      },
+      {
+        "level": 2,
+        "text": "Project Root"
+      },
+      {
+        "level": 2,
+        "text": "Objective"
+      },
+      {
+        "level": 2,
+        "text": "Execution Plan"
+      },
+      {
+        "level": 2,
+        "text": "Working Files (Modified)"
+      },
+      {
+        "level": 2,
+        "text": "Reference Files (Read-Only)"
+      },
+      {
+        "level": 2,
+        "text": "Last Action"
+      },
+      {
+        "level": 2,
+        "text": "Decisions"
+      },
+      {
+        "level": 2,
+        "text": "Constraints"
+      },
+      {
+        "level": 2,
+        "text": "Dependencies"
+      },
+      {
+        "level": 2,
+        "text": "Known Issues"
+      },
+      {
+        "level": 2,
+        "text": "Changes Made"
+      },
+      {
+        "level": 2,
+        "text": "Pending"
+      },
+      {
+        "level": 2,
+        "text": "Notes"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Import to Core Memory via MCP"
+      },
+      {
+        "level": 1,
+        "text": "Write structured text to temp file, then import"
+      },
+      {
+        "level": 1,
+        "text": "Or from a file"
+      },
+      {
+        "level": 3,
+        "text": "Step 4: Report Recovery ID"
+      },
+      {
+        "level": 2,
+        "text": "6. Quality Checklist"
+      },
+      {
+        "level": 2,
+        "text": "7. Path Resolution Rules"
+      },
+      {
+        "level": 3,
+        "text": "Project Root Detection"
+      },
+      {
+        "level": 3,
+        "text": "Absolute Path Conversion"
+      },
+      {
+        "level": 3,
+        "text": "Reference File Categories"
+      },
+      {
+        "level": 2,
+        "text": "8. Plan Detection (Priority Order)"
+      },
+      {
+        "level": 3,
+        "text": "Priority 1: Workflow Session (IMPL_PLAN.md)"
+      },
+      {
+        "level": 3,
+        "text": "Priority 2: TodoWrite (Current Session Todos)"
+      },
+      {
+        "level": 3,
+        "text": "Priority 3: User-Stated Plan"
+      },
+      {
+        "level": 3,
+        "text": "Priority 4: Inferred Plan"
+      },
+      {
+        "level": 2,
+        "text": "9. Notes"
+      }
+    ]
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/session/complete.md",
+  "created_at": "2026-02-02T16:54:05.831Z",
+  "command": {
+    "group": "",
+    "name": "complete",
+    "description": "Mark active workflow session as complete, archive with lessons learned, update manifest, remove active flag",
+    "argument_hint": "[-y|--yes] [--detailed]",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Complete Workflow Session (/workflow:session:complete)"
+      },
+      {
+        "level": 2,
+        "text": "Pre-defined Commands"
+      },
+      {
+        "level": 1,
+        "text": "Phase 1: Find active session"
+      },
+      {
+        "level": 1,
+        "text": "Phase 3: Move to archive"
+      },
+      {
+        "level": 1,
+        "text": "Cleanup marker"
+      },
+      {
+        "level": 2,
+        "text": "Key Files to Read"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Find Session (2 commands)"
+      },
+      {
+        "level": 1,
+        "text": "1. Find and extract session"
+      },
+      {
+        "level": 1,
+        "text": "2. Check/create archiving marker"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Generate Manifest Entry (Read-only)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Atomic Commit (4 commands)"
+      },
+      {
+        "level": 1,
+        "text": "1. Create archive directory"
+      },
+      {
+        "level": 1,
+        "text": "2. Move session"
+      },
+      {
+        "level": 1,
+        "text": "3. Update manifest.json (Read → Append → Write)"
+      },
+      {
+        "level": 1,
+        "text": "Read: .workflow/archives/manifest.json (or [])"
+      },
+      {
+        "level": 1,
+        "text": "Append: archive_entry from Phase 2"
+      },
+      {
+        "level": 1,
+        "text": "Write: updated JSON"
+      },
+      {
+        "level": 1,
+        "text": "4. Remove marker"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Update project-tech.json (Optional)"
+      },
+      {
+        "level": 1,
+        "text": "Check"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Ask About Solidify (Always)"
+      },
+      {
+        "level": 2,
+        "text": "Auto Mode Defaults"
+      },
+      {
+        "level": 2,
+        "text": "Error Recovery"
+      },
+      {
+        "level": 2,
+        "text": "Quick Reference"
+      }
+    ]
+  }
+}

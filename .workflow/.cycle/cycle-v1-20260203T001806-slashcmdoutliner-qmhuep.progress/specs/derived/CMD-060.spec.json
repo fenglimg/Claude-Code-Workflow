@@ -1,0 +1,189 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/test-fix-gen.md",
+  "created_at": "2026-02-02T16:54:05.837Z",
+  "command": {
+    "group": "",
+    "name": "test-fix-gen",
+    "description": "Create test-fix workflow session from session ID, description, or file path with test strategy generation and task planning",
+    "argument_hint": "(source-session-id | \\\"feature description\\\" | /path/to/file.md)",
+    "allowed_tools": [
+      "SlashCommand(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Bash(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Workflow Test-Fix Generation Command (/workflow:test-fix-gen)"
+      },
+      {
+        "level": 2,
+        "text": "Quick Reference"
+      },
+      {
+        "level": 3,
+        "text": "Command Scope"
+      },
+      {
+        "level": 3,
+        "text": "Task Pipeline"
+      },
+      {
+        "level": 3,
+        "text": "Coordinator Role"
+      },
+      {
+        "level": 3,
+        "text": "Core Principles"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      },
+      {
+        "level": 3,
+        "text": "Command Syntax"
+      },
+      {
+        "level": 1,
+        "text": "INPUT can be:"
+      },
+      {
+        "level": 1,
+        "text": "- Session ID: WFS-user-auth-v2"
+      },
+      {
+        "level": 1,
+        "text": "- Description: \"Test the user authentication API\""
+      },
+      {
+        "level": 1,
+        "text": "- File path: ./docs/api-requirements.md"
+      },
+      {
+        "level": 3,
+        "text": "Mode Detection"
+      },
+      {
+        "level": 3,
+        "text": "Examples"
+      },
+      {
+        "level": 1,
+        "text": "Session Mode - test validation for completed implementation"
+      },
+      {
+        "level": 1,
+        "text": "Prompt Mode - text description"
+      },
+      {
+        "level": 1,
+        "text": "Prompt Mode - file reference"
+      },
+      {
+        "level": 1,
+        "text": "With CLI tool preference (semantic detection)"
+      },
+      {
+        "level": 2,
+        "text": "Execution Phases"
+      },
+      {
+        "level": 3,
+        "text": "Execution Rules"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Create Test Session"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Gather Test Context"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Test Generation Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Generate Test Tasks"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Return Summary"
+      },
+      {
+        "level": 2,
+        "text": "Task Specifications"
+      },
+      {
+        "level": 3,
+        "text": "IMPL-001: Test Understanding & Generation"
+      },
+      {
+        "level": 3,
+        "text": "IMPL-001.3: Code Validation Gate"
+      },
+      {
+        "level": 3,
+        "text": "IMPL-001.5: Test Quality Gate"
+      },
+      {
+        "level": 3,
+        "text": "IMPL-002: Test Execution & Fix Cycle"
+      },
+      {
+        "level": 3,
+        "text": "IMPL-003+: Additional Tasks (Optional)"
+      },
+      {
+        "level": 2,
+        "text": "Output Artifacts"
+      },
+      {
+        "level": 3,
+        "text": "Directory Structure"
+      },
+      {
+        "level": 3,
+        "text": "Session Metadata"
+      },
+      {
+        "level": 2,
+        "text": "Orchestration Patterns"
+      },
+      {
+        "level": 3,
+        "text": "TodoWrite Pattern"
+      },
+      {
+        "level": 3,
+        "text": "Task Attachment Model"
+      },
+      {
+        "level": 3,
+        "text": "Auto-Continue Mechanism"
+      },
+      {
+        "level": 2,
+        "text": "Reference"
+      },
+      {
+        "level": 3,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Best Practices"
+      },
+      {
+        "level": 3,
+        "text": "Related Commands"
+      }
+    ]
+  }
+}

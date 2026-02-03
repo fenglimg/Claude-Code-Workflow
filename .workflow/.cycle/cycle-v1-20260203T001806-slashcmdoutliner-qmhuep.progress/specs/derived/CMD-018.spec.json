@@ -1,0 +1,180 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/learn/plan.md",
+  "created_at": "2026-02-02T16:54:05.794Z",
+  "command": {
+    "group": "",
+    "name": "plan",
+    "description": "Generate personalized learning plans based on user profile and learning goals using AI-driven knowledge gap analysis",
+    "argument_hint": "\\\"<learning goal>\\\" [--profile=<profile-id>] [--no-agent] [--skip-assessment]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "SlashCommand(*)",
+      "AskUserQuestion(*)",
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Learn:Plan Command - 学习计划生成"
+      },
+      {
+        "level": 2,
+        "text": "Quick Start"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Implementation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Profile Discovery"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Knowledge Gap Analysis"
+      },
+      {
+        "level": 2,
+        "text": "Knowledge Gap Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Plan Generation"
+      },
+      {
+        "level": 4,
+        "text": "Option A: Agent-Driven Planning (默认)"
+      },
+      {
+        "level": 4,
+        "text": "Option B: Template-Based Planning (--no-agent)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Session Creation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: User Confirmation"
+      },
+      {
+        "level": 2,
+        "text": "Learning Plan Summary"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "P0 Fixes Applied (Multi-CLI Analysis)"
+      },
+      {
+        "level": 3,
+        "text": "1. Issue CLI Integration ✅"
+      },
+      {
+        "level": 3,
+        "text": "2. Schema Files ✅"
+      },
+      {
+        "level": 3,
+        "text": "3. Validation Gate ✅"
+      },
+      {
+        "level": 3,
+        "text": "4. AskUserQuestion Pattern ✅"
+      },
+      {
+        "level": 2,
+        "text": "Quality Checklist"
+      },
+      {
+        "level": 2,
+        "text": "Related Commands"
+      },
+      {
+        "level": 2,
+        "text": "Session Folder Structure"
+      },
+      {
+        "level": 2,
+        "text": "Examples"
+      },
+      {
+        "level": 3,
+        "text": "Example 1: Basic Usage"
+      },
+      {
+        "level": 2,
+        "text": "Knowledge Gap Analysis"
+      },
+      {
+        "level": 2,
+        "text": "Knowledge Point Generation..."
+      },
+      {
+        "level": 2,
+        "text": "Learning Plan Summary"
+      },
+      {
+        "level": 3,
+        "text": "Example 2: With Custom Profile"
+      },
+      {
+        "level": 2,
+        "text": "Knowledge Gap Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Example 3: Template Mode (No Agent)"
+      },
+      {
+        "level": 2,
+        "text": "Learning Plan Summary"
+      },
+      {
+        "level": 2,
+        "text": "Integration Points"
+      },
+      {
+        "level": 2,
+        "text": "Enhancement: Validation Gate (Phase 4)"
+      },
+      {
+        "level": 3,
+        "text": "实现准备"
+      },
+      {
+        "level": 3,
+        "text": "Layer 0: Schema Validation（阻断型）"
+      },
+      {
+        "level": 3,
+        "text": "Layer 1: Graph Validity（阻断型）"
+      },
+      {
+        "level": 3,
+        "text": "Layer 2: Profile→Plan Matching（告警型）"
+      },
+      {
+        "level": 3,
+        "text": "(Reserved) Layer 3: Resource Quality Scoring（告警型）"
+      }
+    ]
+  }
+}

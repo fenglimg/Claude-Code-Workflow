@@ -1,0 +1,246 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/ui-design/generate.md",
+  "created_at": "2026-02-02T16:54:05.852Z",
+  "command": {
+    "group": "",
+    "name": "generate",
+    "description": "Assemble UI prototypes by combining layout templates with design tokens (default animation support), pure assembler without new content generation",
+    "argument_hint": "[--design-id <id>] [--session <id>]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Task(ui-design-agent)",
+      "Bash(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Generate UI Prototypes (/workflow:ui-design:generate)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Phase 1: Setup & Validation"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Resolve Base Path & Parse Configuration"
+      },
+      {
+        "level": 1,
+        "text": "Determine base path with priority: --design-id > --session > auto-detect"
+      },
+      {
+        "level": 1,
+        "text": "Validate and convert to absolute path"
+      },
+      {
+        "level": 1,
+        "text": "Get style count"
+      },
+      {
+        "level": 1,
+        "text": "Image reference auto-detected from layout template source_image_path"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Load Layout Templates"
+      },
+      {
+        "level": 1,
+        "text": "Check layout templates exist (multi-file pattern)"
+      },
+      {
+        "level": 1,
+        "text": "Get list of all layout files"
+      },
+      {
+        "level": 1,
+        "text": "Load each layout template file"
+      },
+      {
+        "level": 1,
+        "text": "Aggregate: targets[], layout_variants count, device_type, all template structures"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Validate Design Tokens"
+      },
+      {
+        "level": 1,
+        "text": "Check design tokens exist for all styles"
+      },
+      {
+        "level": 1,
+        "text": "For each style variant: Load design tokens"
+      },
+      {
+        "level": 3,
+        "text": "Step 4: Load Animation Tokens (Optional)"
+      },
+      {
+        "level": 1,
+        "text": "Check if animation tokens exist"
+      },
+      {
+        "level": 1,
+        "text": "Load animation tokens if available"
+      },
+      {
+        "level": 2,
+        "text": "Phase 2: Assembly (Agent)"
+      },
+      {
+        "level": 3,
+        "text": "Agent Grouping Strategy"
+      },
+      {
+        "level": 1,
+        "text": "First 'remainder' agents get (base_count + 1), others get base_count"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Calculate Agent Grouping Plan"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Launch Batched Assembly Tasks"
+      },
+      {
+        "level": 1,
+        "text": "After each batch completes"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Verify Generated Files"
+      },
+      {
+        "level": 1,
+        "text": "Count expected vs found (should equal S × L × T)"
+      },
+      {
+        "level": 1,
+        "text": "Validate samples"
+      },
+      {
+        "level": 1,
+        "text": "Check: <!DOCTYPE html>, correct CSS href, sufficient CSS length"
+      },
+      {
+        "level": 2,
+        "text": "Phase 3: Generate Preview Files"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Run Preview Generation Script"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Verify Preview Files"
+      },
+      {
+        "level": 2,
+        "text": "Completion"
+      },
+      {
+        "level": 3,
+        "text": "Todo Update"
+      },
+      {
+        "level": 3,
+        "text": "Output Message"
+      },
+      {
+        "level": 2,
+        "text": "Simple Bash Commands"
+      },
+      {
+        "level": 3,
+        "text": "Path Operations"
+      },
+      {
+        "level": 1,
+        "text": "Find design directory"
+      },
+      {
+        "level": 1,
+        "text": "Count style variants"
+      },
+      {
+        "level": 3,
+        "text": "Validation Commands"
+      },
+      {
+        "level": 1,
+        "text": "Check layout templates exist (multi-file pattern)"
+      },
+      {
+        "level": 1,
+        "text": "Count layout files"
+      },
+      {
+        "level": 1,
+        "text": "Check design tokens exist"
+      },
+      {
+        "level": 1,
+        "text": "Count generated files"
+      },
+      {
+        "level": 1,
+        "text": "Verify preview"
+      },
+      {
+        "level": 3,
+        "text": "File Operations"
+      },
+      {
+        "level": 1,
+        "text": "Create directories"
+      },
+      {
+        "level": 1,
+        "text": "Run preview script"
+      },
+      {
+        "level": 2,
+        "text": "Output Structure"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Common Errors"
+      },
+      {
+        "level": 3,
+        "text": "Recovery Strategies"
+      },
+      {
+        "level": 2,
+        "text": "Quality Checklist"
+      },
+      {
+        "level": 2,
+        "text": "Key Features"
+      },
+      {
+        "level": 2,
+        "text": "Integration"
+      }
+    ]
+  }
+}

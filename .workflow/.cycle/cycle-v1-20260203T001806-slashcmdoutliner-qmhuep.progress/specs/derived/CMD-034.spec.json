@@ -1,0 +1,164 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/brainstorm/synthesis.md",
+  "created_at": "2026-02-02T16:54:05.813Z",
+  "command": {
+    "group": "",
+    "name": "synthesis",
+    "description": "Clarify and refine role analyses through intelligent Q&A and targeted updates with synthesis agent",
+    "argument_hint": "[-y|--yes] [optional: --session session-id]",
+    "allowed_tools": [
+      "Task(conceptual-planning-agent)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Glob(*)",
+      "AskUserQuestion(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Quick Reference"
+      },
+      {
+        "level": 3,
+        "text": "Phase Summary"
+      },
+      {
+        "level": 3,
+        "text": "AskUserQuestion Pattern"
+      },
+      {
+        "level": 2,
+        "text": "Task Tracking"
+      },
+      {
+        "level": 2,
+        "text": "Execution Phases"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Discovery & Validation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Role Discovery & Path Preparation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3A: Analysis & Enhancement Agent"
+      },
+      {
+        "level": 2,
+        "text": "Agent Mission"
+      },
+      {
+        "level": 2,
+        "text": "Input"
+      },
+      {
+        "level": 2,
+        "text": "Flow Control Steps"
+      },
+      {
+        "level": 2,
+        "text": "Output Format"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: User Interaction"
+      },
+      {
+        "level": 4,
+        "text": "Step 1: Enhancement Selection"
+      },
+      {
+        "level": 4,
+        "text": "Step 2: Clarification Questions"
+      },
+      {
+        "level": 3,
+        "text": "Question Guidelines"
+      },
+      {
+        "level": 4,
+        "text": "Step 3: Build Update Plan"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Parallel Document Update Agents"
+      },
+      {
+        "level": 2,
+        "text": "Agent Mission"
+      },
+      {
+        "level": 2,
+        "text": "Input"
+      },
+      {
+        "level": 2,
+        "text": "Flow Control Steps"
+      },
+      {
+        "level": 2,
+        "text": "Output"
+      },
+      {
+        "level": 3,
+        "text": "Phase 6: Finalization"
+      },
+      {
+        "level": 4,
+        "text": "Step 1: Update Context Package"
+      },
+      {
+        "level": 4,
+        "text": "Step 2: Update Session Metadata"
+      },
+      {
+        "level": 4,
+        "text": "Step 3: Completion Report"
+      },
+      {
+        "level": 2,
+        "text": "✅ Clarification Complete"
+      },
+      {
+        "level": 3,
+        "text": "Next Steps"
+      },
+      {
+        "level": 2,
+        "text": "Output"
+      },
+      {
+        "level": 2,
+        "text": "Clarifications"
+      },
+      {
+        "level": 3,
+        "text": "Session {date}"
+      },
+      {
+        "level": 2,
+        "text": "{Existing Sections}"
+      },
+      {
+        "level": 2,
+        "text": "Quality Checklist"
+      }
+    ]
+  }
+}

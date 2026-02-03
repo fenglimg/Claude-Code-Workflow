@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/learn/execute.md",
+  "created_at": "2026-02-02T16:54:05.793Z",
+  "command": {
+    "group": "",
+    "name": "execute",
+    "description": "Execute a learning session plan with phase constraints, assessments, progress tracking, and profile-driven personalization",
+    "argument_hint": "[--session=<session-id>] [--kp=<knowledge-point-id>] [--next-phase]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "SlashCommand(*)",
+      "AskUserQuestion(*)",
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Learn:Execute Command - 学习执行"
+      },
+      {
+        "level": 2,
+        "text": "Quick Start"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow (5 Phases)"
+      },
+      {
+        "level": 2,
+        "text": "Personalization (MVP)"
+      },
+      {
+        "level": 2,
+        "text": "Implementation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Initialization (Session + Phase Gate)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Content Delivery (Personalized)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Assessment Verification"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: State & Profile Update"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Feedback & Next Steps"
+      },
+      {
+        "level": 2,
+        "text": "Phase Transition (High-Level)"
+      },
+      {
+        "level": 2,
+        "text": "Notes"
+      }
+    ]
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/ui-design/codify-style.md",
+  "created_at": "2026-02-02T16:54:05.849Z",
+  "command": {
+    "group": "",
+    "name": "workflow:ui-design:codify-style",
+    "description": "Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)",
+    "argument_hint": "<path> [--package-name <name>] [--output-dir <path>] [--overwrite]",
+    "allowed_tools": [
+      "SlashCommand",
+      "Bash",
+      "Read",
+      "TodoWrite"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "UI Design: Codify Style (Orchestrator)"
+      },
+      {
+        "level": 2,
+        "text": "Overview & Execution Model"
+      },
+      {
+        "level": 2,
+        "text": "Core Rules"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      },
+      {
+        "level": 3,
+        "text": "Command Syntax"
+      },
+      {
+        "level": 1,
+        "text": "Required"
+      },
+      {
+        "level": 1,
+        "text": "Optional"
+      },
+      {
+        "level": 2,
+        "text": "4-Phase Execution"
+      },
+      {
+        "level": 3,
+        "text": "Phase 0: Intelligent Parameter Validation & Session Preparation"
+      },
+      {
+        "level": 1,
+        "text": "Parse positional path parameter (first non-flag argument)"
+      },
+      {
+        "level": 1,
+        "text": "Validate source path"
+      },
+      {
+        "level": 1,
+        "text": "Validate source path existence"
+      },
+      {
+        "level": 1,
+        "text": "Auto-generate package name if not provided"
+      },
+      {
+        "level": 1,
+        "text": "Set default output directory"
+      },
+      {
+        "level": 1,
+        "text": "Create temporary workspace for processing"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Style Extraction from Source Code"
+      },
+      {
+        "level": 1,
+        "text": "Build command with required parameters only"
+      },
+      {
+        "level": 1,
+        "text": "Use temp_id as design-id since it's the workspace directory name"
+      },
+      {
+        "level": 1,
+        "text": "Automatic file discovery"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Reference Package Generation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Cleanup & Verification"
+      },
+      {
+        "level": 1,
+        "text": "Cleanup temporary workspace"
+      },
+      {
+        "level": 1,
+        "text": "Quick verification"
+      },
+      {
+        "level": 1,
+        "text": "Get absolute path and component count for final report"
+      },
+      {
+        "level": 2,
+        "text": "Completion Message"
+      },
+      {
+        "level": 2,
+        "text": "TodoWrite Pattern"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow Diagram"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Common Errors"
+      },
+      {
+        "level": 3,
+        "text": "Error Recovery"
+      },
+      {
+        "level": 2,
+        "text": "Implementation Details"
+      },
+      {
+        "level": 3,
+        "text": "Critical Rules"
+      },
+      {
+        "level": 3,
+        "text": "Parameter Pass-Through"
+      },
+      {
+        "level": 3,
+        "text": "Output Directory Structure"
+      },
+      {
+        "level": 2,
+        "text": "Architecture"
+      }
+    ]
+  }
+}

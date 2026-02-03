@@ -1,0 +1,53 @@
+{
+  "version": "1.0.0",
+  "cycle_id": "cycle-v1-20260203T001806-slashcmdoutliner-qmhuep",
+  "generated_at": "2026-02-03T00:20:48+08:00",
+  "tasks": [
+    {
+      "id": "P0-001",
+      "title": "Create skill skeleton + entrypoints",
+      "owner": "codex",
+      "estimate": "M",
+      "depends_on": [],
+      "outputs": [
+        ".claude/skills/slash-command-outliner/SKILL.md"
+      ]
+    },
+    {
+      "id": "P0-002",
+      "title": "Define spec input schema + validator",
+      "owner": "codex",
+      "estimate": "M",
+      "depends_on": [
+        "P0-001"
+      ],
+      "outputs": [
+        "spec schema doc"
+      ]
+    },
+    {
+      "id": "P0-003",
+      "title": "Implement corpus iteration harness (outline + gap-report)",
+      "owner": "codex",
+      "estimate": "L",
+      "depends_on": [
+        "P0-002"
+      ],
+      "outputs": [
+        "generator module + reports"
+      ]
+    },
+    {
+      "id": "P0-004",
+      "title": "Implement regression snapshots + diff gate",
+      "owner": "codex",
+      "estimate": "M",
+      "depends_on": [
+        "P0-003"
+      ],
+      "outputs": [
+        "regression script + snapshots layout"
+      ]
+    }
+  ]
+}

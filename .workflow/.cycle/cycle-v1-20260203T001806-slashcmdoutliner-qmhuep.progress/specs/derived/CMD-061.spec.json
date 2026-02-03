@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/test-gen.md",
+  "created_at": "2026-02-02T16:54:05.838Z",
+  "command": {
+    "group": "",
+    "name": "test-gen",
+    "description": "Create independent test-fix workflow session from completed implementation session, analyzes code to generate test tasks",
+    "argument_hint": "source-session-id",
+    "allowed_tools": [
+      "SlashCommand(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Bash(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Workflow Test Generation Command (/workflow:test-gen)"
+      },
+      {
+        "level": 2,
+        "text": "Coordinator Role"
+      },
+      {
+        "level": 2,
+        "text": "Core Rules"
+      },
+      {
+        "level": 2,
+        "text": "5-Phase Execution"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Create Test Session"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Gather Test Context"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Test Generation Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Generate Test Tasks"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Return Summary (Command Ends Here)"
+      },
+      {
+        "level": 2,
+        "text": "TodoWrite Pattern"
+      },
+      {
+        "level": 3,
+        "text": "Key Principles"
+      },
+      {
+        "level": 3,
+        "text": "Test-Gen Specific Features"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow Diagram"
+      },
+      {
+        "level": 2,
+        "text": "Session Metadata"
+      },
+      {
+        "level": 2,
+        "text": "Task Output"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Output Files"
+      },
+      {
+        "level": 2,
+        "text": "Task Specifications"
+      },
+      {
+        "level": 2,
+        "text": "Best Practices"
+      },
+      {
+        "level": 2,
+        "text": "Related Commands"
+      }
+    ]
+  }
+}

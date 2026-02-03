@@ -1,0 +1,143 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/codex-coordinator.md",
+  "created_at": "2026-02-02T16:54:05.781Z",
+  "command": {
+    "group": "",
+    "name": "codex-coordinator",
+    "description": "Command orchestration tool for Codex - analyze requirements, recommend command chain, execute sequentially with state persistence",
+    "argument_hint": "TASK=\\\"<task description>\\\" [--depth=standard|deep] [--auto-confirm] [--verbose]",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Codex Coordinator Command"
+      },
+      {
+        "level": 2,
+        "text": "Core Concept: Minimum Execution Units (最小执行单元)"
+      },
+      {
+        "level": 3,
+        "text": "What is a Minimum Execution Unit?"
+      },
+      {
+        "level": 3,
+        "text": "Codex Minimum Execution Units"
+      },
+      {
+        "level": 3,
+        "text": "Command-to-Unit Mapping (命令与最小单元的映射)"
+      },
+      {
+        "level": 3,
+        "text": "Atomic Group Rules"
+      },
+      {
+        "level": 2,
+        "text": "3-Phase Workflow"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Analyze Requirements"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Discover Commands & Recommend Chain"
+      },
+      {
+        "level": 4,
+        "text": "Available Codex Commands (Discovery)"
+      },
+      {
+        "level": 4,
+        "text": "Recommendation Algorithm"
+      },
+      {
+        "level": 4,
+        "text": "Display to User"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2b: Get User Confirmation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Execute Sequential Command Chain"
+      },
+      {
+        "level": 2,
+        "text": "State File Structure"
+      },
+      {
+        "level": 3,
+        "text": "Status Values"
+      },
+      {
+        "level": 2,
+        "text": "Task Type Routing (Pipeline Summary)"
+      },
+      {
+        "level": 2,
+        "text": "Available Commands Reference"
+      },
+      {
+        "level": 3,
+        "text": "Planning Commands"
+      },
+      {
+        "level": 3,
+        "text": "Execution Commands"
+      },
+      {
+        "level": 3,
+        "text": "Bug Fix Commands"
+      },
+      {
+        "level": 3,
+        "text": "Discovery Commands"
+      },
+      {
+        "level": 3,
+        "text": "Analysis Commands"
+      },
+      {
+        "level": 3,
+        "text": "Brainstorm Commands"
+      },
+      {
+        "level": 3,
+        "text": "Utility Commands"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 2,
+        "text": "Key Design Principles"
+      },
+      {
+        "level": 2,
+        "text": "Command Invocation Format"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Session Management"
+      },
+      {
+        "level": 2,
+        "text": "Execution Instructions"
+      }
+    ]
+  }
+}

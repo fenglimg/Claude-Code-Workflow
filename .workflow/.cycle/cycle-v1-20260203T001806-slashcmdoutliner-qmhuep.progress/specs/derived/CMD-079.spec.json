@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/ui-design/reference-page-generator.md",
+  "created_at": "2026-02-02T16:54:05.856Z",
+  "command": {
+    "group": "",
+    "name": "workflow:ui-design:reference-page-generator",
+    "description": "Generate multi-component reference pages and documentation from design run extraction",
+    "argument_hint": "[--design-run <path>] [--package-name <name>] [--output-dir <path>]",
+    "allowed_tools": [
+      "Read",
+      "Write",
+      "Bash",
+      "Task",
+      "TodoWrite"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "UI Design: Reference Page Generator"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      },
+      {
+        "level": 3,
+        "text": "Command Syntax"
+      },
+      {
+        "level": 1,
+        "text": "Flags"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 3,
+        "text": "Phase 0: Setup & Validation"
+      },
+      {
+        "level": 1,
+        "text": "1. Validate required parameters"
+      },
+      {
+        "level": 1,
+        "text": "2. Validate package name format (lowercase, alphanumeric, hyphens only)"
+      },
+      {
+        "level": 1,
+        "text": "3. Validate design run exists"
+      },
+      {
+        "level": 1,
+        "text": "4. Check required extraction files exist"
+      },
+      {
+        "level": 1,
+        "text": "5. Setup output directory and validate"
+      },
+      {
+        "level": 1,
+        "text": "Check if package directory exists and is not empty"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Prepare Component Data"
+      },
+      {
+        "level": 1,
+        "text": "1. Copy layout templates as component patterns"
+      },
+      {
+        "level": 1,
+        "text": "Count components from layout templates"
+      },
+      {
+        "level": 1,
+        "text": "2. Copy design tokens (required for preview generation)"
+      },
+      {
+        "level": 1,
+        "text": "3. Copy animation tokens if exists (optional)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Preview Generation (Final Phase)"
+      },
+      {
+        "level": 2,
+        "text": "Output Structure"
+      },
+      {
+        "level": 2,
+        "text": "Completion Message"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Common Errors"
+      }
+    ]
+  }
+}

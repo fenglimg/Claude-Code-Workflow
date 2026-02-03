@@ -1,0 +1,252 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/review-cycle-fix.md",
+  "created_at": "2026-02-02T16:54:05.827Z",
+  "command": {
+    "group": "",
+    "name": "review-cycle-fix",
+    "description": "Automated fixing of code review findings with AI-powered planning and coordinated execution. Uses intelligent grouping, multi-stage timeline coordination, and test-driven verification.",
+    "argument_hint": "<export-file|review-dir> [--resume] [--max-iterations=N]",
+    "allowed_tools": [
+      "SlashCommand(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Bash(*)",
+      "Task(*)",
+      "Edit(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Workflow Review-Cycle-Fix Command"
+      },
+      {
+        "level": 2,
+        "text": "Quick Start"
+      },
+      {
+        "level": 1,
+        "text": "Fix from exported findings file (session-based path)"
+      },
+      {
+        "level": 1,
+        "text": "Fix from review directory (auto-discovers latest export)"
+      },
+      {
+        "level": 1,
+        "text": "Resume interrupted fix session"
+      },
+      {
+        "level": 1,
+        "text": "Custom max retry attempts per finding"
+      },
+      {
+        "level": 2,
+        "text": "What & Why"
+      },
+      {
+        "level": 3,
+        "text": "Core Concept"
+      },
+      {
+        "level": 3,
+        "text": "Value Proposition"
+      },
+      {
+        "level": 3,
+        "text": "Orchestrator Boundary (CRITICAL)"
+      },
+      {
+        "level": 3,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 3,
+        "text": "Agent Roles"
+      },
+      {
+        "level": 2,
+        "text": "Enhanced Features"
+      },
+      {
+        "level": 3,
+        "text": "1. Two-Phase Architecture"
+      },
+      {
+        "level": 3,
+        "text": "2. Intelligent Grouping Strategy"
+      },
+      {
+        "level": 3,
+        "text": "3. Execution Strategy Determination"
+      },
+      {
+        "level": 3,
+        "text": "4. Conservative Test Verification"
+      },
+      {
+        "level": 2,
+        "text": "Core Responsibilities"
+      },
+      {
+        "level": 3,
+        "text": "Orchestrator"
+      },
+      {
+        "level": 3,
+        "text": "Output File Structure"
+      },
+      {
+        "level": 3,
+        "text": "Agent Invocation Template"
+      },
+      {
+        "level": 2,
+        "text": "Task Objective"
+      },
+      {
+        "level": 2,
+        "text": "Input Data"
+      },
+      {
+        "level": 2,
+        "text": "Output Requirements"
+      },
+      {
+        "level": 3,
+        "text": "1. fix-plan.json"
+      },
+      {
+        "level": 3,
+        "text": "2. fix-progress-{N}.json (one per group)"
+      },
+      {
+        "level": 2,
+        "text": "Analysis Requirements"
+      },
+      {
+        "level": 3,
+        "text": "Intelligent Grouping Strategy"
+      },
+      {
+        "level": 3,
+        "text": "Execution Strategy Determination"
+      },
+      {
+        "level": 3,
+        "text": "Risk Assessment"
+      },
+      {
+        "level": 3,
+        "text": "Test Strategy"
+      },
+      {
+        "level": 2,
+        "text": "Output Files"
+      },
+      {
+        "level": 2,
+        "text": "Quality Checklist"
+      },
+      {
+        "level": 2,
+        "text": "Task Objective"
+      },
+      {
+        "level": 2,
+        "text": "Assignment"
+      },
+      {
+        "level": 2,
+        "text": "Fix Strategy"
+      },
+      {
+        "level": 2,
+        "text": "Risk Assessment"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 3,
+        "text": "Initialization (Before Starting)"
+      },
+      {
+        "level": 3,
+        "text": "Main Execution Loop"
+      },
+      {
+        "level": 4,
+        "text": "Step 1: Analyze Context"
+      },
+      {
+        "level": 4,
+        "text": "Step 2: Apply Fix"
+      },
+      {
+        "level": 4,
+        "text": "Step 3: Test Verification"
+      },
+      {
+        "level": 4,
+        "text": "Step 4: Commit Changes"
+      },
+      {
+        "level": 4,
+        "text": "After Each Finding"
+      },
+      {
+        "level": 3,
+        "text": "Final Completion"
+      },
+      {
+        "level": 2,
+        "text": "Critical Requirements"
+      },
+      {
+        "level": 3,
+        "text": "Progress File Updates"
+      },
+      {
+        "level": 3,
+        "text": "Flow Control Format"
+      },
+      {
+        "level": 3,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Test Patterns"
+      },
+      {
+        "level": 3,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "TodoWrite Structure"
+      },
+      {
+        "level": 2,
+        "text": "Post-Completion Expansion"
+      },
+      {
+        "level": 2,
+        "text": "Best Practices"
+      },
+      {
+        "level": 2,
+        "text": "Related Commands"
+      },
+      {
+        "level": 3,
+        "text": "View Fix Progress"
+      }
+    ]
+  }
+}

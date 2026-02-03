@@ -1,0 +1,218 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/unified-execute-with-file.md",
+  "created_at": "2026-02-02T16:54:05.858Z",
+  "command": {
+    "group": "",
+    "name": "unified-execute-with-file",
+    "description": "Universal execution engine for consuming any planning/brainstorm/analysis output with minimal progress tracking, multi-agent coordination, and incremental execution",
+    "argument_hint": "[-y|--yes] [-p|--plan <path>] [-m|--mode sequential|parallel] [\\\"execution context or task name\\\"]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Grep(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Workflow Unified-Execute-With-File Command (/workflow:unified-execute-with-file)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      },
+      {
+        "level": 1,
+        "text": "Flags"
+      },
+      {
+        "level": 1,
+        "text": "Arguments"
+      },
+      {
+        "level": 1,
+        "text": "Examples"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Implementation"
+      },
+      {
+        "level": 3,
+        "text": "Session Setup & Plan Detection"
+      },
+      {
+        "level": 2,
+        "text": "Plan Format Parsers"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Plan Loading & Validation"
+      },
+      {
+        "level": 1,
+        "text": "Execution Progress"
+      },
+      {
+        "level": 2,
+        "text": "Execution Plan"
+      },
+      {
+        "level": 3,
+        "text": "Task Overview"
+      },
+      {
+        "level": 3,
+        "text": "Dependency Graph"
+      },
+      {
+        "level": 3,
+        "text": "Execution Strategy"
+      },
+      {
+        "level": 2,
+        "text": "Execution Timeline"
+      },
+      {
+        "level": 2,
+        "text": "Current Status"
+      },
+      {
+        "level": 2,
+        "text": "Phase 2: Execution Orchestration"
+      },
+      {
+        "level": 2,
+        "text": "Previous Agent Executions (for reference)"
+      },
+      {
+        "level": 2,
+        "text": "Current Task: ${task.id}"
+      },
+      {
+        "level": 3,
+        "text": "Description"
+      },
+      {
+        "level": 3,
+        "text": "Context"
+      },
+      {
+        "level": 3,
+        "text": "Requirements"
+      },
+      {
+        "level": 3,
+        "text": "Constraints"
+      },
+      {
+        "level": 2,
+        "text": "Task ${task.id} - COMPLETED ✅"
+      },
+      {
+        "level": 3,
+        "text": "Execution Summary"
+      },
+      {
+        "level": 3,
+        "text": "Key Outputs"
+      },
+      {
+        "level": 3,
+        "text": "Generated Artifacts"
+      },
+      {
+        "level": 3,
+        "text": "Notes for Next Agent"
+      },
+      {
+        "level": 2,
+        "text": "Task ${task.id} - FAILED ❌"
+      },
+      {
+        "level": 3,
+        "text": "Error Details"
+      },
+      {
+        "level": 3,
+        "text": "Recovery Notes for Next Attempt"
+      },
+      {
+        "level": 2,
+        "text": "Phase 3: Progress Tracking & Event Logging"
+      },
+      {
+        "level": 2,
+        "text": "Task {id} - {STATUS} {emoji}"
+      },
+      {
+        "level": 3,
+        "text": "Execution Summary"
+      },
+      {
+        "level": 3,
+        "text": "Generated Artifacts"
+      },
+      {
+        "level": 3,
+        "text": "Notes for Next Agent"
+      },
+      {
+        "level": 2,
+        "text": "Phase 4: Completion & Summary"
+      },
+      {
+        "level": 2,
+        "text": "Session Folder Structure"
+      },
+      {
+        "level": 1,
+        "text": "Generated files go directly to project directories (not into execution folder)"
+      },
+      {
+        "level": 1,
+        "text": "E.g. TASK-001 generates: src/types/auth.ts (not artifacts/src/types/auth.ts)"
+      },
+      {
+        "level": 1,
+        "text": "execution-events.md records the actual project paths"
+      },
+      {
+        "level": 2,
+        "text": "Agent Selection Strategy"
+      },
+      {
+        "level": 2,
+        "text": "Parallelization Rules"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling & Recovery"
+      },
+      {
+        "level": 2,
+        "text": "Session Resume"
+      }
+    ]
+  }
+}

@@ -1,0 +1,283 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/replan.md",
+  "created_at": "2026-02-02T16:54:05.826Z",
+  "command": {
+    "group": "",
+    "name": "replan",
+    "description": "Interactive workflow replanning with session-level artifact updates and boundary clarification through guided questioning",
+    "argument_hint": "[-y|--yes] [--session session-id] [task-id] \\\"requirements\\\"|file.md [--interactive]",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "TodoWrite(*)",
+      "Glob(*)",
+      "Bash(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Workflow Replan Command"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Operation Modes"
+      },
+      {
+        "level": 3,
+        "text": "Session Replan Mode"
+      },
+      {
+        "level": 1,
+        "text": "Auto-detect active session"
+      },
+      {
+        "level": 1,
+        "text": "Explicit session"
+      },
+      {
+        "level": 1,
+        "text": "File-based input"
+      },
+      {
+        "level": 1,
+        "text": "Interactive mode"
+      },
+      {
+        "level": 3,
+        "text": "Task Replan Mode"
+      },
+      {
+        "level": 1,
+        "text": "Direct task update"
+      },
+      {
+        "level": 1,
+        "text": "Task with explicit session"
+      },
+      {
+        "level": 1,
+        "text": "Interactive mode"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Execution Lifecycle"
+      },
+      {
+        "level": 3,
+        "text": "Input Parsing"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Mode Detection & Session Discovery"
+      },
+      {
+        "level": 3,
+        "text": "Auto Mode Support"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Interactive Requirement Clarification"
+      },
+      {
+        "level": 4,
+        "text": "Session Mode Questions"
+      },
+      {
+        "level": 4,
+        "text": "Task Mode Questions"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Impact Analysis & Planning"
+      },
+      {
+        "level": 2,
+        "text": "修改计划"
+      },
+      {
+        "level": 3,
+        "text": "影响范围"
+      },
+      {
+        "level": 3,
+        "text": "变更操作"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Backup Creation"
+      },
+      {
+        "level": 1,
+        "text": "Replan Backup Manifest"
+      },
+      {
+        "level": 2,
+        "text": "Restoration Command"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Apply Modifications"
+      },
+      {
+        "level": 3,
+        "text": "Phase 6: Verification & Summary"
+      },
+      {
+        "level": 2,
+        "text": "重规划完成"
+      },
+      {
+        "level": 3,
+        "text": "会话信息"
+      },
+      {
+        "level": 3,
+        "text": "变更摘要"
+      },
+      {
+        "level": 3,
+        "text": "修改的文件"
+      },
+      {
+        "level": 3,
+        "text": "任务变更"
+      },
+      {
+        "level": 3,
+        "text": "回滚方法"
+      },
+      {
+        "level": 2,
+        "text": "TodoWrite Progress Tracking"
+      },
+      {
+        "level": 3,
+        "text": "Session Mode Progress"
+      },
+      {
+        "level": 3,
+        "text": "Task Mode Progress"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Session Errors"
+      },
+      {
+        "level": 1,
+        "text": "No active session found"
+      },
+      {
+        "level": 1,
+        "text": "Session not found"
+      },
+      {
+        "level": 1,
+        "text": "No changes specified"
+      },
+      {
+        "level": 3,
+        "text": "Task Errors"
+      },
+      {
+        "level": 1,
+        "text": "Task not found"
+      },
+      {
+        "level": 1,
+        "text": "Task completed"
+      },
+      {
+        "level": 1,
+        "text": "Circular dependency"
+      },
+      {
+        "level": 3,
+        "text": "Validation Errors"
+      },
+      {
+        "level": 1,
+        "text": "Task limit exceeded"
+      },
+      {
+        "level": 1,
+        "text": "Invalid JSON"
+      },
+      {
+        "level": 2,
+        "text": "File Structure"
+      },
+      {
+        "level": 2,
+        "text": "Examples"
+      },
+      {
+        "level": 3,
+        "text": "Session Replan - Add Feature"
+      },
+      {
+        "level": 1,
+        "text": "Interactive clarification"
+      },
+      {
+        "level": 1,
+        "text": "Execution"
+      },
+      {
+        "level": 3,
+        "text": "Task Replan - Update Requirements"
+      },
+      {
+        "level": 1,
+        "text": "Interactive clarification"
+      },
+      {
+        "level": 1,
+        "text": "Execution"
+      },
+      {
+        "level": 3,
+        "text": "Task Replan - Change Execution Method"
+      },
+      {
+        "level": 1,
+        "text": "Semantic parsing detects executionIntent:"
+      },
+      {
+        "level": 1,
+        "text": "{ method: 'cli', cli_tool: 'codex' }"
+      },
+      {
+        "level": 1,
+        "text": "Execution (no interactive questions needed)"
+      },
+      {
+        "level": 1,
+        "text": "Semantic parsing detects executionIntent:"
+      },
+      {
+        "level": 1,
+        "text": "{ method: 'agent', cli_tool: null }"
+      },
+      {
+        "level": 1,
+        "text": "Execution"
+      }
+    ]
+  }
+}

@@ -1,0 +1,216 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/ui-design/explore-auto.md",
+  "created_at": "2026-02-02T16:54:05.851Z",
+  "command": {
+    "group": "",
+    "name": "explore-auto",
+    "description": "Interactive exploratory UI design workflow with style-centric batch generation, creates design variants from prompts/images with parallel execution and user selection",
+    "argument_hint": "[--input \"<value>\"] [--targets \"<list>\"] [--target-type \"page|component\"] [--session <id>] [--style-variants <count>] [--layout-variants <count>]",
+    "allowed_tools": [
+      "SlashCommand(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Bash(*)",
+      "Glob(*)",
+      "Write(*)",
+      "Task(conceptual-planning-agent)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "UI Design Auto Workflow Command"
+      },
+      {
+        "level": 2,
+        "text": "Overview & Execution Model"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Core Rules"
+      },
+      {
+        "level": 2,
+        "text": "Parameter Requirements"
+      },
+      {
+        "level": 2,
+        "text": "Execution Modes"
+      },
+      {
+        "level": 2,
+        "text": "10-Phase Execution"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Parameter Parsing & Input Detection"
+      },
+      {
+        "level": 1,
+        "text": "Legacy parameters (deprecated)"
+      },
+      {
+        "level": 1,
+        "text": "Unified --input (split by \"|\")"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Intelligent Prompt Parsing"
+      },
+      {
+        "level": 1,
+        "text": "Variant counts (priority chain)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Device Type Inference"
+      },
+      {
+        "level": 1,
+        "text": "Device type (priority chain)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Run Initialization & Directory Setup"
+      },
+      {
+        "level": 1,
+        "text": "Create directory and convert to absolute path"
+      },
+      {
+        "level": 1,
+        "text": "Initialize default flags for animation extraction logic"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Unified Target Inference with Intelligent Type Detection"
+      },
+      {
+        "level": 1,
+        "text": "Priority: --pages/--components (legacy) → --targets → --prompt analysis → synthesis → default"
+      },
+      {
+        "level": 1,
+        "text": "Step 1-2: Explicit parameters (legacy or unified)"
+      },
+      {
+        "level": 1,
+        "text": "Step 3: Prompt analysis (Claude internal analysis)"
+      },
+      {
+        "level": 1,
+        "text": "Step 4: Session synthesis"
+      },
+      {
+        "level": 1,
+        "text": "Step 5: Fallback"
+      },
+      {
+        "level": 1,
+        "text": "Validate and clean"
+      },
+      {
+        "level": 1,
+        "text": "Interactive confirmation"
+      },
+      {
+        "level": 1,
+        "text": "Process user modifications"
+      },
+      {
+        "level": 1,
+        "text": "⚠️ CRITICAL: User confirmation complete, IMMEDIATELY initialize TodoWrite and execute Phase 7"
+      },
+      {
+        "level": 1,
+        "text": "This is the only user interaction point in the workflow"
+      },
+      {
+        "level": 1,
+        "text": "After this point, all subsequent phases execute automatically without user intervention"
+      },
+      {
+        "level": 3,
+        "text": "Phase 6: Code Import & Completeness Assessment (Conditional)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 7: Style Extraction"
+      },
+      {
+        "level": 3,
+        "text": "Phase 8: Animation Extraction"
+      },
+      {
+        "level": 1,
+        "text": "Determine if animation extraction is needed"
+      },
+      {
+        "level": 1,
+        "text": "Output: animation-tokens.json + animation-guide.md"
+      },
+      {
+        "level": 1,
+        "text": "When phase finishes, IMMEDIATELY execute Phase 9 (auto-continue)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 9: Layout Extraction"
+      },
+      {
+        "level": 3,
+        "text": "Phase 10: UI Assembly"
+      },
+      {
+        "level": 1,
+        "text": "SlashCommand execute ATTACHES generate's tasks to current workflow"
+      },
+      {
+        "level": 1,
+        "text": "Orchestrator will EXECUTE these attached tasks itself"
+      },
+      {
+        "level": 1,
+        "text": "After executing all attached tasks, collapse them into phase summary"
+      },
+      {
+        "level": 1,
+        "text": "Workflow complete - generate command handles preview file generation (compare.html, PREVIEW.md)"
+      },
+      {
+        "level": 1,
+        "text": "Output (generated by generate command):"
+      },
+      {
+        "level": 1,
+        "text": "- {target}-style-{s}-layout-{l}.html (assembled prototypes)"
+      },
+      {
+        "level": 1,
+        "text": "- {target}-style-{s}-layout-{l}.css"
+      },
+      {
+        "level": 1,
+        "text": "- compare.html (interactive matrix view)"
+      },
+      {
+        "level": 1,
+        "text": "- PREVIEW.md (usage instructions)"
+      },
+      {
+        "level": 2,
+        "text": "TodoWrite Pattern"
+      },
+      {
+        "level": 2,
+        "text": "Completion Output"
+      }
+    ]
+  }
+}

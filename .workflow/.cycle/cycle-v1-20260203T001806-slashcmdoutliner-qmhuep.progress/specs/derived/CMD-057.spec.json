@@ -1,0 +1,137 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/tdd-plan.md",
+  "created_at": "2026-02-02T16:54:05.835Z",
+  "command": {
+    "group": "",
+    "name": "tdd-plan",
+    "description": "TDD workflow planning with Red-Green-Refactor task chain generation, test-first development structure, and cycle tracking",
+    "argument_hint": "\\\"feature description\\\"|file.md",
+    "allowed_tools": [
+      "SlashCommand(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Bash(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "TDD Workflow Plan Command (/workflow:tdd-plan)"
+      },
+      {
+        "level": 2,
+        "text": "Coordinator Role"
+      },
+      {
+        "level": 2,
+        "text": "Core Rules"
+      },
+      {
+        "level": 2,
+        "text": "TDD Compliance Requirements"
+      },
+      {
+        "level": 3,
+        "text": "The Iron Law"
+      },
+      {
+        "level": 3,
+        "text": "TDD Compliance Checkpoint"
+      },
+      {
+        "level": 3,
+        "text": "Core TDD Principles (from ref skills)"
+      },
+      {
+        "level": 2,
+        "text": "6-Phase Execution (with Conflict Resolution)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Session Discovery"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Context Gathering"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Test Coverage Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Conflict Resolution (Optional - auto-triggered by conflict risk)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: TDD Task Generation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 6: TDD Structure Validation & Action Plan Verification (RECOMMENDED)"
+      },
+      {
+        "level": 1,
+        "text": "Verify session artifacts exist"
+      },
+      {
+        "level": 1,
+        "text": "Count generated artifacts"
+      },
+      {
+        "level": 1,
+        "text": "Sample task structure verification (first task)"
+      },
+      {
+        "level": 2,
+        "text": "TodoWrite Pattern"
+      },
+      {
+        "level": 3,
+        "text": "Key Principles"
+      },
+      {
+        "level": 3,
+        "text": "TDD-Specific Features"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow Diagram"
+      },
+      {
+        "level": 2,
+        "text": "Input Processing"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "TDD Warning Patterns"
+      },
+      {
+        "level": 3,
+        "text": "Non-Blocking Warning Policy"
+      },
+      {
+        "level": 3,
+        "text": "Error Handling Quick Reference"
+      },
+      {
+        "level": 2,
+        "text": "Related Commands"
+      },
+      {
+        "level": 2,
+        "text": "Next Steps Decision Table"
+      },
+      {
+        "level": 3,
+        "text": "TDD Workflow State Transitions"
+      }
+    ]
+  }
+}

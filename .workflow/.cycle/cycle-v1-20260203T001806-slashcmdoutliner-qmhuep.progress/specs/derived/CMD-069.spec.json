@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/tools/test-context-gather.md",
+  "created_at": "2026-02-02T16:54:05.846Z",
+  "command": {
+    "group": "",
+    "name": "test-context-gather",
+    "description": "Collect test coverage context using test-context-search-agent and package into standardized test-context JSON",
+    "argument_hint": "--session WFS-test-session-id",
+    "allowed_tools": [
+      "Task(*)",
+      "Read(*)",
+      "Glob(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Test Context Gather Command (/workflow:tools:test-context-gather)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Core Philosophy"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Test-Context-Package Detection"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Invoke Test-Context-Search Agent"
+      },
+      {
+        "level": 2,
+        "text": "Execution Mode"
+      },
+      {
+        "level": 2,
+        "text": "Session Information"
+      },
+      {
+        "level": 2,
+        "text": "Mission"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Session Validation & Source Context Loading"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Test Coverage Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Framework Detection & Packaging"
+      },
+      {
+        "level": 2,
+        "text": "Output Requirements"
+      },
+      {
+        "level": 2,
+        "text": "Quality Validation"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Output Verification"
+      },
+      {
+        "level": 2,
+        "text": "Parameter Reference"
+      },
+      {
+        "level": 2,
+        "text": "Output Schema"
+      },
+      {
+        "level": 2,
+        "text": "Usage Examples"
+      },
+      {
+        "level": 3,
+        "text": "Basic Usage"
+      },
+      {
+        "level": 3,
+        "text": "Expected Output"
+      },
+      {
+        "level": 2,
+        "text": "Success Criteria"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Integration"
+      },
+      {
+        "level": 3,
+        "text": "Called By"
+      },
+      {
+        "level": 3,
+        "text": "Calls"
+      },
+      {
+        "level": 3,
+        "text": "Followed By"
+      },
+      {
+        "level": 2,
+        "text": "Notes"
+      }
+    ]
+  }
+}

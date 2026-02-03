@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/memory/docs-full-cli.md",
+  "created_at": "2026-02-02T16:54:05.801Z",
+  "command": {
+    "group": "",
+    "name": "docs-full-cli",
+    "description": "Generate full project documentation using CLI execution (Layer 3→1) with batched agents (4 modules/agent) and gemini→qwen→codex fallback, <20 modules uses direct parallel",
+    "argument_hint": "[path] [--tool <gemini|qwen|codex>]",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Full Documentation Generation - CLI Mode (/memory:docs-full-cli)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "3-Layer Architecture & Auto-Strategy Selection"
+      },
+      {
+        "level": 3,
+        "text": "Layer Definition & Strategy Assignment"
+      },
+      {
+        "level": 3,
+        "text": "Strategy Details"
+      },
+      {
+        "level": 4,
+        "text": "Full Strategy (Layer 3 Only)"
+      },
+      {
+        "level": 4,
+        "text": "Single Strategy (Layers 1-2)"
+      },
+      {
+        "level": 3,
+        "text": "Example Flow"
+      },
+      {
+        "level": 2,
+        "text": "Core Execution Rules"
+      },
+      {
+        "level": 2,
+        "text": "Tool Fallback Hierarchy"
+      },
+      {
+        "level": 2,
+        "text": "Execution Phases"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Discovery & Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Plan Presentation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3A: Direct Execution (<20 modules)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3B: Agent Batch Execution (≥20 modules)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Project-Level Documentation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Verification"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Output Structure"
+      },
+      {
+        "level": 2,
+        "text": "Usage Examples"
+      },
+      {
+        "level": 1,
+        "text": "Full project documentation generation"
+      },
+      {
+        "level": 1,
+        "text": "Target specific directory"
+      },
+      {
+        "level": 1,
+        "text": "Use specific tool"
+      },
+      {
+        "level": 2,
+        "text": "Key Advantages"
+      },
+      {
+        "level": 2,
+        "text": "Template Reference"
+      },
+      {
+        "level": 2,
+        "text": "Related Commands"
+      }
+    ]
+  }
+}

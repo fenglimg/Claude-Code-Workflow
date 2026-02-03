@@ -1,0 +1,116 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/ui-design/import-from-code.md",
+  "created_at": "2026-02-02T16:54:05.854Z",
+  "command": {
+    "group": "",
+    "name": "workflow:ui-design:import-from-code",
+    "description": "Import design system from code files (CSS/JS/HTML/SCSS) with automatic file discovery and parallel agent analysis",
+    "argument_hint": "[--design-id <id>] [--session <id>] [--source <path>]",
+    "allowed_tools": [
+      "Read",
+      "Write",
+      "Bash",
+      "Glob",
+      "Grep",
+      "Task",
+      "TodoWrite"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "UI Design: Import from Code"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Core Functionality"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      },
+      {
+        "level": 3,
+        "text": "Command Syntax"
+      },
+      {
+        "level": 1,
+        "text": "Flags"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Setup & File Discovery"
+      },
+      {
+        "level": 1,
+        "text": "1. Determine base path with priority: --design-id > --session > error"
+      },
+      {
+        "level": 1,
+        "text": "2. Initialize directories"
+      },
+      {
+        "level": 1,
+        "text": "3. Discover files using script"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Parallel Agent Analysis"
+      },
+      {
+        "level": 4,
+        "text": "Style Agent Task (design-tokens.json, style-guide.md)"
+      },
+      {
+        "level": 4,
+        "text": "Animation Agent Task (animation-tokens.json, animation-guide.md)"
+      },
+      {
+        "level": 4,
+        "text": "Layout Agent Task (layout-templates.json, layout-guide.md)"
+      },
+      {
+        "level": 1,
+        "text": "Note: Agents run in parallel and write separate completeness reports"
+      },
+      {
+        "level": 1,
+        "text": "Each agent generates its own completeness-report.json directly"
+      },
+      {
+        "level": 1,
+        "text": "No synthesis phase needed"
+      },
+      {
+        "level": 2,
+        "text": "Output Files"
+      },
+      {
+        "level": 3,
+        "text": "Generated Files"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Common Errors"
+      },
+      {
+        "level": 2,
+        "text": "Best Practices"
+      }
+    ]
+  }
+}

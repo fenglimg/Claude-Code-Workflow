@@ -1,0 +1,168 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/cli/codex-review.md",
+  "created_at": "2026-02-02T16:54:05.780Z",
+  "command": {
+    "group": "",
+    "name": "codex-review",
+    "description": "Interactive code review using Codex CLI via ccw endpoint with configurable review target, model, and custom instructions",
+    "argument_hint": "[--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]",
+    "allowed_tools": [
+      "Bash(*)",
+      "AskUserQuestion(*)",
+      "Read(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Codex Review Command (/cli:codex-review)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Prompt Template Format"
+      },
+      {
+        "level": 2,
+        "text": "EXECUTION INSTRUCTIONS - START HERE"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Parse Arguments"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Interactive Parameter Selection"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Build Prompt and Command"
+      },
+      {
+        "level": 3,
+        "text": "Step 4: Execute via CCW CLI"
+      },
+      {
+        "level": 1,
+        "text": "Base structure"
+      },
+      {
+        "level": 1,
+        "text": "Variables from user selection"
+      },
+      {
+        "level": 1,
+        "text": "Build target flag"
+      },
+      {
+        "level": 1,
+        "text": "Build model flag (only if not default)"
+      },
+      {
+        "level": 1,
+        "text": "Build title flag (if provided)"
+      },
+      {
+        "level": 1,
+        "text": "Execute"
+      },
+      {
+        "level": 3,
+        "text": "Step 5: Execute and Display Results"
+      },
+      {
+        "level": 2,
+        "text": "Quick Usage Examples"
+      },
+      {
+        "level": 3,
+        "text": "Direct Execution (No Interaction)"
+      },
+      {
+        "level": 1,
+        "text": "Review uncommitted changes with default settings"
+      },
+      {
+        "level": 1,
+        "text": "Review against main branch"
+      },
+      {
+        "level": 1,
+        "text": "Review specific commit"
+      },
+      {
+        "level": 1,
+        "text": "Review with custom model"
+      },
+      {
+        "level": 1,
+        "text": "Review with security focus"
+      },
+      {
+        "level": 1,
+        "text": "Full options"
+      },
+      {
+        "level": 3,
+        "text": "Interactive Mode"
+      },
+      {
+        "level": 1,
+        "text": "Start interactive selection (guided flow)"
+      },
+      {
+        "level": 2,
+        "text": "Focus Area Mapping"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "No Changes to Review"
+      },
+      {
+        "level": 3,
+        "text": "Invalid Branch"
+      },
+      {
+        "level": 1,
+        "text": "Show available branches"
+      },
+      {
+        "level": 3,
+        "text": "Invalid Commit"
+      },
+      {
+        "level": 1,
+        "text": "Show recent commits"
+      },
+      {
+        "level": 2,
+        "text": "Integration Notes"
+      },
+      {
+        "level": 2,
+        "text": "Validation Constraints"
+      },
+      {
+        "level": 1,
+        "text": "✓ Valid: prompt only (reviews uncommitted by default)"
+      },
+      {
+        "level": 1,
+        "text": "✓ Valid: target flag only (no prompt)"
+      },
+      {
+        "level": 1,
+        "text": "✗ Invalid: target flag with prompt (will fail)"
+      }
+    ]
+  }
+}

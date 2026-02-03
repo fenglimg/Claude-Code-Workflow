@@ -1,0 +1,187 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/memory/tips.md",
+  "created_at": "2026-02-02T16:54:05.804Z",
+  "command": {
+    "group": "",
+    "name": "tips",
+    "description": "Quick note-taking command to capture ideas, snippets, reminders, and insights for later reference",
+    "argument_hint": "<note content> [--tag <tag1,tag2>] [--context <context>]",
+    "allowed_tools": [
+      "mcp__ccw-tools__core_memory(*)",
+      "Read(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Memory Tips Command (/memory:tips)"
+      },
+      {
+        "level": 2,
+        "text": "1. Overview"
+      },
+      {
+        "level": 2,
+        "text": "2. Parameters"
+      },
+      {
+        "level": 2,
+        "text": "3. Structured Output Format"
+      },
+      {
+        "level": 2,
+        "text": "Tip ID"
+      },
+      {
+        "level": 2,
+        "text": "Timestamp"
+      },
+      {
+        "level": 2,
+        "text": "Project Root"
+      },
+      {
+        "level": 2,
+        "text": "Content"
+      },
+      {
+        "level": 2,
+        "text": "Tags"
+      },
+      {
+        "level": 2,
+        "text": "Context"
+      },
+      {
+        "level": 2,
+        "text": "Session Link"
+      },
+      {
+        "level": 2,
+        "text": "Auto-Detected Context"
+      },
+      {
+        "level": 2,
+        "text": "4. Field Definitions"
+      },
+      {
+        "level": 2,
+        "text": "5. Execution Flow"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Parse Arguments"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Gather Context"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Generate Structured Text"
+      },
+      {
+        "level": 2,
+        "text": "Timestamp"
+      },
+      {
+        "level": 2,
+        "text": "Project Root"
+      },
+      {
+        "level": 2,
+        "text": "Content"
+      },
+      {
+        "level": 2,
+        "text": "Tags"
+      },
+      {
+        "level": 2,
+        "text": "Context"
+      },
+      {
+        "level": 2,
+        "text": "Session Link"
+      },
+      {
+        "level": 2,
+        "text": "Auto-Detected Context"
+      },
+      {
+        "level": 3,
+        "text": "Step 4: Save to Core Memory"
+      },
+      {
+        "level": 3,
+        "text": "Step 5: Confirm to User"
+      },
+      {
+        "level": 2,
+        "text": "6. Tag Categories (Suggested)"
+      },
+      {
+        "level": 2,
+        "text": "7. Search Integration"
+      },
+      {
+        "level": 1,
+        "text": "Via command (if /memory:search exists)"
+      },
+      {
+        "level": 1,
+        "text": "Via MCP tool"
+      },
+      {
+        "level": 1,
+        "text": "Via CLI"
+      },
+      {
+        "level": 2,
+        "text": "8. Quality Checklist"
+      },
+      {
+        "level": 2,
+        "text": "9. Best Practices"
+      },
+      {
+        "level": 3,
+        "text": "Good Tips Examples"
+      },
+      {
+        "level": 3,
+        "text": "Poor Tips Examples"
+      },
+      {
+        "level": 2,
+        "text": "10. Use Cases"
+      },
+      {
+        "level": 3,
+        "text": "During Development"
+      },
+      {
+        "level": 3,
+        "text": "After Bug Fixes"
+      },
+      {
+        "level": 3,
+        "text": "Code Review Insights"
+      },
+      {
+        "level": 3,
+        "text": "Architecture Decisions"
+      },
+      {
+        "level": 3,
+        "text": "Library Recommendations"
+      },
+      {
+        "level": 2,
+        "text": "11. Notes"
+      }
+    ]
+  }
+}

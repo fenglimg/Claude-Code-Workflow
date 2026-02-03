@@ -1,0 +1,305 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/ui-design/layout-extract.md",
+  "created_at": "2026-02-02T16:54:05.855Z",
+  "command": {
+    "group": "",
+    "name": "layout-extract",
+    "description": "Extract structural layout information from reference images or text prompts using Claude analysis with variant generation or refinement mode",
+    "argument_hint": "[-y|--yes] [--design-id <id>] [--session <id>] [--images \"<glob>\"] [--prompt \"<desc>\"] [--targets \"<list>\"] [--variants <count>] [--device-type <desktop|mobile|tablet|responsive>] [--interactive] [--refine]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "AskUserQuestion(*)",
+      "Task(ui-design-agent)",
+      "mcp__exa__web_search_exa(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Layout Extraction Command"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Phase 0: Setup & Input Validation"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Detect Input, Mode & Targets"
+      },
+      {
+        "level": 1,
+        "text": "Detect input source"
+      },
+      {
+        "level": 1,
+        "text": "Priority: --images → image | --prompt → text"
+      },
+      {
+        "level": 1,
+        "text": "Detect refinement mode"
+      },
+      {
+        "level": 1,
+        "text": "Set variants count"
+      },
+      {
+        "level": 1,
+        "text": "Refinement mode: Force variants_count = 1 (ignore user-provided --variants)"
+      },
+      {
+        "level": 1,
+        "text": "Exploration mode: Use --variants or default to 3 (range: 1-5)"
+      },
+      {
+        "level": 1,
+        "text": "Resolve targets"
+      },
+      {
+        "level": 1,
+        "text": "Priority: --targets → prompt analysis → default [\"page\"]"
+      },
+      {
+        "level": 1,
+        "text": "Resolve device type"
+      },
+      {
+        "level": 1,
+        "text": "Determine base path with priority: --design-id > --session > auto-detect"
+      },
+      {
+        "level": 1,
+        "text": "Validate and convert to absolute path"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Load Inputs & Create Directories"
+      },
+      {
+        "level": 1,
+        "text": "For image mode"
+      },
+      {
+        "level": 1,
+        "text": "For text mode"
+      },
+      {
+        "level": 1,
+        "text": "Validate --prompt is non-empty"
+      },
+      {
+        "level": 1,
+        "text": "Create output directory"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Memory Check"
+      },
+      {
+        "level": 1,
+        "text": "1. Check if inputs cached in session memory"
+      },
+      {
+        "level": 1,
+        "text": "2. Check if output already exists"
+      },
+      {
+        "level": 2,
+        "text": "Phase 1: Layout Concept or Refinement Options Generation"
+      },
+      {
+        "level": 3,
+        "text": "Step 0.5: Load Existing Layout (Refinement Mode)"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Generate Options (Agent Task 1 - Mode-Specific)"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Verify Options File Created"
+      },
+      {
+        "level": 1,
+        "text": "Quick validation"
+      },
+      {
+        "level": 2,
+        "text": "Phase 1.5: User Confirmation (Optional - Triggered by --interactive)"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Check Interactive Flag"
+      },
+      {
+        "level": 1,
+        "text": "Skip this entire phase if --interactive flag is not present"
+      },
+      {
+        "level": 1,
+        "text": "Interactive mode enabled"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Load and Present Options (Mode-Specific)"
+      },
+      {
+        "level": 1,
+        "text": "Read options file"
+      },
+      {
+        "level": 1,
+        "text": "Branch based on mode"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Present Options to User (Per Target)"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Capture User Selection and Update Options File (Per Target)"
+      },
+      {
+        "level": 3,
+        "text": "Step 4: Confirmation Message"
+      },
+      {
+        "level": 2,
+        "text": "Phase 2: Layout Template Generation (Agent Task 2)"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Load User Selections or Default to All"
+      },
+      {
+        "level": 1,
+        "text": "Read analysis-options.json which may contain user_selection"
+      },
+      {
+        "level": 1,
+        "text": "Check if user_selection field exists (interactive mode)"
+      },
+      {
+        "level": 1,
+        "text": "Build task list for all selected concepts across all targets"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Launch Parallel Agent Tasks"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Verify Output Files"
+      },
+      {
+        "level": 1,
+        "text": "Count generated files"
+      },
+      {
+        "level": 1,
+        "text": "Verify all files were created"
+      },
+      {
+        "level": 1,
+        "text": "Verify file structure (sample check)"
+      },
+      {
+        "level": 2,
+        "text": "Completion"
+      },
+      {
+        "level": 3,
+        "text": "Todo Update"
+      },
+      {
+        "level": 3,
+        "text": "Output Message"
+      },
+      {
+        "level": 2,
+        "text": "Simple Bash Commands"
+      },
+      {
+        "level": 3,
+        "text": "Path Operations"
+      },
+      {
+        "level": 1,
+        "text": "Find design directory"
+      },
+      {
+        "level": 1,
+        "text": "Create output directories"
+      },
+      {
+        "level": 3,
+        "text": "Validation Commands"
+      },
+      {
+        "level": 1,
+        "text": "Check if already extracted"
+      },
+      {
+        "level": 1,
+        "text": "Count generated files"
+      },
+      {
+        "level": 1,
+        "text": "Validate JSON structure (sample check)"
+      },
+      {
+        "level": 3,
+        "text": "File Operations"
+      },
+      {
+        "level": 1,
+        "text": "Load image references"
+      },
+      {
+        "level": 1,
+        "text": "Write layout templates"
+      },
+      {
+        "level": 2,
+        "text": "Output Structure"
+      },
+      {
+        "level": 2,
+        "text": "Layout Template File Format"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 3,
+        "text": "Common Errors"
+      },
+      {
+        "level": 3,
+        "text": "Recovery Strategies"
+      },
+      {
+        "level": 2,
+        "text": "Key Features"
+      }
+    ]
+  }
+}

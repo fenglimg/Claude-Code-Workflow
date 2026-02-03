@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/session/list.md",
+  "created_at": "2026-02-02T16:54:05.832Z",
+  "command": {
+    "group": "",
+    "name": "list",
+    "description": "List all workflow sessions with status filtering, shows session metadata and progress information",
+    "argument_hint": "",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "List Workflow Sessions (/workflow:session:list)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      },
+      {
+        "level": 2,
+        "text": "Implementation Flow"
+      },
+      {
+        "level": 3,
+        "text": "Step 1: Find All Sessions"
+      },
+      {
+        "level": 3,
+        "text": "Step 2: Check Active Session"
+      },
+      {
+        "level": 3,
+        "text": "Step 3: Read Session Metadata"
+      },
+      {
+        "level": 3,
+        "text": "Step 4: Count Task Progress"
+      },
+      {
+        "level": 3,
+        "text": "Step 5: Get Creation Time"
+      },
+      {
+        "level": 2,
+        "text": "Simple Bash Commands"
+      },
+      {
+        "level": 3,
+        "text": "Basic Operations"
+      },
+      {
+        "level": 2,
+        "text": "Simple Output Format"
+      },
+      {
+        "level": 3,
+        "text": "Session List Display"
+      },
+      {
+        "level": 3,
+        "text": "Status Indicators"
+      },
+      {
+        "level": 3,
+        "text": "Quick Commands"
+      },
+      {
+        "level": 1,
+        "text": "Count all sessions"
+      },
+      {
+        "level": 1,
+        "text": "Show recent sessions"
+      }
+    ]
+  }
+}

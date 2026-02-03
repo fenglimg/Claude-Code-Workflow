@@ -1,0 +1,314 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/debug-with-file.md",
+  "created_at": "2026-02-02T16:54:05.816Z",
+  "command": {
+    "group": "",
+    "name": "debug-with-file",
+    "description": "Interactive hypothesis-driven debugging with documented exploration, understanding evolution, and Gemini-assisted correction",
+    "argument_hint": "[-y|--yes] \\\"bug description or error message\\\"",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Grep(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 2,
+        "text": "Auto Mode"
+      },
+      {
+        "level": 1,
+        "text": "Workflow Debug-With-File Command (/workflow:debug-with-file)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      },
+      {
+        "level": 1,
+        "text": "Arguments"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Implementation"
+      },
+      {
+        "level": 3,
+        "text": "Session Setup & Mode Detection"
+      },
+      {
+        "level": 3,
+        "text": "Explore Mode"
+      },
+      {
+        "level": 1,
+        "text": "Understanding Document"
+      },
+      {
+        "level": 2,
+        "text": "Exploration Timeline"
+      },
+      {
+        "level": 3,
+        "text": "Iteration 1 - Initial Exploration (${timestamp})"
+      },
+      {
+        "level": 4,
+        "text": "Current Understanding"
+      },
+      {
+        "level": 4,
+        "text": "Evidence from Code Search"
+      },
+      {
+        "level": 4,
+        "text": "Next Steps"
+      },
+      {
+        "level": 2,
+        "text": "Current Consolidated Understanding"
+      },
+      {
+        "level": 4,
+        "text": "Hypotheses Generated (Gemini-Assisted)"
+      },
+      {
+        "level": 3,
+        "text": "Analyze Mode"
+      },
+      {
+        "level": 3,
+        "text": "Iteration ${n} - Evidence Analysis (${timestamp})"
+      },
+      {
+        "level": 4,
+        "text": "Log Analysis Results"
+      },
+      {
+        "level": 4,
+        "text": "Corrected Understanding"
+      },
+      {
+        "level": 4,
+        "text": "New Insights"
+      },
+      {
+        "level": 4,
+        "text": "Gemini Analysis"
+      },
+      {
+        "level": 4,
+        "text": "Root Cause Identified"
+      },
+      {
+        "level": 4,
+        "text": "Next Steps"
+      },
+      {
+        "level": 2,
+        "text": "Current Consolidated Understanding (Updated)"
+      },
+      {
+        "level": 2,
+        "text": "Current Consolidated Understanding"
+      },
+      {
+        "level": 3,
+        "text": "What We Know"
+      },
+      {
+        "level": 3,
+        "text": "What Was Disproven"
+      },
+      {
+        "level": 3,
+        "text": "Current Investigation Focus"
+      },
+      {
+        "level": 3,
+        "text": "Remaining Questions"
+      },
+      {
+        "level": 3,
+        "text": "Fix & Verification"
+      },
+      {
+        "level": 3,
+        "text": "Iteration ${n} - Resolution (${timestamp})"
+      },
+      {
+        "level": 4,
+        "text": "Fix Applied"
+      },
+      {
+        "level": 4,
+        "text": "Verification Results"
+      },
+      {
+        "level": 4,
+        "text": "Lessons Learned"
+      },
+      {
+        "level": 4,
+        "text": "Key Insights for Future"
+      },
+      {
+        "level": 2,
+        "text": "Session Folder Structure"
+      },
+      {
+        "level": 2,
+        "text": "Understanding Document Template"
+      },
+      {
+        "level": 1,
+        "text": "Understanding Document"
+      },
+      {
+        "level": 2,
+        "text": "Exploration Timeline"
+      },
+      {
+        "level": 3,
+        "text": "Iteration 1 - Initial Exploration (2025-01-21 10:00)"
+      },
+      {
+        "level": 4,
+        "text": "Current Understanding"
+      },
+      {
+        "level": 4,
+        "text": "Evidence from Code Search"
+      },
+      {
+        "level": 4,
+        "text": "Hypotheses Generated (Gemini-Assisted)"
+      },
+      {
+        "level": 3,
+        "text": "Iteration 2 - Evidence Analysis (2025-01-21 10:15)"
+      },
+      {
+        "level": 4,
+        "text": "Log Analysis Results"
+      },
+      {
+        "level": 4,
+        "text": "Corrected Understanding"
+      },
+      {
+        "level": 4,
+        "text": "Gemini Analysis"
+      },
+      {
+        "level": 2,
+        "text": "Current Consolidated Understanding"
+      },
+      {
+        "level": 3,
+        "text": "What We Know"
+      },
+      {
+        "level": 3,
+        "text": "What Was Disproven"
+      },
+      {
+        "level": 3,
+        "text": "Current Investigation Focus"
+      },
+      {
+        "level": 3,
+        "text": "Remaining Questions"
+      },
+      {
+        "level": 2,
+        "text": "Iteration Flow"
+      },
+      {
+        "level": 2,
+        "text": "Gemini Integration Points"
+      },
+      {
+        "level": 3,
+        "text": "1. Hypothesis Generation (Explore Mode)"
+      },
+      {
+        "level": 3,
+        "text": "2. Evidence Analysis (Analyze Mode)"
+      },
+      {
+        "level": 3,
+        "text": "3. New Hypothesis Generation (After All Rejected)"
+      },
+      {
+        "level": 2,
+        "text": "Error Correction Mechanism"
+      },
+      {
+        "level": 3,
+        "text": "Correction Format in understanding.md"
+      },
+      {
+        "level": 4,
+        "text": "Corrected Understanding"
+      },
+      {
+        "level": 3,
+        "text": "Consolidation Rules"
+      },
+      {
+        "level": 2,
+        "text": "Current Consolidated Understanding"
+      },
+      {
+        "level": 2,
+        "text": "Current Consolidated Understanding"
+      },
+      {
+        "level": 3,
+        "text": "What We Know"
+      },
+      {
+        "level": 3,
+        "text": "What Was Disproven"
+      },
+      {
+        "level": 3,
+        "text": "Current Investigation Focus"
+      },
+      {
+        "level": 2,
+        "text": "Post-Completion Expansion"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Comparison with /workflow:debug"
+      },
+      {
+        "level": 2,
+        "text": "Usage Recommendations"
+      }
+    ]
+  }
+}

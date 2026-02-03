@@ -1,0 +1,188 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/clean.md",
+  "created_at": "2026-02-02T16:54:05.814Z",
+  "command": {
+    "group": "",
+    "name": "clean",
+    "description": "Intelligent code cleanup with mainline detection, stale artifact discovery, and safe execution",
+    "argument_hint": "[-y|--yes] [--dry-run] [\\\"focus area\\\"]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "Write(*)"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Clean Command (/workflow:clean)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      },
+      {
+        "level": 2,
+        "text": "Auto Mode Defaults"
+      },
+      {
+        "level": 2,
+        "text": "Execution Process"
+      },
+      {
+        "level": 2,
+        "text": "Implementation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Mainline Detection"
+      },
+      {
+        "level": 1,
+        "text": "Get commit frequency by directory (last 30 days)"
+      },
+      {
+        "level": 1,
+        "text": "Get recent active branches"
+      },
+      {
+        "level": 1,
+        "text": "Get files with most recent changes"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Drift Discovery"
+      },
+      {
+        "level": 2,
+        "text": "Task Objective"
+      },
+      {
+        "level": 2,
+        "text": "Context"
+      },
+      {
+        "level": 2,
+        "text": "Discovery Categories"
+      },
+      {
+        "level": 3,
+        "text": "Category 1: Stale Workflow Sessions"
+      },
+      {
+        "level": 3,
+        "text": "Category 2: Drifted Documents"
+      },
+      {
+        "level": 3,
+        "text": "Category 3: Dead Code"
+      },
+      {
+        "level": 2,
+        "text": "Output Format"
+      },
+      {
+        "level": 2,
+        "text": "Execution Commands"
+      },
+      {
+        "level": 1,
+        "text": "Session directories"
+      },
+      {
+        "level": 1,
+        "text": "Check modification times (Linux/Mac)"
+      },
+      {
+        "level": 1,
+        "text": "Check modification times (Windows PowerShell via bash)"
+      },
+      {
+        "level": 1,
+        "text": "Find orphan exports (TypeScript)"
+      },
+      {
+        "level": 1,
+        "text": "Find imports"
+      },
+      {
+        "level": 1,
+        "text": "Find large comment blocks"
+      },
+      {
+        "level": 1,
+        "text": "Find old TODOs"
+      },
+      {
+        "level": 2,
+        "text": "Success Criteria"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Confirmation"
+      },
+      {
+        "level": 2,
+        "text": "Cleanup Discovery Report"
+      },
+      {
+        "level": 3,
+        "text": "Summary"
+      },
+      {
+        "level": 3,
+        "text": "Stale Sessions"
+      },
+      {
+        "level": 3,
+        "text": "Drifted Documents"
+      },
+      {
+        "level": 3,
+        "text": "Dead Code"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Execution"
+      },
+      {
+        "level": 2,
+        "text": "Cleanup Complete"
+      },
+      {
+        "level": 3,
+        "text": "Deleted Items"
+      },
+      {
+        "level": 3,
+        "text": "Failed Items"
+      },
+      {
+        "level": 2,
+        "text": "Session Folder Structure"
+      },
+      {
+        "level": 2,
+        "text": "Risk Level Definitions"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Related Commands"
+      }
+    ]
+  }
+}
