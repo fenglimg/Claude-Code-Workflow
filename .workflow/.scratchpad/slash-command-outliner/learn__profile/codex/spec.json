@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-02-03T00:00:00.000Z",
+  "command": {
+    "group": "learn",
+    "name": "profile",
+    "description": "管理用户学习档案，包括偏好采集、背景解析及基于区间的自适应能力评估。",
+    "argument_hint": "[create|update] [profile-id] [--goal=\"<learning goal>\"] [--full-assessment[=true|false]]",
+    "usage_args": "create|update [profile-id] [--goal=\"<learning goal>\"] [--full-assessment[=true|false]]",
+    "allowed_tools": ["TodoWrite(*)", "Task(*)", "AskUserQuestion(*)", "Bash(*)", "Read(*)"]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "iterative",
+    "primary_user_value": "创建/更新学习档案，并对指定 Topic 做最少题量的区间评估（Cycle-4 Interval Assessment）。"
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/learn/state.json",
+      ".workflow/learn/state.v2.json",
+      ".workflow/learn/profiles/<profile-id>.json",
+      ".workflow/learn/profiles/events/<profile-id>.ndjson",
+      ".workflow/learn/profiles/snapshots/<profile-id>.json",
+      ".workflow/learn/packs/**",
+      ".workflow/learn/taxonomy/**"
+    ],
+    "writes": [
+      ".workflow/learn/state.json (or state.v2.json fallback)",
+      ".workflow/learn/profiles/<profile-id>.json",
+      ".workflow/learn/profiles/events/<profile-id>.ndjson",
+      ".workflow/learn/profiles/snapshots/<profile-id>.json",
+      ".workflow/learn/telemetry/events.ndjson",
+      ".workflow/learn/packs/**"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 3,
+    "time_budget_seconds": 900,
+    "must_not": [
+      "AskUserQuestion 单次调用 questions > 4",
+      "options 数量超出约束（按现有 CCW 交互规范）",
+      "直接手工写 .workflow/learn/**（必须走 ccw learn:* CLI）",
+      "遥测/事件写入失败阻断主流程（best-effort）"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid",
+      "allowed-tools correct",
+      "core sections present",
+      "artifact references are CCW learn CLI paths"
+    ]
+  },
+  "dependencies": {
+    "cli": [
+      "ccw learn:read-state",
+      "ccw learn:update-state",
+      "ccw learn:read-profile",
+      "ccw learn:write-profile",
+      "ccw learn:append-profile-events-batch",
+      "ccw learn:append-telemetry-event",
+      "ccw learn:ensure-pack",
+      "ccw learn:propose-inferred-skill"
+    ],
+    "modules": [
+      ".claude/commands/learn/_internal/assess.js",
+      ".claude/commands/learn/_internal/mcp-runner.js",
+      ".claude/commands/learn/_internal/error-handler.js",
+      ".claude/commands/learn/_internal/json-parser.js"
+    ]
+  }
+}

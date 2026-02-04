@@ -29,5 +29,7 @@ Do **not** copy/paste existing implementation docs as input; treat them as oracl
 Write a single file:
 - `specs/outputs/spec.json` (or in cycle mode: `{cycle}/specs/{command}.spec.json`)
 
-Schema guidance: see `../specs/spec-input.md`.
+If producing final artifacts under scratchpad (recommended):
+- `.workflow/.scratchpad/slash-command-outliner/<slash_slug>/<engine>/spec.json`
 
+Schema guidance: see `../specs/spec-input.md`.

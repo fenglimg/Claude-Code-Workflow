@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-02-03T00:00:00.000Z",
+  "candidates": [
+    {
+      "slash": "/learn:profile",
+      "file_path": ".claude/commands/learn/profile.md",
+      "score": 1.0,
+      "why": "同组同名；包含 Topic V0、pre-context 采集、背景复用、Topic 覆盖 loop、seed/full pack、assess.js 集成与 best-effort 事件写入。"
+    },
+    {
+      "slash": "/learn:plan",
+      "file_path": ".claude/commands/learn/plan.md",
+      "score": 0.74,
+      "why": "同 learn 工作流；同样依赖 ccw learn:* 状态/档案；包含 AskUserQuestion + CLI 原子化写入 + schema gate 的范式。"
+    },
+    {
+      "slash": "/learn:execute",
+      "file_path": ".claude/commands/learn/execute.md",
+      "score": 0.68,
+      "why": "同 learn 工作流；包含 mcp-runner 沙箱执行与进度/档案更新；可复用错误处理与 best-effort 更新策略。"
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 0.46,
+      "why": "多轮交互与产物写入结构较完整；可借鉴 frontmatter/section 组织与执行流程表达方式。"
+    },
+    {
+      "slash": "/flow-create",
+      "file_path": ".claude/commands/flow-create.md",
+      "score": 0.34,
+      "why": "偏向“创建向导”式交互；可参考分阶段 AskUserQuestion 的节奏控制与 UX 文案结构。"
+    }
+  ],
+  "selected": {
+    "slash": "/learn:profile",
+    "file_path": ".claude/commands/learn/profile.md",
+    "rationale": "作为同命令现有实现（oracle），用于 Gap Report 校验 allowed-tools、章节结构与 learn CLI 路径一致性。"
+  }
+}

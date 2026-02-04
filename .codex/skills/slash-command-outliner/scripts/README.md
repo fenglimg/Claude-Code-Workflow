@@ -9,8 +9,17 @@ Run from repo root.
 ## Scan corpus (rebuild a command list)
 
 ```bash
-node .codex/skills/slash-command-outliner/scripts/scan-corpus.js --root=.claude/commands --out=.workflow/.scratchpad/commands.json
+node .codex/skills/slash-command-outliner/scripts/scan-corpus.js --root=.claude/commands --out=.workflow/.scratchpad/slash-command-outliner/corpus/commands.json
 ```
+
+## Suggested scratchpad layout (per slash)
+
+- Per-command outputs:
+  - `.workflow/.scratchpad/slash-command-outliner/<slash_slug>/<engine>/`
+  - `slash_slug`: remove leading `/`, replace `:` and `/` with `__` (e.g. `/learn:profile` → `learn__profile`)
+  - `engine`: `codex` or `claude`
+- Shared corpus data:
+  - `.workflow/.scratchpad/slash-command-outliner/corpus/`
 
 ## Regress all commands (cycle mode)
 

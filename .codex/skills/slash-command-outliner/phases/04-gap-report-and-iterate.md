@@ -21,10 +21,13 @@ Write:
 - `specs/outputs/gap-report.md` (use `../templates/gap-report.md`)
 - `specs/outputs/fix-plan.md` (minimal fix list; label each fix with scope)
 
+If producing final artifacts under scratchpad (recommended):
+- `.workflow/.scratchpad/slash-command-outliner/<slash_slug>/<engine>/gap-report.full.md`
+- `.workflow/.scratchpad/slash-command-outliner/<slash_slug>/<engine>/fix-plan.md`
+
 ## Gap Severity
 
 Follow `../specs/quality-gates.md`:
 - P0: must-fix (breaks CCW conventions or tool surface)
 - P1: should-fix (missing major sections/artifacts)
 - P2: optional (nice-to-have)
-

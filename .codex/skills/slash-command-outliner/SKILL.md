@@ -10,6 +10,29 @@ Input a **slash command requirement/spec document**. Output a **CCW-aligned, end
 
 This skill is designed to be **precise** (no fluff) and **stable** (non-regression gate).
 
+## Scratchpad Output Layout（按 slash 聚合）
+
+为避免 `.workflow/.scratchpad` 产物散落，默认把本技能的“最终产物”放到：
+
+- `.workflow/.scratchpad/slash-command-outliner/<slash_slug>/<engine>/`
+
+规则：
+
+- `slash_slug`：去掉前导 `/`，再把 `:` 和 `/` 替换为 `__`
+  - 例：`/learn:profile` → `learn__profile`
+- `engine`：`codex` 或 `claude`（同一命令可并行保留两套产物）
+- 全局共享的 corpus 文件放在：
+  - `.workflow/.scratchpad/slash-command-outliner/corpus/`
+
+推荐的文件命名（每个 `<slash_slug>/<engine>/` 下）：
+
+- `spec.json`
+- `references.json`
+- `slash-outline.md`
+- `agent-outline.md`
+- `gap-report.full.md`（需求 vs corpus 的语义差距）
+- `gap-report.outline-vs-reference.md`（outline vs oracle 的 P0/P1 差距）
+
 ## Canonical Workflow (Phases)
 
 1) `phases/01-collect-spec.md`  

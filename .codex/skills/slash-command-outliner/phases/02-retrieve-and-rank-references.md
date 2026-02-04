@@ -19,7 +19,9 @@ Find the closest existing commands and extract **reusable patterns** without cop
 Write:
 - `specs/outputs/references.json`
 
+If producing final artifacts under scratchpad (recommended):
+- `.workflow/.scratchpad/slash-command-outliner/<slash_slug>/<engine>/references.json`
+
 Include:
 - `candidates[]` with `{slash, file_path, score, why}`
 - `selected` with the final choice
-

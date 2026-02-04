@@ -19,8 +19,11 @@ Use templates; keep output concise and implementation-oriented.
 - `specs/outputs/generated-slash-outline.md` (based on `../templates/slash-command-outline.md`)
 - `specs/outputs/generated-agent-outline.md` (based on `../templates/agent-outline.md`)
 
+If producing final artifacts under scratchpad (recommended):
+- `.workflow/.scratchpad/slash-command-outliner/<slash_slug>/<engine>/slash-outline.md`
+- `.workflow/.scratchpad/slash-command-outliner/<slash_slug>/<engine>/agent-outline.md`
+
 ## Notes
 
 - Do not invent new CCW architecture; reuse established patterns.
 - If uncertain, explicitly mark items as `TBD` instead of hallucinating.
-
