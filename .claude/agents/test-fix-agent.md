@@ -83,15 +83,15 @@ When task JSON contains implementation_approach array:
    - `description`: Detailed description with variable references
    - `modification_points`: Test and code modification targets
    - `logic_flow`: Test-fix iteration sequence
-   - `command`: Optional CLI command (only when explicitly specified)
    - `depends_on`: Array of step numbers that must complete first
    - `output`: Variable name for this step's output
 5. **Execution Mode Selection**:
-   - IF `command` field exists → Execute CLI command via Bash tool
-   - ELSE (no command) → Agent direct execution:
-     - Parse `modification_points` as files to modify
-     - Follow `logic_flow` for test-fix iteration
-     - Use test_commands from flow_control for test execution
+   - Based on `meta.execution_config.method`:
+     - `"cli"` → Build CLI command via buildCliHandoffPrompt() and execute via Bash tool
+     - `"agent"` (default) → Agent direct execution:
+       - Parse `modification_points` as files to modify
+       - Follow `logic_flow` for test-fix iteration
+       - Use test_commands from flow_control for test execution
 
 
 ### 1. Context Assessment & Test Discovery
@@ -102,7 +102,7 @@ When task JSON contains implementation_approach array:
   - L1 (Unit): `*.test.*`, `*.spec.*` in `__tests__/`, `tests/unit/`
   - L2 (Integration): `tests/integration/`, `*.integration.test.*`
   - L3 (E2E): `tests/e2e/`, `*.e2e.test.*`, `cypress/`, `playwright/`
-- **context-package.json** (CCW Workflow): Use Read tool to get context package from `.workflow/active/{session}/.process/context-package.json`
+- **context-package.json** : Use Read tool to get context package from `.workflow/active/{session}/.process/context-package.json`
 - Identify test commands from project configuration
 
 ```bash

@@ -381,16 +381,29 @@ export class CoreMemoryStore {
    * Get all memories
    */
   getMemories(options: { archived?: boolean; limit?: number; offset?: number } = {}): CoreMemory[] {
-    const { archived = false, limit = 50, offset = 0 } = options;
+    const { archived, limit = 50, offset = 0 } = options;
 
-    const stmt = this.db.prepare(`
-      SELECT * FROM memories
-      WHERE archived = ?
-      ORDER BY updated_at DESC
-      LIMIT ? OFFSET ?
-    `);
+    let stmt;
+    let rows;
 
-    const rows = stmt.all(archived ? 1 : 0, limit, offset) as any[];
+    if (archived === undefined) {
+      // Fetch all memories regardless of archived status
+      stmt = this.db.prepare(`
+        SELECT * FROM memories
+        ORDER BY updated_at DESC
+        LIMIT ? OFFSET ?
+      `);
+      rows = stmt.all(limit, offset) as any[];
+    } else {
+      // Fetch memories filtered by archived status
+      stmt = this.db.prepare(`
+        SELECT * FROM memories
+        WHERE archived = ?
+        ORDER BY updated_at DESC
+        LIMIT ? OFFSET ?
+      `);
+      rows = stmt.all(archived ? 1 : 0, limit, offset) as any[];
+    }
     return rows.map(row => ({
       id: row.id,
       content: row.content,
@@ -410,6 +423,18 @@ export class CoreMemoryStore {
     const stmt = this.db.prepare(`
       UPDATE memories
       SET archived = 1, updated_at = ?
+      WHERE id = ?
+    `);
+    stmt.run(new Date().toISOString(), id);
+  }
+
+  /**
+   * Unarchive a memory
+   */
+  unarchiveMemory(id: string): void {
+    const stmt = this.db.prepare(`
+      UPDATE memories
+      SET archived = 0, updated_at = ?
       WHERE id = ?
     `);
     stmt.run(new Date().toISOString(), id);

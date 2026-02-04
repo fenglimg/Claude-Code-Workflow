@@ -1,0 +1,229 @@
+{
+  "cliEndpoints": {
+    "title": "CLI Endpoints",
+    "description": "Manage LiteLLM endpoints, custom CLI endpoints, and CLI wrapper configurations",
+    "type": {
+      "litellm": "LiteLLM",
+      "custom": "Custom",
+      "wrapper": "Wrapper"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "stats": {
+      "total": "Total Endpoints",
+      "enabled": "Enabled"
+    },
+    "id": "ID",
+    "config": "Configuration",
+    "filters": {
+      "type": "Type",
+      "allTypes": "All Types",
+      "searchPlaceholder": "Search endpoints by name or ID..."
+    },
+    "actions": {
+      "add": "Add Endpoint",
+      "edit": "Edit Endpoint",
+      "delete": "Delete Endpoint",
+      "toggle": "Toggle Endpoint"
+    },
+    "deleteConfirm": "Are you sure you want to delete the endpoint \"{id}\"?",
+    "emptyState": {
+      "title": "No CLI Endpoints Found",
+      "message": "Add a CLI endpoint to configure custom API endpoints and wrappers."
+    }
+  },
+  "cliInstallations": {
+    "title": "CLI Installations",
+    "description": "Manage CCW CLI tool installations, upgrades, and removals",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "error": "Error"
+    },
+    "stats": {
+      "total": "Total Tools",
+      "installed": "Installed",
+      "available": "Available"
+    },
+    "installed": "Installed",
+    "lastChecked": "Last Checked",
+    "filters": {
+      "status": "Status",
+      "all": "All",
+      "installed": "Installed",
+      "notInstalled": "Not Installed",
+      "searchPlaceholder": "Search tools by name or version..."
+    },
+    "actions": {
+      "install": "Install",
+      "uninstall": "Uninstall",
+      "upgrade": "Upgrade"
+    },
+    "uninstallConfirm": "Are you sure you want to uninstall \"{name}\"?",
+    "emptyState": {
+      "title": "No CLI Tools Found",
+      "message": "No CLI tools are available for installation at this time."
+    }
+  },
+  "cliHooks": {
+    "title": "Hook Manager",
+    "description": "Manage automated CLI hooks",
+    "trigger": {
+      "SessionStart": "Session Start",
+      "UserPromptSubmit": "User Prompt Submit",
+      "PreToolUse": "Pre Tool Use",
+      "PostToolUse": "Post Tool Use",
+      "Stop": "Stop",
+      "pre-commit": "Pre-commit",
+      "post-commit": "Post-commit",
+      "pre-push": "Pre-push",
+      "custom": "Custom"
+    },
+    "stats": {
+      "total": "{count, plural, =0 {No hooks} one {# hook} other {# hooks}}",
+      "enabled": "{count, plural, =0 {No active} one {# active} other {# active}}",
+      "count": "{enabled}/{total} enabled"
+    },
+    "filters": {
+      "trigger": "Trigger",
+      "allTriggers": "All Triggers",
+      "searchPlaceholder": "Search by name, description, command or trigger..."
+    },
+    "actions": {
+      "add": "Add Hook",
+      "addFirst": "Add Your First Hook",
+      "edit": "Edit Hook",
+      "delete": "Delete Hook",
+      "deleteConfirm": "Are you sure you want to delete hook \"{hookName}\"?",
+      "enable": "Enable",
+      "disable": "Disable",
+      "toggle": "Toggle Hook",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "expandAll": "Expand All",
+      "collapseAll": "Collapse All"
+    },
+    "form": {
+      "name": "Hook Name",
+      "description": "Description",
+      "trigger": "Trigger Event",
+      "matcher": "Matcher Pattern",
+      "command": "Command"
+    },
+    "quickTemplates": {
+      "title": "Quick Install Templates",
+      "description": "Install popular hooks with one click"
+    },
+    "templates": {
+      "title": "Quick Install Templates",
+      "description": "Install popular hooks with one click",
+      "categories": {
+        "notification": "Notification",
+        "indexing": "Indexing",
+        "automation": "Automation"
+      },
+      "templates": {
+        "session-start-notify": {
+          "name": "Session Start Notify",
+          "description": "Notify dashboard when a new workflow session is created"
+        },
+        "session-state-watch": {
+          "name": "Session State Watch",
+          "description": "Watch for session metadata file changes (workflow-session.json)"
+        }
+      },
+      "actions": {
+        "install": "Install",
+        "installed": "Installed"
+      }
+    },
+    "wizards": {
+      "sectionTitle": "Hook Wizards",
+      "sectionDescription": "Step-by-step guides to create common hooks",
+      "launch": "Launch Wizard",
+      "memoryUpdate": {
+        "title": "Memory Update Hook",
+        "shortDescription": "Automatically update CLAUDE.md"
+      },
+      "dangerProtection": {
+        "title": "Danger Protection",
+        "shortDescription": "Protect dangerous operations"
+      },
+      "skillContext": {
+        "title": "SKILL Context Hook",
+        "shortDescription": "Auto-inject SKILL context"
+      }
+    },
+    "allTools": "All Tools",
+    "empty": {
+      "title": "No Hooks Yet",
+      "description": "Get started by adding your first hook or use a quick template",
+      "noHooksInEvent": "No hooks configured for this event"
+    }
+  },
+  "cliRules": {
+    "title": "Rules",
+    "description": "Manage code quality rules and linting configurations",
+    "severity": {
+      "error": "Error",
+      "warning": "Warning",
+      "info": "Info"
+    },
+    "stats": {
+      "total": "Total Rules",
+      "enabled": "Enabled"
+    },
+    "filters": {
+      "severity": "Severity",
+      "allSeverities": "All Severities",
+      "searchPlaceholder": "Search rules by name..."
+    },
+    "actions": {
+      "add": "Add Rule",
+      "edit": "Edit Rule",
+      "delete": "Delete Rule",
+      "toggle": "Toggle Rule"
+    },
+    "emptyState": {
+      "title": "No Rules Found",
+      "message": "Add a rule to enforce code quality standards."
+    }
+  },
+  "executionDetails": "Execution Details",
+  "tabs": {
+    "prompt": "Prompt",
+    "output": "Output",
+    "details": "Details"
+  },
+  "streamPanel": {
+    "turns": "turns",
+    "perTurnView": "Per-Turn View",
+    "concatenatedView": "Concatenated View",
+    "userPrompt": "User Prompt",
+    "assistantResponse": "Assistant Response",
+    "errors": "Errors",
+    "truncatedNotice": "Output was truncated due to size limits.",
+    "latest": "Latest",
+    "copyId": "Copy ID",
+    "copyPrompt": "Copy Prompt",
+    "concatenatedPrompt": "Concatenated Prompt",
+    "newRequest": "NEW REQUEST",
+    "noOutput": "[No output]",
+    "yourNextPrompt": "[Your next prompt here]",
+    "conversationHistory": "CONVERSATION HISTORY",
+    "loading": "Loading...",
+    "noDetails": "No execution details available"
+  },
+  "details": {
+    "turn": "Turn",
+    "tool": "Tool",
+    "mode": "Mode",
+    "duration": "Duration",
+    "created": "Created",
+    "id": "ID",
+    "timestamp": "Timestamp",
+    "status": "Status"
+  }
+}

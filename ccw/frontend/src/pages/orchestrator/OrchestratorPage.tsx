@@ -9,22 +9,11 @@ import { FlowCanvas } from './FlowCanvas';
 import { NodePalette } from './NodePalette';
 import { PropertyPanel } from './PropertyPanel';
 import { FlowToolbar } from './FlowToolbar';
-import { ExecutionMonitor } from './ExecutionMonitor';
 import { TemplateLibrary } from './TemplateLibrary';
-import { useWebSocket } from '@/hooks/useWebSocket';
 
 export function OrchestratorPage() {
   const fetchFlows = useFlowStore((state) => state.fetchFlows);
   const [isTemplateLibraryOpen, setIsTemplateLibraryOpen] = useState(false);
-
-  // Initialize WebSocket connection for real-time updates
-  const { isConnected, reconnect } = useWebSocket({
-    enabled: true,
-    onMessage: (message) => {
-      // Additional message handling can be added here if needed
-      console.log('[Orchestrator] WebSocket message:', message.type);
-    },
-  });
 
   // Load flows on mount
   useEffect(() => {
@@ -37,7 +26,7 @@ export function OrchestratorPage() {
   }, []);
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col -m-4 md:-m-6">
       {/* Toolbar */}
       <FlowToolbar onOpenTemplateLibrary={handleOpenTemplateLibrary} />
 
@@ -54,9 +43,6 @@ export function OrchestratorPage() {
         {/* Property Panel (Right) */}
         <PropertyPanel />
       </div>
-
-      {/* Execution Monitor (Bottom) */}
-      <ExecutionMonitor />
 
       {/* Template Library Dialog */}
       <TemplateLibrary

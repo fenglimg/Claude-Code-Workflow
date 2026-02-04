@@ -1,0 +1,457 @@
+{
+  "aria": {
+    "toggleNavigation": "Toggle navigation menu",
+    "refreshWorkspace": "Refresh workspace",
+    "switchToLightMode": "Switch to light mode",
+    "switchToDarkMode": "Switch to dark mode",
+    "userMenu": "User menu",
+    "actions": "Actions",
+    "notifications": "Notifications"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "refresh": "Refresh",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "search": "Search...",
+    "searchIssues": "Search issues...",
+    "searchLoops": "Search loops...",
+    "clear": "Clear",
+    "close": "Close",
+    "copy": "Copy",
+    "view": "View",
+    "viewAll": "View All",
+    "update": "Update",
+    "add": "Add",
+    "new": "New",
+    "remove": "Remove",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "reset": "Reset",
+    "resetDesc": "Reset all user preferences to their default values. This cannot be undone.",
+    "saving": "Saving...",
+    "resetConfirm": "Reset all settings to defaults?",
+    "resetToDefaults": "Reset to Defaults",
+    "enable": "Enable",
+    "disable": "Disable",
+    "expand": "Expand All",
+    "expandAll": "Expand All",
+    "collapse": "Collapse All",
+    "collapseAll": "Collapse All",
+    "filter": "Filter",
+    "filters": "Filters",
+    "clearFilters": "Clear filters",
+    "clearAll": "Clear all",
+    "select": "Select",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "resetLayout": "Reset Layout"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "inProgress": "In Progress",
+    "running": "Running",
+    "initializing": "Initializing",
+    "initialized": "Initialized",
+    "planning": "Planning",
+    "completed": "Completed",
+    "failed": "Failed",
+    "blocked": "Blocked",
+    "cancelled": "Cancelled",
+    "paused": "Paused",
+    "archived": "Archived",
+    "idle": "Idle",
+    "unknown": "Unknown",
+    "draft": "Draft",
+    "published": "Published",
+    "creating": "Creating...",
+    "deleting": "Deleting...",
+    "label": "Status",
+    "openIssues": "Open Issues",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "priority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical",
+    "label": "Priority"
+  },
+  "time": {
+    "seconds": "seconds",
+    "minutes": "minutes",
+    "hours": "hours",
+    "days": "days",
+    "weeks": "weeks",
+    "months": "months",
+    "years": "years",
+    "ago": "ago",
+    "justNow": "just now",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
+    "daysAgo": "{count}d ago"
+  },
+  "buttons": {
+    "new": "New",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit"
+  },
+  "form": {
+    "required": "Required",
+    "optional": "optional",
+    "placeholder": "Enter...",
+    "search": "Search...",
+    "select": "Select...",
+    "noResults": "No results found",
+    "loading": "Loading...",
+    "sessionId": "Session ID",
+    "title": "Title",
+    "description": "Description",
+    "sessionIdPlaceholder": "e.g., WFS-feature-auth",
+    "titlePlaceholder": "e.g., Authentication System",
+    "descriptionPlaceholder": "Brief description of the session"
+  },
+  "emptyState": {
+    "noData": "No data found",
+    "noResults": "No results found",
+    "noItems": "No items",
+    "createFirst": "Create your first item to get started",
+    "searchEmpty": "Try adjusting your search or filters",
+    "filterEmpty": "No items match your current filters"
+  },
+  "errors": {
+    "generic": "An error occurred",
+    "network": "Network error. Please check your connection.",
+    "timeout": "Request timed out. Please try again.",
+    "notFound": "Resource not found",
+    "unauthorized": "Unauthorized access",
+    "forbidden": "Access forbidden",
+    "validation": "Validation error",
+    "server": "Server error. Please try again later.",
+    "loadingFailed": "Failed to load data",
+    "loadFailed": "Failed to load data",
+    "saveFailed": "Failed to save",
+    "deleteFailed": "Failed to delete",
+    "updateFailed": "Failed to update",
+    "unknownError": "An unexpected error occurred"
+  },
+  "success": {
+    "saved": "Saved successfully",
+    "created": "Created successfully",
+    "updated": "Updated successfully",
+    "deleted": "Deleted successfully",
+    "copied": "Copied to clipboard"
+  },
+  "messages": {
+    "confirmDelete": "Are you sure you want to delete this item?",
+    "confirmArchive": "Are you sure you want to archive this item?",
+    "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?",
+    "noPermission": "You don't have permission to perform this action"
+  },
+  "stats": {
+    "todayActivity": "Today's Activity",
+    "totalCommands": "Total Commands",
+    "totalSkills": "Total Skills",
+    "categories": "Categories",
+    "total": "Total"
+  },
+  "labels": {
+    "progress": "Progress"
+  },
+  "dialog": {
+    "createSession": "Create New Session",
+    "createSessionDesc": "Create a new workflow session to track your development tasks.",
+    "deleteSession": "Delete Session",
+    "deleteConfirm": "Are you sure you want to delete this session? This action cannot be undone."
+  },
+  "help": {
+    "title": "Help & Documentation",
+    "description": "Learn how to use CCW Dashboard and get the most out of your workflows",
+    "fullDocs": "Full Documentation",
+    "viewAll": "View All",
+    "getStarted": "Get Started",
+    "support": {
+      "title": "Need more help?",
+      "description": "Check the project documentation or reach out for support.",
+      "documentation": "Documentation",
+      "tutorials": "Tutorials"
+    },
+    "searchDocs": {
+      "title": "Search Documentation",
+      "description": "Find answers fast with our comprehensive documentation search",
+      "button": "Search Docs"
+    }
+  },
+  "ticker": {
+    "session_created": "Session {name} created",
+    "task_completed": "Task {name} completed successfully",
+    "session_failed": "Session {name} failed",
+    "workflow_started": "Workflow {name} started",
+    "status_changed": "{name} status changed to {status}",
+    "waiting": "Waiting for activity...",
+    "disconnected": "Ticker disconnected",
+    "aria_label": "Real-time activity ticker"
+  },
+  "dashboard": {
+    "config": {
+      "title": "Widgets",
+      "widgets": "Dashboard Widgets",
+      "hideAll": "Hide All",
+      "showAll": "Show All",
+      "resetLayout": "Reset Layout"
+    }
+  },
+  "all": "All",
+  "yes": "Yes",
+  "no": "No",
+  "loading": "Loading...",
+  "error": "Error",
+  "navigation": {
+    "header": {
+      "brand": "CCW Dashboard"
+    },
+    "main": {
+      "home": "Home",
+      "project": "Project",
+      "sessions": "Sessions",
+      "liteTasks": "Lite Tasks",
+      "orchestrator": "Orchestrator",
+      "coordinator": "Coordinator",
+      "executions": "Executions",
+      "loops": "Loops",
+      "history": "History",
+      "memory": "Memory",
+      "prompts": "Prompts",
+      "skills": "Skills",
+      "commands": "Commands",
+      "issues": "Issues",
+      "hooks": "Hooks",
+      "settings": "Settings",
+      "rules": "Rules",
+      "codexlens": "CodexLens",
+      "apiSettings": "API Settings",
+      "help": "Help"
+    },
+    "groups": {
+      "overview": "Overview",
+      "workflow": "Workflow",
+      "knowledge": "Knowledge",
+      "issues": "Issues",
+      "tools": "Tools",
+      "configuration": "Configuration"
+    },
+    "sidebar": {
+      "collapse": "Collapse",
+      "collapseAria": "Collapse sidebar",
+      "expand": "Expand",
+      "expandAria": "Expand sidebar"
+    }
+  },
+  "askQuestion": {
+    "defaultTitle": "Questions",
+    "description": "Please answer the following questions",
+    "textPlaceholder": "Enter your answer...",
+    "yes": "Yes",
+    "no": "No",
+    "required": "This question is required"
+  },
+  "feedback": {
+    "error": {
+      "network": "Network error. Please check your connection and try again.",
+      "timeout": "Request timed out. Please try again.",
+      "auth": "Authentication failed. Please check your permissions.",
+      "validation": "Please check your input and try again.",
+      "server": "Server error. Please try again later.",
+      "notFound": "The requested resource was not found.",
+      "unknown": "An unexpected error occurred. Please try again."
+    },
+    "skillToggle": {
+      "success": "Skill status updated successfully",
+      "error": "Failed to update skill status"
+    },
+    "skillEnable": {
+      "success": "Skill enabled successfully",
+      "error": "Failed to enable skill"
+    },
+    "skillDisable": {
+      "success": "Skill disabled successfully",
+      "error": "Failed to disable skill"
+    },
+    "commandExecute": {
+      "success": "Command executed successfully",
+      "error": "Failed to execute command"
+    },
+    "commandToggle": {
+      "success": "Command status updated",
+      "error": "Failed to update command status"
+    },
+    "sessionCreate": {
+      "success": "Session created successfully",
+      "error": "Failed to create session"
+    },
+    "sessionDelete": {
+      "success": "Session deleted successfully",
+      "error": "Failed to delete session"
+    },
+    "sessionUpdate": {
+      "success": "Session updated successfully",
+      "error": "Failed to update session"
+    },
+    "settingsSave": {
+      "success": "Settings saved successfully",
+      "error": "Failed to save settings"
+    },
+    "settingsReset": {
+      "success": "Settings reset to defaults",
+      "error": "Failed to reset settings"
+    },
+    "memoryImport": {
+      "success": "Memory imported successfully",
+      "error": "Failed to import memory"
+    },
+    "memoryExport": {
+      "success": "Memory exported successfully",
+      "error": "Failed to export memory"
+    },
+    "memoryDelete": {
+      "success": "Memory deleted successfully",
+      "error": "Failed to delete memory"
+    },
+    "coordinatorStart": {
+      "success": "Coordinator started successfully",
+      "error": "Failed to start coordinator"
+    },
+    "coordinatorStop": {
+      "success": "Coordinator stopped",
+      "error": "Failed to stop coordinator"
+    },
+    "hookToggle": {
+      "success": "Hook status updated",
+      "error": "Failed to update hook status"
+    },
+    "indexRebuild": {
+      "success": "Index rebuild started",
+      "error": "Failed to rebuild index"
+    },
+    "ruleCreate": {
+      "success": "Rule created successfully",
+      "error": "Failed to create rule"
+    },
+    "ruleUpdate": {
+      "success": "Rule updated successfully",
+      "error": "Failed to update rule"
+    },
+    "ruleDelete": {
+      "success": "Rule deleted successfully",
+      "error": "Failed to delete rule"
+    },
+    "promptCreate": {
+      "success": "Prompt created successfully",
+      "error": "Failed to create prompt"
+    },
+    "promptUpdate": {
+      "success": "Prompt updated successfully",
+      "error": "Failed to update prompt"
+    },
+    "promptDelete": {
+      "success": "Prompt deleted successfully",
+      "error": "Failed to delete prompt"
+    },
+    "providerCreate": {
+      "success": "Provider created successfully",
+      "error": "Failed to create provider"
+    },
+    "providerUpdate": {
+      "success": "Provider updated successfully",
+      "error": "Failed to update provider"
+    },
+    "providerDelete": {
+      "success": "Provider deleted successfully",
+      "error": "Failed to delete provider"
+    },
+    "cliToolInstall": {
+      "success": "Tool installed successfully",
+      "error": "Failed to install tool"
+    },
+    "cliToolUninstall": {
+      "success": "Tool uninstalled successfully",
+      "error": "Failed to uninstall tool"
+    },
+    "cliToolUpgrade": {
+      "success": "Tool upgraded successfully",
+      "error": "Failed to upgrade tool"
+    },
+    "codexLensConfigUpdate": {
+      "success": "Configuration updated successfully",
+      "error": "Failed to update configuration"
+    },
+    "codexLensBootstrap": {
+      "success": "CodexLens bootstrapped successfully",
+      "error": "Failed to bootstrap CodexLens"
+    },
+    "codexLensInstallSemantic": {
+      "success": "Semantic dependencies installed",
+      "error": "Failed to install semantic dependencies"
+    },
+    "codexLensUninstall": {
+      "success": "CodexLens uninstalled",
+      "error": "Failed to uninstall CodexLens"
+    },
+    "codexLensDownloadModel": {
+      "success": "Model downloaded successfully",
+      "error": "Failed to download model"
+    },
+    "codexLensDeleteModel": {
+      "success": "Model deleted successfully",
+      "error": "Failed to delete model"
+    },
+    "codexLensUpdateEnv": {
+      "success": "Environment variables updated",
+      "error": "Failed to update environment variables"
+    },
+    "codexLensSelectGpu": {
+      "success": "GPU selected successfully",
+      "error": "Failed to select GPU"
+    },
+    "codexLensResetGpu": {
+      "success": "GPU reset successfully",
+      "error": "Failed to reset GPU"
+    },
+    "codexLensUpdatePatterns": {
+      "success": "Ignore patterns updated",
+      "error": "Failed to update ignore patterns"
+    },
+    "codexLensRebuildIndex": {
+      "success": "Index rebuild started",
+      "error": "Failed to rebuild index"
+    },
+    "codexLensUpdateIndex": {
+      "success": "Index update started",
+      "error": "Failed to update index"
+    },
+    "codexLensCancelIndexing": {
+      "success": "Indexing cancelled",
+      "error": "Failed to cancel indexing"
+    }
+  }
+}

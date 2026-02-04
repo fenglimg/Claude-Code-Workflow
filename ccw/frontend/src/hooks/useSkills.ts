@@ -6,10 +6,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchSkills,
-  toggleSkill,
+  enableSkill,
+  disableSkill,
   type Skill,
   type SkillsResponse,
 } from '../lib/api';
+import { useWorkflowStore, selectProjectPath } from '@/stores/workflowStore';
+import { workspaceQueryKeys } from '@/lib/queryKeys';
+import { useNotifications } from './useNotifications';
+import { sanitizeErrorMessage } from '@/utils/errorSanitizer';
+import { formatMessage } from '@/lib/i18n';
 
 // Query key factory
 export const skillsKeys = {
@@ -26,6 +32,7 @@ export interface SkillsFilter {
   category?: string;
   source?: Skill['source'];
   enabledOnly?: boolean;
+  location?: 'project' | 'user';
 }
 
 export interface UseSkillsOptions {
@@ -41,6 +48,8 @@ export interface UseSkillsReturn {
   skillsByCategory: Record<string, Skill[]>;
   totalCount: number;
   enabledCount: number;
+  projectSkills: Skill[];
+  userSkills: Skill[];
   isLoading: boolean;
   isFetching: boolean;
   error: Error | null;
@@ -54,20 +63,29 @@ export interface UseSkillsReturn {
 export function useSkills(options: UseSkillsOptions = {}): UseSkillsReturn {
   const { filter, staleTime = STALE_TIME, enabled = true } = options;
   const queryClient = useQueryClient();
+  const projectPath = useWorkflowStore(selectProjectPath);
 
   const query = useQuery({
-    queryKey: skillsKeys.list(filter),
-    queryFn: fetchSkills,
+    queryKey: workspaceQueryKeys.skillsList(projectPath),
+    queryFn: () => fetchSkills(projectPath),
     staleTime,
-    enabled,
+    enabled: enabled, // Remove projectPath requirement - API works without it
     retry: 2,
   });
 
   const allSkills = query.data?.skills ?? [];
 
+  // Separate by location
+  const projectSkills = allSkills.filter(s => s.location === 'project');
+  const userSkills = allSkills.filter(s => s.location === 'user');
+
   // Apply filters
   const filteredSkills = (() => {
     let skills = allSkills;
+
+    if (filter?.location) {
+      skills = skills.filter((s) => s.location === filter.location);
+    }
 
     if (filter?.search) {
       const searchLower = filter.search.toLowerCase();
@@ -114,7 +132,9 @@ export function useSkills(options: UseSkillsOptions = {}): UseSkillsReturn {
   };
 
   const invalidate = async () => {
-    await queryClient.invalidateQueries({ queryKey: skillsKeys.all });
+    if (projectPath) {
+      await queryClient.invalidateQueries({ queryKey: workspaceQueryKeys.skills(projectPath) });
+    }
   };
 
   return {
@@ -124,6 +144,8 @@ export function useSkills(options: UseSkillsOptions = {}): UseSkillsReturn {
     skillsByCategory,
     totalCount: allSkills.length,
     enabledCount: enabledSkills.length,
+    projectSkills,
+    userSkills,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     error: query.error,
@@ -135,45 +157,46 @@ export function useSkills(options: UseSkillsOptions = {}): UseSkillsReturn {
 // ========== Mutations ==========
 
 export interface UseToggleSkillReturn {
-  toggleSkill: (skillName: string, enabled: boolean) => Promise<Skill>;
+  toggleSkill: (skillName: string, enabled: boolean, location: 'project' | 'user') => Promise<Skill>;
   isToggling: boolean;
   error: Error | null;
 }
 
 export function useToggleSkill(): UseToggleSkillReturn {
   const queryClient = useQueryClient();
+  const projectPath = useWorkflowStore(selectProjectPath);
+  const { addToast, removeToast, success, error } = useNotifications();
 
   const mutation = useMutation({
-    mutationFn: ({ skillName, enabled }: { skillName: string; enabled: boolean }) =>
-      toggleSkill(skillName, enabled),
-    onMutate: async ({ skillName, enabled }) => {
-      await queryClient.cancelQueries({ queryKey: skillsKeys.all });
-      const previousSkills = queryClient.getQueryData<SkillsResponse>(skillsKeys.list());
-
-      // Optimistic update
-      queryClient.setQueryData<SkillsResponse>(skillsKeys.list(), (old) => {
-        if (!old) return old;
-        return {
-          skills: old.skills.map((s) =>
-            s.name === skillName ? { ...s, enabled } : s
-          ),
-        };
-      });
-
-      return { previousSkills };
+    mutationFn: ({ skillName, enabled, location }: { skillName: string; enabled: boolean; location: 'project' | 'user' }) =>
+      enabled
+        ? enableSkill(skillName, location, projectPath)
+        : disableSkill(skillName, location, projectPath),
+    onMutate: (): { loadingId: string } => {
+      const loadingId = addToast('info', formatMessage('common.loading'), undefined, { duration: 0 });
+      return { loadingId };
     },
-    onError: (_error, _vars, context) => {
-      if (context?.previousSkills) {
-        queryClient.setQueryData(skillsKeys.list(), context.previousSkills);
-      }
+    onSuccess: (_, variables, context) => {
+      const { loadingId } = context ?? { loadingId: '' };
+      if (loadingId) removeToast(loadingId);
+
+      const operation = variables.enabled ? 'skillEnable' : 'skillDisable';
+      success(formatMessage(`feedback.${operation}.success`));
+
+      queryClient.invalidateQueries({ queryKey: projectPath ? workspaceQueryKeys.skills(projectPath) : ['skills'] });
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: skillsKeys.all });
+    onError: (err, variables, context) => {
+      const { loadingId } = context ?? { loadingId: '' };
+      if (loadingId) removeToast(loadingId);
+
+      const operation = variables.enabled ? 'skillEnable' : 'skillDisable';
+      const sanitized = sanitizeErrorMessage(err, operation);
+      error(formatMessage('common.error'), formatMessage(sanitized.messageKey));
     },
   });
 
   return {
-    toggleSkill: (skillName, enabled) => mutation.mutateAsync({ skillName, enabled }),
+    toggleSkill: (skillName, enabled, location) => mutation.mutateAsync({ skillName, enabled, location }),
     isToggling: mutation.isPending,
     error: mutation.error,
   };

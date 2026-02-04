@@ -254,8 +254,7 @@ export function buildCommand(params: {
           // codex review uses -c key=value for config override, not -m
           args.push('-c', `model=${model}`);
         }
-        // Skip git repo check by default for codex (allows non-git directories)
-        args.push('--skip-git-repo-check');
+        // Note: --skip-git-repo-check is NOT supported by codex review command
         // codex review uses positional prompt argument, not stdin
         useStdin = false;
         if (prompt) {
@@ -387,8 +386,14 @@ export function buildCommand(params: {
     fullCommand: `${command} ${args.join(' ')}${useStdin ? ' (stdin)' : ''}`,
   });
 
-  // Auto-detect output format: Codex uses --json flag for JSONL output
-  const outputFormat = tool.toLowerCase() === 'codex' ? 'json-lines' : 'text';
+  // Auto-detect output format: All CLI tools use JSON lines output
+  // - Codex: --json
+  // - Gemini: -o stream-json
+  // - Qwen: -o stream-json
+  // - Claude: --output-format stream-json
+  // - OpenCode: --format json
+  const jsonLineTools = ['codex', 'gemini', 'qwen', 'claude', 'opencode'];
+  const outputFormat = jsonLineTools.includes(tool.toLowerCase()) ? 'json-lines' : 'text';
 
   return { command, args, useStdin, outputFormat };
 }

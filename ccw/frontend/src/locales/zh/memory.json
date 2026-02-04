@@ -1,0 +1,86 @@
+{
+  "title": "记忆",
+  "description": "管理核心记忆、上下文和知识库",
+  "actions": {
+    "add": "添加记忆",
+    "edit": "编辑",
+    "delete": "删除",
+    "copy": "复制",
+    "copySuccess": "已复制到剪贴板",
+    "copyError": "复制失败",
+    "refresh": "刷新",
+    "expand": "展开",
+    "collapse": "收起",
+    "favoriteAdded": "已添加到收藏",
+    "favoriteRemoved": "已从收藏移除",
+    "favoriteError": "更新收藏状态失败",
+    "archiveSuccess": "记忆已归档",
+    "archiveError": "归档记忆失败",
+    "unarchiveSuccess": "记忆已恢复",
+    "unarchiveError": "恢复记忆失败"
+  },
+  "tabs": {
+    "memories": "记忆",
+    "favorites": "收藏",
+    "archived": "归档"
+  },
+  "stats": {
+    "totalSize": "总大小",
+    "count": "数量",
+    "claudeMdCount": "CLAUDE.md 文件",
+    "totalEntries": "总条目"
+  },
+  "filters": {
+    "search": "搜索记忆...",
+    "tags": "标签",
+    "clear": "清除",
+    "all": "全部"
+  },
+  "card": {
+    "id": "ID",
+    "content": "内容",
+    "summary": "摘要",
+    "tags": "标签",
+    "createdAt": "创建时间",
+    "updatedAt": "更新时间",
+    "size": "大小",
+    "favorite": "收藏",
+    "archived": "已归档"
+  },
+  "emptyState": {
+    "title": "未存储记忆",
+    "message": "添加上下文和知识以帮助 Claude 更好地理解您的项目。",
+    "createFirst": "添加第一条记忆"
+  },
+  "createDialog": {
+    "title": "添加记忆",
+    "editTitle": "编辑记忆",
+    "labels": {
+      "content": "内容",
+      "tags": "标签",
+      "favorite": "收藏",
+      "priority": "优先级"
+    },
+    "placeholders": {
+      "content": "输入记忆内容...",
+      "tags": "例如：project、config、api"
+    },
+    "buttons": {
+      "create": "添加记忆",
+      "update": "更新记忆",
+      "cancel": "取消",
+      "creating": "创建中...",
+      "updating": "更新中..."
+    }
+  },
+  "priority": {
+    "low": "低",
+    "medium": "中",
+    "high": "高"
+  },
+  "types": {
+    "coreMemory": "核心记忆",
+    "workflow": "工作流",
+    "cliHistory": "CLI 历史"
+  }
+}

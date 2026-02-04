@@ -220,13 +220,13 @@ export async function handleSystemRoutes(ctx: SystemRouteContext): Promise<boole
       return true;
     }
 
-    // Track the path and return success
-    trackRecentPath(resolved);
+    // Get full workflow data for the new path
+    const workflowData = await getWorkflowData(resolved);
+
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       success: true,
-      path: resolved,
-      recentPaths: getRecentPaths()
+      ...workflowData
     }));
     return true;
   }
@@ -568,6 +568,83 @@ export async function handleSystemRoutes(ctx: SystemRouteContext): Promise<boole
         return { error: status === 403 ? 'Access denied' : 'File not accessible', status };
       }
     });
+    return true;
+  }
+
+  // API: Test ask_question popup (for development testing)
+  if (pathname === '/api/test/ask-question' && req.method === 'GET') {
+    try {
+      // Import the A2UI handler
+      const { a2uiWebSocketHandler } = await import('../a2ui/A2UIWebSocketHandler.js');
+
+      // Create a test surface with displayMode: 'popup'
+      const testSurface = {
+        surfaceId: `test-question-${Date.now()}`,
+        components: [
+          {
+            id: 'title',
+            component: {
+              Text: {
+                text: { literalString: 'Test Popup Question' },
+                usageHint: 'h3',
+              },
+            },
+          },
+          {
+            id: 'message',
+            component: {
+              Text: {
+                text: { literalString: 'This is a test popup card. Does it appear in the center?' },
+                usageHint: 'p',
+              },
+            },
+          },
+          {
+            id: 'confirm-btn',
+            component: {
+              Button: {
+                onClick: { actionId: 'confirm', parameters: { questionId: 'test-q-1' } },
+                content: {
+                  Text: { text: { literalString: 'Confirm' } },
+                },
+                variant: 'primary',
+              },
+            },
+          },
+          {
+            id: 'cancel-btn',
+            component: {
+              Button: {
+                onClick: { actionId: 'cancel', parameters: { questionId: 'test-q-1' } },
+                content: {
+                  Text: { text: { literalString: 'Cancel' } },
+                },
+                variant: 'secondary',
+              },
+            },
+          },
+        ],
+        initialState: {
+          questionId: 'test-q-1',
+          questionType: 'confirm',
+        },
+        displayMode: 'popup' as const,
+      };
+
+      // Send the surface via WebSocket
+      const sentCount = a2uiWebSocketHandler.sendSurface(testSurface);
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        success: true,
+        message: 'Test popup sent',
+        sentToClients: sentCount,
+        surfaceId: testSurface.surfaceId
+      }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Failed to send test popup', details: String(err) }));
+    }
     return true;
   }
 

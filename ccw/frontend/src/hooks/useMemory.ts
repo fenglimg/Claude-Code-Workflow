@@ -9,9 +9,12 @@ import {
   createMemory,
   updateMemory,
   deleteMemory,
+  archiveMemory as archiveMemoryApi,
+  unarchiveMemory as unarchiveMemoryApi,
   type CoreMemory,
-  type MemoryResponse,
 } from '../lib/api';
+import { useWorkflowStore, selectProjectPath } from '@/stores/workflowStore';
+import { workspaceQueryKeys } from '@/lib/queryKeys';
 
 // Query key factory
 export const memoryKeys = {
@@ -28,6 +31,8 @@ const STALE_TIME = 60 * 1000;
 export interface MemoryFilter {
   search?: string;
   tags?: string[];
+  favorite?: boolean;
+  archived?: boolean;
 }
 
 export interface UseMemoryOptions {
@@ -54,12 +59,16 @@ export interface UseMemoryReturn {
 export function useMemory(options: UseMemoryOptions = {}): UseMemoryReturn {
   const { filter, staleTime = STALE_TIME, enabled = true } = options;
   const queryClient = useQueryClient();
+  const projectPath = useWorkflowStore(selectProjectPath);
+
+  // Only enable query when projectPath is available
+  const queryEnabled = enabled && !!projectPath;
 
   const query = useQuery({
-    queryKey: memoryKeys.list(filter),
-    queryFn: fetchMemories,
+    queryKey: workspaceQueryKeys.memoryList(projectPath),
+    queryFn: () => fetchMemories(projectPath),
     staleTime,
-    enabled,
+    enabled: queryEnabled,
     retry: 2,
   });
 
@@ -87,6 +96,26 @@ export function useMemory(options: UseMemoryOptions = {}): UseMemoryReturn {
       );
     }
 
+    // Filter by favorite status (from metadata)
+    if (filter?.favorite === true) {
+      memories = memories.filter((m) => {
+        if (!m.metadata) return false;
+        try {
+          const metadata = typeof m.metadata === 'string' ? JSON.parse(m.metadata) : m.metadata;
+          return metadata.favorite === true;
+        } catch {
+          return false;
+        }
+      });
+    }
+
+    // Filter by archived status
+    if (filter?.archived === true) {
+      memories = memories.filter((m) => m.archived === true);
+    } else if (filter?.archived === false) {
+      memories = memories.filter((m) => m.archived !== true);
+    }
+
     return memories;
   })();
 
@@ -100,7 +129,9 @@ export function useMemory(options: UseMemoryOptions = {}): UseMemoryReturn {
   };
 
   const invalidate = async () => {
-    await queryClient.invalidateQueries({ queryKey: memoryKeys.all });
+    if (projectPath) {
+      await queryClient.invalidateQueries({ queryKey: workspaceQueryKeys.memory(projectPath) });
+    }
   };
 
   return {
@@ -119,25 +150,21 @@ export function useMemory(options: UseMemoryOptions = {}): UseMemoryReturn {
 // ========== Mutations ==========
 
 export interface UseCreateMemoryReturn {
-  createMemory: (input: { content: string; tags?: string[] }) => Promise<CoreMemory>;
+  createMemory: (input: { content: string; tags?: string[]; metadata?: Record<string, any> }) => Promise<CoreMemory>;
   isCreating: boolean;
   error: Error | null;
 }
 
 export function useCreateMemory(): UseCreateMemoryReturn {
   const queryClient = useQueryClient();
+  const projectPath = useWorkflowStore(selectProjectPath);
 
   const mutation = useMutation({
-    mutationFn: createMemory,
-    onSuccess: (newMemory) => {
-      queryClient.setQueryData<MemoryResponse>(memoryKeys.list(), (old) => {
-        if (!old) return { memories: [newMemory], totalSize: 0, claudeMdCount: 0 };
-        return {
-          ...old,
-          memories: [newMemory, ...old.memories],
-          totalSize: old.totalSize + (newMemory.size ?? 0),
-        };
-      });
+    mutationFn: (input: { content: string; tags?: string[]; metadata?: Record<string, any> }) =>
+      createMemory(input, projectPath),
+    onSuccess: () => {
+      // Invalidate memory cache to trigger refetch
+      queryClient.invalidateQueries({ queryKey: projectPath ? workspaceQueryKeys.memory(projectPath) : ['memory'] });
     },
   });
 
@@ -156,20 +183,14 @@ export interface UseUpdateMemoryReturn {
 
 export function useUpdateMemory(): UseUpdateMemoryReturn {
   const queryClient = useQueryClient();
+  const projectPath = useWorkflowStore(selectProjectPath);
 
   const mutation = useMutation({
     mutationFn: ({ memoryId, input }: { memoryId: string; input: Partial<CoreMemory> }) =>
-      updateMemory(memoryId, input),
-    onSuccess: (updatedMemory) => {
-      queryClient.setQueryData<MemoryResponse>(memoryKeys.list(), (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          memories: old.memories.map((m) =>
-            m.id === updatedMemory.id ? updatedMemory : m
-          ),
-        };
-      });
+      updateMemory(memoryId, input, projectPath),
+    onSuccess: () => {
+      // Invalidate memory cache to trigger refetch
+      queryClient.invalidateQueries({ queryKey: projectPath ? workspaceQueryKeys.memory(projectPath) : ['memory'] });
     },
   });
 
@@ -188,38 +209,67 @@ export interface UseDeleteMemoryReturn {
 
 export function useDeleteMemory(): UseDeleteMemoryReturn {
   const queryClient = useQueryClient();
+  const projectPath = useWorkflowStore(selectProjectPath);
 
   const mutation = useMutation({
-    mutationFn: deleteMemory,
-    onMutate: async (memoryId) => {
-      await queryClient.cancelQueries({ queryKey: memoryKeys.all });
-      const previousMemories = queryClient.getQueryData<MemoryResponse>(memoryKeys.list());
-
-      queryClient.setQueryData<MemoryResponse>(memoryKeys.list(), (old) => {
-        if (!old) return old;
-        const removedMemory = old.memories.find((m) => m.id === memoryId);
-        return {
-          ...old,
-          memories: old.memories.filter((m) => m.id !== memoryId),
-          totalSize: old.totalSize - (removedMemory?.size ?? 0),
-        };
-      });
-
-      return { previousMemories };
-    },
-    onError: (_error, _memoryId, context) => {
-      if (context?.previousMemories) {
-        queryClient.setQueryData(memoryKeys.list(), context.previousMemories);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: memoryKeys.all });
+    mutationFn: (memoryId: string) => deleteMemory(memoryId, projectPath),
+    onSuccess: () => {
+      // Invalidate to ensure sync with server
+      queryClient.invalidateQueries({ queryKey: projectPath ? workspaceQueryKeys.memory(projectPath) : ['memory'] });
     },
   });
 
   return {
     deleteMemory: mutation.mutateAsync,
     isDeleting: mutation.isPending,
+    error: mutation.error,
+  };
+}
+
+export interface UseArchiveMemoryReturn {
+  archiveMemory: (memoryId: string) => Promise<void>;
+  isArchiving: boolean;
+  error: Error | null;
+}
+
+export function useArchiveMemory(): UseArchiveMemoryReturn {
+  const queryClient = useQueryClient();
+  const projectPath = useWorkflowStore(selectProjectPath);
+
+  const mutation = useMutation({
+    mutationFn: (memoryId: string) => archiveMemoryApi(memoryId, projectPath),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: projectPath ? workspaceQueryKeys.memory(projectPath) : ['memory'] });
+    },
+  });
+
+  return {
+    archiveMemory: mutation.mutateAsync,
+    isArchiving: mutation.isPending,
+    error: mutation.error,
+  };
+}
+
+export interface UseUnarchiveMemoryReturn {
+  unarchiveMemory: (memoryId: string) => Promise<void>;
+  isUnarchiving: boolean;
+  error: Error | null;
+}
+
+export function useUnarchiveMemory(): UseUnarchiveMemoryReturn {
+  const queryClient = useQueryClient();
+  const projectPath = useWorkflowStore(selectProjectPath);
+
+  const mutation = useMutation({
+    mutationFn: (memoryId: string) => unarchiveMemoryApi(memoryId, projectPath),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: projectPath ? workspaceQueryKeys.memory(projectPath) : ['memory'] });
+    },
+  });
+
+  return {
+    unarchiveMemory: mutation.mutateAsync,
+    isUnarchiving: mutation.isPending,
     error: mutation.error,
   };
 }
@@ -231,14 +281,20 @@ export function useMemoryMutations() {
   const create = useCreateMemory();
   const update = useUpdateMemory();
   const remove = useDeleteMemory();
+  const archive = useArchiveMemory();
+  const unarchive = useUnarchiveMemory();
 
   return {
     createMemory: create.createMemory,
     updateMemory: update.updateMemory,
     deleteMemory: remove.deleteMemory,
+    archiveMemory: archive.archiveMemory,
+    unarchiveMemory: unarchive.unarchiveMemory,
     isCreating: create.isCreating,
     isUpdating: update.isUpdating,
     isDeleting: remove.isDeleting,
-    isMutating: create.isCreating || update.isUpdating || remove.isDeleting,
+    isArchiving: archive.isArchiving,
+    isUnarchiving: unarchive.isUnarchiving,
+    isMutating: create.isCreating || update.isUpdating || remove.isDeleting || archive.isArchiving || unarchive.isUnarchiving,
   };
 }

@@ -345,6 +345,45 @@ import {
 const BUILTIN_CLI_TOOLS = ['gemini', 'qwen', 'codex', 'opencode', 'claude'] as const;
 type BuiltinCliTool = typeof BUILTIN_CLI_TOOLS[number];
 
+/**
+ * Transaction ID type for concurrent session disambiguation
+ * Format: ccw-tx-${conversationId}-${timestamp}
+ */
+export type TransactionId = string;
+
+/**
+ * Generate a unique transaction ID for the current execution
+ * @param conversationId - CCW conversation ID
+ * @returns Transaction ID in format: ccw-tx-${conversationId}-${uniquePart}
+ */
+export function generateTransactionId(conversationId: string): TransactionId {
+  // Use crypto.randomUUID() if available, otherwise use timestamp + random
+  const uniquePart = typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID().slice(0, 8)
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  return `ccw-tx-${conversationId}-${uniquePart}`;
+}
+
+/**
+ * Inject transaction ID into user prompt
+ * @param prompt - Original user prompt
+ * @param txId - Transaction ID to inject
+ * @returns Prompt with transaction ID injected at the start
+ */
+export function injectTransactionId(prompt: string, txId: TransactionId): string {
+  return `[CCW-TX-ID: ${txId}]\n\n${prompt}`;
+}
+
+/**
+ * Extract transaction ID from prompt
+ * @param prompt - Prompt that may contain transaction ID
+ * @returns Transaction ID if found, null otherwise
+ */
+export function extractTransactionId(prompt: string): TransactionId | null {
+  const match = prompt.match(/\[CCW-TX-ID:\s+([^\]]+)\]/);
+  return match ? match[1] : null;
+}
+
 // Define Zod schema for validation
 // tool accepts built-in tools or custom endpoint IDs (CLI封装)
 const ParamsSchema = z.object({
@@ -709,6 +748,11 @@ async function executeCliTool(
     conversationId = `${Date.now()}-${tool}`;
   }
 
+  // Generate transaction ID for concurrent session disambiguation
+  // This will be injected into the prompt for exact session matching during resume
+  const transactionId = generateTransactionId(conversationId);
+  debugLog('TX_ID', `Generated transaction ID: ${transactionId}`, { conversationId });
+
   // Determine resume strategy (native vs prompt-concat vs hybrid)
   let resumeDecision: ResumeDecision | null = null;
   let nativeResumeConfig: NativeResumeConfig | undefined;
@@ -772,6 +816,11 @@ async function executeCliTool(
     }
   }
 
+  // Inject transaction ID at the start of the final prompt for session tracking
+  // This enables exact session matching during parallel execution scenarios
+  finalPrompt = injectTransactionId(finalPrompt, transactionId);
+  debugLog('TX_ID', `Injected transaction ID into prompt`, { transactionId, promptLength: finalPrompt.length });
+
   // Check tool availability
   const toolStatus = await checkToolAvailability(tool);
   if (!toolStatus.available) {
@@ -787,6 +836,17 @@ async function executeCliTool(
         content: `[Resume mode: ${modeDesc}]\n`,
         timestamp: new Date().toISOString()
       });
+    }
+
+    // Info message for Codex TTY limitation
+    if (tool === 'codex' && !supportsNativeResume(tool) && resumeDecision.strategy !== 'native') {
+      if (onOutput) {
+        onOutput({
+          type: 'stderr',
+          content: '[ccw] Using prompt-concat mode for Codex (Codex TTY limitation for native resume)\n',
+          timestamp: new Date().toISOString()
+        });
+      }
     }
   }
 
@@ -1157,11 +1217,11 @@ async function executeCliTool(
       }
 
       // Track native session after execution (awaited to prevent process hang)
-      // Pass prompt for precise matching in parallel execution scenarios
+      // Pass prompt and transactionId for precise matching in parallel execution scenarios
       try {
-        const nativeSession = await trackNewSession(tool, new Date(startTime), workingDir, prompt);
+        const nativeSession = await trackNewSession(tool, new Date(startTime), workingDir, prompt, transactionId);
         if (nativeSession) {
-          // Save native session mapping
+          // Save native session mapping with transaction ID
           try {
             store.saveNativeSessionMapping({
               ccw_id: conversationId,
@@ -1169,6 +1229,7 @@ async function executeCliTool(
               native_session_id: nativeSession.sessionId,
               native_session_path: nativeSession.filePath,
               project_hash: nativeSession.projectHash,
+              transaction_id: transactionId,
               created_at: new Date().toISOString()
             });
           } catch (err) {

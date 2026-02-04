@@ -1,0 +1,107 @@
+{
+  "noDescription": "No description available",
+  "header": {
+    "initialized": "Initialized"
+  },
+  "techStack": {
+    "title": "Technology Stack",
+    "languages": "Languages",
+    "frameworks": "Frameworks",
+    "buildTools": "Build Tools",
+    "testFrameworks": "Test Frameworks",
+    "primary": "Primary",
+    "noLanguages": "No languages detected",
+    "noFrameworks": "No frameworks detected"
+  },
+  "architecture": {
+    "title": "Architecture",
+    "style": "Style",
+    "layers": "Layers",
+    "patterns": "Patterns",
+    "principles": "Principles"
+  },
+  "components": {
+    "title": "Key Components",
+    "importance": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    }
+  },
+  "devIndex": {
+    "title": "Development History",
+    "categories": "Categories",
+    "timeline": "Timeline",
+    "category": {
+      "features": "Features",
+      "enhancements": "Enhancements",
+      "bugfixes": "Bug Fixes",
+      "refactorings": "Refactorings",
+      "documentation": "Documentation"
+    }
+  },
+  "guidelines": {
+    "title": "Project Guidelines",
+    "conventions": "Conventions",
+    "constraints": "Constraints",
+    "qualityRules": "Quality Rules",
+    "learnings": "Session Learnings",
+    "scope": "Scope",
+    "noQualityRules": "No quality rules defined yet. Switch to edit mode to add rules.",
+    "noLearnings": "No learning summaries yet. Switch to edit mode to add learnings.",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "saveSuccess": "Guidelines saved successfully",
+    "saveError": "Failed to save guidelines",
+    "conventionCategories": {
+      "codingStyle": "Coding Style",
+      "namingPatterns": "Naming Patterns",
+      "fileStructure": "File Structure",
+      "documentation": "Documentation"
+    },
+    "constraintCategories": {
+      "architecture": "Architecture",
+      "techStack": "Tech Stack",
+      "performance": "Performance",
+      "security": "Security"
+    },
+    "qualityRuleFields": {
+      "rule": "Rule",
+      "scope": "Scope",
+      "enforcedBy": "Enforced By",
+      "addRule": "Add Quality Rule",
+      "removeRule": "Remove"
+    },
+    "learningFields": {
+      "insight": "Insight",
+      "category": "Category",
+      "sessionId": "Session ID",
+      "context": "Context",
+      "date": "Date",
+      "addLearning": "Add Learning",
+      "removeLearning": "Remove"
+    },
+    "placeholders": {
+      "addItem": "Press Enter to add item",
+      "rule": "Enter quality rule",
+      "scope": "Enter scope",
+      "enforcedBy": "Enter enforcement method",
+      "insight": "Enter insight",
+      "category": "Enter category",
+      "sessionId": "Enter session ID",
+      "context": "Enter context",
+      "selectDate": "Select date"
+    }
+  },
+  "stats": {
+    "title": "Statistics",
+    "totalFeatures": "Total Features",
+    "lastUpdated": "Last Updated"
+  },
+  "empty": {
+    "title": "No Project Overview",
+    "message": "Run /workflow:init to initialize project analysis"
+  }
+}

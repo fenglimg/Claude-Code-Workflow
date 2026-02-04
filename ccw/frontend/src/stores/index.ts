@@ -45,6 +45,8 @@ export {
   selectWsLastMessage,
   selectIsPanelVisible,
   selectPersistentNotifications,
+  selectCurrentQuestion,
+  selectCurrentPopupCard,
   toast,
 } from './notificationStore';
 
@@ -74,6 +76,34 @@ export {
   selectIsExecuting,
   selectNodeStatus,
 } from './executionStore';
+
+// Coordinator Store
+export {
+  useCoordinatorStore,
+  useCoordinatorActions,
+  selectCoordinatorStatus,
+  selectCurrentExecutionId,
+  selectCoordinatorLogs,
+  selectActiveQuestion,
+  selectCommandChain,
+  selectCurrentNode,
+  selectPipelineDetails,
+  selectIsPipelineLoaded,
+} from './coordinatorStore';
+
+// Viewer Store
+export {
+  useViewerStore,
+  useViewerActions,
+  useViewerLayout,
+  useViewerPanes,
+  useViewerTabs,
+  useFocusedPaneId,
+  selectPane,
+  selectTab,
+  selectPaneTabs,
+  selectActiveTab,
+} from './viewerStore';
 
 // Re-export types for convenience
 export type {
@@ -113,7 +143,32 @@ export type {
   ToastType,
   WebSocketStatus,
   WebSocketMessage,
+  QuestionType,
+  Question,
+  AskQuestionPayload,
 } from '../types/store';
+
+// Coordinator Store Types
+export type {
+  CoordinatorState,
+  CoordinatorStatus,
+  CommandNode,
+  CoordinatorLog,
+  CoordinatorQuestion,
+  PipelineDetails,
+} from './coordinatorStore';
+
+// Viewer Store Types
+export type {
+  PaneId,
+  CliExecutionId,
+  TabId,
+  TabState,
+  PaneState,
+  AllotmentLayoutGroup,
+  AllotmentLayout,
+  ViewerState,
+} from './viewerStore';
 
 // Execution Types
 export type {

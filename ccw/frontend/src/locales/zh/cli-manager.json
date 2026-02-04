@@ -1,0 +1,229 @@
+{
+  "cliEndpoints": {
+    "title": "CLI 端点",
+    "description": "管理 LiteLLM 端点、自定义 CLI 端点和 CLI 包装器配置",
+    "type": {
+      "litellm": "LiteLLM",
+      "custom": "自定义",
+      "wrapper": "包装器"
+    },
+    "status": {
+      "enabled": "已启用",
+      "disabled": "已禁用"
+    },
+    "stats": {
+      "total": "端点总数",
+      "enabled": "已启用"
+    },
+    "id": "ID",
+    "config": "配置",
+    "filters": {
+      "type": "类型",
+      "allTypes": "全部类型",
+      "searchPlaceholder": "按名称或 ID 搜索端点..."
+    },
+    "actions": {
+      "add": "添加端点",
+      "edit": "编辑端点",
+      "delete": "删除端点",
+      "toggle": "切换端点"
+    },
+    "deleteConfirm": "确定要删除端点 \"{id}\" 吗?",
+    "emptyState": {
+      "title": "未找到 CLI 端点",
+      "message": "添加 CLI 端点以配置自定义 API 端点和包装器。"
+    }
+  },
+  "cliInstallations": {
+    "title": "CLI 安装",
+    "description": "管理 CCW CLI 工具的安装、升级和卸载",
+    "status": {
+      "active": "活动",
+      "inactive": "未活动",
+      "error": "错误"
+    },
+    "stats": {
+      "total": "工具总数",
+      "installed": "已安装",
+      "available": "可用"
+    },
+    "installed": "已安装",
+    "lastChecked": "上次检查",
+    "filters": {
+      "status": "状态",
+      "all": "全部",
+      "installed": "已安装",
+      "notInstalled": "未安装",
+      "searchPlaceholder": "按名称或版本搜索工具..."
+    },
+    "actions": {
+      "install": "安装",
+      "uninstall": "卸载",
+      "upgrade": "升级"
+    },
+    "uninstallConfirm": "确定要卸载 \"{name}\" 吗?",
+    "emptyState": {
+      "title": "未找到 CLI 工具",
+      "message": "目前没有可用于安装的 CLI 工具。"
+    }
+  },
+  "cliHooks": {
+    "title": "钩子管理器",
+    "description": "管理自动化工作流的 CLI 钩子",
+    "trigger": {
+      "SessionStart": "会话开始",
+      "UserPromptSubmit": "用户提交指令",
+      "PreToolUse": "工具使用前",
+      "PostToolUse": "工具使用后",
+      "Stop": "停止",
+      "pre-commit": "提交前",
+      "post-commit": "提交后",
+      "pre-push": "推送前",
+      "custom": "自定义"
+    },
+    "stats": {
+      "total": "{count, plural, =0 {无钩子} one {# 个钩子} other {# 个钩子}}",
+      "enabled": "{count, plural, =0 {无激活} one {# 个激活} other {# 个激活}}",
+      "count": "{enabled}/{total} 个已启用"
+    },
+    "filters": {
+      "trigger": "触发器",
+      "allTriggers": "全部触发器",
+      "searchPlaceholder": "按名称、描述、命令或触发器搜索..."
+    },
+    "actions": {
+      "add": "添加钩子",
+      "addFirst": "添加您的第一个钩子",
+      "edit": "编辑钩子",
+      "delete": "删除钩子",
+      "deleteConfirm": "确定要删除钩子 \"{hookName}\" 吗？",
+      "enable": "启用",
+      "disable": "禁用",
+      "toggle": "切换钩子",
+      "expand": "展开",
+      "collapse": "收起",
+      "expandAll": "全部展开",
+      "collapseAll": "全部收起"
+    },
+    "form": {
+      "name": "钩子名称",
+      "description": "描述",
+      "trigger": "触发事件",
+      "matcher": "匹配模式",
+      "command": "命令"
+    },
+    "quickTemplates": {
+      "title": "快速安装模板",
+      "description": "一键安装常用钩子"
+    },
+    "templates": {
+      "title": "快速安装模板",
+      "description": "一键安装常用钩子",
+      "categories": {
+        "notification": "通知",
+        "indexing": "索引",
+        "automation": "自动化"
+      },
+      "templates": {
+        "session-start-notify": {
+          "name": "会话启动通知",
+          "description": "当新工作流会话创建时通知仪表盘"
+        },
+        "session-state-watch": {
+          "name": "会话状态监控",
+          "description": "监控会话元数据文件变更 (workflow-session.json)"
+        }
+      },
+      "actions": {
+        "install": "安装",
+        "installed": "已安装"
+      }
+    },
+    "wizards": {
+      "sectionTitle": "钩子向导",
+      "sectionDescription": "通过分步引导创建常见钩子",
+      "launch": "启动向导",
+      "memoryUpdate": {
+        "title": "记忆更新钩子",
+        "shortDescription": "自动更新 CLAUDE.md"
+      },
+      "dangerProtection": {
+        "title": "危险操作保护",
+        "shortDescription": "保护危险操作"
+      },
+      "skillContext": {
+        "title": "SKILL 上下文钩子",
+        "shortDescription": "自动注入 SKILL 上下文"
+      }
+    },
+    "allTools": "全部工具",
+    "empty": {
+      "title": "暂无钩子",
+      "description": "开始添加您的第一个钩子或使用快速模板",
+      "noHooksInEvent": "此事件未配置钩子"
+    }
+  },
+  "cliRules": {
+    "title": "规则",
+    "description": "管理代码质量规则和检查配置",
+    "severity": {
+      "error": "错误",
+      "warning": "警告",
+      "info": "信息"
+    },
+    "stats": {
+      "total": "规则总数",
+      "enabled": "已启用"
+    },
+    "filters": {
+      "severity": "严重程度",
+      "allSeverities": "全部严重程度",
+      "searchPlaceholder": "按名称搜索规则..."
+    },
+    "actions": {
+      "add": "添加规则",
+      "edit": "编辑规则",
+      "delete": "删除规则",
+      "toggle": "切换规则"
+    },
+    "emptyState": {
+      "title": "未找到规则",
+      "message": "添加规则以强制执行代码质量标准。"
+    }
+  },
+  "executionDetails": "执行详情",
+  "tabs": {
+    "prompt": "提示词",
+    "output": "输出",
+    "details": "详情"
+  },
+  "streamPanel": {
+    "turns": "回合",
+    "perTurnView": "分回合视图",
+    "concatenatedView": "连接视图",
+    "userPrompt": "用户提示词",
+    "assistantResponse": "助手响应",
+    "errors": "错误",
+    "truncatedNotice": "输出因大小限制被截断。",
+    "latest": "最新",
+    "copyId": "复制 ID",
+    "copyPrompt": "复制提示词",
+    "concatenatedPrompt": "连接提示词",
+    "newRequest": "新请求",
+    "noOutput": "[无输出]",
+    "yourNextPrompt": "[您的下一条提示词]",
+    "conversationHistory": "对话历史",
+    "loading": "加载中...",
+    "noDetails": "无执行详情"
+  },
+  "details": {
+    "turn": "回合",
+    "tool": "工具",
+    "mode": "模式",
+    "duration": "时长",
+    "created": "创建时间",
+    "id": "ID",
+    "timestamp": "时间戳",
+    "status": "状态"
+  }
+}

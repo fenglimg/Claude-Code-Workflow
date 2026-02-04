@@ -1,15 +1,14 @@
 // ========================================
 // Sidebar Component
 // ========================================
-// Collapsible navigation sidebar with route links
+// Collapsible navigation sidebar with 5-group accordion structure
 
-import { useState, useCallback } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { useCallback, useMemo } from 'react';
+import { useIntl } from 'react-intl';
 import {
   Home,
   FolderKanban,
   Workflow,
-  RefreshCw,
   AlertCircle,
   Sparkles,
   Terminal,
@@ -18,9 +17,22 @@ import {
   HelpCircle,
   PanelLeftClose,
   PanelLeftOpen,
+  LayoutDashboard,
+  Clock,
+  Zap,
+  GitFork,
+  Shield,
+  History,
+  Server,
+  Layers,
+  Wrench,
+  Cog,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
+import { Accordion } from '@/components/ui/Accordion';
+import { NavGroup, type NavItem } from '@/components/shared/NavGroup';
+import { useAppStore } from '@/stores/appStore';
 
 export interface SidebarProps {
   /** Whether sidebar is collapsed */
@@ -33,25 +45,76 @@ export interface SidebarProps {
   onMobileClose?: () => void;
 }
 
-interface NavItem {
-  path: string;
-  label: string;
-  icon: React.ElementType;
-  badge?: number | string;
-  badgeVariant?: 'default' | 'success' | 'warning' | 'info';
+// Navigation group definitions
+interface NavGroupDef {
+  id: string;
+  titleKey: string;
+  icon?: React.ElementType;
+  items: Array<{
+    path: string;
+    labelKey: string;
+    icon: React.ElementType;
+    badge?: number | string;
+    badgeVariant?: 'default' | 'success' | 'warning' | 'info';
+  }>;
 }
 
-const navItems: NavItem[] = [
-  { path: '/', label: 'Home', icon: Home },
-  { path: '/sessions', label: 'Sessions', icon: FolderKanban },
-  { path: '/orchestrator', label: 'Orchestrator', icon: Workflow },
-  { path: '/loops', label: 'Loop Monitor', icon: RefreshCw },
-  { path: '/issues', label: 'Issues', icon: AlertCircle },
-  { path: '/skills', label: 'Skills', icon: Sparkles },
-  { path: '/commands', label: 'Commands', icon: Terminal },
-  { path: '/memory', label: 'Memory', icon: Brain },
-  { path: '/settings', label: 'Settings', icon: Settings },
-  { path: '/help', label: 'Help', icon: HelpCircle },
+// Define the 5 navigation groups with their items
+const navGroupDefinitions: NavGroupDef[] = [
+  {
+    id: 'overview',
+    titleKey: 'navigation.groups.overview',
+    icon: Layers,
+    items: [
+      { path: '/', labelKey: 'navigation.main.home', icon: Home },
+      { path: '/project', labelKey: 'navigation.main.project', icon: LayoutDashboard },
+    ],
+  },
+  {
+    id: 'workflow',
+    titleKey: 'navigation.groups.workflow',
+    icon: Workflow,
+    items: [
+      { path: '/sessions', labelKey: 'navigation.main.sessions', icon: FolderKanban },
+      { path: '/lite-tasks', labelKey: 'navigation.main.liteTasks', icon: Zap },
+      { path: '/orchestrator', labelKey: 'navigation.main.orchestrator', icon: Workflow },
+      { path: '/coordinator', labelKey: 'navigation.main.coordinator', icon: GitFork },
+      { path: '/history', labelKey: 'navigation.main.history', icon: Clock },
+      { path: '/issues', labelKey: 'navigation.main.issues', icon: AlertCircle },
+    ],
+  },
+  {
+    id: 'knowledge',
+    titleKey: 'navigation.groups.knowledge',
+    icon: Brain,
+    items: [
+      { path: '/memory', labelKey: 'navigation.main.memory', icon: Brain },
+      { path: '/prompts', labelKey: 'navigation.main.prompts', icon: History },
+      { path: '/skills', labelKey: 'navigation.main.skills', icon: Sparkles },
+      { path: '/commands', labelKey: 'navigation.main.commands', icon: Terminal },
+      { path: '/settings/rules', labelKey: 'navigation.main.rules', icon: Shield },
+    ],
+  },
+  {
+    id: 'tools',
+    titleKey: 'navigation.groups.tools',
+    icon: Wrench,
+    items: [
+      { path: '/hooks', labelKey: 'navigation.main.hooks', icon: GitFork },
+      { path: '/settings/mcp', labelKey: 'navigation.main.mcp', icon: Server },
+    ],
+  },
+  {
+    id: 'configuration',
+    titleKey: 'navigation.groups.configuration',
+    icon: Cog,
+    items: [
+      { path: '/settings/codexlens', labelKey: 'navigation.main.codexlens', icon: Sparkles },
+      { path: '/api-settings', labelKey: 'navigation.main.apiSettings', icon: Server },
+      { path: '/settings', labelKey: 'navigation.main.settings', icon: Settings },
+      { path: '/help', labelKey: 'navigation.main.help', icon: HelpCircle },
+    ],
+  },
 ];
 
 export function Sidebar({
@@ -60,18 +123,18 @@ export function Sidebar({
   mobileOpen = false,
   onMobileClose,
 }: SidebarProps) {
-  const location = useLocation();
-  const [internalCollapsed, setInternalCollapsed] = useState(collapsed);
+  const { formatMessage } = useIntl();
+  const { sidebarCollapsed, expandedNavGroups, setExpandedNavGroups } = useAppStore();
 
-  const isCollapsed = onCollapsedChange ? collapsed : internalCollapsed;
+  const isCollapsed = onCollapsedChange ? collapsed : sidebarCollapsed;
 
   const handleToggleCollapse = useCallback(() => {
     if (onCollapsedChange) {
       onCollapsedChange(!collapsed);
     } else {
-      setInternalCollapsed(!internalCollapsed);
+      useAppStore.getState().setSidebarCollapsed(!sidebarCollapsed);
     }
-  }, [collapsed, internalCollapsed, onCollapsedChange]);
+  }, [collapsed, sidebarCollapsed, onCollapsedChange]);
 
   const handleNavClick = useCallback(() => {
     // Close mobile sidebar when navigating
@@ -79,6 +142,21 @@ export function Sidebar({
       onMobileClose();
     }
   }, [onMobileClose]);
+
+  const handleAccordionChange = useCallback((value: string[]) => {
+    setExpandedNavGroups(value);
+  }, [setExpandedNavGroups]);
+
+  // Build nav groups with translated labels
+  const navGroups = useMemo(() => {
+    return navGroupDefinitions.map((group) => ({
+      ...group,
+      items: group.items.map((item) => ({
+        ...item,
+        label: formatMessage({ id: item.labelKey }),
+      })) as NavItem[],
+    }));
+  }, [formatMessage]);
 
   return (
     <>
@@ -95,63 +173,52 @@ export function Sidebar({
       <aside
         className={cn(
           'bg-sidebar-background border-r border-border flex flex-col transition-all duration-300',
-          // Desktop styles
-          'hidden md:flex sticky top-14 h-[calc(100vh-56px)]',
+          // Desktop styles - fixed position for floating behavior
+          'hidden md:flex fixed left-0 top-14 h-[calc(100vh-56px)] z-40',
           isCollapsed ? 'w-16' : 'w-64',
           // Mobile styles
-          'md:translate-x-0',
-          mobileOpen && 'fixed left-0 top-14 flex translate-x-0 z-50 h-[calc(100vh-56px)] w-64 shadow-lg'
+          mobileOpen && 'flex z-50 w-64 shadow-lg'
         )}
         role="navigation"
-        aria-label="Main navigation"
+        aria-label={formatMessage({ id: 'navigation.header.brand' })}
       >
         <nav className="flex-1 py-3 overflow-y-auto">
-          <ul className="space-y-1 px-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path ||
-                (item.path !== '/' && location.pathname.startsWith(item.path));
-
-              return (
-                <li key={item.path}>
-                  <NavLink
-                    to={item.path}
-                    onClick={handleNavClick}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors',
-                      'hover:bg-hover hover:text-foreground',
-                      isActive
-                        ? 'bg-primary/10 text-primary font-medium'
-                        : 'text-muted-foreground',
-                      isCollapsed && 'justify-center px-2'
-                    )}
-                    title={isCollapsed ? item.label : undefined}
-                  >
-                    <Icon className="w-5 h-5 flex-shrink-0" />
-                    {!isCollapsed && (
-                      <>
-                        <span className="flex-1">{item.label}</span>
-                        {item.badge !== undefined && (
-                          <span
-                            className={cn(
-                              'px-2 py-0.5 text-xs font-semibold rounded-full',
-                              item.badgeVariant === 'success' && 'bg-success-light text-success',
-                              item.badgeVariant === 'warning' && 'bg-warning-light text-warning',
-                              item.badgeVariant === 'info' && 'bg-info-light text-info',
-                              (!item.badgeVariant || item.badgeVariant === 'default') &&
-                                'bg-muted text-muted-foreground'
-                            )}
-                          >
-                            {item.badge}
-                          </span>
-                        )}
-                      </>
-                    )}
-                  </NavLink>
-                </li>
-              );
-            })}
-          </ul>
+          {isCollapsed ? (
+            // Collapsed view: render flat list of icons
+            <div className="space-y-4 px-2">
+              {navGroups.map((group) => (
+                <NavGroup
+                  key={group.id}
+                  groupId={group.id}
+                  titleKey={group.titleKey}
+                  icon={group.icon}
+                  items={group.items}
+                  collapsed={true}
+                  onNavClick={handleNavClick}
+                />
+              ))}
+            </div>
+          ) : (
+            // Expanded view: render accordion groups
+            <Accordion
+              type="multiple"
+              value={expandedNavGroups}
+              onValueChange={handleAccordionChange}
+              className="space-y-1 px-2"
+            >
+              {navGroups.map((group) => (
+                <NavGroup
+                  key={group.id}
+                  groupId={group.id}
+                  titleKey={group.titleKey}
+                  icon={group.icon}
+                  items={group.items}
+                  collapsed={false}
+                  onNavClick={handleNavClick}
+                />
+              ))}
+            </Accordion>
+          )}
         </nav>
 
         {/* Sidebar footer - collapse toggle */}
@@ -164,14 +231,17 @@ export function Sidebar({
               'w-full flex items-center gap-2 text-muted-foreground hover:text-foreground',
               isCollapsed && 'justify-center'
             )}
-            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={isCollapsed
+              ? formatMessage({ id: 'navigation.sidebar.expand' })
+              : formatMessage({ id: 'navigation.sidebar.collapseAria' })
+            }
           >
             {isCollapsed ? (
               <PanelLeftOpen className="w-4 h-4" />
             ) : (
               <>
                 <PanelLeftClose className="w-4 h-4" />
-                <span>Collapse</span>
+                <span>{formatMessage({ id: 'navigation.sidebar.collapse' })}</span>
               </>
             )}
           </Button>

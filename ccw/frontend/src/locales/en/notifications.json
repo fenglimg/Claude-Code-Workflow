@@ -1,0 +1,54 @@
+{
+  "title": "Notifications",
+  "close": "Close notifications",
+  "empty": "No notifications",
+  "emptyHint": "Notifications will appear here",
+  "markAllRead": "Mark Read",
+  "clearAll": "Clear All",
+  "showMore": "Show more",
+  "showLess": "Show less",
+  "systemNotifications": "System Notifications",
+  "systemNotificationsDesc": "Show browser native notifications for important events",
+  "justNow": "just now",
+  "minutesAgo": "{0}m ago",
+  "hoursAgo": "{0}h ago",
+  "daysAgo": "{0}d ago",
+  "oneMinuteAgo": "1m ago",
+  "oneHourAgo": "1h ago",
+  "oneDayAgo": "1d ago",
+  "sources": {
+    "system": "System",
+    "websocket": "WebSocket",
+    "cli": "CLI",
+    "workflow": "Workflow",
+    "user": "User",
+    "external": "External"
+  },
+  "priorities": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "attachments": {
+    "image": "Image",
+    "code": "Code",
+    "file": "File",
+    "data": "Data",
+    "download": "Download"
+  },
+  "actions": {
+    "loading": "Loading...",
+    "success": "Done",
+    "retry": "Retry"
+  },
+  "timestamps": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "atTime": "at {0}"
+  },
+  "markAsRead": "Mark as read",
+  "markAsUnread": "Mark as unread",
+  "read": "Read",
+  "unread": "Unread"
+}

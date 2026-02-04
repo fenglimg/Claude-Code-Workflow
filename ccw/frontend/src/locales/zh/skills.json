@@ -1,0 +1,69 @@
+{
+  "title": "技能",
+  "description": "管理和配置技能",
+  "disabledSkills": {
+    "title": "已禁用技能"
+  },
+  "disableConfirm": {
+    "title": "禁用技能?",
+    "message": "确定要禁用 \"{name}\" 吗?"
+  },
+  "location": {
+    "project": "项目",
+    "user": "全局"
+  },
+  "source": {
+    "builtin": "内置",
+    "custom": "自定义",
+    "community": "社区"
+  },
+  "actions": {
+    "viewDetails": "查看详情",
+    "configure": "配置",
+    "enable": "启用",
+    "disable": "禁用",
+    "toggle": "切换",
+    "install": "安装技能",
+    "cancel": "取消",
+    "confirmDisable": "禁用"
+  },
+  "state": {
+    "enabled": "已启用",
+    "disabled": "已禁用",
+    "on": "开启",
+    "off": "关闭"
+  },
+  "card": {
+    "triggers": "触发器",
+    "category": "类别",
+    "source": "来源",
+    "author": "作者",
+    "version": "版本",
+    "description": "描述"
+  },
+  "allowedTools": "允许的工具",
+  "files": "文件",
+  "path": "路径",
+  "metadata": "元数据",
+  "noDescription": "暂无描述",
+  "projectSkills": "项目技能",
+  "userSkills": "用户技能",
+  "filters": {
+    "all": "全部",
+    "enabled": "已启用",
+    "disabled": "已禁用",
+    "searchPlaceholder": "搜索技能...",
+    "allSources": "所有来源"
+  },
+  "stats": {
+    "totalSkills": "总技能数"
+  },
+  "view": {
+    "grid": "网格视图",
+    "compact": "紧凑视图"
+  },
+  "emptyState": {
+    "title": "未找到技能",
+    "message": "没有符合当前筛选条件的技能。"
+  }
+}

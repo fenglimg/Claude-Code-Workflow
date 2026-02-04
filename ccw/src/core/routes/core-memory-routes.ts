@@ -31,8 +31,10 @@ export async function handleCoreMemoryRoutes(ctx: RouteContext): Promise<boolean
   // API: Core Memory - Get all memories
   if (pathname === '/api/core-memory/memories' && req.method === 'GET') {
     const projectPath = url.searchParams.get('path') || initialPath;
-    const archived = url.searchParams.get('archived') === 'true';
-    const limit = parseInt(url.searchParams.get('limit') || '50', 10);
+    const archivedParam = url.searchParams.get('archived');
+    // undefined means fetch all, 'true' means only archived, 'false' means only non-archived
+    const archived = archivedParam === null ? undefined : archivedParam === 'true';
+    const limit = parseInt(url.searchParams.get('limit') || '100', 10);
     const offset = parseInt(url.searchParams.get('offset') || '0', 10);
 
     try {
@@ -128,6 +130,34 @@ export async function handleCoreMemoryRoutes(ctx: RouteContext): Promise<boolean
         payload: {
           memoryId,
           archived: true,
+          timestamp: new Date().toISOString()
+        }
+      });
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true }));
+    } catch (error: unknown) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: (error as Error).message }));
+    }
+    return true;
+  }
+
+  // API: Core Memory - Unarchive memory
+  if (pathname.startsWith('/api/core-memory/memories/') && pathname.endsWith('/unarchive') && req.method === 'POST') {
+    const memoryId = pathname.replace('/api/core-memory/memories/', '').replace('/unarchive', '');
+    const projectPath = url.searchParams.get('path') || initialPath;
+
+    try {
+      const store = getCoreMemoryStore(projectPath);
+      store.unarchiveMemory(memoryId);
+
+      // Broadcast update event
+      broadcastToClients({
+        type: 'CORE_MEMORY_UPDATED',
+        payload: {
+          memoryId,
+          archived: false,
           timestamp: new Date().toISOString()
         }
       });

@@ -7,7 +7,7 @@ import type { Node, Edge } from '@xyflow/react';
 
 // ========== Node Types ==========
 
-export type FlowNodeType = 'slash-command' | 'file-operation' | 'conditional' | 'parallel';
+export type FlowNodeType = 'slash-command' | 'file-operation' | 'conditional' | 'parallel' | 'cli-command' | 'prompt';
 
 // Execution status for nodes during workflow execution
 export type ExecutionStatus = 'pending' | 'running' | 'completed' | 'failed';
@@ -18,6 +18,7 @@ interface BaseNodeData {
   executionStatus?: ExecutionStatus;
   executionError?: string;
   executionResult?: unknown;
+  outputVariable?: string;
   [key: string]: unknown;
 }
 
@@ -26,7 +27,7 @@ export interface SlashCommandNodeData extends BaseNodeData {
   command: string;
   args?: string;
   execution: {
-    mode: 'analysis' | 'write';
+    mode: 'mainprocess' | 'async';
     timeout?: number;
   };
   contextHint?: string;
@@ -40,7 +41,6 @@ export interface FileOperationNodeData extends BaseNodeData {
   content?: string;
   destinationPath?: string;
   encoding?: 'utf8' | 'ascii' | 'base64';
-  outputVariable?: string;
   addToContext?: boolean;
 }
 
@@ -59,12 +59,33 @@ export interface ParallelNodeData extends BaseNodeData {
   failFast?: boolean;
 }
 
+// CLI Command Node Data
+export interface CliCommandNodeData extends BaseNodeData {
+  command: string;
+  args?: string;
+  tool: 'gemini' | 'qwen' | 'codex';
+  mode: 'analysis' | 'write' | 'review';
+  execution?: {
+    timeout?: number;
+  };
+}
+
+// Prompt Node Data
+export interface PromptNodeData extends BaseNodeData {
+  promptType: 'organize' | 'refine' | 'summarize' | 'transform' | 'custom';
+  sourceNodes: string[];
+  contextTemplate?: string;
+  promptText: string;
+}
+
 // Union type for all node data
 export type NodeData =
   | SlashCommandNodeData
   | FileOperationNodeData
   | ConditionalNodeData
-  | ParallelNodeData;
+  | ParallelNodeData
+  | CliCommandNodeData
+  | PromptNodeData;
 
 // Extended Node type for React Flow
 export type FlowNode = Node<NodeData, FlowNodeType>;
@@ -191,7 +212,7 @@ export const NODE_TYPE_CONFIGS: Record<FlowNodeType, NodeTypeConfig> = {
       label: 'New Command',
       command: '',
       args: '',
-      execution: { mode: 'analysis' },
+      execution: { mode: 'mainprocess' },
       onError: 'stop',
     } as SlashCommandNodeData,
     handles: { inputs: 1, outputs: 1 },
@@ -236,5 +257,33 @@ export const NODE_TYPE_CONFIGS: Record<FlowNodeType, NodeTypeConfig> = {
       failFast: false,
     } as ParallelNodeData,
     handles: { inputs: 1, outputs: 2 },
+  },
+  'cli-command': {
+    type: 'cli-command',
+    label: 'CLI Command',
+    description: 'Execute CLI tools with AI models',
+    icon: 'Terminal',
+    color: 'bg-amber-500',
+    defaultData: {
+      label: 'CLI Command',
+      command: '',
+      tool: 'gemini',
+      mode: 'analysis',
+    } as CliCommandNodeData,
+    handles: { inputs: 1, outputs: 1 },
+  },
+  prompt: {
+    type: 'prompt',
+    label: 'Prompt',
+    description: 'Construct AI prompts with context',
+    icon: 'FileText',
+    color: 'bg-purple-500',
+    defaultData: {
+      label: 'Prompt',
+      promptType: 'custom',
+      sourceNodes: [],
+      promptText: '',
+    } as PromptNodeData,
+    handles: { inputs: 1, outputs: 1 },
   },
 };

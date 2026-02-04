@@ -2,7 +2,7 @@
 name: ccw
 description: Main workflow orchestrator - analyze intent, select workflow, execute command chain in main process
 argument-hint: "\"task description\""
-allowed-tools: SlashCommand(*), TodoWrite(*), AskUserQuestion(*), Read(*), Grep(*), Glob(*)
+allowed-tools: Skill(*), TodoWrite(*), AskUserQuestion(*), Read(*), Grep(*), Glob(*)
 ---
 
 # CCW Command - Main Workflow Orchestrator
@@ -33,12 +33,12 @@ Main process orchestrator: intent analysis → workflow selection → command ch
 
 ## Execution Model
 
-**Synchronous (Main Process)**: Commands execute via SlashCommand in main process, blocking until complete.
+**Synchronous (Main Process)**: Commands execute via Skill in main process, blocking until complete.
 
 ```
 User Input → Analyze Intent → Select Workflow → [Confirm] → Execute Chain
                                                               ↓
-                                                    SlashCommand (blocking)
+                                                    Skill (blocking)
                                                               ↓
                                                     Update TodoWrite
                                                               ↓
@@ -327,49 +327,107 @@ async function getUserConfirmation(chain) {
 
 ---
 
-### Phase 4: Setup TODO Tracking
+### Phase 4: Setup TODO Tracking & Status File
 
 ```javascript
-function setupTodoTracking(chain, workflow) {
+function setupTodoTracking(chain, workflow, analysis) {
+  const sessionId = `ccw-${Date.now()}`;
+  const stateDir = `.workflow/.ccw/${sessionId}`;
+  Bash(`mkdir -p "${stateDir}"`);
+
   const todos = chain.map((step, i) => ({
     content: `CCW:${workflow}: [${i + 1}/${chain.length}] ${step.cmd}`,
     status: i === 0 ? 'in_progress' : 'pending',
     activeForm: `Executing ${step.cmd}`
   }));
   TodoWrite({ todos });
+
+  // Initialize status.json for hook tracking
+  const state = {
+    session_id: sessionId,
+    workflow: workflow,
+    status: 'running',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    analysis: analysis,
+    command_chain: chain.map((step, idx) => ({
+      index: idx,
+      command: step.cmd,
+      status: idx === 0 ? 'running' : 'pending'
+    })),
+    current_index: 0
+  };
+
+  Write(`${stateDir}/status.json`, JSON.stringify(state, null, 2));
+
+  return { sessionId, stateDir, state };
 }
 ```
 
-**Output**: `-> CCW:rapid: [1/3] /workflow:lite-plan | CCW:rapid: [2/3] /workflow:lite-execute | ...`
+**Output**:
+- TODO: `-> CCW:rapid: [1/3] /workflow:lite-plan | CCW:rapid: [2/3] /workflow:lite-execute | ...`
+- Status File: `.workflow/.ccw/{session_id}/status.json`
 
 ---
 
 ### Phase 5: Execute Command Chain
 
 ```javascript
-async function executeCommandChain(chain, workflow) {
+async function executeCommandChain(chain, workflow, trackingState) {
   let previousResult = null;
+  const { sessionId, stateDir, state } = trackingState;
 
   for (let i = 0; i < chain.length; i++) {
     try {
+      // Update status: mark current as running
+      state.command_chain[i].status = 'running';
+      state.current_index = i;
+      state.updated_at = new Date().toISOString();
+      Write(`${stateDir}/status.json`, JSON.stringify(state, null, 2));
+
       const fullCommand = assembleCommand(chain[i], previousResult);
-      const result = await SlashCommand({ command: fullCommand });
+      const result = await Skill({ skill: fullCommand });
 
       previousResult = { ...result, success: true };
+
+      // Update status: mark current as completed, next as running
+      state.command_chain[i].status = 'completed';
+      if (i + 1 < chain.length) {
+        state.command_chain[i + 1].status = 'running';
+      }
+      state.updated_at = new Date().toISOString();
+      Write(`${stateDir}/status.json`, JSON.stringify(state, null, 2));
+
       updateTodoStatus(i, chain.length, workflow, 'completed');
 
     } catch (error) {
+      // Update status on error
+      state.command_chain[i].status = 'failed';
+      state.status = 'error';
+      state.updated_at = new Date().toISOString();
+      Write(`${stateDir}/status.json`, JSON.stringify(state, null, 2));
+
       const action = await handleError(chain[i], error, i);
       if (action === 'retry') {
+        state.command_chain[i].status = 'pending';
+        state.status = 'running';
         i--;  // Retry
       } else if (action === 'abort') {
+        state.status = 'failed';
+        Write(`${stateDir}/status.json`, JSON.stringify(state, null, 2));
         return { success: false, error: error.message };
       }
       // 'skip' - continue
+      state.status = 'running';
     }
   }
 
-  return { success: true, completed: chain.length };
+  // Mark workflow as completed
+  state.status = 'completed';
+  state.updated_at = new Date().toISOString();
+  Write(`${stateDir}/status.json`, JSON.stringify(state, null, 2));
+
+  return { success: true, completed: chain.length, sessionId };
 }
 
 // Assemble full command with session/plan parameters
@@ -434,16 +492,19 @@ Phase 3: User Confirmation (optional)
     |-- Show pipeline visualization
     +-- Allow adjustment
     |
-Phase 4: Setup TODO Tracking
-    +-- Create todos with CCW prefix
+Phase 4: Setup TODO Tracking & Status File
+    |-- Create todos with CCW prefix
+    +-- Initialize .workflow/.ccw/{session_id}/status.json
     |
 Phase 5: Execute Command Chain
     |-- For each command:
+    |   |-- Update status.json (current=running)
     |   |-- Assemble full command
-    |   |-- Execute via SlashCommand
+    |   |-- Execute via Skill
+    |   |-- Update status.json (current=completed, next=running)
     |   |-- Update TODO status
     |   +-- Handle errors (retry/skip/abort)
-    +-- Return workflow result
+    +-- Mark status.json as completed
 ```
 
 ---
@@ -469,7 +530,7 @@ Phase 5: Execute Command Chain
 
 ## Key Design Principles
 
-1. **Main Process Execution** - Use SlashCommand in main process, no external CLI
+1. **Main Process Execution** - Use Skill in main process, no external CLI
 2. **Intent-Driven** - Auto-select workflow based on task intent
 3. **Port-Based Chaining** - Build command chain using port matching
 4. **Minimum Execution Units** - Commands grouped into atomic units, never split (e.g., lite-plan → lite-execute)
@@ -482,7 +543,9 @@ Phase 5: Execute Command Chain
 
 ## State Management
 
-**TodoWrite-Based Tracking**: All execution state tracked via TodoWrite with `CCW:` prefix.
+### Dual Tracking System
+
+**1. TodoWrite-Based Tracking** (UI Display): All execution state tracked via TodoWrite with `CCW:` prefix.
 
 ```javascript
 // Initial state
@@ -500,7 +563,57 @@ todos = [
 ];
 ```
 
-**vs ccw-coordinator**: Extensive state.json with task_id, status transitions, hook callbacks.
+**2. Status.json Tracking**: Persistent state file for workflow monitoring.
+
+**Location**: `.workflow/.ccw/{session_id}/status.json`
+
+**Structure**:
+```json
+{
+  "session_id": "ccw-1706123456789",
+  "workflow": "rapid",
+  "status": "running|completed|failed|error",
+  "created_at": "2025-02-01T10:30:00Z",
+  "updated_at": "2025-02-01T10:35:00Z",
+  "analysis": {
+    "goal": "Add user authentication",
+    "scope": ["auth"],
+    "constraints": [],
+    "task_type": "feature",
+    "complexity": "medium"
+  },
+  "command_chain": [
+    {
+      "index": 0,
+      "command": "/workflow:lite-plan",
+      "status": "completed"
+    },
+    {
+      "index": 1,
+      "command": "/workflow:lite-execute",
+      "status": "running"
+    },
+    {
+      "index": 2,
+      "command": "/workflow:test-cycle-execute",
+      "status": "pending"
+    }
+  ],
+  "current_index": 1
+}
+```
+
+**Status Values**:
+- `running`: Workflow executing commands
+- `completed`: All commands finished
+- `failed`: User aborted or unrecoverable error
+- `error`: Command execution failed (during error handling)
+
+**Command Status Values**:
+- `pending`: Not started
+- `running`: Currently executing
+- `completed`: Successfully finished
+- `failed`: Execution failed
 
 ---
 
@@ -527,41 +640,27 @@ todos = [
 
 ---
 
-## Type Comparison: ccw vs ccw-coordinator
-
-| Aspect | ccw | ccw-coordinator |
-|--------|-----|-----------------|
-| **Type** | Main process (SlashCommand) | External CLI (ccw cli + hook callbacks) |
-| **Execution** | Synchronous blocking | Async background with hook completion |
-| **Workflow** | Auto intent-based selection | Manual chain building |
-| **Intent Analysis** | 5-phase clarity check | 3-phase requirement analysis |
-| **State** | TodoWrite only (in-memory) | state.json + checkpoint/resume |
-| **Error Handling** | Retry/skip/abort (interactive) | Retry/skip/abort (via AskUser) |
-| **Use Case** | Auto workflow for any task | Manual orchestration, large chains |
-
----
-
 ## Usage
 
 ```bash
 # Auto-select workflow
-ccw "Add user authentication"
+/ccw "Add user authentication"
 
 # Complex requirement (triggers clarification)
-ccw "Optimize system performance"
+/ccw "Optimize system performance"
 
 # Bug fix
-ccw "Fix memory leak in WebSocket handler"
+/ccw "Fix memory leak in WebSocket handler"
 
 # TDD development
-ccw "Implement user registration with TDD"
+/ccw "Implement user registration with TDD"
 
 # Exploratory task
-ccw "Uncertain about architecture for real-time notifications"
+/ccw "Uncertain about architecture for real-time notifications"
 
 # With-File workflows (documented exploration with multi-CLI collaboration)
-ccw "头脑风暴: 用户通知系统重新设计"           # → brainstorm-with-file
-ccw "从头脑风暴 BS-通知系统-2025-01-28 创建 issue"  # → brainstorm-to-issue (bridge)
-ccw "深度调试: 系统随机崩溃问题"              # → debug-with-file
-ccw "协作分析: 理解现有认证架构的设计决策"     # → analyze-with-file
+/ccw "头脑风暴: 用户通知系统重新设计"           # → brainstorm-with-file
+/ccw "从头脑风暴 BS-通知系统-2025-01-28 创建 issue"  # → brainstorm-to-issue (bridge)
+/ccw "深度调试: 系统随机崩溃问题"              # → debug-with-file
+/ccw "协作分析: 理解现有认证架构的设计决策"     # → analyze-with-file
 ```

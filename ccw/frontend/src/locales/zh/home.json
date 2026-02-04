@@ -1,0 +1,108 @@
+{
+  "title": "首页",
+  "description": "仪表板概览与统计",
+  "dashboard": {
+    "title": "仪表板",
+    "description": "工作流会话和任务统计概览",
+    "refreshTooltip": "刷新仪表板数据"
+  },
+  "stats": {
+    "activeSessions": "活跃会话",
+    "totalTasks": "总任务",
+    "completedTasks": "已完成",
+    "pendingTasks": "待处理",
+    "runningLoops": "运行中的循环",
+    "openIssues": "开放问题"
+  },
+  "indexStatus": {
+    "label": "索引"
+  },
+  "sections": {
+    "statistics": "统计",
+    "recentSessions": "最近会话",
+    "recentTasks": "最近任务",
+    "activeLoops": "活跃循环",
+    "openIssues": "开放问题",
+    "quickActions": "快速操作",
+    "taskDetails": "任务详情"
+  },
+  "tabs": {
+    "allSessions": "全部",
+    "allTasks": "全部",
+    "workflow": "工作流",
+    "liteTasks": "轻量任务",
+    "orchestrator": "编排器",
+    "inProgress": "进行中",
+    "planning": "规划中",
+    "completed": "已完成",
+    "paused": "已暂停"
+  },
+  "widgets": {
+    "workflowStatus": "工作流状态",
+    "activity": "活动热图",
+    "taskTypes": "任务类型"
+  },
+  "emptyState": {
+    "noSessions": {
+      "title": "未找到会话",
+      "message": "没有符合当前筛选条件的工作流会话。"
+    },
+    "noTasks": {
+      "title": "暂无任务",
+      "message": "没有符合当前筛选条件的任务。"
+    },
+    "noLoops": {
+      "title": "无活跃循环",
+      "message": "启动新的开发循环以开始监控进度。"
+    },
+    "noIssues": {
+      "title": "无开放问题",
+      "message": "创建问题以跟踪错误或功能请求。"
+    }
+  },
+  "help": {
+    "gettingStarted": {
+      "title": "入门指南",
+      "description": "了解 CCW 仪表盘和工作流管理的基础知识",
+      "heading": "CCW 入门指南"
+    },
+    "orchestratorGuide": {
+      "title": "编排器指南",
+      "description": "掌握可视化拖放式工作流编辑器"
+    },
+    "sessionsManagement": {
+      "title": "会话管理",
+      "description": "了解工作流会话和任务跟踪"
+    },
+    "cliIntegration": {
+      "title": "CLI 集成",
+      "description": "使用 CCW 命令和 CLI 工具集成",
+      "heading": "CLI 集成"
+    },
+    "commands": {
+      "title": "命令参考",
+      "description": "浏览 40+ 命令，涵盖工作流、问题、CLI 和内存类别"
+    },
+    "commandsOverview": {
+      "title": "命令文档",
+      "description": "探索所有可用的 CCW 命令，包含详细文档和示例"
+    },
+    "workflowsOverview": {
+      "title": "工作流指南",
+      "description": "15 种工作流级别的交互式指南，从超轻量到智能工作流"
+    },
+    "quickStart": {
+      "title": "快速开始",
+      "description": "在几分钟内上手 CCW",
+      "guide": "入门指南",
+      "faq": "常见问题"
+    }
+  },
+  "errors": {
+    "loadFailed": "加载仪表板数据失败",
+    "retry": "重试"
+  },
+  "project": {
+    "features": "个功能"
+  }
+}

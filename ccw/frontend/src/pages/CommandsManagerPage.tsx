@@ -4,344 +4,253 @@
 // Manage custom slash commands with search/filter
 
 import { useState, useMemo } from 'react';
+import { useIntl } from 'react-intl';
 import {
   Terminal,
   Search,
-  Plus,
-  Filter,
   RefreshCw,
-  Copy,
-  Play,
-  ChevronDown,
-  ChevronUp,
-  Code,
-  BookOpen,
-  Tag,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  XCircle,
+  Folder,
+  User,
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select';
-import { useCommands } from '@/hooks';
-import type { Command } from '@/lib/api';
+import { TabsNavigation } from '@/components/ui/TabsNavigation';
+import { useCommands, useCommandMutations } from '@/hooks';
+import { CommandGroupAccordion } from '@/components/commands/CommandGroupAccordion';
 import { cn } from '@/lib/utils';
-
-// ========== Command Card Component ==========
-
-interface CommandCardProps {
-  command: Command;
-  isExpanded: boolean;
-  onToggleExpand: () => void;
-  onCopy: (text: string) => void;
-}
-
-function CommandCard({ command, isExpanded, onToggleExpand, onCopy }: CommandCardProps) {
-  return (
-    <Card className="overflow-hidden">
-      {/* Header */}
-      <div
-        className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-        onClick={onToggleExpand}
-      >
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Terminal className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <code className="text-sm font-mono font-medium text-foreground">
-                  /{command.name}
-                </code>
-                {command.source && (
-                  <Badge variant={command.source === 'builtin' ? 'default' : 'secondary'} className="text-xs">
-                    {command.source}
-                  </Badge>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                {command.description}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                onCopy(`/${command.name}`);
-              }}
-            >
-              <Copy className="w-4 h-4" />
-            </Button>
-            {isExpanded ? (
-              <ChevronUp className="w-5 h-5 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-muted-foreground" />
-            )}
-          </div>
-        </div>
-
-        {/* Category and Aliases */}
-        <div className="flex flex-wrap gap-2 mt-3">
-          {command.category && (
-            <Badge variant="outline" className="text-xs">
-              <Tag className="w-3 h-3 mr-1" />
-              {command.category}
-            </Badge>
-          )}
-          {command.aliases?.map((alias) => (
-            <Badge key={alias} variant="secondary" className="text-xs font-mono">
-              /{alias}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      {/* Expanded Content */}
-      {isExpanded && (
-        <div className="border-t border-border p-4 space-y-4 bg-muted/30">
-          {/* Usage */}
-          {command.usage && (
-            <div>
-              <div className="flex items-center gap-2 text-sm font-medium text-foreground mb-2">
-                <Code className="w-4 h-4" />
-                Usage
-              </div>
-              <div className="p-3 bg-background rounded-md font-mono text-sm overflow-x-auto">
-                <code>{command.usage}</code>
-              </div>
-            </div>
-          )}
-
-          {/* Examples */}
-          {command.examples && command.examples.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 text-sm font-medium text-foreground mb-2">
-                <BookOpen className="w-4 h-4" />
-                Examples
-              </div>
-              <div className="space-y-2">
-                {command.examples.map((example, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 bg-background rounded-md font-mono text-sm flex items-center justify-between gap-2 group"
-                  >
-                    <code className="overflow-x-auto flex-1">{example}</code>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => onCopy(example)}
-                    >
-                      <Copy className="w-3 h-3" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </Card>
-  );
-}
 
 // ========== Main Page Component ==========
 
 export function CommandsManagerPage() {
+  const { formatMessage } = useIntl();
+
+  // Location filter state
+  const [locationFilter, setLocationFilter] = useState<'project' | 'user'>('project');
+  // Show disabled commands state
+  const [showDisabledCommands, setShowDisabledCommands] = useState(false);
+  // Expanded groups state (default cli and workflow expanded)
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['cli', 'workflow']));
+  // Search state
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [sourceFilter, setSourceFilter] = useState<string>('all');
-  const [expandedCommands, setExpandedCommands] = useState<Set<string>>(new Set());
 
   const {
     commands,
-    categories,
-    commandsByCategory,
-    totalCount,
+    groupedCommands,
+    groups,
+    enabledCount,
+    disabledCount,
     isLoading,
     isFetching,
     refetch,
   } = useCommands({
     filter: {
+      location: locationFilter,
+      showDisabled: showDisabledCommands,
       search: searchQuery || undefined,
-      category: categoryFilter !== 'all' ? categoryFilter : undefined,
-      source: sourceFilter !== 'all' ? sourceFilter as Command['source'] : undefined,
     },
   });
 
-  const toggleExpand = (commandName: string) => {
-    setExpandedCommands((prev) => {
+  const { toggleCommand, toggleGroup, isToggling } = useCommandMutations();
+
+  // Toggle group expand/collapse
+  const toggleGroupExpand = (groupName: string) => {
+    setExpandedGroups((prev) => {
       const next = new Set(prev);
-      if (next.has(commandName)) {
-        next.delete(commandName);
+      if (next.has(groupName)) {
+        next.delete(groupName);
       } else {
-        next.add(commandName);
+        next.add(groupName);
       }
       return next;
     });
   };
 
+  // Expand all groups
   const expandAll = () => {
-    setExpandedCommands(new Set(commands.map((c) => c.name)));
+    setExpandedGroups(new Set(groups));
   };
 
+  // Collapse all groups
   const collapseAll = () => {
-    setExpandedCommands(new Set());
+    setExpandedGroups(new Set());
   };
 
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      // TODO: Show toast notification
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
+  // Toggle individual command
+  const handleToggleCommand = (name: string, enabled: boolean) => {
+    toggleCommand(name, enabled, locationFilter);
   };
 
-  // Count by source
-  const builtinCount = useMemo(
-    () => commands.filter((c) => c.source === 'builtin').length,
+  // Toggle all commands in a group
+  const handleToggleGroup = (groupName: string, enable: boolean) => {
+    toggleGroup(groupName, enable, locationFilter);
+  };
+
+  // Calculate command counts per location
+  const projectCount = useMemo(
+    () => commands.filter((c) => c.location === 'project').length,
     [commands]
   );
-  const customCount = useMemo(
-    () => commands.filter((c) => c.source === 'custom').length,
+  const userCount = useMemo(
+    () => commands.filter((c) => c.location === 'user').length,
     [commands]
   );
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Terminal className="w-6 h-6 text-primary" />
-            Commands Manager
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage custom slash commands for Claude Code
-          </p>
-        </div>
-        <div className="flex gap-2">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <Terminal className="w-6 h-6 text-primary" />
+              {formatMessage({ id: 'commands.title' })}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              {formatMessage({ id: 'commands.description' })}
+            </p>
+          </div>
           <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={cn('w-4 h-4 mr-2', isFetching && 'animate-spin')} />
-            Refresh
+            {formatMessage({ id: 'common.actions.refresh' })}
           </Button>
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            New Command
+        </div>
+
+        {/* Location Tabs - styled like LiteTasksPage */}
+        <TabsNavigation
+          value={locationFilter}
+          onValueChange={(v) => setLocationFilter(v as 'project' | 'user')}
+          tabs={[
+            {
+              value: 'project',
+              label: formatMessage({ id: 'commands.location.project' }),
+              icon: <Folder className="h-4 w-4" />,
+              badge: <Badge variant="secondary" className="ml-2">{projectCount}</Badge>,
+              disabled: isToggling,
+            },
+            {
+              value: 'user',
+              label: formatMessage({ id: 'commands.location.user' }),
+              icon: <User className="h-4 w-4" />,
+              badge: <Badge variant="secondary" className="ml-2">{userCount}</Badge>,
+              disabled: isToggling,
+            },
+          ]}
+        />
+
+        {/* Show Disabled Controls */}
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            variant={showDisabledCommands ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setShowDisabledCommands((prev) => !prev)}
+            disabled={isToggling}
+          >
+            {showDisabledCommands ? (
+              <Eye className="w-4 h-4 mr-2" />
+            ) : (
+              <EyeOff className="w-4 h-4 mr-2" />
+            )}
+            {showDisabledCommands
+              ? formatMessage({ id: 'commands.actions.hideDisabled' })
+              : formatMessage({ id: 'commands.actions.showDisabled' })}
+            <span className="ml-1 text-xs opacity-70">({disabledCount})</span>
           </Button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Summary Stats */}
+      <div className="grid grid-cols-3 gap-4">
         <Card className="p-4">
           <div className="flex items-center gap-2">
             <Terminal className="w-5 h-5 text-primary" />
-            <span className="text-2xl font-bold">{totalCount}</span>
+            <span className="text-2xl font-bold">{commands.length}</span>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">Total Commands</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {formatMessage({ id: 'commands.stats.total' })}
+          </p>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-2">
-            <Code className="w-5 h-5 text-info" />
-            <span className="text-2xl font-bold">{builtinCount}</span>
+            <CheckCircle2 className="w-5 h-5 text-success" />
+            <span className="text-2xl font-bold">{enabledCount}</span>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">Built-in</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {formatMessage({ id: 'commands.stats.enabled' })}
+          </p>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-2">
-            <Plus className="w-5 h-5 text-success" />
-            <span className="text-2xl font-bold">{customCount}</span>
+            <XCircle className="w-5 h-5 text-muted-foreground" />
+            <span className="text-2xl font-bold">{disabledCount}</span>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">Custom</p>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-2">
-            <Tag className="w-5 h-5 text-warning" />
-            <span className="text-2xl font-bold">{categories.length}</span>
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">Categories</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {formatMessage({ id: 'commands.stats.disabled' })}
+          </p>
         </Card>
       </div>
 
-      {/* Filters and Search */}
+      {/* Search and Expand/Collapse Controls */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search commands by name, description, or alias..."
+            placeholder={formatMessage({ id: 'commands.filters.searchPlaceholder' })}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
           />
         </div>
-        <div className="flex gap-2">
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={sourceFilter} onValueChange={setSourceFilter}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Source" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sources</SelectItem>
-              <SelectItem value="builtin">Built-in</SelectItem>
-              <SelectItem value="custom">Custom</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={expandAll} disabled={groups.length === 0}>
+            {formatMessage({ id: 'commands.actions.expandAll' })}
+          </Button>
+          <Button variant="outline" size="sm" onClick={collapseAll} disabled={groups.length === 0}>
+            {formatMessage({ id: 'commands.actions.collapseAll' })}
+          </Button>
         </div>
       </div>
 
-      {/* Expand/Collapse All */}
-      <div className="flex justify-end gap-2">
-        <Button variant="ghost" size="sm" onClick={expandAll}>
-          Expand All
-        </Button>
-        <Button variant="ghost" size="sm" onClick={collapseAll}>
-          Collapse All
-        </Button>
-      </div>
-
-      {/* Commands List */}
+      {/* Command Groups Accordion */}
       {isLoading ? (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
+            <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
           ))}
         </div>
-      ) : commands.length === 0 ? (
+      ) : groups.length === 0 ? (
         <Card className="p-8 text-center">
           <Terminal className="w-12 h-12 mx-auto text-muted-foreground/50" />
-          <h3 className="mt-4 text-lg font-medium text-foreground">No commands found</h3>
+          <h3 className="mt-4 text-lg font-medium text-foreground">
+            {formatMessage({ id: 'commands.emptyState.title' })}
+          </h3>
           <p className="mt-2 text-muted-foreground">
-            Try adjusting your search or filters.
+            {formatMessage({ id: 'commands.emptyState.message' })}
           </p>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {commands.map((command) => (
-            <CommandCard
-              key={command.name}
-              command={command}
-              isExpanded={expandedCommands.has(command.name)}
-              onToggleExpand={() => toggleExpand(command.name)}
-              onCopy={copyToClipboard}
-            />
-          ))}
+        <div className="commands-accordion">
+          {groups.map((groupName) => {
+            const groupCommands = groupedCommands[groupName] || [];
+            return (
+              <CommandGroupAccordion
+                key={groupName}
+                groupName={groupName}
+                commands={groupCommands}
+                isExpanded={expandedGroups.has(groupName)}
+                onToggleExpand={toggleGroupExpand}
+                onToggleCommand={handleToggleCommand}
+                onToggleGroup={handleToggleGroup}
+                isToggling={isToggling}
+                showDisabled={showDisabledCommands}
+              />
+            );
+          })}
         </div>
       )}
     </div>

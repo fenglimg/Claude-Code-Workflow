@@ -1,609 +1,698 @@
 ---
-description: Interactive collaborative analysis with documented discussions, CLI-assisted exploration, and evolving understanding. Supports depth control and iteration limits.
-argument-hint: "TOPIC=\"<topic or question>\" [--depth=standard|deep|full] [--max-iterations=<n>] [--verbose]"
+name: analyze-with-file
+description: Interactive collaborative analysis with documented discussions, CLI-assisted exploration, and evolving understanding. Serial analysis for Codex.
+argument-hint: "TOPIC=\"<question or topic>\" [--focus=<area>] [--depth=quick|standard|deep] [--continue]"
 ---
 
-# Codex Analyze-With-File Prompt
+# Codex Analyze-With-File Workflow
 
-## Overview
+## Quick Start
 
-Interactive collaborative analysis workflow with **documented discussion process**. Records understanding evolution, facilitates multi-round Q&A, and uses deep analysis for codebase and concept exploration.
+Interactive collaborative analysis workflow with **documented discussion process**. Records understanding evolution, facilitates multi-round Q&A, and uses CLI tools for deep exploration.
 
 **Core workflow**: Topic → Explore → Discuss → Document → Refine → Conclude
 
-**Key features**:
-- **discussion.md**: Timeline of discussions and understanding evolution
-- **Multi-round Q&A**: Iterative clarification with user
-- **Analysis-assisted exploration**: Deep codebase and concept analysis
-- **Consolidated insights**: Synthesizes discussions into actionable conclusions
-- **Flexible continuation**: Resume analysis sessions to build on previous work
+## Overview
 
-## Target Topic
+This workflow enables iterative exploration and refinement of complex topics through sequential phases:
 
-**$TOPIC**
+1. **Topic Understanding** - Parse the topic and identify analysis dimensions
+2. **CLI Exploration** - Gather codebase context and perform deep analysis via Gemini
+3. **Interactive Discussion** - Multi-round Q&A with user feedback and direction adjustments
+4. **Synthesis & Conclusion** - Consolidate insights and generate actionable recommendations
 
-- `--depth`: Analysis depth (standard|deep|full)
-- `--max-iterations`: Max discussion rounds
+The key innovation is **documented discussion timeline** that captures the evolution of understanding across all phases, enabling users to track how insights develop and assumptions are corrected.
 
-## Execution Process
+## Analysis Flow
 
 ```
-Session Detection:
+Session Detection
    ├─ Check if analysis session exists for topic
-   ├─ EXISTS + discussion.md exists → Continue mode
+   ├─ EXISTS + discussion.md → Continue mode
    └─ NOT_FOUND → New session mode
 
 Phase 1: Topic Understanding
    ├─ Parse topic/question
-   ├─ Identify analysis dimensions (architecture, implementation, concept, etc.)
-   ├─ Initial scoping with user
-   └─ Document initial understanding in discussion.md
+   ├─ Identify analysis dimensions (architecture, implementation, performance, security, concept, comparison, decision)
+   ├─ Initial scoping with user (focus areas, analysis depth)
+   └─ Initialize discussion.md
 
-Phase 2: Exploration (Parallel)
-   ├─ Search codebase for relevant patterns
-   ├─ Analyze code structure and dependencies
-   └─ Aggregate findings into exploration summary
+Phase 2: CLI Exploration (Serial Execution)
+   ├─ Codebase context gathering (project structure, related files, constraints)
+   ├─ Gemini CLI analysis (build on codebase findings)
+   └─ Aggregate findings into explorations.json
 
 Phase 3: Interactive Discussion (Multi-Round)
-   ├─ Present exploration findings
-   ├─ Facilitate Q&A with user
-   ├─ Capture user insights and requirements
+   ├─ Present exploration findings to user
+   ├─ Gather user feedback (deepen, adjust direction, ask questions, complete)
+   ├─ Execute targeted CLI analysis based on user direction
    ├─ Update discussion.md with each round
-   └─ Repeat until user is satisfied or clarity achieved
+   └─ Repeat until clarity achieved (max 5 rounds)
 
 Phase 4: Synthesis & Conclusion
-   ├─ Consolidate all insights
-   ├─ Update discussion.md with conclusions
-   ├─ Generate actionable recommendations
-   └─ Optional: Create follow-up tasks or issues
-
-Output:
-   ├─ .workflow/.analysis/{slug}-{date}/discussion.md (evolving document)
-   ├─ .workflow/.analysis/{slug}-{date}/explorations.json (findings)
-   └─ .workflow/.analysis/{slug}-{date}/conclusions.json (final synthesis)
+   ├─ Consolidate all insights and discussion rounds
+   ├─ Generate final conclusions with recommendations
+   ├─ Update discussion.md with synthesis
+   └─ Offer follow-up options (create issue, generate task, export report)
 ```
 
-## Implementation Details
-
-### Session Setup & Mode Detection
-
-```javascript
-const getUtc8ISOString = () => new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
-
-const topicSlug = "$TOPIC".toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 40)
-const dateStr = getUtc8ISOString().substring(0, 10)
-
-const sessionId = `ANL-${topicSlug}-${dateStr}`
-const sessionFolder = `.workflow/.analysis/${sessionId}`
-const discussionPath = `${sessionFolder}/discussion.md`
-const explorationsPath = `${sessionFolder}/explorations.json`
-const conclusionsPath = `${sessionFolder}/conclusions.json`
-
-// Auto-detect mode
-const sessionExists = fs.existsSync(sessionFolder)
-const hasDiscussion = sessionExists && fs.existsSync(discussionPath)
-
-const mode = hasDiscussion ? 'continue' : 'new'
-
-if (!sessionExists) {
-  bash(`mkdir -p ${sessionFolder}`)
-}
-```
-
----
-
-### Phase 1: Topic Understanding
-
-#### Step 1.1: Parse Topic & Identify Dimensions
-
-```javascript
-// Analyze topic to determine analysis dimensions
-const ANALYSIS_DIMENSIONS = {
-  architecture: ['架构', 'architecture', 'design', 'structure', '设计'],
-  implementation: ['实现', 'implement', 'code', 'coding', '代码'],
-  performance: ['性能', 'performance', 'optimize', 'bottleneck', '优化'],
-  security: ['安全', 'security', 'auth', 'permission', '权限'],
-  concept: ['概念', 'concept', 'theory', 'principle', '原理'],
-  comparison: ['比较', 'compare', 'vs', 'difference', '区别'],
-  decision: ['决策', 'decision', 'choice', 'tradeoff', '选择']
-}
-
-function identifyDimensions(topic) {
-  const text = topic.toLowerCase()
-  const matched = []
-
-  for (const [dimension, keywords] of Object.entries(ANALYSIS_DIMENSIONS)) {
-    if (keywords.some(k => text.includes(k))) {
-      matched.push(dimension)
-    }
-  }
-
-  return matched.length > 0 ? matched : ['general']
-}
-
-const dimensions = identifyDimensions("$TOPIC")
-```
-
-#### Step 1.2: Initial Scoping (New Session Only)
-
-Ask user to scope the analysis:
-
-- Focus areas: 代码实现 / 架构设计 / 最佳实践 / 问题诊断
-- Analysis depth: Quick Overview / Standard Analysis / Deep Dive
-
-#### Step 1.3: Create/Update discussion.md
-
-For new session:
-
-```markdown
-# Analysis Discussion
-
-**Session ID**: ${sessionId}
-**Topic**: $TOPIC
-**Started**: ${getUtc8ISOString()}
-**Dimensions**: ${dimensions.join(', ')}
-
----
-
-## User Context
-
-**Focus Areas**: ${userFocusAreas.join(', ')}
-**Analysis Depth**: ${analysisDepth}
-
----
-
-## Discussion Timeline
-
-### Round 1 - Initial Understanding (${timestamp})
-
-#### Topic Analysis
-
-Based on topic "$TOPIC":
-
-- **Primary dimensions**: ${dimensions.join(', ')}
-- **Initial scope**: ${initialScope}
-- **Key questions to explore**:
-  - ${question1}
-  - ${question2}
-  - ${question3}
-
-#### Next Steps
-
-- Search codebase for relevant patterns
-- Gather insights via analysis
-- Prepare discussion points for user
-
----
-
-## Current Understanding
-
-${initialUnderstanding}
-```
-
-For continue session, append:
-
-```markdown
-### Round ${n} - Continuation (${timestamp})
-
-#### Previous Context
-
-Resuming analysis based on prior discussion.
-
-#### New Focus
-
-${newFocusFromUser}
-```
-
----
-
-### Phase 2: Exploration
-
-#### Step 2.1: Codebase Search
-
-```javascript
-// Extract keywords from topic
-const keywords = extractTopicKeywords("$TOPIC")
-
-// Search codebase for relevant code
-const searchResults = []
-for (const keyword of keywords) {
-  const results = Grep({ pattern: keyword, path: ".", output_mode: "content", "-C": 3 })
-  searchResults.push({ keyword, results })
-}
-
-// Identify affected files and patterns
-const relevantLocations = analyzeSearchResults(searchResults)
-```
-
-#### Step 2.2: Pattern Analysis
-
-Analyze the codebase from identified dimensions:
-
-1. Architecture patterns and structure
-2. Implementation conventions
-3. Dependency relationships
-4. Potential issues or improvements
-
-#### Step 2.3: Aggregate Findings
-
-```javascript
-// Aggregate into explorations.json
-const explorations = {
-  session_id: sessionId,
-  timestamp: getUtc8ISOString(),
-  topic: "$TOPIC",
-  dimensions: dimensions,
-  sources: [
-    { type: "codebase", summary: codebaseSummary },
-    { type: "analysis", summary: analysisSummary }
-  ],
-  key_findings: [...],
-  discussion_points: [...],
-  open_questions: [...]
-}
-
-Write(explorationsPath, JSON.stringify(explorations, null, 2))
-```
-
-#### Step 2.4: Update discussion.md
-
-```markdown
-#### Exploration Results (${timestamp})
-
-**Sources Analyzed**:
-${sources.map(s => `- ${s.type}: ${s.summary}`).join('\n')}
-
-**Key Findings**:
-${keyFindings.map((f, i) => `${i+1}. ${f}`).join('\n')}
-
-**Points for Discussion**:
-${discussionPoints.map((p, i) => `${i+1}. ${p}`).join('\n')}
-
-**Open Questions**:
-${openQuestions.map((q, i) => `- ${q}`).join('\n')}
-```
-
----
-
-### Phase 3: Interactive Discussion (Multi-Round)
-
-#### Step 3.1: Present Findings & Gather Feedback
-
-```javascript
-// Maximum discussion rounds
-const MAX_ROUNDS = 5
-let roundNumber = 1
-let discussionComplete = false
-
-while (!discussionComplete && roundNumber <= MAX_ROUNDS) {
-  // Display current findings
-  console.log(`
-## Discussion Round ${roundNumber}
-
-${currentFindings}
-
-### Key Points for Your Input
-${discussionPoints.map((p, i) => `${i+1}. ${p}`).join('\n')}
-`)
-
-  // Gather user input
-  // Options:
-  // - 同意，继续深入: Deepen analysis in current direction
-  // - 需要调整方向: Get user's adjusted focus
-  // - 分析完成: Exit loop
-  // - 有具体问题: Answer specific questions
-
-  // Process user response and update understanding
-  updateDiscussionDocument(roundNumber, userResponse, findings)
-  roundNumber++
-}
-```
-
-#### Step 3.2: Document Each Round
-
-Append to discussion.md:
-
-```markdown
-### Round ${n} - Discussion (${timestamp})
-
-#### User Input
-
-${userInputSummary}
-
-${userResponse === 'adjustment' ? `
-**Direction Adjustment**: ${adjustmentDetails}
-` : ''}
-
-${userResponse === 'questions' ? `
-**User Questions**:
-${userQuestions.map((q, i) => `${i+1}. ${q}`).join('\n')}
-
-**Answers**:
-${answers.map((a, i) => `${i+1}. ${a}`).join('\n')}
-` : ''}
-
-#### Updated Understanding
-
-Based on user feedback:
-- ${insight1}
-- ${insight2}
-
-#### Corrected Assumptions
-
-${corrections.length > 0 ? corrections.map(c => `
-- ~~${c.wrong}~~ → ${c.corrected}
-  - Reason: ${c.reason}
-`).join('\n') : 'None'}
-
-#### New Insights
-
-${newInsights.map(i => `- ${i}`).join('\n')}
-```
-
----
-
-### Phase 4: Synthesis & Conclusion
-
-#### Step 4.1: Consolidate Insights
-
-```javascript
-const conclusions = {
-  session_id: sessionId,
-  topic: "$TOPIC",
-  completed: getUtc8ISOString(),
-  total_rounds: roundNumber,
-
-  summary: "...",
-
-  key_conclusions: [
-    { point: "...", evidence: "...", confidence: "high|medium|low" }
-  ],
-
-  recommendations: [
-    { action: "...", rationale: "...", priority: "high|medium|low" }
-  ],
-
-  open_questions: [...],
-
-  follow_up_suggestions: [
-    { type: "issue", summary: "..." },
-    { type: "task", summary: "..." }
-  ]
-}
-
-Write(conclusionsPath, JSON.stringify(conclusions, null, 2))
-```
-
-#### Step 4.2: Final discussion.md Update
-
-```markdown
----
-
-## Conclusions (${timestamp})
-
-### Summary
-
-${summaryParagraph}
-
-### Key Conclusions
-
-${conclusions.key_conclusions.map((c, i) => `
-${i+1}. **${c.point}** (Confidence: ${c.confidence})
-   - Evidence: ${c.evidence}
-`).join('\n')}
-
-### Recommendations
-
-${conclusions.recommendations.map((r, i) => `
-${i+1}. **${r.action}** (Priority: ${r.priority})
-   - Rationale: ${r.rationale}
-`).join('\n')}
-
-### Remaining Questions
-
-${conclusions.open_questions.map(q => `- ${q}`).join('\n')}
-
----
-
-## Current Understanding (Final)
-
-### What We Established
-
-${establishedPoints.map(p => `- ${p}`).join('\n')}
-
-### What Was Clarified/Corrected
-
-${corrections.map(c => `- ~~${c.original}~~ → ${c.corrected}`).join('\n')}
-
-### Key Insights
-
-${keyInsights.map(i => `- ${i}`).join('\n')}
-
----
-
-## Session Statistics
-
-- **Total Rounds**: ${totalRounds}
-- **Duration**: ${duration}
-- **Sources Used**: ${sources.join(', ')}
-- **Artifacts Generated**: discussion.md, explorations.json, conclusions.json
-```
-
-#### Step 4.3: Post-Completion Options
-
-Offer follow-up options:
-- Create Issue: Convert conclusions to actionable issues
-- Generate Task: Create implementation tasks
-- Export Report: Generate standalone analysis report
-- Complete: No further action needed
-
----
-
-## Session Folder Structure
+## Output Structure
 
 ```
 .workflow/.analysis/ANL-{slug}-{date}/
-├── discussion.md       # Evolution of understanding & discussions
-├── explorations.json   # Exploration findings
-├── conclusions.json    # Final synthesis
-└── exploration-*.json  # Individual exploration results (optional)
+├── discussion.md                # ⭐ Evolution of understanding & discussions
+├── exploration-codebase.json    # Phase 2: Codebase context and project structure
+├── explorations.json            # Phase 2: CLI analysis findings aggregated
+└── conclusions.json             # Phase 4: Final synthesis with recommendations
 ```
 
-## Discussion Document Template
+## Output Artifacts
 
-```markdown
-# Analysis Discussion
+### Phase 1: Topic Understanding
 
-**Session ID**: ANL-xxx-2025-01-25
-**Topic**: [topic or question]
-**Started**: 2025-01-25T10:00:00+08:00
-**Dimensions**: [architecture, implementation, ...]
+| Artifact | Purpose |
+|----------|---------|
+| `discussion.md` | Initialized with session metadata and initial questions |
+| Session variables | Topic slug, dimensions, focus areas, analysis depth |
 
----
+### Phase 2: CLI Exploration
 
-## User Context
+| Artifact | Purpose |
+|----------|---------|
+| `exploration-codebase.json` | Codebase context: relevant files, patterns, constraints |
+| `explorations.json` | CLI analysis findings: key findings, discussion points, open questions |
+| Updated `discussion.md` | Round 1-2: Exploration results and initial analysis |
 
-**Focus Areas**: [user-selected focus]
-**Analysis Depth**: [quick|standard|deep]
+### Phase 3: Interactive Discussion
 
----
+| Artifact | Purpose |
+|----------|---------|
+| Updated `discussion.md` | Round N (3-5): User feedback, direction adjustments, corrected assumptions |
+| CLI analysis results | Deepened analysis, adjusted perspective, or specific question answers |
 
-## Discussion Timeline
+### Phase 4: Synthesis & Conclusion
 
-### Round 1 - Initial Understanding (2025-01-25 10:00)
-
-#### Topic Analysis
-...
-
-#### Exploration Results
-...
-
-### Round 2 - Discussion (2025-01-25 10:15)
-
-#### User Input
-...
-
-#### Updated Understanding
-...
-
-#### Corrected Assumptions
-- ~~[wrong]~~ → [corrected]
-
-### Round 3 - Deep Dive (2025-01-25 10:30)
-...
+| Artifact | Purpose |
+|----------|---------|
+| `conclusions.json` | Final synthesis: key conclusions, recommendations, open questions |
+| Final `discussion.md` | Complete analysis timeline with conclusions and final understanding |
 
 ---
 
-## Conclusions (2025-01-25 11:00)
+## Implementation Details
 
-### Summary
-...
+### Session Initialization
 
-### Key Conclusions
-...
+The workflow automatically generates a unique session identifier and directory structure based on the topic and current date (UTC+8).
 
-### Recommendations
-...
+**Session ID Format**: `ANL-{slug}-{date}`
+- `slug`: Lowercase alphanumeric + Chinese characters, max 40 chars (derived from topic)
+- `date`: YYYY-MM-DD format (UTC+8)
 
----
+**Session Directory**: `.workflow/.analysis/{sessionId}/`
 
-## Current Understanding (Final)
+**Auto-Detection**: If session folder exists with discussion.md, automatically enters continue mode. Otherwise, creates new session.
 
-### What We Established
-- [confirmed points]
-
-### What Was Clarified/Corrected
-- ~~[original assumption]~~ → [corrected understanding]
-
-### Key Insights
-- [insights gained]
+**Session Variables**:
+- `sessionId`: Unique identifier
+- `sessionFolder`: Base directory for artifacts
+- `mode`: "new" or "continue"
+- `dimensions`: Analysis focus areas
+- `focusAreas`: User-selected focus areas
+- `analysisDepth`: quick|standard|deep
 
 ---
 
-## Session Statistics
+## Phase 1: Topic Understanding
 
-- **Total Rounds**: 3
-- **Duration**: 1 hour
-- **Sources Used**: codebase exploration, analysis
-- **Artifacts Generated**: discussion.md, explorations.json, conclusions.json
+**Objective**: Parse the topic, identify relevant analysis dimensions, scope the analysis with user input, and initialize the discussion document.
+
+### Step 1.1: Parse Topic & Identify Dimensions
+
+The workflow analyzes the topic text against predefined analysis dimensions to determine relevant focus areas.
+
+**Analysis Dimensions and Keywords**:
+
+| Dimension | Keywords |
+|-----------|----------|
+| architecture | 架构, architecture, design, structure, 设计, pattern |
+| implementation | 实现, implement, code, coding, 代码, logic |
+| performance | 性能, performance, optimize, bottleneck, 优化, speed |
+| security | 安全, security, auth, permission, 权限, vulnerability |
+| concept | 概念, concept, theory, principle, 原理, understand |
+| comparison | 比较, compare, vs, difference, 区别, versus |
+| decision | 决策, decision, choice, tradeoff, 选择, trade-off |
+
+**Matching Logic**: Compare topic text against keyword lists. If multiple dimensions match, include all. If none match, default to "architecture" and "implementation".
+
+### Step 1.2: Initial Scoping (New Session Only)
+
+For new analysis sessions, gather user preferences before exploration:
+
+**Focus Areas** (Multi-select):
+- 代码实现 (Implementation details)
+- 架构设计 (Architecture design)
+- 最佳实践 (Best practices)
+- 问题诊断 (Problem diagnosis)
+
+**Analysis Depth** (Single-select):
+- 快速概览 (Quick overview, 10-15 minutes)
+- 标准分析 (Standard analysis, 30-60 minutes)
+- 深度挖掘 (Deep dive, 1-2+ hours)
+
+### Step 1.3: Initialize discussion.md
+
+Create the main discussion document with session metadata, context, and placeholder sections.
+
+**discussion.md Structure**:
+- **Header**: Session ID, topic, start time, identified dimensions
+- **Analysis Context**: User-selected focus areas, depth level, scope
+- **Initial Questions**: Key questions to guide the analysis
+- **Discussion Timeline**: Round-by-round findings and insights
+- **Current Understanding**: To be populated after exploration
+
+**Key Features**:
+- Serves as the primary artifact throughout the workflow
+- Captures all rounds of discussion and findings
+- Documents assumption corrections and insight evolution
+- Enables session continuity across multiple interactions
+
+**Success Criteria**:
+- Session folder created successfully
+- discussion.md initialized with all metadata
+- Analysis dimensions identified
+- User preferences captured
+
+---
+
+## Phase 2: CLI Exploration
+
+**Objective**: Gather codebase context and execute deep analysis via CLI tools to build understanding of the topic.
+
+**Execution Model**: Sequential (serial) execution - gather codebase context first, then perform CLI analysis building on those findings.
+
+### Step 2.1: Codebase Context Gathering
+
+Use built-in tools to understand the codebase structure and identify relevant code related to the topic.
+
+**Context Gathering Activities**:
+1. **Get project structure** - Execute `ccw tool exec get_modules_by_depth '{}'` to understand module organization
+2. **Search for related code** - Use Grep/Glob to find files matching topic keywords
+3. **Read project tech context** - Load `.workflow/project-tech.json` if available for constraints and integration points
+4. **Analyze patterns** - Identify common code patterns and architecture decisions
+
+**exploration-codebase.json Structure**:
+- `relevant_files[]`: Files related to the topic with relevance indicators
+- `patterns[]`: Common code patterns and architectural styles identified
+- `constraints[]`: Project-level constraints that affect the analysis
+- `integration_points[]`: Key integration points between modules
+- `_metadata`: Timestamp and context information
+
+**Key Information to Capture**:
+- Top 5-10 most relevant files with brief descriptions
+- Recurring patterns in code organization and naming
+- Project constraints (frameworks, architectural styles, tech stack)
+- Integration patterns between modules
+- Existing solutions or similar implementations
+
+### Step 2.2: Gemini CLI Analysis
+
+Execute a comprehensive CLI analysis building on the codebase context gathered in Step 2.1.
+
+**CLI Execution**: Synchronous analysis via Gemini with mode=analysis
+
+**Prompt Structure**:
+- **PURPOSE**: Clear goal and success criteria for the analysis
+- **PRIOR CODEBASE CONTEXT**: Incorporate findings from Step 2.1 (top files, patterns, constraints)
+- **TASK**: Specific investigation steps (analyze patterns, identify issues, generate insights, create discussion points)
+- **MODE**: analysis (read-only)
+- **CONTEXT**: Full codebase context with topic reference
+- **EXPECTED**: Structured output with evidence-based insights and confidence levels
+- **CONSTRAINTS**: Focus dimensions, ignore test files
+
+**Analysis Output Should Include**:
+- Structured analysis organized by analysis dimensions
+- Specific insights tied to evidence (file references)
+- Questions to deepen understanding
+- Recommendations with clear rationale
+- Confidence levels (high/medium/low) for conclusions
+- 3-5 key findings with supporting details
+
+**Execution Guideline**: Wait for CLI analysis to complete before proceeding to aggregation.
+
+### Step 2.3: Aggregate Findings
+
+Consolidate results from codebase context gathering and CLI analysis into a unified findings document.
+
+**explorations.json Structure**:
+- `session_id`: Reference to the analysis session
+- `timestamp`: Completion time
+- `topic`: Original topic/question
+- `dimensions[]`: Identified analysis dimensions
+- `sources[]`: List of information sources (codebase exploration, CLI analysis)
+- `key_findings[]`: Main insights with evidence
+- `discussion_points[]`: Questions to engage user
+- `open_questions[]`: Unresolved or partially answered questions
+- `_metadata`: Processing metadata
+
+**Aggregation Activities**:
+1. Extract key findings from CLI analysis output
+2. Cross-reference with codebase context
+3. Identify discussion points that benefit from user input
+4. Note open questions for follow-up investigation
+5. Organize findings by analysis dimension
+
+### Step 2.4: Update discussion.md
+
+Append exploration results to the discussion timeline.
+
+**Round 1-2 Sections** (Initial Understanding + Exploration Results):
+- **Codebase Findings**: Top relevant files and identified patterns
+- **Analysis Results**: Key findings, discussion points, recommendations
+- **Sources Analyzed**: Files and code patterns examined
+
+**Documentation Standards**:
+- Include direct references to analyzed files (file:line format)
+- List discussion points as questions or open items
+- Highlight key conclusions with confidence indicators
+- Note any constraints that affect the analysis
+
+**Success Criteria**:
+- `exploration-codebase.json` created with comprehensive context
+- `explorations.json` created with aggregated findings
+- `discussion.md` updated with Round 1-2 results
+- All explorations completed successfully
+- Ready for interactive discussion phase
+
+---
+
+## Phase 3: Interactive Discussion
+
+**Objective**: Iteratively refine understanding through multi-round user-guided discussion cycles.
+
+**Max Rounds**: 5 discussion rounds (can exit earlier if user indicates analysis is complete)
+
+### Step 3.1: Present Findings & Gather Feedback
+
+Display current understanding and exploration findings to the user.
+
+**Presentation Content**:
+- Current understanding summary
+- Key findings from exploration
+- Open questions or areas needing clarification
+- Available action options
+
+**User Feedback Options** (AskUserQuestion - single select):
+
+| Option | Purpose | Next Action |
+|--------|---------|------------|
+| **继续深入** | Analysis direction is correct, deepen investigation | Execute deeper CLI analysis on same topic |
+| **调整方向** | Different understanding or focus needed | Ask for adjusted focus, rerun CLI analysis |
+| **有具体问题** | Specific questions to ask about the topic | Capture questions, use CLI to answer them |
+| **分析完成** | Sufficient information obtained | Exit discussion loop, proceed to synthesis |
+
+### Step 3.2: Deepen Analysis
+
+When user selects "continue deepening", execute more detailed investigation in the same direction.
+
+**Deepening Strategy**:
+- Focus on previously identified findings
+- Investigate edge cases and special scenarios
+- Identify patterns not yet discussed
+- Suggest implementation or improvement approaches
+- Provide risk/impact assessments
+
+**CLI Execution**: Synchronous analysis via Gemini with emphasis on elaboration and detail.
+
+**Analysis Scope**:
+- Expand on prior findings with more specifics
+- Investigate corner cases and limitations
+- Propose concrete improvement strategies
+- Provide risk/impact ratings for findings
+- Generate follow-up questions
+
+### Step 3.3: Adjust Direction
+
+When user indicates a different focus is needed, shift the analysis angle.
+
+**Direction Adjustment Process**:
+1. Ask user for adjusted focus area (through AskUserQuestion)
+2. Determine new analysis angle (different dimension or perspective)
+3. Execute CLI analysis from new perspective
+4. Compare new insights with prior analysis
+5. Identify what was missed and why
+
+**CLI Execution**: Synchronous analysis via Gemini with new perspective.
+
+**Analysis Scope**:
+- Analyze topic from different dimension or angle
+- Identify gaps in prior analysis
+- Generate insights specific to new focus
+- Cross-reference with prior findings
+- Suggest investigation paths forward
+
+### Step 3.4: Answer Specific Questions
+
+When user has specific questions, address them directly.
+
+**Question Handling Process**:
+1. Capture user questions (through AskUserQuestion)
+2. Use CLI analysis or direct investigation to answer
+3. Provide evidence-based answers with supporting details
+4. Offer related follow-up investigations
+
+**CLI Execution**: Synchronous analysis via Gemini focused on specific questions.
+
+**Analysis Scope**:
+- Answer each question directly and clearly
+- Provide evidence and examples
+- Clarify ambiguous or complex points
+- Suggest related investigation areas
+- Rate confidence for each answer
+
+### Step 3.5: Document Each Round
+
+Update discussion.md with results from each discussion round.
+
+**Round N Sections** (Rounds 3-5):
+
+| Section | Content |
+|---------|---------|
+| User Direction | Action taken (deepen/adjust/questions) and focus area |
+| Analysis Results | Key findings, insights, next steps |
+| Insights | New learnings or clarifications from this round |
+| Corrected Assumptions | Important wrong→right transformations with explanation |
+| Open Items | Remaining questions or areas for future investigation |
+
+**Documentation Standards**:
+- Clear timestamps for each round
+- Evidence-based findings with file references
+- Explicit tracking of assumption corrections
+- Organized by analysis dimension
+- Links between rounds showing understanding evolution
+
+**Consolidation Rules**:
+- Promote confirmed insights to "What We Established"
+- Track important corrections as learnings
+- Focus on current understanding, not timeline details
+- Avoid repeating discussion details
+- Highlight key insights for future reference
+
+**Success Criteria**:
+- User feedback processed for each round
+- `discussion.md` updated with all rounds
+- Assumptions documented and corrected
+- Exit condition reached (user selects complete or max rounds reached)
+
+---
+
+## Phase 4: Synthesis & Conclusion
+
+**Objective**: Consolidate insights from all discussion rounds, generate final conclusions and recommendations, and offer next steps.
+
+### Step 4.1: Consolidate Insights
+
+Extract and synthesize all findings from the discussion timeline into coherent conclusions and recommendations.
+
+**Consolidation Activities**:
+1. Review all discussion rounds and accumulated findings
+2. Identify confirmed conclusions with evidence
+3. Extract actionable recommendations with rationale
+4. Note remaining open questions
+5. Generate follow-up suggestions
+
+**conclusions.json Structure**:
+
+| Field | Purpose |
+|-------|---------|
+| `session_id` | Reference to analysis session |
+| `topic` | Original topic/question |
+| `completed` | Completion timestamp |
+| `total_rounds` | Number of discussion rounds |
+| `summary` | Executive summary of analysis |
+| `key_conclusions[]` | Main conclusions with evidence and confidence |
+| `recommendations[]` | Actionable recommendations with rationale and priority |
+| `open_questions[]` | Unresolved questions for future investigation |
+| `follow_up_suggestions[]` | Suggested next steps (issue/task/research) |
+
+**Key Conclusions Format**:
+- `point`: Clear statement of the conclusion
+- `evidence`: Supporting evidence or code references
+- `confidence`: high|medium|low confidence level
+
+**Recommendations Format**:
+- `action`: Specific recommended action
+- `rationale`: Reasoning and benefits
+- `priority`: high|medium|low priority
+
+### Step 4.2: Final discussion.md Update
+
+Append conclusions section and finalize the understanding document.
+
+**Synthesis & Conclusions Section**:
+- **Executive Summary**: Overview of analysis findings
+- **Key Conclusions**: Ranked by confidence level with supporting evidence
+- **Recommendations**: Prioritized action items with rationale
+- **Remaining Open Questions**: Unresolved items for future work
+
+**Current Understanding (Final) Section**:
+
+| Subsection | Content |
+|------------|---------|
+| What We Established | Confirmed points and validated findings |
+| What Was Clarified | Important corrections (~~wrong→right~~) |
+| Key Insights | Valuable learnings for future reference |
+
+**Session Statistics**:
+- Total discussion rounds completed
+- Key findings identified
+- Analysis dimensions covered
+- Artifacts generated
+
+**Documentation Standards**:
+- Clear evidence for conclusions
+- Actionable, specific recommendations
+- Organized by priority and confidence
+- Links to relevant code or discussions
+
+### Step 4.3: Post-Completion Options
+
+Offer user follow-up actions based on analysis results.
+
+**Available Options** (AskUserQuestion - multi-select):
+
+| Option | Purpose | Action |
+|--------|---------|--------|
+| **创建Issue** | Create actionable issue from findings | Launch `issue:new` with conclusions summary |
+| **生成任务** | Generate implementation task | Launch `workflow:lite-plan` for task breakdown |
+| **导出报告** | Generate standalone analysis report | Create formatted report document |
+| **完成** | No further action | End workflow |
+
+**Success Criteria**:
+- `conclusions.json` created with complete synthesis
+- `discussion.md` finalized with all conclusions
+- User offered meaningful next step options
+- Session complete and all artifacts available
+
+---
+
+## Configuration
+
+### Analysis Dimensions Reference
+
+Dimensions guide the scope and focus of analysis:
+
+| Dimension | Description | Best For |
+|-----------|-------------|----------|
+| architecture | System design, component interactions, design patterns | Understanding structure and organization |
+| implementation | Code patterns, implementation details, algorithms | Understanding how things work technically |
+| performance | Bottlenecks, optimization opportunities, resource usage | Finding and fixing performance issues |
+| security | Vulnerabilities, authentication, access control | Identifying and addressing security risks |
+| concept | Foundational ideas, principles, theory | Understanding fundamental mechanisms |
+| comparison | Comparing solutions, evaluating alternatives | Making informed technology or approach choices |
+| decision | Trade-offs, impact analysis, decision rationale | Understanding why decisions were made |
+
+### Analysis Depth Levels
+
+| Depth | Duration | Scope | Questions |
+|-------|----------|-------|-----------|
+| Quick (快速概览) | 10-15 min | Surface level understanding | 3-5 key questions |
+| Standard (标准分析) | 30-60 min | Moderate depth with good coverage | 5-8 key questions |
+| Deep (深度挖掘) | 1-2+ hours | Comprehensive detailed analysis | 10+ key questions |
+
+### Focus Areas
+
+Common focus areas that guide the analysis direction:
+
+| Focus | Description |
+|-------|-------------|
+| 代码实现 | Implementation details, code patterns, algorithms |
+| 架构设计 | System design, component structure, design patterns |
+| 最佳实践 | Industry standards, recommended approaches, patterns |
+| 问题诊断 | Identifying root causes, finding issues, debugging |
+
+---
+
+## Error Handling & Recovery
+
+| Situation | Action | Recovery |
+|-----------|--------|----------|
+| CLI timeout | Retry with shorter, focused prompt | Skip analysis or reduce depth |
+| No relevant findings | Broaden search keywords or adjust scope | Ask user for clarification |
+| User disengaged | Summarize progress and offer break point | Save state for later continuation |
+| Max rounds reached (5) | Force synthesis phase | Highlight remaining questions in conclusions |
+| Session folder conflict | Append timestamp suffix to session ID | Create unique folder and continue |
+
+---
+
+## Iteration Patterns
+
+### First Analysis Session
+
+```
+User initiates: TOPIC="specific question"
+   ├─ No session exists → New session mode
+   ├─ Parse topic and identify dimensions
+   ├─ Scope analysis with user (focus areas, depth)
+   ├─ Create discussion.md
+   ├─ Gather codebase context
+   ├─ Execute Gemini CLI analysis
+   ├─ Aggregate findings
+   └─ Enter multi-round discussion loop
 ```
 
-## Iteration Flow
+### Continue Existing Session
 
 ```
-First Call (TOPIC="topic"):
-   ├─ No session exists → New mode
-   ├─ Identify analysis dimensions
-   ├─ Scope with user
-   ├─ Create discussion.md with initial understanding
-   ├─ Launch explorations
-   └─ Enter discussion loop
-
-Continue Call (TOPIC="topic"):
+User resumes: TOPIC="same topic" with --continue flag
    ├─ Session exists → Continue mode
-   ├─ Load discussion.md
-   ├─ Resume from last round
-   └─ Continue discussion loop
+   ├─ Load previous discussion.md
+   ├─ Load explorations.json
+   └─ Resume from last discussion round
+```
 
-Discussion Loop:
+### Discussion Loop (Rounds 3-5)
+
+```
+Each round:
    ├─ Present current findings
    ├─ Gather user feedback
    ├─ Process response:
-   │   ├─ Agree → Deepen analysis
-   │   ├─ Adjust → Change direction
-   │   ├─ Question → Answer then continue
-   │   └─ Complete → Exit loop
+   │   ├─ Deepen → Deeper CLI analysis on same topic
+   │   ├─ Adjust → New CLI analysis with adjusted focus
+   │   ├─ Questions → CLI analysis answering specific questions
+   │   └─ Complete → Exit loop for synthesis
    ├─ Update discussion.md
-   └─ Repeat until complete or max rounds
+   └─ Repeat until user selects complete or max rounds reached
+```
 
-Completion:
+### Completion Flow
+
+```
+Final synthesis:
+   ├─ Consolidate all insights
    ├─ Generate conclusions.json
    ├─ Update discussion.md with final synthesis
-   └─ Offer follow-up options
+   ├─ Offer follow-up options
+   └─ Archive session artifacts
 ```
 
-## Consolidation Rules
+---
 
-When updating "Current Understanding":
+## Best Practices
 
-1. **Promote confirmed insights**: Move validated findings to "What We Established"
-2. **Track corrections**: Keep important wrong→right transformations
-3. **Focus on current state**: What do we know NOW
-4. **Avoid timeline repetition**: Don't copy discussion details
-5. **Preserve key learnings**: Keep insights valuable for future reference
+### Before Starting Analysis
 
-**Bad (cluttered)**:
-```markdown
-## Current Understanding
+1. **Clear Topic Definition**: Detailed topics lead to better dimension identification
+2. **User Context**: Understanding focus preferences helps scope the analysis
+3. **Scope Understanding**: Being clear about depth expectations sets correct analysis intensity
 
-In round 1 we discussed X, then in round 2 user said Y, and we explored Z...
+### During Analysis
+
+1. **Review Findings**: Check exploration results before proceeding to discussion
+2. **Document Assumptions**: Track what you think is true for correction later
+3. **Use Continue Mode**: Resume sessions to build on previous findings rather than starting over
+4. **Embrace Corrections**: Track wrong→right transformations as valuable learnings
+5. **Iterate Thoughtfully**: Each discussion round should meaningfully refine understanding
+
+### Documentation Practices
+
+1. **Evidence-Based**: Every conclusion should reference specific code or patterns
+2. **Confidence Levels**: Indicate confidence (high/medium/low) for conclusions
+3. **Timeline Clarity**: Use clear timestamps for traceability
+4. **Evolution Tracking**: Document how understanding changed across rounds
+5. **Action Items**: Generate specific, actionable recommendations
+
+---
+
+## Templates & Examples
+
+### discussion.md Structure
+
+The discussion.md file evolves through the analysis:
+
+**Header Section**:
+```
+Session ID, topic, start time, identified dimensions
 ```
 
-**Good (consolidated)**:
-```markdown
-## Current Understanding
-
-### What We Established
-- The authentication flow uses JWT with refresh tokens
-- Rate limiting is implemented at API gateway level
-
-### What Was Clarified
-- ~~Assumed Redis for sessions~~ → Actually uses database-backed sessions
-
-### Key Insights
-- Current architecture supports horizontal scaling
-- Security audit recommended before production
+**Context Section**:
+```
+Focus areas selected by user, analysis depth, scope
 ```
 
-## Error Handling
+**Discussion Timeline**:
+```
+Round 1: Initial understanding + exploration results
+Round 2: Codebase findings + CLI analysis results
+Round 3-5: User feedback + direction adjustments + new insights
+```
 
-| Situation | Action |
-|-----------|--------|
-| Exploration fails | Continue with available context, note limitation |
-| User timeout in discussion | Save state, show resume instructions |
-| Max rounds reached | Force synthesis, offer continuation option |
-| No relevant findings | Broaden search, ask user for clarification |
-| Session folder conflict | Append timestamp suffix |
+**Conclusions Section**:
+```
+Executive summary, key conclusions, recommendations, open questions
+```
+
+**Final Understanding Section**:
+```
+What we established (confirmed points)
+What was clarified (corrected assumptions)
+Key insights (valuable learnings)
+```
+
+### Round Documentation Pattern
+
+Each discussion round follows a consistent structure:
+
+- **Round Header**: Number, timestamp, and action taken
+- **User Input**: What the user indicated they wanted to focus on
+- **Analysis Results**: New findings from this round's analysis
+- **Insights**: Key learnings and clarifications
+- **Corrected Assumptions**: Any wrong→right transformations
+- **Next Steps**: Suggested investigation paths
+
+---
+
+## When to Use This Workflow
+
+### Use analyze-with-file when:
+- Exploring complex topics collaboratively with documented trail
+- Need multi-round iterative refinement of understanding
+- Decision-making requires exploring multiple perspectives
+- Building shared understanding before implementation
+- Want to document how understanding evolved
+
+### Use direct execution when:
+- Short, focused analysis tasks (single component)
+- Clear, well-defined topics with limited scope
+- Quick information gathering without iteration
+- Quick follow-up to existing session
+
+### Consider alternatives when:
+- Specific bug diagnosis needed → use `workflow:debug-with-file`
+- Generating new ideas/solutions → use `workflow:brainstorm-with-file`
+- Complex planning with parallel perspectives → use `workflow:collaborative-plan-with-file`
+- Ready to implement → use `workflow:lite-plan`
 
 ---
 

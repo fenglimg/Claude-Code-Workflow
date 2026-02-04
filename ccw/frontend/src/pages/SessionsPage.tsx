@@ -5,8 +5,8 @@
 
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useIntl } from 'react-intl';
 import {
-  Plus,
   RefreshCw,
   Search,
   Filter,
@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import {
   useSessions,
-  useCreateSession,
   useArchiveSession,
   useDeleteSession,
   type SessionsFilter,
@@ -41,16 +40,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/Dropdown';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { TabsNavigation, type TabItem } from '@/components/ui/TabsNavigation';
 import { cn } from '@/lib/utils';
 import type { SessionMetadata } from '@/types/store';
 
 type LocationFilter = 'all' | 'active' | 'archived';
 
+// Status label keys for i18n (maps snake_case status to camelCase translation keys)
+const statusLabelKeys: Record<SessionMetadata['status'], string> = {
+  planning: 'sessions.status.planning',
+  in_progress: 'sessions.status.inProgress',
+  completed: 'sessions.status.completed',
+  archived: 'sessions.status.archived',
+  paused: 'sessions.status.paused',
+};
+
 /**
  * SessionsPage component - Sessions list with CRUD operations
  */
 export function SessionsPage() {
+  const { formatMessage } = useIntl();
   const navigate = useNavigate();
 
   // Filter state
@@ -59,14 +68,8 @@ export function SessionsPage() {
   const [statusFilter, setStatusFilter] = React.useState<SessionMetadata['status'][]>([]);
 
   // Dialog state
-  const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [sessionToDelete, setSessionToDelete] = React.useState<string | null>(null);
-
-  // Create session form state
-  const [newSessionId, setNewSessionId] = React.useState('');
-  const [newSessionTitle, setNewSessionTitle] = React.useState('');
-  const [newSessionDescription, setNewSessionDescription] = React.useState('');
 
   // Build filter object
   const filter: SessionsFilter = React.useMemo(
@@ -88,37 +91,19 @@ export function SessionsPage() {
   } = useSessions({ filter });
 
   // Mutations
-  const { createSession, isCreating } = useCreateSession();
   const { archiveSession, isArchiving } = useArchiveSession();
   const { deleteSession, isDeleting } = useDeleteSession();
 
-  const isMutating = isCreating || isArchiving || isDeleting;
+  const isMutating = isArchiving || isDeleting;
 
   // Handlers
-  const handleSessionClick = (sessionId: string) => {
-    navigate(`/sessions/${sessionId}`);
-  };
-
-  const handleCreateSession = async () => {
-    if (!newSessionId.trim()) return;
-
-    try {
-      await createSession({
-        session_id: newSessionId.trim(),
-        title: newSessionTitle.trim() || undefined,
-        description: newSessionDescription.trim() || undefined,
-      });
-      setCreateDialogOpen(false);
-      resetCreateForm();
-    } catch (err) {
-      console.error('Failed to create session:', err);
+  const handleSessionClick = (sessionId: string, sessionType?: SessionMetadata['type']) => {
+    // Route review sessions to the dedicated review page
+    if (sessionType === 'review') {
+      navigate(`/sessions/${sessionId}/review`);
+    } else {
+      navigate(`/sessions/${sessionId}`);
     }
-  };
-
-  const resetCreateForm = () => {
-    setNewSessionId('');
-    setNewSessionTitle('');
-    setNewSessionDescription('');
   };
 
   const handleArchive = async (sessionId: string) => {
@@ -168,9 +153,9 @@ export function SessionsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Sessions</h1>
+          <h1 className="text-2xl font-semibold text-foreground">{formatMessage({ id: 'sessions.title' })}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage your workflow sessions
+            {formatMessage({ id: 'sessions.description' })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -181,11 +166,7 @@ export function SessionsPage() {
             disabled={isFetching}
           >
             <RefreshCw className={cn('h-4 w-4 mr-2', isFetching && 'animate-spin')} />
-            Refresh
-          </Button>
-          <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Session
+            {formatMessage({ id: 'common.actions.refresh' })}
           </Button>
         </div>
       </div>
@@ -195,11 +176,11 @@ export function SessionsPage() {
         <div className="flex items-center gap-2 p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-medium">Failed to load sessions</p>
+            <p className="text-sm font-medium">{formatMessage({ id: 'common.errors.loadFailed' })}</p>
             <p className="text-xs mt-0.5">{error.message}</p>
           </div>
           <Button variant="outline" size="sm" onClick={() => refetch()}>
-            Retry
+            {formatMessage({ id: 'home.errors.retry' })}
           </Button>
         </div>
       )}
@@ -207,19 +188,21 @@ export function SessionsPage() {
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         {/* Location tabs */}
-        <Tabs value={locationFilter} onValueChange={(v) => setLocationFilter(v as LocationFilter)}>
-          <TabsList>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="archived">Archived</TabsTrigger>
-            <TabsTrigger value="all">All</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <TabsNavigation
+          value={locationFilter}
+          onValueChange={(v) => setLocationFilter(v as LocationFilter)}
+          tabs={[
+            { value: 'active', label: formatMessage({ id: 'sessions.filters.active' }) },
+            { value: 'archived', label: formatMessage({ id: 'sessions.filters.archived' }) },
+            { value: 'all', label: formatMessage({ id: 'sessions.filters.all' }) },
+          ]}
+        />
 
         {/* Search input */}
         <div className="flex-1 max-w-sm relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search sessions..."
+            placeholder={formatMessage({ id: 'sessions.searchPlaceholder' })}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 pr-9"
@@ -239,7 +222,7 @@ export function SessionsPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="gap-2">
               <Filter className="h-4 w-4" />
-              Filter
+              {formatMessage({ id: 'common.actions.filter' })}
               {statusFilter.length > 0 && (
                 <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1">
                   {statusFilter.length}
@@ -248,7 +231,7 @@ export function SessionsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Status</DropdownMenuLabel>
+            <DropdownMenuLabel>{formatMessage({ id: 'common.status.label' })}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {(['planning', 'in_progress', 'completed', 'paused'] as const).map((status) => (
               <DropdownMenuItem
@@ -256,7 +239,7 @@ export function SessionsPage() {
                 onClick={() => toggleStatusFilter(status)}
                 className="justify-between"
               >
-                <span className="capitalize">{status.replace('_', ' ')}</span>
+                <span>{formatMessage({ id: statusLabelKeys[status] })}</span>
                 {statusFilter.includes(status) && (
                   <span className="text-primary">&#10003;</span>
                 )}
@@ -266,7 +249,7 @@ export function SessionsPage() {
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={clearFilters} className="text-destructive">
-                  Clear filters
+                  {formatMessage({ id: 'common.actions.clearFilters' })}
                 </DropdownMenuItem>
               </>
             )}
@@ -277,7 +260,7 @@ export function SessionsPage() {
       {/* Active filters display */}
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-muted-foreground">Filters:</span>
+          <span className="text-sm text-muted-foreground">{formatMessage({ id: 'common.actions.filters' })}:</span>
           {statusFilter.map((status) => (
             <Badge
               key={status}
@@ -285,7 +268,7 @@ export function SessionsPage() {
               className="cursor-pointer"
               onClick={() => toggleStatusFilter(status)}
             >
-              {status.replace('_', ' ')}
+              {formatMessage({ id: statusLabelKeys[status] })}
               <X className="ml-1 h-3 w-3" />
             </Badge>
           ))}
@@ -295,12 +278,12 @@ export function SessionsPage() {
               className="cursor-pointer"
               onClick={handleClearSearch}
             >
-              Search: {searchQuery}
+              {formatMessage({ id: 'common.actions.search' })}: {searchQuery}
               <X className="ml-1 h-3 w-3" />
             </Badge>
           )}
           <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 text-xs">
-            Clear all
+            {formatMessage({ id: 'common.actions.clearAll' })}
           </Button>
         </div>
       )}
@@ -316,21 +299,16 @@ export function SessionsPage() {
         <div className="flex flex-col items-center justify-center py-16 px-4 border border-dashed border-border rounded-lg">
           <FolderKanban className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-1">
-            {hasActiveFilters ? 'No sessions match your filters' : 'No sessions found'}
+            {hasActiveFilters ? formatMessage({ id: 'sessions.emptyState.title' }) : formatMessage({ id: 'sessions.emptyState.title' })}
           </h3>
           <p className="text-sm text-muted-foreground text-center max-w-sm mb-4">
             {hasActiveFilters
-              ? 'Try adjusting your filters or search query.'
-              : 'Create a new session to get started with your workflow.'}
+              ? formatMessage({ id: 'sessions.emptyState.message' })
+              : formatMessage({ id: 'sessions.emptyState.createFirst' })}
           </p>
-          {hasActiveFilters ? (
+          {hasActiveFilters && (
             <Button variant="outline" onClick={clearFilters}>
-              Clear filters
-            </Button>
-          ) : (
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Session
+              {formatMessage({ id: 'common.actions.clearFilters' })}
             </Button>
           )}
         </div>
@@ -340,8 +318,8 @@ export function SessionsPage() {
             <SessionCard
               key={session.session_id}
               session={session}
-              onClick={handleSessionClick}
-              onView={handleSessionClick}
+              onClick={(sessionId) => handleSessionClick(sessionId, session.type)}
+              onView={(sessionId) => handleSessionClick(sessionId, session.type)}
               onArchive={handleArchive}
               onDelete={handleDeleteClick}
               actionsDisabled={isMutating}
@@ -350,77 +328,13 @@ export function SessionsPage() {
         </div>
       )}
 
-      {/* Create Session Dialog */}
-      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Session</DialogTitle>
-            <DialogDescription>
-              Create a new workflow session to track your development tasks.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="sessionId" className="text-sm font-medium">
-                Session ID <span className="text-destructive">*</span>
-              </label>
-              <Input
-                id="sessionId"
-                placeholder="e.g., WFS-feature-auth"
-                value={newSessionId}
-                onChange={(e) => setNewSessionId(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="sessionTitle" className="text-sm font-medium">
-                Title (optional)
-              </label>
-              <Input
-                id="sessionTitle"
-                placeholder="e.g., Authentication System"
-                value={newSessionTitle}
-                onChange={(e) => setNewSessionTitle(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="sessionDescription" className="text-sm font-medium">
-                Description (optional)
-              </label>
-              <Input
-                id="sessionDescription"
-                placeholder="Brief description of the session"
-                value={newSessionDescription}
-                onChange={(e) => setNewSessionDescription(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setCreateDialogOpen(false);
-                resetCreateForm();
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreateSession}
-              disabled={!newSessionId.trim() || isCreating}
-            >
-              {isCreating ? 'Creating...' : 'Create Session'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Session</DialogTitle>
+            <DialogTitle>{formatMessage({ id: 'common.dialog.deleteSession' })}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this session? This action cannot be undone.
+              {formatMessage({ id: 'common.dialog.deleteConfirm' })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -431,14 +345,14 @@ export function SessionsPage() {
                 setSessionToDelete(null);
               }}
             >
-              Cancel
+              {formatMessage({ id: 'common.actions.cancel' })}
             </Button>
             <Button
               variant="destructive"
               onClick={handleConfirmDelete}
               disabled={isDeleting}
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? formatMessage({ id: 'common.status.deleting' }) : formatMessage({ id: 'common.actions.delete' })}
             </Button>
           </DialogFooter>
         </DialogContent>

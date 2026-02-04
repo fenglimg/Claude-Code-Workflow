@@ -4,16 +4,21 @@
 // Root layout component combining Header, Sidebar, and MainContent
 
 import { useState, useCallback, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { MainContent } from './MainContent';
+import { CliStreamMonitor } from '@/components/shared/CliStreamMonitor';
+import { NotificationPanel } from '@/components/notification';
+import { AskQuestionDialog, A2UIPopupCard } from '@/components/a2ui';
+import { useNotificationStore, selectCurrentQuestion, selectCurrentPopupCard } from '@/stores';
+import { useWorkflowStore } from '@/stores/workflowStore';
+import { useWebSocketNotifications, useWebSocket } from '@/hooks';
 
 export interface AppShellProps {
   /** Initial sidebar collapsed state */
   defaultCollapsed?: boolean;
-  /** Current project path to display in header */
-  projectPath?: string;
   /** Callback for refresh action */
   onRefresh?: () => void;
   /** Whether refresh is in progress */
@@ -27,11 +32,52 @@ const SIDEBAR_COLLAPSED_KEY = 'ccw-sidebar-collapsed';
 
 export function AppShell({
   defaultCollapsed = false,
-  projectPath = '',
   onRefresh,
   isRefreshing = false,
   children,
 }: AppShellProps) {
+  // Workspace initialization from URL query parameter
+  const switchWorkspace = useWorkflowStore((state) => state.switchWorkspace);
+  const projectPath = useWorkflowStore((state) => state.projectPath);
+  const location = useLocation();
+
+  // Workspace initialization logic (URL > localStorage)
+  const [isWorkspaceInitialized, setWorkspaceInitialized] = useState(false);
+
+  useEffect(() => {
+    // This effect should only run once to decide the initial workspace.
+    if (isWorkspaceInitialized) {
+      return;
+    }
+
+    const searchParams = new URLSearchParams(location.search);
+    const urlPath = searchParams.get('path');
+    const persistedPath = projectPath; // Path from rehydrated store
+
+    let pathFound = false;
+
+    // Priority 1: URL parameter.
+    if (urlPath) {
+      console.log('[AppShell] Initializing workspace from URL parameter:', urlPath);
+      switchWorkspace(urlPath).catch((error) => {
+        console.error('[AppShell] Failed to initialize from URL:', error);
+      });
+      pathFound = true;
+    }
+    // Priority 2: Rehydrated path from localStorage.
+    else if (persistedPath) {
+      console.log('[AppShell] Initializing workspace from persisted state:', persistedPath);
+      // The path is already in the store, but we need to trigger the data fetch.
+      switchWorkspace(persistedPath).catch((error) => {
+        console.error('[AppShell] Failed to re-initialize from persisted state:', error);
+      });
+      pathFound = true;
+    }
+
+    // Mark as initialized regardless of whether a path was found.
+    setWorkspaceInitialized(true);
+  }, [isWorkspaceInitialized, projectPath, location.search, switchWorkspace]);
+
   // Sidebar collapse state (persisted)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -43,6 +89,32 @@ export function AppShell({
 
   // Mobile sidebar open state
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // CLI Monitor open state
+  const [isCliMonitorOpen, setIsCliMonitorOpen] = useState(false);
+
+  // Notification panel store integration
+  const isNotificationPanelVisible = useNotificationStore((state) => state.isPanelVisible);
+  const loadPersistentNotifications = useNotificationStore(
+    (state) => state.loadPersistentNotifications
+  );
+
+  // Current question dialog state (legacy)
+  const currentQuestion = useNotificationStore(selectCurrentQuestion);
+  const setCurrentQuestion = useNotificationStore((state) => state.setCurrentQuestion);
+
+  // Current popup card state (for A2UI displayMode: 'popup')
+  const currentPopupCard = useNotificationStore(selectCurrentPopupCard);
+  const setCurrentPopupCard = useNotificationStore((state) => state.setCurrentPopupCard);
+
+  // Initialize WebSocket connection and notifications handler
+  useWebSocket();
+  useWebSocketNotifications();
+
+  // Load persistent notifications from localStorage on mount
+  useEffect(() => {
+    loadPersistentNotifications();
+  }, [loadPersistentNotifications]);
 
   // Persist sidebar state
   useEffect(() => {
@@ -58,6 +130,7 @@ export function AppShell({
     };
 
     window.addEventListener('resize', handleResize);
+    // Cleanup: Remove event listener on unmount to prevent memory leak
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -73,14 +146,34 @@ export function AppShell({
     setSidebarCollapsed(collapsed);
   }, []);
 
+  const handleCliMonitorClick = useCallback(() => {
+    setIsCliMonitorOpen(true);
+  }, []);
+
+  const handleCliMonitorClose = useCallback(() => {
+    setIsCliMonitorOpen(false);
+  }, []);
+
+  const handleNotificationPanelClose = useCallback(() => {
+    useNotificationStore.getState().setPanelVisible(false);
+  }, []);
+
+  const handleQuestionDialogClose = useCallback(() => {
+    setCurrentQuestion(null);
+  }, [setCurrentQuestion]);
+
+  const handlePopupCardClose = useCallback(() => {
+    setCurrentPopupCard(null);
+  }, [setCurrentPopupCard]);
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header - fixed at top */}
       <Header
         onMenuClick={handleMenuClick}
-        projectPath={projectPath}
         onRefresh={onRefresh}
         isRefreshing={isRefreshing}
+        onCliMonitorClick={handleCliMonitorClick}
       />
 
       {/* Main layout - sidebar + content */}
@@ -97,13 +190,41 @@ export function AppShell({
         <MainContent
           className={cn(
             'transition-all duration-300',
-            // Adjust padding on mobile when sidebar is hidden
-            'md:ml-0'
+            // Add left margin on desktop to account for fixed sidebar
+            sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
           )}
         >
           {children}
         </MainContent>
       </div>
+
+      {/* CLI Stream Monitor - Global Drawer */}
+      <CliStreamMonitor
+        isOpen={isCliMonitorOpen}
+        onClose={handleCliMonitorClose}
+      />
+
+      {/* Notification Panel - Global Drawer */}
+      <NotificationPanel
+        isOpen={isNotificationPanelVisible}
+        onClose={handleNotificationPanelClose}
+      />
+
+      {/* Ask Question Dialog - For ask_question MCP tool (legacy) */}
+      {currentQuestion && (
+        <AskQuestionDialog
+          payload={currentQuestion}
+          onClose={handleQuestionDialogClose}
+        />
+      )}
+
+      {/* A2UI Popup Card - For A2UI surfaces with displayMode: 'popup' */}
+      {currentPopupCard && (
+        <A2UIPopupCard
+          surface={currentPopupCard}
+          onClose={handlePopupCardClose}
+        />
+      )}
     </div>
   );
 }

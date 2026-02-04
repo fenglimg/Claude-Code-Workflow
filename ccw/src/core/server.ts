@@ -62,6 +62,8 @@ interface ServerOptions {
   initialPath?: string;
   host?: string;
   open?: boolean;
+  frontend?: 'js' | 'react' | 'both';
+  reactPort?: number;
 }
 
 type PostHandler = PostRequestHandler;
@@ -419,6 +421,20 @@ window.INITIAL_PATH = '${normalizePathForDisplay(initialPath).replace(/\\/g, '/'
 }
 
 /**
+ * Read request body as text for proxy requests
+ * @param req - HTTP request object
+ * @returns Promise that resolves to body text
+ */
+async function readRequestBody(req: http.IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', (chunk) => { body += chunk; });
+    req.on('end', () => { resolve(body); });
+    req.on('error', reject);
+  });
+}
+
+/**
  * Create and start the dashboard server
  * @param {Object} options - Server options
  * @param {number} options.port - Port to listen on (default: 3456)
@@ -429,11 +445,19 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
   let serverPort = options.port ?? 3456;
   const initialPath = options.initialPath || process.cwd();
   const host = options.host ?? '127.0.0.1';
+  const frontend = options.frontend || 'js';
+  const reactPort = options.reactPort || serverPort + 1;
+
+  // Log frontend configuration
+  console.log(`[Server] Frontend mode: ${frontend}`);
+  if (frontend === 'react' || frontend === 'both') {
+    console.log(`[Server] React proxy configured: /react/* -> http://localhost:${reactPort}`);
+  }
 
   const tokenManager = getTokenManager();
   const secretKey = tokenManager.getSecretKey();
   tokenManager.getOrCreateAuthToken();
-  const unauthenticatedPaths = new Set<string>(['/api/auth/token', '/api/csrf-token', '/api/hook']);
+  const unauthenticatedPaths = new Set<string>(['/api/auth/token', '/api/csrf-token', '/api/hook', '/api/test/ask-question']);
 
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', `http://localhost:${serverPort}`);
@@ -503,6 +527,46 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
       // Try each route handler in order
       // Order matters: more specific routes should come before general ones
 
+      // Test endpoint for ask_question tool (temporary for E2E testing)
+      if (pathname === '/api/test/ask-question' && req.method === 'POST') {
+        const { executeTool } = await import('../tools/index.js');
+
+        // Get question params from request body if provided, or use default
+        let questionParams = {
+          question: {
+            id: 'test-question-' + Date.now(),
+            type: 'confirm',
+            title: 'Test Question',
+            message: 'This is a test of the ask_question tool integration',
+            description: 'Click Confirm or Cancel to complete the test'
+          },
+          timeout: 30000
+        };
+
+        if (req.headers['content-type']?.includes('application/json')) {
+          try {
+            const chunks: Buffer[] = [];
+            for await (const chunk of req) {
+              chunks.push(chunk);
+            }
+            const body = JSON.parse(Buffer.concat(chunks).toString());
+            if (body.question) {
+              questionParams.question = { ...questionParams.question, ...body.question };
+            }
+            if (body.timeout) {
+              questionParams.timeout = body.timeout;
+            }
+          } catch (e) {
+            // Use defaults if parsing fails
+          }
+        }
+
+        const result = await executeTool('ask_question', questionParams);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+        return;
+      }
+
       // Auth routes (/api/csrf-token)
       if (await handleAuthRoutes(routeContext)) return;
 
@@ -516,8 +580,8 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
         if (await handleNavStatusRoutes(routeContext)) return;
       }
 
-      // Dashboard routes (/api/dashboard/*) - Dashboard initialization
-      if (pathname.startsWith('/api/dashboard/')) {
+      // Dashboard routes (/api/dashboard/*, /api/workflow-status-counts)
+      if (pathname.startsWith('/api/dashboard/') || pathname === '/api/workflow-status-counts') {
         if (await handleDashboardRoutes(routeContext)) return;
       }
 
@@ -538,8 +602,8 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
         if (await handleClaudeRoutes(routeContext)) return;
       }
 
-      // Memory routes (/api/memory/*)
-      if (pathname.startsWith('/api/memory/')) {
+      // Memory routes (/api/memory and /api/memory/*)
+      if (pathname === '/api/memory' || pathname.startsWith('/api/memory/')) {
         if (await handleMemoryRoutes(routeContext)) return;
       }
 
@@ -579,8 +643,8 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
         if (await handleGraphRoutes(routeContext)) return;
       }
 
-      // CCW routes (/api/ccw/*)
-      if (pathname.startsWith('/api/ccw/')) {
+      // CCW routes (/api/ccw and /api/ccw/*)
+      if (pathname.startsWith('/api/ccw')) {
         if (await handleCcwRoutes(routeContext)) return;
       }
 
@@ -664,22 +728,7 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
         if (await handleSystemRoutes(routeContext)) return;
       }
 
-      // Serve dashboard HTML
-      if (pathname === '/' || pathname === '/index.html') {
-        // Set session cookie and CSRF token for all requests
-        const tokenResult = tokenManager.getOrCreateAuthToken();
-        setAuthCookie(res, tokenResult.token, tokenResult.expiresAt);
 
-        const sessionId = getOrCreateSessionId(req, res);
-        const csrfToken = getCsrfTokenManager().generateToken(sessionId);
-        res.setHeader('X-CSRF-Token', csrfToken);
-        setCsrfCookie(res, csrfToken, 15 * 60);
-
-        const html = generateServerDashboard(initialPath);
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(html);
-        return;
-      }
 
       // Handle favicon.ico (return empty response to prevent 404)
       if (pathname === '/favicon.ico') {
@@ -714,6 +763,69 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
           res.end(content);
           return;
         }
+      }
+
+      // React frontend proxy - proxy requests to React dev server
+      // Use the frontend and reactPort variables defined at startServer scope
+      if (frontend === 'react' || frontend === 'both') {
+        if (pathname === '/react' || pathname.startsWith('/react/')) {
+          // Don't strip the /react prefix - Vite knows it's serving under /react/
+          const reactUrl = `http://localhost:${reactPort}${pathname}${url.search}`;
+
+          console.log(`[React Proxy] Proxying ${pathname} -> ${reactUrl}`);
+
+          try {
+            // Convert headers to plain object for fetch
+            const proxyHeaders: Record<string, string> = {};
+            for (const [key, value] of Object.entries(req.headers)) {
+              if (typeof value === 'string') {
+                proxyHeaders[key] = value;
+              } else if (Array.isArray(value)) {
+                proxyHeaders[key] = value.join(', ');
+              }
+            }
+            proxyHeaders['host'] = `localhost:${reactPort}`;
+
+            const reactResponse = await fetch(reactUrl, {
+              method: req.method,
+              headers: proxyHeaders,
+              body: req.method !== 'GET' && req.method !== 'HEAD' ? await readRequestBody(req) : undefined,
+            });
+
+            const contentType = reactResponse.headers.get('content-type') || 'text/html';
+            const body = await reactResponse.text();
+
+            console.log(`[React Proxy] Response ${reactResponse.status}: ${contentType}`);
+
+            res.writeHead(reactResponse.status, {
+              'Content-Type': contentType,
+              'Cache-Control': 'no-cache',
+            });
+            res.end(body);
+            return;
+          } catch (err) {
+            console.error(`[React Proxy] Failed to proxy to ${reactUrl}:`, err);
+            console.error(`[React Proxy] Error details:`, (err as Error).message);
+            res.writeHead(502, { 'Content-Type': 'text/plain' });
+            res.end(`Bad Gateway: React frontend not available at ${reactUrl}\nError: ${(err as Error).message}`);
+            return;
+          }
+        }
+
+        // Redirect root to React if react-only mode
+        if (frontend === 'react' && (pathname === '/' || pathname === '/index.html')) {
+          res.writeHead(302, { 'Location': `/react${url.search}` });
+          res.end();
+          return;
+        }
+      }
+
+      // Root path - serve JS frontend HTML (default or both mode)
+      if (pathname === '/' || pathname === '/index.html') {
+        const html = generateServerDashboard(initialPath);
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end(html);
+        return;
       }
 
       // 404

@@ -1,0 +1,451 @@
+{
+  "aria": {
+    "toggleNavigation": "切换导航菜单",
+    "refreshWorkspace": "刷新工作区",
+    "switchToLightMode": "切换到浅色模式",
+    "switchToDarkMode": "切换到深色模式",
+    "userMenu": "用户菜单",
+    "actions": "操作",
+    "notifications": "通知"
+  },
+  "actions": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "create": "创建",
+    "refresh": "刷新",
+    "loading": "加载中...",
+    "retry": "重试",
+    "search": "搜索...",
+    "searchIssues": "搜索问题...",
+    "searchLoops": "搜索循环...",
+    "clear": "清除",
+    "close": "关闭",
+    "copy": "复制",
+    "view": "查看",
+    "viewAll": "查看全部",
+    "update": "更新",
+    "add": "添加",
+    "new": "新建",
+    "remove": "移除",
+    "confirm": "确认",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "submit": "提交",
+    "reset": "重置",
+    "resetDesc": "将所有用户偏好重置为默认值。此操作无法撤销。",
+    "saving": "保存中...",
+    "deleting": "删除中...",
+    "merging": "合并中...",
+    "splitting": "拆分中...",
+    "resetConfirm": "确定要将所有设置重置为默认值吗？",
+    "resetToDefaults": "重置为默认值",
+    "enable": "启用",
+    "disable": "禁用",
+    "expand": "全部展开",
+    "expandAll": "全部展开",
+    "collapse": "全部收起",
+    "collapseAll": "全部收起",
+    "filter": "筛选",
+    "filters": "筛选",
+    "clearFilters": "清除筛选",
+    "clearAll": "清除全部",
+    "select": "选择",
+    "selectAll": "全选",
+    "deselectAll": "取消全选",
+    "openMenu": "打开菜单",
+    "resetLayout": "重置布局"
+  },
+  "status": {
+    "active": "活跃",
+    "inactive": "未激活",
+    "pending": "待处理",
+    "inProgress": "进行中",
+    "running": "运行中",
+    "initializing": "初始化中",
+    "initialized": "已初始化",
+    "planning": "规划中",
+    "completed": "已完成",
+    "failed": "失败",
+    "blocked": "已阻塞",
+    "cancelled": "已取消",
+    "paused": "已暂停",
+    "archived": "已归档",
+    "idle": "空闲",
+    "unknown": "未知",
+    "draft": "草稿",
+    "published": "已发布",
+    "creating": "创建中...",
+    "deleting": "删除中...",
+    "label": "状态",
+    "openIssues": "开放问题",
+    "enabled": "已启用",
+    "disabled": "已禁用"
+  },
+  "priority": {
+    "low": "低",
+    "medium": "中",
+    "high": "高",
+    "critical": "紧急",
+    "label": "优先级"
+  },
+  "time": {
+    "seconds": "秒",
+    "minutes": "分钟",
+    "hours": "小时",
+    "days": "天",
+    "weeks": "周",
+    "months": "月",
+    "years": "年",
+    "ago": "前",
+    "justNow": "刚刚",
+    "minutesAgo": "{count}分钟前",
+    "hoursAgo": "{count}小时前",
+    "daysAgo": "{count}天前"
+  },
+  "buttons": {
+    "new": "新建",
+    "create": "创建",
+    "edit": "编辑",
+    "delete": "删除",
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "retry": "重试",
+    "refresh": "刷新",
+    "close": "关闭",
+    "back": "返回",
+    "next": "下一步",
+    "submit": "提交"
+  },
+  "form": {
+    "required": "必填",
+    "optional": "可选",
+    "placeholder": "输入...",
+    "search": "搜索...",
+    "select": "选择...",
+    "noResults": "未找到结果",
+    "loading": "加载中...",
+    "sessionId": "会话ID",
+    "title": "标题",
+    "description": "描述",
+    "sessionIdPlaceholder": "例如：WFS-feature-auth",
+    "titlePlaceholder": "例如：认证系统",
+    "descriptionPlaceholder": "会话简短描述"
+  },
+  "emptyState": {
+    "noData": "未找到数据",
+    "noResults": "未找到结果",
+    "noItems": "暂无项目",
+    "createFirst": "创建第一个项目以开始",
+    "searchEmpty": "尝试调整搜索或筛选条件",
+    "filterEmpty": "没有项目符合当前筛选条件"
+  },
+  "errors": {
+    "generic": "发生错误",
+    "network": "网络错误，请检查连接。",
+    "timeout": "请求超时，请重试。",
+    "notFound": "未找到资源",
+    "unauthorized": "未授权访问",
+    "forbidden": "访问被禁止",
+    "validation": "验证错误",
+    "server": "服务器错误，请稍后重试。",
+    "loadingFailed": "加载数据失败",
+    "loadFailed": "加载数据失败",
+    "saveFailed": "保存失败",
+    "deleteFailed": "删除失败",
+    "updateFailed": "更新失败",
+    "unknownError": "发生意外错误"
+  },
+  "success": {
+    "saved": "保存成功",
+    "created": "创建成功",
+    "updated": "更新成功",
+    "deleted": "删除成功",
+    "copied": "已复制到剪贴板"
+  },
+  "messages": {
+    "confirmDelete": "确定要删除此项目吗？",
+    "confirmArchive": "确定要归档此项目吗？",
+    "unsavedChanges": "您有未保存的更改，确定要离开吗？",
+    "noPermission": "您没有执行此操作的权限"
+  },
+  "stats": {
+    "todayActivity": "今日活动",
+    "totalCommands": "总命令数",
+    "totalSkills": "总技能数",
+    "categories": "分类",
+    "total": "总计"
+  },
+  "labels": {
+    "progress": "进度"
+  },
+  "dialog": {
+    "createSession": "创建新会话",
+    "createSessionDesc": "创建新的工作流会话以跟踪您的开发任务。",
+    "deleteSession": "删除会话",
+    "deleteConfirm": "确定要删除此会话吗？此操作无法撤销。"
+  },
+  "help": {
+    "title": "帮助与文档",
+    "description": "了解如何使用 CCW 仪表板并充分利用您的工作流",
+    "fullDocs": "完整文档",
+    "viewAll": "查看全部",
+    "getStarted": "开始使用",
+    "support": {
+      "title": "需要更多帮助？",
+      "description": "查看项目文档或联系支持。",
+      "documentation": "文档",
+      "tutorials": "教程"
+    },
+    "searchDocs": {
+      "title": "搜索文档",
+      "description": "使用全面的文档搜索快速找到答案",
+      "button": "搜索文档"
+    }
+  },
+  "dashboard": {
+    "config": {
+      "title": "部件",
+      "widgets": "仪表板部件",
+      "hideAll": "全部隐藏",
+      "showAll": "全部显示",
+      "resetLayout": "重置布局"
+    }
+  },
+  "all": "全部",
+  "yes": "是",
+  "no": "否",
+  "loading": "加载中...",
+  "error": "错误",
+  "navigation": {
+    "header": {
+      "brand": "CCW 仪表板"
+    },
+    "main": {
+      "home": "主页",
+      "project": "项目",
+      "sessions": "会话",
+      "liteTasks": "轻量任务",
+      "orchestrator": "编排器",
+      "coordinator": "协调器",
+      "executions": "执行监控",
+      "loops": "循环",
+      "history": "历史",
+      "memory": "记忆",
+      "prompts": "提示词",
+      "skills": "技能",
+      "commands": "命令",
+      "issues": "问题",
+      "hooks": "钩子",
+      "settings": "设置",
+      "rules": "规则",
+      "codexlens": "CodexLens",
+      "apiSettings": "API 设置",
+      "help": "帮助"
+    },
+    "groups": {
+      "overview": "概览",
+      "workflow": "工作流",
+      "knowledge": "知识",
+      "issues": "问题",
+      "tools": "工具",
+      "configuration": "配置"
+    },
+    "sidebar": {
+      "collapse": "收起",
+      "collapseAria": "收起侧边栏",
+      "expand": "展开",
+      "expandAria": "展开侧边栏"
+    }
+  },
+  "askQuestion": {
+    "defaultTitle": "问题",
+    "description": "请回答以下问题",
+    "textPlaceholder": "输入您的答案...",
+    "yes": "是",
+    "no": "否",
+    "required": "此问题为必填项"
+  },
+  "feedback": {
+    "error": {
+      "network": "网络错误，请检查您的连接并重试。",
+      "timeout": "请求超时，请重试。",
+      "auth": "身份验证失败，请检查您的权限。",
+      "validation": "请检查您的输入并重试。",
+      "server": "服务器错误，请稍后重试。",
+      "notFound": "未找到请求的资源。",
+      "unknown": "发生意外错误，请重试。"
+    },
+    "skillToggle": {
+      "success": "技能状态更新成功",
+      "error": "更新技能状态失败"
+    },
+    "skillEnable": {
+      "success": "技能启用成功",
+      "error": "启用技能失败"
+    },
+    "skillDisable": {
+      "success": "技能禁用成功",
+      "error": "禁用技能失败"
+    },
+    "commandExecute": {
+      "success": "命令执行成功",
+      "error": "执行命令失败"
+    },
+    "commandToggle": {
+      "success": "命令状态已更新",
+      "error": "更新命令状态失败"
+    },
+    "sessionCreate": {
+      "success": "会话创建成功",
+      "error": "创建会话失败"
+    },
+    "sessionDelete": {
+      "success": "会话删除成功",
+      "error": "删除会话失败"
+    },
+    "sessionUpdate": {
+      "success": "会话更新成功",
+      "error": "更新会话失败"
+    },
+    "settingsSave": {
+      "success": "设置保存成功",
+      "error": "保存设置失败"
+    },
+    "settingsReset": {
+      "success": "设置已重置为默认值",
+      "error": "重置设置失败"
+    },
+    "memoryImport": {
+      "success": "记忆导入成功",
+      "error": "导入记忆失败"
+    },
+    "memoryExport": {
+      "success": "记忆导出成功",
+      "error": "导出记忆失败"
+    },
+    "memoryDelete": {
+      "success": "记忆删除成功",
+      "error": "删除记忆失败"
+    },
+    "coordinatorStart": {
+      "success": "协调器启动成功",
+      "error": "启动协调器失败"
+    },
+    "coordinatorStop": {
+      "success": "协调器已停止",
+      "error": "停止协调器失败"
+    },
+    "hookToggle": {
+      "success": "钩子状态已更新",
+      "error": "更新钩子状态失败"
+    },
+    "indexRebuild": {
+      "success": "索引重建已开始",
+      "error": "重建索引失败"
+    },
+    "ruleCreate": {
+      "success": "规则创建成功",
+      "error": "创建规则失败"
+    },
+    "ruleUpdate": {
+      "success": "规则更新成功",
+      "error": "更新规则失败"
+    },
+    "ruleDelete": {
+      "success": "规则删除成功",
+      "error": "删除规则失败"
+    },
+    "promptCreate": {
+      "success": "提示词创建成功",
+      "error": "创建提示词失败"
+    },
+    "promptUpdate": {
+      "success": "提示词更新成功",
+      "error": "更新提示词失败"
+    },
+    "promptDelete": {
+      "success": "提示词删除成功",
+      "error": "删除提示词失败"
+    },
+    "providerCreate": {
+      "success": "提供商创建成功",
+      "error": "创建提供商失败"
+    },
+    "providerUpdate": {
+      "success": "提供商更新成功",
+      "error": "更新提供商失败"
+    },
+    "providerDelete": {
+      "success": "提供商删除成功",
+      "error": "删除提供商失败"
+    },
+    "cliToolInstall": {
+      "success": "工具安装成功",
+      "error": "安装工具失败"
+    },
+    "cliToolUninstall": {
+      "success": "工具卸载成功",
+      "error": "卸载工具失败"
+    },
+    "cliToolUpgrade": {
+      "success": "工具升级成功",
+      "error": "升级工具失败"
+    },
+    "codexLensConfigUpdate": {
+      "success": "配置更新成功",
+      "error": "更新配置失败"
+    },
+    "codexLensBootstrap": {
+      "success": "CodexLens 初始化成功",
+      "error": "初始化 CodexLens 失败"
+    },
+    "codexLensInstallSemantic": {
+      "success": "语义依赖安装完成",
+      "error": "安装语义依赖失败"
+    },
+    "codexLensUninstall": {
+      "success": "CodexLens 已卸载",
+      "error": "卸载 CodexLens 失败"
+    },
+    "codexLensDownloadModel": {
+      "success": "模型下载成功",
+      "error": "下载模型失败"
+    },
+    "codexLensDeleteModel": {
+      "success": "模型删除成功",
+      "error": "删除模型失败"
+    },
+    "codexLensUpdateEnv": {
+      "success": "环境变量已更新",
+      "error": "更新环境变量失败"
+    },
+    "codexLensSelectGpu": {
+      "success": "GPU 选择成功",
+      "error": "选择 GPU 失败"
+    },
+    "codexLensResetGpu": {
+      "success": "GPU 重置成功",
+      "error": "重置 GPU 失败"
+    },
+    "codexLensUpdatePatterns": {
+      "success": "忽略模式已更新",
+      "error": "更新忽略模式失败"
+    },
+    "codexLensRebuildIndex": {
+      "success": "索引重建已开始",
+      "error": "重建索引失败"
+    },
+    "codexLensUpdateIndex": {
+      "success": "索引更新已开始",
+      "error": "更新索引失败"
+    },
+    "codexLensCancelIndexing": {
+      "success": "索引已取消",
+      "error": "取消索引失败"
+    }
+  }
+}

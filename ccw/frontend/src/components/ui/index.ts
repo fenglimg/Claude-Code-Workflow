@@ -9,6 +9,9 @@ export type { ButtonProps } from "./Button";
 export { Input } from "./Input";
 export type { InputProps } from "./Input";
 
+// Checkbox
+export { Checkbox } from "./Checkbox";
+
 // Select (Radix)
 export {
   Select,
@@ -85,3 +88,25 @@ export {
   ToastClose,
   ToastAction,
 } from "./Toast";
+
+// Collapsible (Radix)
+export {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "./Collapsible";
+
+// AlertDialog (Radix)
+export {
+  AlertDialog,
+  AlertDialogPortal,
+  AlertDialogOverlay,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "./AlertDialog";

@@ -3,7 +3,7 @@
 // ========================================
 // TanStack Query hooks for issues with queue management
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import {
   fetchIssues,
   fetchIssueHistory,
@@ -11,10 +11,23 @@ import {
   createIssue,
   updateIssue,
   deleteIssue,
+  activateQueue,
+  deactivateQueue,
+  deleteQueue as deleteQueueApi,
+  mergeQueues as mergeQueuesApi,
+  splitQueue as splitQueueApi,
+  fetchDiscoveries,
+  fetchDiscoveryFindings,
+  exportDiscoveryFindingsAsIssues,
   type Issue,
-  type IssuesResponse,
   type IssueQueue,
+  type IssuesResponse,
+  type DiscoverySession,
+  type Finding,
 } from '../lib/api';
+import { useWorkflowStore, selectProjectPath } from '@/stores/workflowStore';
+import { workspaceQueryKeys } from '@/lib/queryKeys';
+import { useState, useMemo } from 'react';
 
 // Query key factory
 export const issuesKeys = {
@@ -64,23 +77,27 @@ export interface UseIssuesReturn {
  * Hook for fetching and filtering issues
  */
 export function useIssues(options: UseIssuesOptions = {}): UseIssuesReturn {
-  const { filter, projectPath, staleTime = STALE_TIME, enabled = true, refetchInterval = 0 } = options;
+  const { filter, staleTime = STALE_TIME, enabled = true, refetchInterval = 0 } = options;
   const queryClient = useQueryClient();
+  const projectPath = useWorkflowStore(selectProjectPath);
+
+  // Only enable query when projectPath is available
+  const queryEnabled = enabled && !!projectPath;
 
   const issuesQuery = useQuery({
-    queryKey: issuesKeys.list(filter),
+    queryKey: workspaceQueryKeys.issuesList(projectPath),
     queryFn: () => fetchIssues(projectPath),
     staleTime,
-    enabled,
+    enabled: queryEnabled,
     refetchInterval: refetchInterval > 0 ? refetchInterval : false,
     retry: 2,
   });
 
   const historyQuery = useQuery({
-    queryKey: issuesKeys.history(),
+    queryKey: workspaceQueryKeys.issuesHistory(projectPath),
     queryFn: () => fetchIssueHistory(projectPath),
     staleTime,
-    enabled: enabled && (filter?.includeHistory ?? false),
+    enabled: queryEnabled && (filter?.includeHistory ?? false),
     retry: 2,
   });
 
@@ -126,7 +143,10 @@ export function useIssues(options: UseIssuesOptions = {}): UseIssuesReturn {
   };
 
   for (const issue of allIssues) {
-    issuesByStatus[issue.status].push(issue);
+    // Defensive check: only push if the status key exists
+    if (issue.status in issuesByStatus) {
+      issuesByStatus[issue.status].push(issue);
+    }
   }
 
   // Group by priority
@@ -138,7 +158,10 @@ export function useIssues(options: UseIssuesOptions = {}): UseIssuesReturn {
   };
 
   for (const issue of allIssues) {
-    issuesByPriority[issue.priority].push(issue);
+    // Defensive check: only push if the priority key exists
+    if (issue.priority in issuesByPriority) {
+      issuesByPriority[issue.priority].push(issue);
+    }
   }
 
   const refetch = async () => {
@@ -146,7 +169,9 @@ export function useIssues(options: UseIssuesOptions = {}): UseIssuesReturn {
   };
 
   const invalidate = async () => {
-    await queryClient.invalidateQueries({ queryKey: issuesKeys.all });
+    if (projectPath) {
+      await queryClient.invalidateQueries({ queryKey: workspaceQueryKeys.issues(projectPath) });
+    }
   };
 
   return {
@@ -168,11 +193,13 @@ export function useIssues(options: UseIssuesOptions = {}): UseIssuesReturn {
 /**
  * Hook for fetching issue queue
  */
-export function useIssueQueue(projectPath?: string) {
-  return useQuery({
-    queryKey: issuesKeys.queue(),
+export function useIssueQueue(): UseQueryResult<IssueQueue> {
+  const projectPath = useWorkflowStore(selectProjectPath);
+  return useQuery<IssueQueue>({
+    queryKey: projectPath ? workspaceQueryKeys.issueQueue(projectPath) : ['issueQueue', 'no-project'],
     queryFn: () => fetchIssueQueue(projectPath),
     staleTime: STALE_TIME,
+    enabled: !!projectPath,
     retry: 2,
   });
 }
@@ -187,16 +214,13 @@ export interface UseCreateIssueReturn {
 
 export function useCreateIssue(): UseCreateIssueReturn {
   const queryClient = useQueryClient();
+  const projectPath = useWorkflowStore(selectProjectPath);
 
   const mutation = useMutation({
     mutationFn: createIssue,
-    onSuccess: (newIssue) => {
-      queryClient.setQueryData<IssuesResponse>(issuesKeys.list(), (old) => {
-        if (!old) return { issues: [newIssue] };
-        return {
-          issues: [newIssue, ...old.issues],
-        };
-      });
+    onSuccess: () => {
+      // Invalidate issues cache to trigger refetch
+      queryClient.invalidateQueries({ queryKey: projectPath ? workspaceQueryKeys.issues(projectPath) : ['issues'] });
     },
   });
 
@@ -215,17 +239,14 @@ export interface UseUpdateIssueReturn {
 
 export function useUpdateIssue(): UseUpdateIssueReturn {
   const queryClient = useQueryClient();
+  const projectPath = useWorkflowStore(selectProjectPath);
 
   const mutation = useMutation({
     mutationFn: ({ issueId, input }: { issueId: string; input: Partial<Issue> }) =>
       updateIssue(issueId, input),
-    onSuccess: (updatedIssue) => {
-      queryClient.setQueryData<IssuesResponse>(issuesKeys.list(), (old) => {
-        if (!old) return old;
-        return {
-          issues: old.issues.map((i) => (i.id === updatedIssue.id ? updatedIssue : i)),
-        };
-      });
+    onSuccess: () => {
+      // Invalidate issues cache to trigger refetch
+      queryClient.invalidateQueries({ queryKey: projectPath ? workspaceQueryKeys.issues(projectPath) : ['issues'] });
     },
   });
 
@@ -244,29 +265,13 @@ export interface UseDeleteIssueReturn {
 
 export function useDeleteIssue(): UseDeleteIssueReturn {
   const queryClient = useQueryClient();
+  const projectPath = useWorkflowStore(selectProjectPath);
 
   const mutation = useMutation({
     mutationFn: deleteIssue,
-    onMutate: async (issueId) => {
-      await queryClient.cancelQueries({ queryKey: issuesKeys.all });
-      const previousIssues = queryClient.getQueryData<IssuesResponse>(issuesKeys.list());
-
-      queryClient.setQueryData<IssuesResponse>(issuesKeys.list(), (old) => {
-        if (!old) return old;
-        return {
-          issues: old.issues.filter((i) => i.id !== issueId),
-        };
-      });
-
-      return { previousIssues };
-    },
-    onError: (_error, _issueId, context) => {
-      if (context?.previousIssues) {
-        queryClient.setQueryData(issuesKeys.list(), context.previousIssues);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: issuesKeys.all });
+    onSuccess: () => {
+      // Invalidate to ensure sync with server
+      queryClient.invalidateQueries({ queryKey: projectPath ? workspaceQueryKeys.issues(projectPath) : ['issues'] });
     },
   });
 
@@ -293,5 +298,220 @@ export function useIssueMutations() {
     isUpdating: update.isUpdating,
     isDeleting: remove.isDeleting,
     isMutating: create.isCreating || update.isUpdating || remove.isDeleting,
+  };
+}
+
+// ========== Queue Mutations ==========
+
+export interface UseQueueMutationsReturn {
+  activateQueue: (queueId: string) => Promise<void>;
+  deactivateQueue: () => Promise<void>;
+  deleteQueue: (queueId: string) => Promise<void>;
+  mergeQueues: (sourceId: string, targetId: string) => Promise<void>;
+  splitQueue: (sourceQueueId: string, itemIds: string[]) => Promise<void>;
+  isActivating: boolean;
+  isDeactivating: boolean;
+  isDeleting: boolean;
+  isMerging: boolean;
+  isSplitting: boolean;
+  isMutating: boolean;
+}
+
+export function useQueueMutations(): UseQueueMutationsReturn {
+  const queryClient = useQueryClient();
+  const projectPath = useWorkflowStore(selectProjectPath);
+
+  const activateMutation = useMutation({
+    mutationFn: (queueId: string) => activateQueue(queueId, projectPath),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workspaceQueryKeys.issueQueue(projectPath) });
+    },
+  });
+
+  const deactivateMutation = useMutation({
+    mutationFn: () => deactivateQueue(projectPath),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workspaceQueryKeys.issueQueue(projectPath) });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (queueId: string) => deleteQueueApi(queueId, projectPath),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workspaceQueryKeys.issueQueue(projectPath) });
+    },
+  });
+
+  const mergeMutation = useMutation({
+    mutationFn: ({ sourceId, targetId }: { sourceId: string; targetId: string }) =>
+      mergeQueuesApi(sourceId, targetId, projectPath),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workspaceQueryKeys.issueQueue(projectPath) });
+    },
+  });
+
+  const splitMutation = useMutation({
+    mutationFn: ({ sourceQueueId, itemIds }: { sourceQueueId: string; itemIds: string[] }) =>
+      splitQueueApi(sourceQueueId, itemIds, projectPath),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workspaceQueryKeys.issueQueue(projectPath) });
+    },
+  });
+
+  return {
+    activateQueue: activateMutation.mutateAsync,
+    deactivateQueue: deactivateMutation.mutateAsync,
+    deleteQueue: deleteMutation.mutateAsync,
+    mergeQueues: (sourceId, targetId) => mergeMutation.mutateAsync({ sourceId, targetId }),
+    splitQueue: (sourceQueueId, itemIds) => splitMutation.mutateAsync({ sourceQueueId, itemIds }),
+    isActivating: activateMutation.isPending,
+    isDeactivating: deactivateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
+    isMerging: mergeMutation.isPending,
+    isSplitting: splitMutation.isPending,
+    isMutating: activateMutation.isPending || deactivateMutation.isPending || deleteMutation.isPending || mergeMutation.isPending || splitMutation.isPending,
+  };
+}
+
+// ========== Discovery Hook ==========
+
+export interface FindingFilters {
+  severity?: 'critical' | 'high' | 'medium' | 'low';
+  type?: string;
+  search?: string;
+  exported?: boolean;
+  hasIssue?: boolean;
+}
+
+export interface UseIssueDiscoveryReturn {
+  sessions: DiscoverySession[];
+  activeSession: DiscoverySession | null;
+  findings: Finding[];
+  filteredFindings: Finding[];
+  isLoadingSessions: boolean;
+  isLoadingFindings: boolean;
+  error: Error | null;
+  filters: FindingFilters;
+  setFilters: (filters: FindingFilters) => void;
+  selectSession: (sessionId: string) => void;
+  refetchSessions: () => void;
+  exportFindings: () => void;
+  exportSelectedFindings: (findingIds: string[]) => Promise<{ success: boolean; message?: string; exported?: number }>;
+  isExporting: boolean;
+}
+
+export function useIssueDiscovery(options?: { refetchInterval?: number }): UseIssueDiscoveryReturn {
+  const { refetchInterval = 0 } = options ?? {};
+  const queryClient = useQueryClient();
+  const projectPath = useWorkflowStore(selectProjectPath);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<FindingFilters>({});
+  const [isExporting, setIsExporting] = useState(false);
+
+  const sessionsQuery = useQuery({
+    queryKey: workspaceQueryKeys.discoveries(projectPath),
+    queryFn: () => fetchDiscoveries(projectPath),
+    staleTime: STALE_TIME,
+    enabled: !!projectPath,
+    refetchInterval: refetchInterval > 0 ? refetchInterval : false,
+    retry: 2,
+  });
+
+  const findingsQuery = useQuery({
+    queryKey: activeSessionId ? ['discoveryFindings', activeSessionId, projectPath] : ['discoveryFindings', 'no-session'],
+    queryFn: () => activeSessionId ? fetchDiscoveryFindings(activeSessionId, projectPath) : [],
+    staleTime: STALE_TIME,
+    enabled: !!activeSessionId && !!projectPath,
+    retry: 2,
+  });
+
+  const activeSession = useMemo(
+    () => sessionsQuery.data?.find(s => s.id === activeSessionId) ?? null,
+    [sessionsQuery.data, activeSessionId]
+  );
+
+  const filteredFindings = useMemo(() => {
+    let findings = findingsQuery.data ?? [];
+    if (filters.severity) {
+      findings = findings.filter(f => f.severity === filters.severity);
+    }
+    if (filters.type) {
+      findings = findings.filter(f => f.type === filters.type);
+    }
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      findings = findings.filter(f =>
+        f.title.toLowerCase().includes(searchLower) ||
+        f.description.toLowerCase().includes(searchLower)
+      );
+    }
+    // Filter by exported status
+    if (filters.exported !== undefined) {
+      findings = findings.filter(f => f.exported === filters.exported);
+    }
+    // Filter by hasIssue (has associated issue_id)
+    if (filters.hasIssue !== undefined) {
+      findings = findings.filter(f => !!f.issue_id === filters.hasIssue);
+    }
+    return findings;
+  }, [findingsQuery.data, filters]);
+
+  const selectSession = (sessionId: string) => {
+    setActiveSessionId(sessionId);
+  };
+
+  const exportFindings = () => {
+    if (!activeSessionId || !findingsQuery.data) return;
+    const data = {
+      session: activeSession,
+      findings: findingsQuery.data,
+      exported_at: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `discovery-${activeSessionId}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportSelectedFindings = async (findingIds: string[]) => {
+    if (!activeSessionId) return { success: false, message: 'No active session' };
+    setIsExporting(true);
+    try {
+      const result = await exportDiscoveryFindingsAsIssues(
+        activeSessionId,
+        { findingIds },
+        projectPath
+      );
+      // Invalidate queries to refresh findings with updated exported status
+      await queryClient.invalidateQueries({ queryKey: ['discoveryFindings', activeSessionId, projectPath] });
+      await queryClient.invalidateQueries({ queryKey: workspaceQueryKeys.issues(projectPath) });
+      return result;
+    } catch (error) {
+      return { success: false, message: error instanceof Error ? error.message : 'Export failed' };
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return {
+    sessions: sessionsQuery.data ?? [],
+    activeSession,
+    findings: findingsQuery.data ?? [],
+    filteredFindings,
+    isLoadingSessions: sessionsQuery.isLoading,
+    isLoadingFindings: findingsQuery.isLoading,
+    error: sessionsQuery.error || findingsQuery.error,
+    filters,
+    setFilters,
+    selectSession,
+    refetchSessions: () => {
+      sessionsQuery.refetch();
+    },
+    exportFindings,
+    exportSelectedFindings,
+    isExporting,
   };
 }

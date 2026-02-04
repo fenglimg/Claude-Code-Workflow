@@ -1,0 +1,69 @@
+{
+  "title": "Skills",
+  "description": "Manage and configure skills",
+  "disabledSkills": {
+    "title": "Disabled Skills"
+  },
+  "disableConfirm": {
+    "title": "Disable Skill?",
+    "message": "Are you sure you want to disable \"{name}\"?"
+  },
+  "location": {
+    "project": "Project",
+    "user": "Global"
+  },
+  "source": {
+    "builtin": "Built-in",
+    "custom": "Custom",
+    "community": "Community"
+  },
+  "actions": {
+    "viewDetails": "View Details",
+    "configure": "Configure",
+    "enable": "Enable",
+    "disable": "Disable",
+    "toggle": "Toggle",
+    "install": "Install Skill",
+    "cancel": "Cancel",
+    "confirmDisable": "Disable"
+  },
+  "state": {
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "on": "On",
+    "off": "Off"
+  },
+  "card": {
+    "triggers": "Triggers",
+    "category": "Category",
+    "source": "Source",
+    "author": "Author",
+    "version": "Version",
+    "description": "Description"
+  },
+  "allowedTools": "Allowed Tools",
+  "files": "Files",
+  "path": "Path",
+  "metadata": "Metadata",
+  "noDescription": "No description available",
+  "projectSkills": "Project Skills",
+  "userSkills": "User Skills",
+  "filters": {
+    "all": "All",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "searchPlaceholder": "Search skills...",
+    "allSources": "All Sources"
+  },
+  "stats": {
+    "totalSkills": "Total Skills"
+  },
+  "view": {
+    "grid": "Grid View",
+    "compact": "Compact View"
+  },
+  "emptyState": {
+    "title": "No Skills Found",
+    "message": "No skills match your current filter."
+  }
+}

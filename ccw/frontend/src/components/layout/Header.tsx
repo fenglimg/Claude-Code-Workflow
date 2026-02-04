@@ -5,6 +5,7 @@
 
 import { useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { useIntl } from 'react-intl';
 import {
   Workflow,
   Menu,
@@ -14,40 +15,50 @@ import {
   Settings,
   User,
   LogOut,
+  Terminal,
+  Bell,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { useTheme } from '@/hooks';
+import { WorkspaceSelector } from '@/components/workspace/WorkspaceSelector';
+import { useCliStreamStore, selectActiveExecutionCount } from '@/stores/cliStreamStore';
+import { useNotificationStore } from '@/stores';
 
 export interface HeaderProps {
   /** Callback to toggle mobile sidebar */
   onMenuClick?: () => void;
-  /** Current project path */
-  projectPath?: string;
   /** Callback for refresh action */
   onRefresh?: () => void;
   /** Whether refresh is in progress */
   isRefreshing?: boolean;
+  /** Callback to open CLI monitor */
+  onCliMonitorClick?: () => void;
 }
 
 export function Header({
   onMenuClick,
-  projectPath = '',
   onRefresh,
   isRefreshing = false,
+  onCliMonitorClick,
 }: HeaderProps) {
+  const { formatMessage } = useIntl();
   const { isDark, toggleTheme } = useTheme();
+  const activeCliCount = useCliStreamStore(selectActiveExecutionCount);
+
+  // Notification state for badge
+  const persistentNotifications = useNotificationStore((state) => state.persistentNotifications);
+  const togglePanel = useNotificationStore((state) => state.togglePanel);
+
+  // Calculate unread count
+  const unreadCount = persistentNotifications.filter((n) => !n.read).length;
 
   const handleRefresh = useCallback(() => {
     if (onRefresh && !isRefreshing) {
       onRefresh();
     }
   }, [onRefresh, isRefreshing]);
-
-  // Get display path (truncate if too long)
-  const displayPath = projectPath.length > 40
-    ? '...' + projectPath.slice(-37)
-    : projectPath || 'No project selected';
 
   return (
     <header
@@ -62,7 +73,7 @@ export function Header({
           size="icon"
           className="md:hidden"
           onClick={onMenuClick}
-          aria-label="Toggle navigation menu"
+          aria-label={formatMessage({ id: 'common.aria.toggleNavigation' })}
         >
           <Menu className="w-5 h-5" />
         </Button>
@@ -73,21 +84,48 @@ export function Header({
           className="flex items-center gap-2 text-lg font-semibold text-primary hover:opacity-80 transition-opacity"
         >
           <Workflow className="w-6 h-6" />
-          <span className="hidden sm:inline">Claude Code Workflow</span>
-          <span className="sm:hidden">CCW</span>
+          <span className="hidden sm:inline">{formatMessage({ id: 'navigation.header.brand' })}</span>
+          <span className="sm:hidden">{formatMessage({ id: 'navigation.header.brandShort' })}</span>
         </Link>
       </div>
 
       {/* Right side - Actions */}
       <div className="flex items-center gap-2">
-        {/* Project path indicator */}
-        {projectPath && (
-          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-muted rounded-md text-sm text-muted-foreground max-w-[300px]">
-            <span className="truncate" title={projectPath}>
-              {displayPath}
+        {/* CLI Monitor button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onCliMonitorClick}
+          className="gap-2"
+        >
+          <Terminal className="h-4 w-4" />
+          <span className="hidden sm:inline">CLI Monitor</span>
+          {activeCliCount > 0 && (
+            <Badge variant="default" className="h-5 px-1.5 text-xs">
+              {activeCliCount}
+            </Badge>
+          )}
+        </Button>
+
+        {/* Workspace selector */}
+        <WorkspaceSelector />
+
+        {/* Notification badge */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={togglePanel}
+          aria-label={formatMessage({ id: 'common.aria.notifications' }) || 'Notifications'}
+          title={formatMessage({ id: 'common.aria.notifications' }) || 'Notifications'}
+          className="relative"
+        >
+          <Bell className="w-5 h-5" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 min-h-4 min-w-4 px-1 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center font-medium">
+              {unreadCount > 9 ? '9+' : unreadCount}
             </span>
-          </div>
-        )}
+          )}
+        </Button>
 
         {/* Refresh button */}
         {onRefresh && (
@@ -96,8 +134,8 @@ export function Header({
             size="icon"
             onClick={handleRefresh}
             disabled={isRefreshing}
-            aria-label="Refresh workspace"
-            title="Refresh workspace"
+            aria-label={formatMessage({ id: 'common.aria.refreshWorkspace' })}
+            title={formatMessage({ id: 'common.aria.refreshWorkspace' })}
           >
             <RefreshCw
               className={cn('w-5 h-5', isRefreshing && 'animate-spin')}
@@ -110,8 +148,14 @@ export function Header({
           variant="ghost"
           size="icon"
           onClick={toggleTheme}
-          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={isDark
+            ? formatMessage({ id: 'common.aria.switchToLightMode' })
+            : formatMessage({ id: 'common.aria.switchToDarkMode' })
+          }
+          title={isDark
+            ? formatMessage({ id: 'common.aria.switchToLightMode' })
+            : formatMessage({ id: 'common.aria.switchToDarkMode' })
+          }
         >
           {isDark ? (
             <Sun className="w-5 h-5" />
@@ -126,8 +170,8 @@ export function Header({
             variant="ghost"
             size="icon"
             className="rounded-full"
-            aria-label="User menu"
-            title="User menu"
+            aria-label={formatMessage({ id: 'common.aria.userMenu' })}
+            title={formatMessage({ id: 'common.aria.userMenu' })}
           >
             <User className="w-5 h-5" />
           </Button>
@@ -140,7 +184,7 @@ export function Header({
                 className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-hover transition-colors"
               >
                 <Settings className="w-4 h-4" />
-                <span>Settings</span>
+                <span>{formatMessage({ id: 'navigation.header.settings' })}</span>
               </Link>
               <hr className="my-1 border-border" />
               <button
@@ -151,7 +195,7 @@ export function Header({
                 }}
               >
                 <LogOut className="w-4 h-4" />
-                <span>Exit Dashboard</span>
+                <span>{formatMessage({ id: 'navigation.header.logout' })}</span>
               </button>
             </div>
           </div>

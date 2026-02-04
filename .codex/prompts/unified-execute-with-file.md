@@ -1,722 +1,473 @@
 ---
-description: Universal execution engine consuming planning/brainstorm/analysis output. Coordinates multi-agents, manages dependencies, and tracks execution with unified progress logging.
-argument-hint: "PLAN_PATH=\"<path>\" [EXECUTION_MODE=\"sequential|parallel\"] [AUTO_CONFIRM=\"yes|no\"] [EXECUTION_CONTEXT=\"<focus area>\"]"
+description: Universal execution engine for consuming planning/brainstorm/analysis output. Serial task execution with progress tracking. Codex-optimized.
+argument-hint: "PLAN=\"<path>\" [--auto-commit] [--dry-run]"
 ---
 
-# Codex Unified-Execute-With-File Prompt
+# Codex Unified-Execute-With-File Workflow
+
+## Quick Start
+
+Universal execution engine consuming **any** planning output and executing tasks serially with progress tracking.
+
+**Core workflow**: Load Plan → Parse Tasks → Validate → Execute Sequentially → Track Progress → Verify
+
+**Key features**:
+- **Format-agnostic**: Supports plan.json, plan-note.md, synthesis.json, conclusions.json
+- **Serial execution**: Process tasks sequentially with dependency ordering
+- **Progress tracking**: execution.md overview + execution-events.md detailed log
+- **Auto-commit**: Optional conventional commits after each task
+- **Dry-run mode**: Simulate execution without making changes
 
 ## Overview
 
-Universal execution engine that consumes **any** planning/brainstorm/analysis output and executes it with minimal progress tracking. Coordinates multiple agents (code-developer, test-fix-agent, doc-generator, cli-execution-agent), handles dependencies intelligently, and maintains unified execution timeline.
+This workflow enables reliable task execution through sequential phases:
 
-**Core workflow**: Load Plan → Parse Tasks → Validate Dependencies → Execute Waves → Track Progress → Report Results
+1. **Plan Detection & Parsing** - Load and parse planning output in any format
+2. **Pre-Execution Analysis** - Validate feasibility and identify potential issues
+3. **Serial Task Execution** - Execute tasks one by one with dependency ordering
+4. **Progress Tracking** - Update execution logs with results and discoveries
+5. **Completion** - Generate summary and offer follow-up actions
 
-**Key features**:
-- **Plan Format Agnostic**: Consumes IMPL_PLAN.md, brainstorm synthesis.json, analysis conclusions.json, debug resolutions
-- **execution-events.md**: Single source of truth - unified execution log with full agent history
-- **Multi-Agent Orchestration**: Parallel execution where possible, sequential where needed
-- **Incremental Execution**: Resume from failure point, no re-execution of completed tasks
-- **Dependency Management**: Automatic topological sort and execution wave grouping
-- **Knowledge Chain**: Each agent reads all previous execution history in context
+The key innovation is the **unified event log** that serves as both human-readable progress tracker and machine-parseable state store.
 
-## Target Execution Plan
-
-**Plan Source**: $PLAN_PATH
-
-- `EXECUTION_MODE`: Strategy (sequential|parallel)
-- `AUTO_CONFIRM`: Skip confirmations (yes|no)
-- `EXECUTION_CONTEXT`: Focus area/module (optional)
-
-## Execution Process
+## Output Structure
 
 ```
-Session Detection:
-   ├─ Check if execution session exists
-   ├─ If exists → Resume mode
-   └─ If not → New session mode
-
-Phase 1: Plan Loading & Validation
-   ├─ Detect and parse plan file (multiple formats supported)
-   ├─ Extract and normalize tasks
-   ├─ Validate dependencies (detect cycles)
-   ├─ Create execution session folder
-   ├─ Initialize execution.md and execution-events.md
-   └─ Pre-execution validation
-
-Phase 2: Execution Orchestration
-   ├─ Topological sort for execution order
-   ├─ Group tasks into execution waves (parallel-safe groups)
-   ├─ Execute waves sequentially (tasks within wave execute in parallel)
-   ├─ Monitor completion and capture artifacts
-   ├─ Update progress in execution.md and execution-events.md
-   └─ Handle failures with retry/skip/abort logic
-
-Phase 3: Progress Tracking & Unified Event Logging
-   ├─ execution-events.md: Append-only unified log (SINGLE SOURCE OF TRUTH)
-   ├─ Each agent reads all previous events at start
-   ├─ Agent executes task with full context from previous agents
-   ├─ Agent appends execution event (success/failure) with artifacts and notes
-   └─ Next agent reads complete history → knowledge chain
-
-Phase 4: Completion & Summary
-   ├─ Collect execution statistics
-   ├─ Update execution.md with final status
-   ├─ execution-events.md contains complete execution record
-   └─ Report results and offer follow-up options
+.workflow/.execution/EXEC-{slug}-{date}-{random}/
+├── execution.md              # Plan overview + task table + timeline
+└── execution-events.md       # ⭐ Unified log (all executions) - SINGLE SOURCE OF TRUTH
 ```
+
+## Output Artifacts
+
+### Phase 1: Session Initialization
+
+| Artifact | Purpose |
+|----------|---------|
+| `execution.md` | Overview of plan source, task table, execution timeline |
+| Session folder | `.workflow/.execution/{sessionId}/` |
+
+### Phase 2: Pre-Execution Analysis
+
+| Artifact | Purpose |
+|----------|---------|
+| `execution.md` (updated) | Feasibility assessment and validation results |
+
+### Phase 3-4: Serial Execution & Progress
+
+| Artifact | Purpose |
+|----------|---------|
+| `execution-events.md` | Unified log: all task executions with results |
+| `execution.md` (updated) | Real-time progress updates and task status |
+
+### Phase 5: Completion
+
+| Artifact | Purpose |
+|----------|---------|
+| Final `execution.md` | Complete execution summary and statistics |
+| Final `execution-events.md` | Complete execution history |
+
+---
 
 ## Implementation Details
 
-### Session Setup & Plan Detection
+### Session Initialization
 
-```javascript
-const getUtc8ISOString = () => new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()
+The workflow creates a unique session for tracking execution.
 
-// Plan detection from $PLAN_PATH
-let planPath = "$PLAN_PATH"
+**Session ID Format**: `EXEC-{slug}-{date}-{random}`
+- `slug`: Plan filename without extension, lowercased, max 30 chars
+- `date`: YYYY-MM-DD format (UTC+8)
+- `random`: 7-char random suffix for uniqueness
 
-// If not provided, auto-detect
-if (!planPath || planPath === "") {
-  const candidates = [
-    '.workflow/.plan/IMPL_PLAN.md',
-    '.workflow/plans/IMPL_PLAN.md',
-    '.workflow/IMPL_PLAN.md',
-    '.workflow/brainstorm/*/synthesis.json',
-    '.workflow/analyze/*/conclusions.json'
-  ]
+**Session Directory**: `.workflow/.execution/{sessionId}/`
 
-  // Find most recent plan
-  planPath = findMostRecentFile(candidates)
+**Plan Path Resolution**:
+1. If `$PLAN` provided explicitly, use it
+2. Otherwise, auto-detect from common locations:
+   - `.workflow/IMPL_PLAN.md`
+   - `.workflow/.planning/*/plan-note.md`
+   - `.workflow/.brainstorm/*/synthesis.json`
+   - `.workflow/.analysis/*/conclusions.json`
 
-  if (!planPath) {
-    throw new Error("No execution plan found. Provide PLAN_PATH or ensure .workflow/IMPL_PLAN.md exists")
-  }
-}
-
-// Session setup
-const executionMode = "$EXECUTION_MODE" || "parallel"
-const autoConfirm = "$AUTO_CONFIRM" === "yes"
-const executionContext = "$EXECUTION_CONTEXT" || ""
-
-const planContent = Read(planPath)
-const plan = parsePlan(planContent, planPath)
-
-const executionId = `EXEC-${plan.slug}-${getUtc8ISOString().substring(0, 10)}-${randomId(4)}`
-const executionFolder = `.workflow/.execution/${executionId}`
-const executionPath = `${executionFolder}/execution.md`
-const eventLogPath = `${executionFolder}/execution-events.md`
-
-bash(`mkdir -p "${executionFolder}"`)
-```
+**Session Variables**:
+- `sessionId`: Unique session identifier
+- `sessionFolder`: Base directory for artifacts
+- `planPath`: Resolved path to plan file
+- `autoCommit`: Boolean flag for auto-commit mode
+- `dryRun`: Boolean flag for dry-run mode
 
 ---
 
-### Plan Format Parsers
+## Phase 1: Plan Detection & Parsing
 
-Support multiple plan sources:
+**Objective**: Load plan file, parse tasks, build execution order, and validate for cycles.
 
-```javascript
-function parsePlan(content, filePath) {
-  const ext = filePath.split('.').pop()
+### Step 1.1: Load Plan File
 
-  if (filePath.includes('IMPL_PLAN')) {
-    return parseImplPlan(content)
-  } else if (filePath.includes('brainstorm') && filePath.includes('synthesis')) {
-    return parseSynthesisPlan(content)
-  } else if (filePath.includes('analyze') && filePath.includes('conclusions')) {
-    return parseConclusionsPlan(content)
-  } else if (filePath.includes('debug') && filePath.includes('recommendations')) {
-    return parseDebugResolutionPlan(content)
-  } else if (ext === 'json' && content.includes('tasks')) {
-    return parseTaskJson(content)
-  }
+Detect plan format and parse based on file extension.
 
-  throw new Error(`Unsupported plan format: ${filePath}`)
-}
+**Supported Formats**:
 
-// IMPL_PLAN.md parser
-function parseImplPlan(content) {
-  return {
-    type: 'impl-plan',
-    title: extractSection(content, 'Overview'),
-    phases: extractPhases(content),
-    tasks: extractTasks(content),
-    criticalFiles: extractCriticalFiles(content),
-    estimatedDuration: extractEstimate(content)
-  }
-}
+| Format | Source | Parser |
+|--------|--------|--------|
+| plan.json | lite-plan, collaborative-plan | parsePlanJson() |
+| plan-note.md | collaborative-plan | parsePlanMarkdown() |
+| synthesis.json | brainstorm session | convertSynthesisToTasks() |
+| conclusions.json | analysis session | convertConclusionsToTasks() |
 
-// Brainstorm synthesis.json parser
-function parseSynthesisPlan(content) {
-  const synthesis = JSON.parse(content)
-  return {
-    type: 'brainstorm-synthesis',
-    title: synthesis.topic,
-    ideas: synthesis.top_ideas,
-    tasks: synthesis.top_ideas.map(idea => ({
-      id: `IDEA-${slugify(idea.title)}`,
-      type: 'investigation',
-      title: idea.title,
-      description: idea.description,
-      dependencies: [],
-      agent_type: 'universal-executor',
-      prompt: `Implement: ${idea.title}\n${idea.description}`,
-      expected_output: idea.next_steps
-    }))
-  }
-}
-```
+**Parsing Activities**:
+1. Read plan file content
+2. Detect format from filename or content structure
+3. Route to appropriate parser
+4. Extract tasks with required fields: id, title, description, files_to_modify, depends_on
+
+### Step 1.2: Build Execution Order
+
+Analyze task dependencies and calculate execution sequence.
+
+**Execution Order Calculation**:
+1. Build dependency graph from task dependencies
+2. Validate for circular dependencies (no cycles allowed)
+3. Calculate topological sort for sequential execution order
+4. In Codex: serial mode means executing tasks one by one
+
+**Dependency Validation**:
+- Check that all referenced dependencies exist
+- Detect cycles and report as critical error
+- Order tasks based on dependencies
+
+### Step 1.3: Generate execution.md
+
+Create the main execution tracking document.
+
+**execution.md Structure**:
+- **Header**: Session ID, plan source, execution timestamp
+- **Plan Overview**: Summary from plan metadata
+- **Task List**: Table with ID, title, complexity, dependencies, status
+- **Execution Timeline**: To be updated as tasks complete
+
+**Success Criteria**:
+- execution.md created with complete plan overview
+- Task list includes all tasks from plan
+- Execution order calculated with no cycles
+- Ready for feasibility analysis
 
 ---
 
-## Phase 1: Plan Loading & Validation
+## Phase 2: Pre-Execution Analysis
 
-### Step 1.1: Parse Plan and Extract Tasks
+**Objective**: Validate feasibility and identify potential issues before starting execution.
 
-```javascript
-const tasks = plan.tasks || parseTasksFromContent(plan)
+### Step 2.1: Analyze Plan Structure
 
-// Normalize task structure
-const normalizedTasks = tasks.map(task => ({
-  id: task.id || `TASK-${generateId()}`,
-  title: task.title || task.content,
-  description: task.description || task.activeForm,
-  type: task.type || inferTaskType(task), // 'code', 'test', 'doc', 'analysis', 'integration'
-  agent_type: task.agent_type || selectBestAgent(task),
-  dependencies: task.dependencies || [],
+Examine task dependencies, file modifications, and potential conflicts.
 
-  // Execution parameters
-  prompt: task.prompt || task.description,
-  files_to_modify: task.files_to_modify || [],
-  expected_output: task.expected_output || [],
+**Analysis Activities**:
+1. **Check file conflicts**: Identify files modified by multiple tasks
+2. **Check missing dependencies**: Verify all referenced dependencies exist
+3. **Check file existence**: Identify files that will be created vs modified
+4. **Estimate complexity**: Assess overall execution complexity
 
-  // Metadata
-  priority: task.priority || 'normal',
-  parallel_safe: task.parallel_safe !== false,
+**Issue Detection**:
+- Sequential modifications to same file (document for ordered execution)
+- Missing dependency targets
+- High complexity patterns that may need special handling
 
-  // Status tracking
-  status: 'pending',
-  attempts: 0,
-  max_retries: 2
-}))
+### Step 2.2: Generate Feasibility Report
 
-// Validate and detect issues
-const validation = {
-  cycles: detectDependencyCycles(normalizedTasks),
-  missing_dependencies: findMissingDependencies(normalizedTasks),
-  file_conflicts: detectOutputConflicts(normalizedTasks),
-  warnings: []
-}
+Document analysis results and recommendations.
 
-if (validation.cycles.length > 0) {
-  throw new Error(`Circular dependencies detected: ${validation.cycles.join(', ')}`)
-}
-```
+**Feasibility Report Content**:
+- Issues found (if any)
+- File conflict warnings
+- Dependency validation results
+- Complexity assessment
+- Recommended execution strategy
 
-### Step 1.2: Create execution.md
+### Step 2.3: Update execution.md
 
-```javascript
-const executionMarkdown = `# Execution Progress
+Append feasibility analysis results.
 
-**Execution ID**: ${executionId}
-**Plan Source**: ${planPath}
-**Started**: ${getUtc8ISOString()}
-**Mode**: ${executionMode}
-
-**Plan Summary**:
-- Title: ${plan.title}
-- Total Tasks: ${normalizedTasks.length}
-- Phases: ${plan.phases?.length || 'N/A'}
+**Success Criteria**:
+- All validation checks completed
+- Issues documented in execution.md
+- No blocking issues found (or user confirmed to proceed)
+- Ready for task execution
 
 ---
 
-## Execution Plan
+## Phase 3: Serial Task Execution
 
-### Task Overview
+**Objective**: Execute tasks one by one in dependency order, tracking progress and recording results.
 
-| Task ID | Title | Type | Agent | Dependencies | Status |
-|---------|-------|------|-------|--------------|--------|
-${normalizedTasks.map(t => `| ${t.id} | ${t.title} | ${t.type} | ${t.agent_type} | ${t.dependencies.join(',')} | ${t.status} |`).join('\n')}
+**Execution Model**: Serial execution - process tasks sequentially, one at a time. Each task must complete before the next begins.
 
-### Dependency Graph
+### Step 3.1: Execute Tasks Sequentially
 
-\`\`\`
-${generateDependencyGraph(normalizedTasks)}
-\`\`\`
+For each task in execution order:
+1. Load context from previous task results
+2. Route to Codex CLI for execution
+3. Wait for completion
+4. Record results in execution-events.md
+5. Auto-commit if enabled
+6. Move to next task
 
-### Execution Strategy
+**Execution Loop**:
+```
+For each task in executionOrder:
+  ├─ Extract task context
+  ├─ Load previous task outputs
+  ├─ Execute task via CLI (synchronous)
+  ├─ Record result with timestamp
+  ├─ Auto-commit if enabled
+  └─ Continue to next task
+```
 
-- **Mode**: ${executionMode}
-- **Parallelization**: ${calculateParallel(normalizedTasks)}
-- **Estimated Duration**: ${estimateTotalDuration(normalizedTasks)}
+### Step 3.2: Execute Task via CLI
+
+Execute individual task using Codex CLI in synchronous mode.
+
+**CLI Execution Scope**:
+- **PURPOSE**: Execute task from plan
+- **TASK DETAILS**: ID, title, description, required changes
+- **PRIOR CONTEXT**: Results from previous tasks
+- **REQUIRED CHANGES**: Files to modify with specific locations
+- **MODE**: write (modification mode)
+- **EXPECTED**: Files modified as specified, no test failures
+
+**CLI Parameters**:
+- `--tool codex`: Use Codex for execution
+- `--mode write`: Allow file modifications
+- Synchronous execution: Wait for completion
+
+### Step 3.3: Track Progress
+
+Record task execution results in the unified event log.
+
+**execution-events.md Structure**:
+- **Header**: Session metadata
+- **Event Timeline**: One entry per task with results
+- **Event Format**:
+  - Task ID and title
+  - Timestamp and duration
+  - Status (completed/failed)
+  - Summary of changes
+  - Any notes or issues discovered
+
+**Event Recording Activities**:
+1. Capture execution timestamp
+2. Record task status and duration
+3. Document any modifications made
+4. Note any issues or discoveries
+5. Append event to execution-events.md
+
+### Step 3.4: Auto-Commit (if enabled)
+
+Commit task changes with conventional commit format.
+
+**Auto-Commit Process**:
+1. Get changed files from git status
+2. Filter to task.files_to_modify
+3. Stage files: `git add`
+4. Generate commit message based on task type
+5. Commit: `git commit -m`
+
+**Commit Message Format**:
+- Type: feat, fix, refactor, test, docs (inferred from task)
+- Scope: file/module affected (inferred from files modified)
+- Subject: Task title or description
+- Footer: Task ID and plan reference
+
+**Success Criteria**:
+- All tasks executed sequentially
+- Results recorded in execution-events.md
+- Auto-commits created (if enabled)
+- Failed tasks logged for review
 
 ---
 
-## Execution Timeline
+## Phase 4: Completion
 
-*Updates as execution progresses*
+**Objective**: Summarize execution results and offer follow-up actions.
 
----
+### Step 4.1: Collect Statistics
 
-## Current Status
+Gather execution metrics.
 
-${executionStatus()}
-`
+**Metrics Collection**:
+- Total tasks executed
+- Successfully completed count
+- Failed count
+- Success rate percentage
+- Total duration
+- Artifacts generated
 
-Write(executionPath, executionMarkdown)
-```
+### Step 4.2: Generate Summary
 
-### Step 1.3: Pre-Execution Confirmation
+Update execution.md with final results.
 
-```javascript
-if (!autoConfirm) {
-  AskUserQuestion({
-    questions: [{
-      question: `准备执行 ${normalizedTasks.length} 个任务，模式: ${executionMode}\n\n关键任务:\n${normalizedTasks.slice(0, 3).map(t => `• ${t.id}: ${t.title}`).join('\n')}\n\n继续?`,
-      header: "Confirmation",
-      multiSelect: false,
-      options: [
-        { label: "开始执行", description: "按计划执行" },
-        { label: "调整参数", description: "修改执行参数" },
-        { label: "查看详情", description: "查看完整任务列表" },
-        { label: "取消", description: "退出不执行" }
-      ]
-    }]
-  })
-}
-```
+**Summary Content**:
+- Execution completion timestamp
+- Statistics table
+- Task status table (completed/failed)
+- Commit log (if auto-commit enabled)
+- Any failed tasks requiring attention
 
----
+### Step 4.3: Display Completion Summary
 
-## Phase 2: Execution Orchestration
+Present results to user.
 
-### Step 2.1: Determine Execution Order
+**Summary Output**:
+- Session ID and folder path
+- Statistics (completed/failed/total)
+- Failed tasks (if any)
+- Execution log location
+- Next step recommendations
 
-```javascript
-// Topological sort for execution order
-const executionOrder = topologicalSort(normalizedTasks)
-
-// For parallel mode, group tasks into waves
-let executionWaves = []
-if (executionMode === 'parallel') {
-  executionWaves = groupIntoWaves(executionOrder, parallelLimit = 3)
-} else {
-  executionWaves = executionOrder.map(task => [task])
-}
-```
-
-### Step 2.2: Execute Task Waves
-
-```javascript
-let completedCount = 0
-let failedCount = 0
-const results = {}
-
-for (let waveIndex = 0; waveIndex < executionWaves.length; waveIndex++) {
-  const wave = executionWaves[waveIndex]
-
-  console.log(`\n=== Wave ${waveIndex + 1}/${executionWaves.length} ===`)
-  console.log(`Tasks: ${wave.map(t => t.id).join(', ')}`)
-
-  // Launch tasks in parallel
-  const taskPromises = wave.map(task => executeTask(task, executionFolder))
-
-  // Wait for wave completion
-  const waveResults = await Promise.allSettled(taskPromises)
-
-  // Process results
-  for (let i = 0; i < waveResults.length; i++) {
-    const result = waveResults[i]
-    const task = wave[i]
-
-    if (result.status === 'fulfilled') {
-      results[task.id] = result.value
-      if (result.value.success) {
-        completedCount++
-        task.status = 'completed'
-        console.log(`✅ ${task.id}: Completed`)
-      } else if (result.value.retry) {
-        console.log(`⚠️ ${task.id}: Will retry`)
-        task.status = 'pending'
-      } else {
-        console.log(`❌ ${task.id}: Failed`)
-      }
-    } else {
-      console.log(`❌ ${task.id}: Execution error`)
-    }
-  }
-
-  // Update execution.md summary
-  appendExecutionTimeline(executionPath, waveIndex + 1, wave, waveResults)
-}
-```
-
-### Step 2.3: Execute Individual Task with Unified Event Logging
-
-```javascript
-async function executeTask(task, executionFolder) {
-  const eventLogPath = `${executionFolder}/execution-events.md`
-  const startTime = Date.now()
-
-  try {
-    // Read previous execution events for context
-    let previousEvents = ''
-    if (fs.existsSync(eventLogPath)) {
-      previousEvents = Read(eventLogPath)
-    }
-
-    // Select agent based on task type
-    const agent = selectAgent(task.agent_type)
-
-    // Build execution context including previous agent outputs
-    const executionContext = `
-## Previous Agent Executions (for reference)
-
-${previousEvents}
+**Success Criteria**:
+- execution.md finalized with complete summary
+- execution-events.md contains all task records
+- User informed of completion status
+- All artifacts successfully created
 
 ---
 
-## Current Task: ${task.id}
+## Configuration
 
-**Title**: ${task.title}
-**Agent**: ${agent}
-**Time**: ${getUtc8ISOString()}
+### Plan Format Detection
 
-### Description
-${task.description}
+Workflow automatically detects plan format:
 
-### Context
-- Modified Files: ${task.files_to_modify.join(', ')}
-- Expected Output: ${task.expected_output.join(', ')}
+| File Extension | Format |
+|---|---|
+| `.json` | JSON plan (lite-plan, collaborative-plan) |
+| `.md` | Markdown plan (IMPL_PLAN.md, plan-note.md) |
+| `synthesis.json` | Brainstorm synthesis |
+| `conclusions.json` | Analysis conclusions |
 
-### Requirements
-${task.requirements || 'Follow the plan'}
+### Execution Modes
 
-### Constraints
-${task.constraints || 'No breaking changes'}
-`
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| Normal | Execute tasks, track progress | Standard execution |
+| `--auto-commit` | Execute + commit each task | Tracked progress with git history |
+| `--dry-run` | Simulate execution, no changes | Validate plan before executing |
 
-    // Execute based on agent type
-    let result
+### Task Dependencies
 
-    if (agent === 'code-developer' || agent === 'tdd-developer') {
-      result = await Task({
-        subagent_type: agent,
-        description: `Execute: ${task.title}`,
-        prompt: executionContext,
-        run_in_background: false
-      })
-    } else if (agent === 'test-fix-agent') {
-      result = await Task({
-        subagent_type: 'test-fix-agent',
-        description: `Execute Tests: ${task.title}`,
-        prompt: executionContext,
-        run_in_background: false
-      })
-    } else {
-      result = await Task({
-        subagent_type: 'universal-executor',
-        description: task.title,
-        prompt: executionContext,
-        run_in_background: false
-      })
-    }
-
-    // Capture artifacts
-    const artifacts = captureArtifacts(task, executionFolder)
-
-    // Append to unified execution events log
-    const eventEntry = `
-## Task ${task.id} - COMPLETED ✅
-
-**Timestamp**: ${getUtc8ISOString()}
-**Duration**: ${calculateDuration(startTime)}ms
-**Agent**: ${agent}
-
-### Execution Summary
-
-${generateSummary(result)}
-
-### Key Outputs
-
-${formatOutputs(result)}
-
-### Generated Artifacts
-
-${artifacts.map(a => `- **${a.type}**: \`${a.path}\` (${a.size})`).join('\n')}
-
-### Notes for Next Agent
-
-${generateNotesForNextAgent(result, task)}
-
----
-`
-
-    appendToEventLog(eventLogPath, eventEntry)
-
-    return {
-      success: true,
-      task_id: task.id,
-      output: result,
-      artifacts: artifacts,
-      duration: calculateDuration(startTime)
-    }
-  } catch (error) {
-    // Append failure event to unified log
-    const failureEntry = `
-## Task ${task.id} - FAILED ❌
-
-**Timestamp**: ${getUtc8ISOString()}
-**Duration**: ${calculateDuration(startTime)}ms
-**Agent**: ${agent}
-**Error**: ${error.message}
-
-### Error Details
-
-\`\`\`
-${error.stack}
-\`\`\`
-
-### Recovery Notes for Next Attempt
-
-${generateRecoveryNotes(error, task)}
-
----
-`
-
-    appendToEventLog(eventLogPath, failureEntry)
-
-    // Handle failure: retry, skip, or abort
-    task.attempts++
-    if (task.attempts < task.max_retries && autoConfirm) {
-      console.log(`⚠️ ${task.id}: Failed, retrying (${task.attempts}/${task.max_retries})`)
-      return { success: false, task_id: task.id, error: error.message, retry: true, duration: calculateDuration(startTime) }
-    } else if (task.attempts >= task.max_retries && !autoConfirm) {
-      const decision = AskUserQuestion({
-        questions: [{
-          question: `任务失败: ${task.id}\n错误: ${error.message}`,
-          header: "Decision",
-          multiSelect: false,
-          options: [
-            { label: "重试", description: "重新执行该任务" },
-            { label: "跳过", description: "跳过此任务，继续下一个" },
-            { label: "终止", description: "停止整个执行" }
-          ]
-        }]
-      })
-      if (decision === 'retry') {
-        task.attempts = 0
-        return { success: false, task_id: task.id, error: error.message, retry: true, duration: calculateDuration(startTime) }
-      } else if (decision === 'skip') {
-        task.status = 'skipped'
-        skipDependentTasks(task.id, normalizedTasks)
-      } else {
-        throw new Error('Execution aborted by user')
-      }
-    } else {
-      task.status = 'failed'
-      skipDependentTasks(task.id, normalizedTasks)
-    }
-
-    return {
-      success: false,
-      task_id: task.id,
-      error: error.message,
-      duration: calculateDuration(startTime)
-    }
-  }
-}
-
-function appendToEventLog(logPath, eventEntry) {
-  if (fs.existsSync(logPath)) {
-    const currentContent = Read(logPath)
-    Write(logPath, currentContent + eventEntry)
-  } else {
-    Write(logPath, eventEntry)
-  }
-}
-```
-
----
-
-## Phase 3: Progress Tracking & Event Logging
-
-**execution-events.md** is the **SINGLE SOURCE OF TRUTH**:
-- Append-only, chronological execution log
-- Each task records: timestamp, duration, agent type, execution summary, artifacts, notes for next agent
-- Failures include error details and recovery notes
-- Format: Human-readable markdown with machine-parseable status indicators (✅/❌/⏳)
-
-**Event log format** (appended entry):
-```markdown
-## Task {id} - {STATUS} {emoji}
-
-**Timestamp**: {time}
-**Duration**: {ms}
-**Agent**: {type}
-
-### Execution Summary
-{What was done}
-
-### Generated Artifacts
-- `src/types/auth.ts` (2.3KB)
-
-### Notes for Next Agent
-- Key decisions made
-- Potential issues
-- Ready for: TASK-003
-```
-
----
-
-## Phase 4: Completion & Summary
-
-After all tasks complete or max failures reached:
-
-```javascript
-const statistics = {
-  total_tasks: normalizedTasks.length,
-  completed: normalizedTasks.filter(t => t.status === 'completed').length,
-  failed: normalizedTasks.filter(t => t.status === 'failed').length,
-  skipped: normalizedTasks.filter(t => t.status === 'skipped').length,
-  success_rate: (completedCount / normalizedTasks.length * 100).toFixed(1)
-}
-
-// Update execution.md with final status
-appendExecutionSummary(executionPath, statistics)
-```
-
-**Post-Completion Options** (unless auto-confirm):
-
-```javascript
-AskUserQuestion({
-  questions: [{
-    question: "执行完成。是否需要后续操作?",
-    header: "Next Steps",
-    multiSelect: true,
-    options: [
-      { label: "查看详情", description: "查看完整执行日志" },
-      { label: "调试失败项", description: "对失败任务进行调试" },
-      { label: "优化执行", description: "分析执行改进建议" },
-      { label: "完成", description: "不需要后续操作" }
-    ]
-  }]
-})
-```
-
----
-
-## Session Folder Structure
-
-```
-.workflow/.execution/{executionId}/
-├── execution.md              # Execution plan and overall status
-└── execution-events.md       # SINGLE SOURCE OF TRUTH - all agent executions
-                              # Both human-readable AND machine-parseable
-
-# Generated files go directly to project directories (not into execution folder)
-# E.g., TASK-001 generates: src/types/auth.ts (not artifacts/src/types/auth.ts)
-# execution-events.md records the actual project paths
-```
-
----
-
-## Agent Selection Strategy
-
-```javascript
-function selectBestAgent(task) {
-  if (task.type === 'code' || task.type === 'implementation') {
-    return task.includes_tests ? 'tdd-developer' : 'code-developer'
-  } else if (task.type === 'test' || task.type === 'test-fix') {
-    return 'test-fix-agent'
-  } else if (task.type === 'doc' || task.type === 'documentation') {
-    return 'doc-generator'
-  } else if (task.type === 'analysis' || task.type === 'investigation') {
-    return 'cli-execution-agent'
-  } else if (task.type === 'debug') {
-    return 'debug-explore-agent'
-  } else {
-    return 'universal-executor'
-  }
-}
-```
-
----
-
-## Parallelization Rules
-
-```javascript
-function calculateParallel(tasks) {
-  // Group tasks into execution waves
-  // Constraints:
-  // - Tasks with same file modifications must be sequential
-  // - Tasks with dependencies must wait
-  // - Max 3 parallel tasks per wave (resource constraint)
-
-  const waves = []
-  const completed = new Set()
-
-  while (completed.size < tasks.length) {
-    const available = tasks.filter(t =>
-      !completed.has(t.id) &&
-      t.dependencies.every(d => completed.has(d))
-    )
-
-    if (available.length === 0) break
-
-    // Check for file conflicts
-    const noConflict = []
-    const modifiedFiles = new Set()
-
-    for (const task of available) {
-      const conflicts = task.files_to_modify.some(f => modifiedFiles.has(f))
-      if (!conflicts && noConflict.length < 3) {
-        noConflict.push(task)
-        task.files_to_modify.forEach(f => modifiedFiles.add(f))
-      }
-    }
-
-    if (noConflict.length > 0) {
-      waves.push(noConflict)
-      noConflict.forEach(t => completed.add(t.id))
-    }
-  }
-
-  return waves
-}
-```
+Tasks can declare dependencies on other tasks:
+- `depends_on: ["TASK-001", "TASK-002"]` - Wait for these tasks
+- Tasks are executed in topological order
+- Circular dependencies are detected and reported as error
 
 ---
 
 ## Error Handling & Recovery
 
-| Situation | Action |
-|-----------|--------|
-| Task timeout | Mark as timeout, ask user: retry/skip/abort |
-| Missing dependency | Auto-skip dependent tasks, log warning |
-| File conflict | Detect before execution, ask for resolution |
-| Output mismatch | Validate against expected_output, flag for review |
-| Agent unavailable | Fallback to universal-executor |
+| Situation | Action | Recovery |
+|-----------|--------|----------|
+| Plan not found | Check file path and common locations | Verify plan path is correct |
+| Unsupported format | Detect format from extension/content | Use supported plan format |
+| Circular dependency | Stop execution, report error | Remove or reorganize dependencies |
+| Task execution fails | Record failure in log | Review error details in execution-events.md |
+| File conflict | Document in execution-events.md | Resolve conflict manually or adjust plan order |
+| Missing file | Log as warning, continue | Verify files will be created by prior tasks |
 
 ---
 
-## Usage Recommendations
+## Execution Flow Diagram
 
-Use this execution engine when:
-- Executing any planning document (IMPL_PLAN.md, brainstorm conclusions, analysis recommendations)
-- Multiple tasks with dependencies need orchestration
-- Want minimal progress tracking without clutter
-- Need to handle failures gracefully and resume
-- Want to parallelize where possible but ensure correctness
+```
+Load Plan File
+   ├─ Detect format (JSON/Markdown)
+   ├─ Parse tasks
+   └─ Build dependency graph
 
-Consumes output from:
-- `/workflow:plan` → IMPL_PLAN.md
-- `/workflow:brainstorm-with-file` → synthesis.json → execution
-- `/workflow:analyze-with-file` → conclusions.json → execution
-- `/workflow:debug-with-file` → recommendations → execution
-- `/workflow:lite-plan` → task JSONs → execution
+Validate
+   ├─ Check for cycles
+   ├─ Analyze file conflicts
+   └─ Calculate execution order
+
+Execute Sequentially
+   ├─ Task 1: CLI execution → record result
+   ├─ Task 2: CLI execution → record result
+   ├─ Task 3: CLI execution → record result
+   └─ (repeat for all tasks)
+
+Track Progress
+   ├─ Update execution.md after each task
+   └─ Append event to execution-events.md
+
+Complete
+   ├─ Generate final summary
+   ├─ Report statistics
+   └─ Offer follow-up actions
+```
 
 ---
 
-**Now execute the unified execution workflow for plan**: $PLAN_PATH
+## Best Practices
 
+### Before Execution
+
+1. **Review Plan**: Check plan.md or plan-note.md for completeness
+2. **Validate Format**: Ensure plan is in supported format
+3. **Check Dependencies**: Verify dependency order is logical
+4. **Test First**: Use `--dry-run` mode to validate before actual execution
+5. **Backup**: Commit any pending changes before starting
+
+### During Execution
+
+1. **Monitor Progress**: Check execution-events.md for real-time updates
+2. **Handle Failures**: Review error details and decide whether to continue
+3. **Check Commits**: Verify auto-commits are correct if enabled
+4. **Track Context**: Prior task results are available to subsequent tasks
+
+### After Execution
+
+1. **Review Results**: Check execution.md summary and statistics
+2. **Verify Changes**: Inspect modified files match expected changes
+3. **Handle Failures**: Address any failed tasks
+4. **Update History**: Check git log for conventional commits if enabled
+5. **Plan Next Steps**: Use completion artifacts for future work
+
+---
+
+## Command Examples
+
+### Standard Execution
+
+```bash
+PLAN=".workflow/.planning/CPLAN-auth-2025-01-27/plan-note.md"
+```
+
+Execute the plan with standard options.
+
+### With Auto-Commit
+
+```bash
+PLAN=".workflow/.planning/CPLAN-auth-2025-01-27/plan-note.md" \
+  --auto-commit
+```
+
+Execute and automatically commit changes after each task.
+
+### Dry-Run Mode
+
+```bash
+PLAN=".workflow/.planning/CPLAN-auth-2025-01-27/plan-note.md" \
+  --dry-run
+```
+
+Simulate execution without making changes.
+
+### Auto-Detect Plan
+
+```bash
+# No PLAN specified - auto-detects from .workflow/ directories
+```
+
+---
+
+**Now execute unified-execute-with-file for**: $PLAN

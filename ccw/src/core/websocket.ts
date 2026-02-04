@@ -1,6 +1,8 @@
 import { createHash } from 'crypto';
 import type { IncomingMessage } from 'http';
 import type { Duplex } from 'stream';
+import { a2uiWebSocketHandler, handleA2UIMessage } from './a2ui/A2UIWebSocketHandler.js';
+import { handleAnswer } from '../tools/ask-question.js';
 
 // WebSocket clients for real-time notifications
 export const wsClients = new Set<Duplex>();
@@ -163,36 +165,51 @@ export function handleWebSocketUpgrade(req: IncomingMessage, socket: Duplex, _he
   console.log(`[WS] Client connected (${wsClients.size} total)`);
 
   // Handle incoming messages
+  let pendingBuffer = Buffer.alloc(0);
+
   socket.on('data', (buffer: Buffer) => {
+    // Buffers may contain partial frames or multiple frames; accumulate and parse in a loop.
+    pendingBuffer = Buffer.concat([pendingBuffer, buffer]);
+
     try {
-      const frame = parseWebSocketFrame(buffer);
-      if (!frame) return;
+      while (true) {
+        const frame = parseWebSocketFrame(pendingBuffer);
+        if (!frame) return;
 
-      const { opcode, payload } = frame;
+        const { opcode, payload, frameLength } = frame;
+        pendingBuffer = pendingBuffer.slice(frameLength);
 
-      switch (opcode) {
-        case 0x1: // Text frame
-          if (payload) {
-            console.log('[WS] Received:', payload);
+        switch (opcode) {
+          case 0x1: // Text frame
+            if (payload) {
+              console.log('[WS] Received:', payload);
+              // Try to handle as A2UI message
+              const handledAsA2UI = handleA2UIMessage(payload, a2uiWebSocketHandler, handleAnswer);
+              if (handledAsA2UI) {
+                console.log('[WS] Handled as A2UI message');
+              }
+            }
+            break;
+          case 0x8: // Close frame
+            socket.end();
+            return;
+          case 0x9: { // Ping frame - respond with Pong
+            const pongFrame = Buffer.alloc(2);
+            pongFrame[0] = 0x8A; // Pong opcode with FIN bit
+            pongFrame[1] = 0x00; // No payload
+            socket.write(pongFrame);
+            break;
           }
-          break;
-        case 0x8: // Close frame
-          socket.end();
-          break;
-        case 0x9: // Ping frame - respond with Pong
-          const pongFrame = Buffer.alloc(2);
-          pongFrame[0] = 0x8A; // Pong opcode with FIN bit
-          pongFrame[1] = 0x00; // No payload
-          socket.write(pongFrame);
-          break;
-        case 0xA: // Pong frame - ignore
-          break;
-        default:
-          // Ignore other frame types (binary, continuation)
-          break;
+          case 0xA: // Pong frame - ignore
+            break;
+          default:
+            // Ignore other frame types (binary, continuation)
+            break;
+        }
       }
     } catch (e) {
-      // Ignore parse errors
+      // On parse error, drop the buffered data to avoid unbounded growth.
+      pendingBuffer = Buffer.alloc(0);
     }
   });
 
@@ -211,7 +228,7 @@ export function handleWebSocketUpgrade(req: IncomingMessage, socket: Duplex, _he
  * Parse WebSocket frame (simplified)
  * Returns { opcode, payload } or null
  */
-export function parseWebSocketFrame(buffer: Buffer): { opcode: number; payload: string } | null {
+export function parseWebSocketFrame(buffer: Buffer): { opcode: number; payload: string; frameLength: number } | null {
   if (buffer.length < 2) return null;
 
   const firstByte = buffer[0];
@@ -227,18 +244,24 @@ export function parseWebSocketFrame(buffer: Buffer): { opcode: number; payload: 
 
   let offset = 2;
   if (payloadLength === 126) {
+    if (buffer.length < 4) return null;
     payloadLength = buffer.readUInt16BE(2);
     offset = 4;
   } else if (payloadLength === 127) {
+    if (buffer.length < 10) return null;
     payloadLength = Number(buffer.readBigUInt64BE(2));
     offset = 10;
   }
 
   let mask: Buffer | null = null;
   if (isMasked) {
+    if (buffer.length < offset + 4) return null;
     mask = buffer.slice(offset, offset + 4);
     offset += 4;
   }
+
+  const frameLength = offset + payloadLength;
+  if (buffer.length < frameLength) return null;
 
   const payload = buffer.slice(offset, offset + payloadLength);
 
@@ -248,7 +271,7 @@ export function parseWebSocketFrame(buffer: Buffer): { opcode: number; payload: 
     }
   }
 
-  return { opcode, payload: payload.toString('utf8') };
+  return { opcode, payload: payload.toString('utf8'), frameLength };
 }
 
 /**
@@ -422,6 +445,173 @@ export function broadcastOrchestratorLog(execId: string, log: Omit<ExecutionLog,
   broadcastToClients({
     type: 'ORCHESTRATOR_LOG',
     execId,
+    log: {
+      ...log,
+      timestamp: new Date().toISOString()
+    },
+    timestamp: new Date().toISOString()
+  });
+}
+
+/**
+ * Coordinator WebSocket message types
+ */
+export type CoordinatorMessageType =
+  | 'COORDINATOR_STATE_UPDATE'
+  | 'COORDINATOR_COMMAND_STARTED'
+  | 'COORDINATOR_COMMAND_COMPLETED'
+  | 'COORDINATOR_COMMAND_FAILED'
+  | 'COORDINATOR_LOG_ENTRY'
+  | 'COORDINATOR_QUESTION_ASKED'
+  | 'COORDINATOR_ANSWER_RECEIVED';
+
+/**
+ * Coordinator State Update - fired when coordinator execution status changes
+ */
+export interface CoordinatorStateUpdateMessage {
+  type: 'COORDINATOR_STATE_UPDATE';
+  executionId: string;
+  status: 'idle' | 'initializing' | 'running' | 'paused' | 'completed' | 'failed' | 'cancelled';
+  currentNodeId?: string;
+  timestamp: string;
+}
+
+/**
+ * Coordinator Command Started - fired when a command node begins execution
+ */
+export interface CoordinatorCommandStartedMessage {
+  type: 'COORDINATOR_COMMAND_STARTED';
+  executionId: string;
+  nodeId: string;
+  commandName: string;
+  timestamp: string;
+}
+
+/**
+ * Coordinator Command Completed - fired when a command node finishes successfully
+ */
+export interface CoordinatorCommandCompletedMessage {
+  type: 'COORDINATOR_COMMAND_COMPLETED';
+  executionId: string;
+  nodeId: string;
+  result?: unknown;
+  timestamp: string;
+}
+
+/**
+ * Coordinator Command Failed - fired when a command node encounters an error
+ */
+export interface CoordinatorCommandFailedMessage {
+  type: 'COORDINATOR_COMMAND_FAILED';
+  executionId: string;
+  nodeId: string;
+  error: string;
+  timestamp: string;
+}
+
+/**
+ * Coordinator Log Entry - fired for execution log entries
+ */
+export interface CoordinatorLogEntryMessage {
+  type: 'COORDINATOR_LOG_ENTRY';
+  executionId: string;
+  log: {
+    level: 'info' | 'warn' | 'error' | 'debug' | 'success';
+    message: string;
+    nodeId?: string;
+    source?: 'system' | 'node' | 'user';
+    timestamp: string;
+  };
+  timestamp: string;
+}
+
+/**
+ * Coordinator Question Asked - fired when coordinator needs user input
+ */
+export interface CoordinatorQuestionAskedMessage {
+  type: 'COORDINATOR_QUESTION_ASKED';
+  executionId: string;
+  question: {
+    id: string;
+    nodeId: string;
+    title: string;
+    description?: string;
+    type: 'text' | 'single' | 'multi' | 'yes_no';
+    options?: string[];
+    required: boolean;
+  };
+  timestamp: string;
+}
+
+/**
+ * Coordinator Answer Received - fired when user submits an answer
+ */
+export interface CoordinatorAnswerReceivedMessage {
+  type: 'COORDINATOR_ANSWER_RECEIVED';
+  executionId: string;
+  questionId: string;
+  answer: string | string[];
+  timestamp: string;
+}
+
+/**
+ * Union type for Coordinator messages (without timestamp - added automatically)
+ */
+export type CoordinatorMessage =
+  | Omit<CoordinatorStateUpdateMessage, 'timestamp'>
+  | Omit<CoordinatorCommandStartedMessage, 'timestamp'>
+  | Omit<CoordinatorCommandCompletedMessage, 'timestamp'>
+  | Omit<CoordinatorCommandFailedMessage, 'timestamp'>
+  | Omit<CoordinatorLogEntryMessage, 'timestamp'>
+  | Omit<CoordinatorQuestionAskedMessage, 'timestamp'>
+  | Omit<CoordinatorAnswerReceivedMessage, 'timestamp'>;
+
+/**
+ * Coordinator-specific broadcast with throttling
+ * Throttles COORDINATOR_STATE_UPDATE messages to avoid flooding clients
+ */
+let lastCoordinatorBroadcast = 0;
+const COORDINATOR_BROADCAST_THROTTLE = 1000; // 1 second
+
+/**
+ * Broadcast coordinator update with throttling
+ * STATE_UPDATE messages are throttled to 1 per second
+ * Other message types are sent immediately
+ */
+export function broadcastCoordinatorUpdate(message: CoordinatorMessage): void {
+  const now = Date.now();
+
+  // Throttle COORDINATOR_STATE_UPDATE to reduce WebSocket traffic
+  if (message.type === 'COORDINATOR_STATE_UPDATE' && now - lastCoordinatorBroadcast < COORDINATOR_BROADCAST_THROTTLE) {
+    return;
+  }
+
+  if (message.type === 'COORDINATOR_STATE_UPDATE') {
+    lastCoordinatorBroadcast = now;
+  }
+
+  broadcastToClients({
+    ...message,
+    timestamp: new Date().toISOString()
+  });
+}
+
+/**
+ * Broadcast coordinator log entry (no throttling)
+ * Used for streaming real-time coordinator logs to Dashboard
+ */
+export function broadcastCoordinatorLog(
+  executionId: string,
+  log: {
+    level: 'info' | 'warn' | 'error' | 'debug' | 'success';
+    message: string;
+    nodeId?: string;
+    source?: 'system' | 'node' | 'user';
+  }
+): void {
+  broadcastToClients({
+    type: 'COORDINATOR_LOG_ENTRY',
+    executionId,
     log: {
       ...log,
       timestamp: new Date().toISOString()

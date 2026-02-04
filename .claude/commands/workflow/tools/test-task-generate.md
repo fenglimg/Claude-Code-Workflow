@@ -1,6 +1,6 @@
 ---
 name: test-task-generate
-description: Generate test planning documents (IMPL_PLAN.md, test task JSONs, TODO_LIST.md) using action-planning-agent - produces test planning artifacts, does NOT execute tests
+description: Generate test planning documents (IMPL_PLAN.md, test task JSONs, TODO_LIST.md) by invoking test-action-planning-agent
 argument-hint: "--session WFS-test-session-id"
 examples:
   - /workflow:tools:test-task-generate --session WFS-test-auth
@@ -9,118 +9,263 @@ examples:
 # Generate Test Planning Documents Command
 
 ## Overview
-Generate test planning documents (IMPL_PLAN.md, test task JSONs, TODO_LIST.md) using action-planning-agent. This command produces **test planning artifacts only** - it does NOT execute tests or implement code. Actual test execution requires separate execution command (e.g., /workflow:test-cycle-execute).
 
-## Core Philosophy
-- **Planning Only**: Generate test planning documents (IMPL_PLAN.md, task JSONs, TODO_LIST.md) - does NOT execute tests
-- **Agent-Driven Document Generation**: Delegate test plan generation to action-planning-agent
-- **Two-Phase Flow**: Context Preparation (command) → Test Document Generation (agent)
-- **Memory-First**: Reuse loaded documents from conversation memory
-- **MCP-Enhanced**: Use MCP tools for test pattern research and analysis
-- **Path Clarity**: All `focus_paths` prefer absolute paths (e.g., `D:\\project\\src\\module`), or clear relative paths from project root
-- **Leverage Existing Test Infrastructure**: Prioritize using established testing frameworks and tools present in the project
+Generate test planning documents (IMPL_PLAN.md, test task JSONs, TODO_LIST.md) by invoking **test-action-planning-agent**.
 
-## Test-Specific Execution Modes
+This command produces **test planning artifacts only** - it does NOT execute tests or implement code. Actual test execution requires separate execution command (e.g., /workflow:test-cycle-execute).
 
-### Test Generation (IMPL-001)
-- **Agent Mode** (default): @code-developer generates tests within agent context
-- **CLI Mode**: Use CLI tools when `command` field present in implementation_approach (determined semantically)
+### Agent Specialization
 
-### Test Execution & Fix (IMPL-002+)
-- **Agent Mode** (default): Gemini diagnosis → agent applies fixes
-- **CLI Mode**: Gemini diagnosis → CLI applies fixes (when `command` field present in implementation_approach)
+This command invokes `@test-action-planning-agent` - a specialized variant of action-planning-agent with:
+- Progressive L0-L3 test layers (Static, Unit, Integration, E2E)
+- AI code issue detection (L0.5) with severity levels
+- Project type templates (React, Node API, CLI, Library, Monorepo)
+- Test anti-pattern detection with quality gates
+- Layer completeness thresholds and coverage targets
+
+**See**: `d:\Claude_dms3\.claude\agents\test-action-planning-agent.md` for complete test specifications.
+
+---
 
 ## Execution Process
 
 ```
 Input Parsing:
-   ├─ Parse flags: --session
-   └─ Validation: session_id REQUIRED
+   └─ Parse flags: --session
 
 Phase 1: Context Preparation (Command)
    ├─ Assemble test session paths
    │  ├─ session_metadata_path
    │  ├─ test_analysis_results_path (REQUIRED)
    │  └─ test_context_package_path
-   └─ Provide metadata (session_id, source_session_id)
+   ├─ Provide metadata (session_id, source_session_id)
+   └─ Create test-planning-notes.md (User Intent section)
+
+Phase 1.5: Gemini Test Enhancement (Command)
+   ├─ Invoke cli-execution-agent for Gemini analysis
+   ├─ Read TEST_ANALYSIS_RESULTS.md for context
+   ├─ Generate enriched test suggestions (API, integration, error scenarios)
+   └─ Record enriched suggestions to test-planning-notes.md (Gemini Enhancement section)
 
 Phase 2: Test Document Generation (Agent)
-   ├─ Load TEST_ANALYSIS_RESULTS.md as primary requirements source
+   ├─ Load TEST_ANALYSIS_RESULTS.md (with enriched suggestions)
+   ├─ Load test-planning-notes.md (consolidated context)
    ├─ Generate Test Task JSON Files (.task/IMPL-*.json)
-   │  ├─ IMPL-001: Test generation (meta.type: "test-gen")
-   │  └─ IMPL-002+: Test execution & fix (meta.type: "test-fix")
+   │  ├─ IMPL-001: Test generation (L1-L3 layers, project-specific templates)
+   │  ├─ IMPL-001.3: Code validation gate (L0 + AI issue detection)
+   │  ├─ IMPL-001.5: Test quality gate (anti-patterns + coverage)
+   │  └─ IMPL-002: Test execution & fix cycle
    ├─ Create IMPL_PLAN.md (test_session variant)
-   └─ Generate TODO_LIST.md with test phase indicators
+   ├─ Generate TODO_LIST.md with test phase indicators
+   └─ Update test-planning-notes.md (Task Generation section)
 ```
 
-## Document Generation Lifecycle
+---
 
-### Phase 1: Context Preparation (Command Responsibility)
+## Phase 1: Context Preparation
 
-**Command prepares test session paths and metadata for planning document generation.**
+**Purpose**: Assemble test session paths, load test analysis context, and create test-planning-notes.md.
 
-**Test Session Path Structure**:
-```
-.workflow/active/WFS-test-{session-id}/
-├── workflow-session.json          # Test session metadata
-├── .process/
-│   ├── TEST_ANALYSIS_RESULTS.md   # Test requirements and strategy
-│   ├── test-context-package.json  # Test patterns and coverage
-│   └── context-package.json       # General context artifacts
-├── .task/                         # Output: Test task JSON files
-├── IMPL_PLAN.md                   # Output: Test implementation plan
-└── TODO_LIST.md                   # Output: Test TODO list
-```
+**Execution Steps**:
+1. Parse `--session` flag to get test session ID
+2. Load `workflow-session.json` for session metadata
+3. Verify `TEST_ANALYSIS_RESULTS.md` exists (from test-concept-enhanced)
+4. Load `test-context-package.json` for coverage data
+5. Create `test-planning-notes.md` with initial context
 
-**Command Preparation**:
-1. **Assemble Test Session Paths** for agent prompt:
-   - `session_metadata_path`
-   - `test_analysis_results_path` (REQUIRED)
-   - `test_context_package_path`
-   - Output directory paths
+**After Phase 1**: Initialize test-planning-notes.md
 
-2. **Provide Metadata** (simple values):
-   - `session_id`
-   - `source_session_id` (if exists)
-   - `mcp_capabilities` (available MCP tools)
+```javascript
+// Create test-planning-notes.md with N+1 context support
+const testPlanningNotesPath = `.workflow/active/${testSessionId}/test-planning-notes.md`
+const sessionMetadata = JSON.parse(Read(`.workflow/active/${testSessionId}/workflow-session.json`))
+const testAnalysis = Read(`.workflow/active/${testSessionId}/.process/TEST_ANALYSIS_RESULTS.md`)
+const sourceSessionId = sessionMetadata.source_session_id || 'N/A'
 
-**Note**: CLI tool usage is now determined semantically from user's task description, not by flags.
+// Extract key info from TEST_ANALYSIS_RESULTS.md
+const projectType = testAnalysis.match(/Project Type:\s*(.+)/)?.[1] || 'Unknown'
+const testFramework = testAnalysis.match(/Test Framework:\s*(.+)/)?.[1] || 'Unknown'
+const coverageTarget = testAnalysis.match(/Coverage Target:\s*(.+)/)?.[1] || '80%'
 
-### Phase 2: Test Document Generation (Agent Responsibility)
+Write(testPlanningNotesPath, `# Test Planning Notes
 
-**Purpose**: Generate test-specific IMPL_PLAN.md, task JSONs, and TODO_LIST.md - planning documents only, NOT test execution.
+**Session**: ${testSessionId}
+**Source Session**: ${sourceSessionId}
+**Created**: ${new Date().toISOString()}
+
+## Test Intent (Phase 1)
+
+- **PROJECT_TYPE**: ${projectType}
+- **TEST_FRAMEWORK**: ${testFramework}
+- **COVERAGE_TARGET**: ${coverageTarget}
+- **SOURCE_SESSION**: ${sourceSessionId}
+
+---
+
+## Context Findings (Phase 1)
+
+### Files with Coverage Gaps
+(Extracted from TEST_ANALYSIS_RESULTS.md)
+
+### Test Framework & Conventions
+- Framework: ${testFramework}
+- Coverage Target: ${coverageTarget}
+
+---
+
+## Gemini Enhancement (Phase 1.5)
+(To be filled by Gemini analysis)
+
+### Enhanced Test Suggestions
+- **L1 (Unit)**: (Pending)
+- **L2.1 (Integration)**: (Pending)
+- **L2.2 (API Contracts)**: (Pending)
+- **L2.4 (External APIs)**: (Pending)
+- **L2.5 (Failure Modes)**: (Pending)
+
+### Gemini Analysis Summary
+(Pending enrichment)
+
+---
+
+## Consolidated Test Requirements (Phase 2 Input)
+1. [Context] ${testFramework} framework conventions
+2. [Context] ${coverageTarget} coverage target
+
+---
+
+## Task Generation (Phase 2)
+(To be filled by test-action-planning-agent)
+
+## N+1 Context
+### Decisions
+| Decision | Rationale | Revisit? |
+|----------|-----------|----------|
+
+### Deferred
+- [ ] (For N+1)
+`)
+
+---
+
+## Phase 1.5: Gemini Test Enhancement
+
+**Purpose**: Enrich test specifications with comprehensive test suggestions and record to test-planning-notes.md.
+
+**Execution Steps**:
+1. Load TEST_ANALYSIS_RESULTS.md from `.workflow/active/{test-session-id}/.process/`
+2. Invoke `cli-execution-agent` with Gemini for test enhancement analysis
+3. Use template: `~/.claude/workflows/cli-templates/prompts/test-suggestions-enhancement.txt`
+4. Gemini generates enriched test suggestions across L1-L3 layers → gemini-enriched-suggestions.md
+5. Record enriched suggestions to test-planning-notes.md (Gemini Enhancement section)
 
 **Agent Invocation**:
 ```javascript
 Task(
-  subagent_type="action-planning-agent",
+  subagent_type="cli-execution-agent",
   run_in_background=false,
-  description="Generate test planning documents (IMPL_PLAN.md, task JSONs, TODO_LIST.md)",
+  description="Enhance test specifications with Gemini analysis",
+  prompt=`
+## Task Objective
+Analyze TEST_ANALYSIS_RESULTS.md and generate enriched test suggestions using Gemini CLI
+
+## Input Files
+- Read: .workflow/active/{test-session-id}/.process/TEST_ANALYSIS_RESULTS.md
+- Extract: Project type, test framework, coverage gaps, identified files
+
+## Gemini Analysis Execution
+Execute Gemini with comprehensive test enhancement prompt:
+  ccw cli -p "[comprehensive test prompt]" --tool gemini --mode analysis --rule analysis-test-strategy-enhancement --cd .workflow/active/{test-session-id}/.process
+
+## Expected Output
+Generate gemini-enriched-suggestions.md with structured test enhancements:
+  - L1 (Unit Tests): Edge cases, boundaries, error paths
+  - L2.1 (Integration): Module interactions, dependency injection
+  - L2.2 (API Contracts): Request/response, validation, error responses
+  - L2.4 (External APIs): Mock strategies, failure scenarios, timeouts
+  - L2.5 (Failure Modes): Exception handling, error propagation, recovery
+
+## Validation
+- gemini-enriched-suggestions.md created and complete
+- Suggestions are actionable and specific (not generic)
+- All L1-L3 layers covered
+`
+)
+```
+
+**Output**: gemini-enriched-suggestions.md (complete Gemini analysis)
+
+**After Phase 1.5**: Update test-planning-notes.md with Gemini enhancement findings
+
+```javascript
+// Read enriched suggestions from gemini-enriched-suggestions.md
+const enrichedSuggestionsPath = `.workflow/active/${testSessionId}/.process/gemini-enriched-suggestions.md`
+const enrichedSuggestions = Read(enrichedSuggestionsPath)
+
+// Update Phase 1.5 section in test-planning-notes.md with full enriched suggestions
+Edit(testPlanningNotesPath, {
+  old: '## Gemini Enhancement (Phase 1.5)\n(To be filled by Gemini analysis)\n\n### Enhanced Test Suggestions\n- **L1 (Unit)**: (Pending)\n- **L2.1 (Integration)**: (Pending)\n- **L2.2 (API Contracts)**: (Pending)\n- **L2.4 (External APIs)**: (Pending)\n- **L2.5 (Failure Modes)**: (Pending)\n\n### Gemini Analysis Summary\n(Pending enrichment)',
+  new: `## Gemini Enhancement (Phase 1.5)
+
+**Analysis Timestamp**: ${new Date().toISOString()}
+**Template**: test-suggestions-enhancement.txt
+**Output File**: .process/gemini-enriched-suggestions.md
+
+### Enriched Test Suggestions (Complete Gemini Analysis)
+
+${enrichedSuggestions}
+
+### Gemini Analysis Summary
+- **Status**: Enrichment complete
+- **Layers Covered**: L1, L2.1, L2.2, L2.4, L2.5
+- **Focus Areas**: API contracts, integration patterns, error scenarios, edge cases
+- **Output Stored**: Full analysis in gemini-enriched-suggestions.md`
+})
+
+// Append Gemini constraints to consolidated test requirements
+const geminiConstraints = [
+  '[Gemini] Implement all suggested L1 edge cases and boundary tests',
+  '[Gemini] Apply L2.1 module interaction patterns from analysis',
+  '[Gemini] Follow L2.2 API contract test matrix from analysis',
+  '[Gemini] Use L2.4 external API mock strategies from analysis',
+  '[Gemini] Cover L2.5 error scenarios from analysis'
+]
+
+const currentNotes = Read(testPlanningNotesPath)
+const constraintCount = (currentNotes.match(/^\d+\./gm) || []).length
+
+Edit(testPlanningNotesPath, {
+  old: '## Consolidated Test Requirements (Phase 2 Input)',
+  new: `## Consolidated Test Requirements (Phase 2 Input)
+1. [Context] ${testFramework} framework conventions
+2. [Context] ${coverageTarget} coverage target
+${geminiConstraints.map((c, i) => `${i + 3}. ${c}`).join('\n')}`
+})
+```
+
+---
+
+## Agent Invocation
+
+```javascript
+Task(
+  subagent_type="test-action-planning-agent",
+  run_in_background=false,
+  description="Generate test planning documents",
   prompt=`
 ## TASK OBJECTIVE
 Generate test planning documents (IMPL_PLAN.md, task JSONs, TODO_LIST.md) for test workflow session
 
 IMPORTANT: This is TEST PLANNING ONLY - you are generating planning documents, NOT executing tests.
 
-CRITICAL:
-- Use existing test frameworks and utilities from the project
-- Follow the progressive loading strategy defined in your agent specification (load context incrementally from memory-first approach)
-
-## AGENT CONFIGURATION REFERENCE
-
-Refer to your specification for:
-- Test Task JSON Schema (6-field structure with test-specific metadata)
-- Test IMPL_PLAN.md Structure (test_session variant with test-fix cycle)
-- TODO_LIST.md Format (with test phase indicators)
-- Progressive Loading Strategy (memory-first, load TEST_ANALYSIS_RESULTS.md as primary source)
-- Quality Validation Rules (task count limits, requirement quantification)
-
 ## SESSION PATHS
 Input:
   - Session Metadata: .workflow/active/{test-session-id}/workflow-session.json
-  - TEST_ANALYSIS_RESULTS: .workflow/active/{test-session-id}/.process/TEST_ANALYSIS_RESULTS.md (REQUIRED - primary requirements source)
+  - TEST_ANALYSIS_RESULTS: .workflow/active/{test-session-id}/.process/TEST_ANALYSIS_RESULTS.md (REQUIRED)
+  - Test Planning Notes: .workflow/active/{test-session-id}/test-planning-notes.md (REQUIRED - contains Gemini enhancement findings)
   - Test Context Package: .workflow/active/{test-session-id}/.process/test-context-package.json
   - Context Package: .workflow/active/{test-session-id}/.process/context-package.json
+  - Enriched Suggestions: .workflow/active/{test-session-id}/.process/gemini-enriched-suggestions.md (for reference)
   - Source Session Summaries: .workflow/active/{source-session-id}/.summaries/IMPL-*.md (if exists)
 
 Output:
@@ -134,130 +279,106 @@ Workflow Type: test_session
 Source Session: {source-session-id} (if exists)
 MCP Capabilities: {exa_code, exa_web, code_index}
 
-## CLI TOOL SELECTION
-Determine CLI tool usage per-step based on user's task description:
-- If user specifies "use Codex/Gemini/Qwen for X" → Add command field to relevant steps
-- Default: Agent execution (no command field) unless user explicitly requests CLI
+## CONSOLIDATED CONTEXT
+**From test-planning-notes.md**:
+- Test Intent: Project type, test framework, coverage target
+- Context Findings: Coverage gaps, file analysis
+- Gemini Enhancement: Complete enriched test suggestions (L1-L3 layers)
+  * Full analysis embedded in planning-notes.md
+  * API contracts, integration patterns, error scenarios
+- Consolidated Requirements: Combined constraints from all phases
 
-## TEST-SPECIFIC REQUIREMENTS SUMMARY
-(Detailed specifications in your agent definition)
+## YOUR SPECIFICATIONS
+You are @test-action-planning-agent. Your complete test specifications are defined in:
+  d:\Claude_dms3\.claude\agents\test-action-planning-agent.md
 
-### Task Structure Requirements
-- Minimum 4 tasks: IMPL-001 (test generation) + IMPL-001.3 (code validation) + IMPL-001.5 (test quality) + IMPL-002 (test execution & fix)
-- Expandable for complex projects: Add IMPL-003+ (per-module, integration, E2E tests)
+This includes:
+  - Progressive Test Layers (L0-L3) with L0.1-L0.5, L1.1-L1.5, L2.1-L2.5, L3.1-L3.4
+  - AI Code Issue Detection (L0.5) with 7 categories and severity levels
+  - Project Type Detection & Templates (6 project types)
+  - Test Anti-Pattern Detection (5 categories)
+  - Layer Completeness & Quality Metrics (thresholds and gate decisions)
+  - Task JSON structure requirements (minimum 4 tasks)
+  - Quality validation rules
 
-Task Configuration:
-  IMPL-001 (Test Generation):
-    - meta.type: "test-gen"
-    - meta.agent: "@code-developer"
-    - meta.test_framework: Specify existing framework (e.g., "jest", "vitest", "pytest")
-    - flow_control: Test generation strategy from TEST_ANALYSIS_RESULTS.md
-    - CLI execution: Add `command` field when user requests (determined semantically)
-
-  IMPL-001.3 (Code Validation Gate) ← NEW:
-    - meta.type: "code-validation"
-    - meta.agent: "@test-fix-agent"
-    - context.depends_on: ["IMPL-001"]
-    - context.validation_config: "~/.claude/workflows/test-quality-config.json"
-    - flow_control.validation_phases: ["compilation", "imports", "variables", "types", "ai_specific"]
-    - flow_control.auto_fix_enabled: true
-    - flow_control.max_retries: 2
-    - flow_control.severity_thresholds: { critical: 0, error: 3, warning: 10 }
-    - acceptance_criteria: Zero compilation errors, all imports resolvable, no variable redeclarations
-
-  IMPL-001.5 (Test Quality Gate):
-    - meta.type: "test-quality-review"
-    - meta.agent: "@test-fix-agent"
-    - context.depends_on: ["IMPL-001", "IMPL-001.3"]
-    - context.quality_config: "~/.claude/workflows/test-quality-config.json"
-    - flow_control: Static analysis, coverage analysis, anti-pattern detection
-    - acceptance_criteria: Coverage ≥ 80%, zero critical anti-patterns
-
-  IMPL-002+ (Test Execution & Fix):
-    - meta.type: "test-fix"
-    - meta.agent: "@test-fix-agent"
-    - context.depends_on: ["IMPL-001", "IMPL-001.3", "IMPL-001.5"]
-    - flow_control: Test-fix cycle with iteration limits and diagnosis configuration
-    - CLI execution: Add `command` field when user requests (determined semantically)
-
-### Test-Fix Cycle Specification (IMPL-002+)
-Required flow_control fields:
-  - max_iterations: 5
-  - diagnosis_tool: "gemini"
-  - diagnosis_template: "~/.claude/workflows/cli-templates/prompts/analysis/01-diagnose-bug-root-cause.txt"
-  - cycle_pattern: "test → gemini_diagnose → fix → retest"
-  - exit_conditions: ["all_tests_pass", "max_iterations_reached"]
-  - auto_revert_on_failure: true
-  - CLI fix: Add `command` field when user specifies CLI tool usage
-
-### Automation Framework Configuration
-Select automation tools based on test requirements from TEST_ANALYSIS_RESULTS.md:
-- UI interaction testing → E2E browser automation (meta.e2e_framework)
-- API/database integration → integration test tools (meta.test_tools)
-- Performance metrics → load testing tools (meta.perf_framework)
-- Logic verification → unit test framework (meta.test_framework)
-
-**Tool Selection**: Detect from project config > suggest based on requirements
-
-### TEST_ANALYSIS_RESULTS.md Mapping
-PRIMARY requirements source - extract and map to task JSONs:
-  - Test framework config → meta.test_framework (use existing framework from project)
-  - Existing test utilities → flow_control.reusable_test_tools (discovered test helpers, fixtures, mocks)
-  - Test runner commands → flow_control.test_commands (from package.json or pytest config)
-  - Coverage targets → meta.coverage_target
-  - Test requirements → context.requirements (quantified with explicit counts)
-  - Test generation strategy → IMPL-001 flow_control.implementation_approach
-  - Implementation targets → context.files_to_test (absolute paths)
+**Follow your specification exactly** when generating test task JSONs.
 
 ## EXPECTED DELIVERABLES
-1. Test Task JSON Files (.task/IMPL-*.json) - Minimum 4 required:
-   - IMPL-001.json: Test generation task
-   - IMPL-001.3-validation.json: Code validation gate (AI error detection) ← NEW
-   - IMPL-001.5-review.json: Test quality gate
+1. Test Task JSON Files (.task/IMPL-*.json) - Minimum 4:
+   - IMPL-001.json: Test generation (L1-L3 layers per spec)
+   - IMPL-001.3-validation.json: Code validation gate (L0 + AI issues per spec)
+   - IMPL-001.5-review.json: Test quality gate (anti-patterns + coverage per spec)
    - IMPL-002.json: Test execution & fix cycle
 
-   Each task includes:
-   - 6-field schema with quantified requirements from TEST_ANALYSIS_RESULTS.md
-   - Test-specific metadata: type, agent, test_framework, coverage_target
-   - flow_control includes: reusable_test_tools, test_commands (from project config)
-   - Validation config reference for IMPL-001.3: ~/.claude/workflows/test-quality-config.json
-   - CLI execution via `command` field when user requests (determined semantically)
-   - Artifact references from test-context-package.json
-   - Absolute paths in context.files_to_test
+2. IMPL_PLAN.md: Test implementation plan with quality gates
 
-2. Test Implementation Plan (IMPL_PLAN.md)
-   - Template: ~/.claude/workflows/cli-templates/prompts/workflow/impl-plan-template.txt
-   - Test-specific frontmatter: workflow_type="test_session", test_framework, source_session_id
-   - Test-Fix-Retest Cycle section with diagnosis configuration
-   - Source session context integration (if applicable)
-
-3. TODO List (TODO_LIST.md)
-   - Hierarchical structure with test phase containers
-   - Links to task JSONs with status markers
-   - Matches task JSON hierarchy
-
-## QUALITY STANDARDS
-Hard Constraints:
-  - Task count: minimum 4, maximum 18 (IMPL-001, IMPL-001.3, IMPL-001.5, IMPL-002 required)
-  - All requirements quantified from TEST_ANALYSIS_RESULTS.md
-  - Test framework matches existing project framework
-  - flow_control includes reusable_test_tools and test_commands from project
-  - Absolute paths for all focus_paths
-  - Acceptance criteria include verification commands
-  - CLI `command` field added only when user explicitly requests CLI tool usage
+3. TODO_LIST.md: Hierarchical task list with test phase indicators
 
 ## SUCCESS CRITERIA
 - All test planning documents generated successfully
-- Return completion status: task count, test framework, coverage targets, source session status
+- Task count: minimum 4 (expandable for complex projects)
+- Test framework: {detected from project}
+- Coverage targets: L0 zero errors, L1 80%+, L2 70%+
+- L0-L3 layers explicitly defined per spec
+- AI issue detection configured per spec
+- Quality gates with measurable thresholds
 `
 )
 ```
 
+---
+
+## Test-Specific Execution Modes
+
+### Test Generation (IMPL-001)
+- **Agent Mode** (default): @code-developer generates tests within agent context
+- **CLI Mode**: Use CLI tools when `command` field present in implementation_approach
+
+### Test Execution & Fix (IMPL-002+)
+- **Agent Mode** (default): Gemini diagnosis → agent applies fixes
+- **CLI Mode**: Gemini diagnosis → CLI applies fixes (when `command` field present)
+
+**CLI Tool Selection**: Determined semantically from user's task description (e.g., "use Codex for fixes")
+
+---
+
+## Output
+
+### Directory Structure
+
+```
+.workflow/active/WFS-test-[session]/
+├── workflow-session.json              # Session metadata
+├── IMPL_PLAN.md                       # Test implementation plan
+├── TODO_LIST.md                       # Task checklist
+├── test-planning-notes.md             # [NEW] Consolidated planning notes with full Gemini analysis
+├── .task/
+│   ├── IMPL-001.json                  # Test generation (L1-L3)
+│   ├── IMPL-001.3-validation.json     # Code validation gate (L0 + AI)
+│   ├── IMPL-001.5-review.json         # Test quality gate
+│   └── IMPL-002.json                  # Test execution & fix cycle
+└── .process/
+    ├── test-context-package.json      # Test coverage and patterns
+    ├── gemini-enriched-suggestions.md # [NEW] Gemini-generated test enhancements
+    └── TEST_ANALYSIS_RESULTS.md       # L0-L3 requirements (original from test-concept-enhanced)
+```
+
+### Task Summary
+
+| Task | Type | Agent | Purpose |
+|------|------|-------|---------|
+| IMPL-001 | test-gen | @code-developer | Generate L1-L3 tests with project templates |
+| IMPL-001.3 | code-validation | @test-fix-agent | Validate L0 + detect AI issues (CRITICAL/ERROR/WARNING) |
+| IMPL-001.5 | test-quality-review | @test-fix-agent | Check anti-patterns, layer completeness, coverage |
+| IMPL-002 | test-fix | @test-fix-agent | Execute tests, diagnose failures, apply fixes |
+
+---
+
 ## Integration & Usage
 
 ### Command Chain
-- **Called By**: `/workflow:test-gen` (Phase 4), `/workflow:test-fix-gen` (Phase 4)
-- **Invokes**: `action-planning-agent` for test planning document generation
+- **Called By**: `/workflow:test-fix-gen` (Phase 4)
+- **Invokes**: `@test-action-planning-agent` for test planning document generation
 - **Followed By**: `/workflow:test-cycle-execute` or `/workflow:execute` (user-triggered)
 
 ### Usage Examples
@@ -265,22 +386,31 @@ Hard Constraints:
 # Standard execution
 /workflow:tools:test-task-generate --session WFS-test-auth
 
-# With semantic CLI request (include in task description)
+# With semantic CLI request (include in task description when calling /workflow:test-fix-gen)
 # e.g., "Generate tests, use Codex for implementation and fixes"
 ```
 
-### CLI Tool Selection
-CLI tool usage is determined semantically from user's task description:
-- Include "use Codex" for automated fixes
-- Include "use Gemini" for analysis
-- Default: Agent execution (no `command` field)
+### Output Validation
 
-### Output
-- Test task JSON files in `.task/` directory (minimum 4):
-  - IMPL-001.json (test generation)
-  - IMPL-001.3-validation.json (code validation gate)
-  - IMPL-001.5-review.json (test quality gate)
-  - IMPL-002.json (test execution & fix)
-- IMPL_PLAN.md with test strategy, validation gates, and fix cycle specification
-- TODO_LIST.md with test phase indicators
-- Session ready for test execution
+**Minimum Requirements**:
+- 4 task JSON files created
+- IMPL_PLAN.md exists with test-specific sections
+- TODO_LIST.md exists with test phase hierarchy
+- All tasks reference TEST_ANALYSIS_RESULTS.md specifications
+- L0-L3 layers explicitly defined in IMPL-001
+- AI issue detection configured in IMPL-001.3
+- Quality gates with thresholds in IMPL-001.5
+
+---
+
+## Related Commands
+
+**Called By**:
+- `/workflow:test-fix-gen` - Phase 4: Generate test planning documents
+
+**Prerequisite**:
+- `/workflow:tools:test-concept-enhanced` - Must generate TEST_ANALYSIS_RESULTS.md first
+
+**Follow-Up**:
+- `/workflow:test-cycle-execute` - Execute generated test tasks
+- `/workflow:execute` - Alternative: Standard task execution

@@ -4,6 +4,7 @@
 // Card component for displaying skills with enable/disable toggle
 
 import { useState } from 'react';
+import { useIntl } from 'react-intl';
 import {
   Sparkles,
   MoreVertical,
@@ -18,7 +19,7 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from '@/components/ui/Dropdown';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/Dropdown';
 import type { Skill } from '@/lib/api';
 
 // ========== Types ==========
@@ -36,17 +37,29 @@ export interface SkillCardProps {
 
 // ========== Source Badge ==========
 
-const sourceConfig: Record<NonNullable<Skill['source']>, { color: string; label: string }> = {
-  builtin: { color: 'default', label: 'Built-in' },
-  custom: { color: 'secondary', label: 'Custom' },
-  community: { color: 'outline', label: 'Community' },
+// Source color configuration (without labels for i18n)
+const sourceColorConfig: Record<NonNullable<Skill['source']>, { color: string }> = {
+  builtin: { color: 'default' },
+  custom: { color: 'secondary' },
+  community: { color: 'outline' },
+};
+
+// Source label keys for i18n
+const sourceLabelKeys: Record<NonNullable<Skill['source']>, string> = {
+  builtin: 'skills.source.builtin',
+  custom: 'skills.source.custom',
+  community: 'skills.source.community',
 };
 
 export function SourceBadge({ source }: { source?: Skill['source'] }) {
-  const config = sourceConfig[source ?? 'builtin'];
+  const { formatMessage } = useIntl();
+  const config = sourceColorConfig[source ?? 'builtin'];
+  const label = sourceLabelKeys[source ?? 'builtin']
+    ? formatMessage({ id: sourceLabelKeys[source ?? 'builtin'] })
+    : source ?? 'builtin';
   return (
     <Badge variant={config.color as 'default' | 'secondary' | 'destructive' | 'outline'}>
-      {config.label}
+      {label}
     </Badge>
   );
 }
@@ -63,6 +76,7 @@ export function SkillCard({
   showActions = true,
   isToggling = false,
 }: SkillCardProps) {
+  const { formatMessage } = useIntl();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleClick = () => {
@@ -87,9 +101,9 @@ export function SkillCard({
       <div
         onClick={handleClick}
         className={cn(
-          'p-3 bg-card border border-border rounded-lg cursor-pointer',
-          'hover:shadow-md hover:border-primary/50 transition-all',
-          !skill.enabled && 'opacity-60',
+          'p-3 bg-card border rounded-lg cursor-pointer',
+          'hover:shadow-md transition-all',
+          skill.enabled ? 'border-border hover:border-primary/50' : 'border-dashed border-muted-foreground/50 bg-muted/50 grayscale-[0.5]',
           className
         )}
       >
@@ -108,12 +122,12 @@ export function SkillCard({
             {skill.enabled ? (
               <>
                 <Power className="w-3 h-3 mr-1" />
-                On
+                {formatMessage({ id: 'skills.state.on' })}
               </>
             ) : (
               <>
                 <PowerOff className="w-3 h-3 mr-1" />
-                Off
+                {formatMessage({ id: 'skills.state.off' })}
               </>
             )}
           </Button>
@@ -126,8 +140,8 @@ export function SkillCard({
     <Card
       onClick={handleClick}
       className={cn(
-        'p-4 cursor-pointer hover:shadow-md hover:border-primary/50 transition-all',
-        !skill.enabled && 'opacity-75',
+        'p-4 cursor-pointer hover:shadow-md transition-all',
+        skill.enabled ? 'hover:border-primary/50' : 'border-dashed border-muted-foreground/50 bg-muted/30 grayscale-[0.3]',
         className
       )}
     >
@@ -148,8 +162,8 @@ export function SkillCard({
           </div>
         </div>
         {showActions && (
-          <Dropdown open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-            <DropdownTrigger asChild>
+          <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
@@ -158,31 +172,31 @@ export function SkillCard({
               >
                 <MoreVertical className="w-4 h-4" />
               </Button>
-            </DropdownTrigger>
-            <DropdownContent align="end">
-              <DropdownItem onClick={() => onClick?.(skill)}>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onClick?.(skill)}>
                 <Info className="w-4 h-4 mr-2" />
-                View Details
-              </DropdownItem>
-              <DropdownItem onClick={handleConfigure}>
+                {formatMessage({ id: 'skills.actions.viewDetails' })}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleConfigure}>
                 <Settings className="w-4 h-4 mr-2" />
-                Configure
-              </DropdownItem>
-              <DropdownItem onClick={handleToggle}>
+                {formatMessage({ id: 'skills.actions.configure' })}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleToggle}>
                 {skill.enabled ? (
                   <>
                     <PowerOff className="w-4 h-4 mr-2" />
-                    Disable
+                    {formatMessage({ id: 'skills.actions.disable' })}
                   </>
                 ) : (
                   <>
                     <Power className="w-4 h-4 mr-2" />
-                    Enable
+                    {formatMessage({ id: 'skills.actions.enable' })}
                   </>
                 )}
-              </DropdownItem>
-            </DropdownContent>
-          </Dropdown>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 
@@ -196,7 +210,7 @@ export function SkillCard({
         <div className="mt-3">
           <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
             <Tag className="w-3 h-3" />
-            Triggers
+            {formatMessage({ id: 'skills.card.triggers' })}
           </div>
           <div className="flex flex-wrap gap-1">
             {skill.triggers.slice(0, 4).map((trigger) => (
@@ -232,12 +246,12 @@ export function SkillCard({
           {skill.enabled ? (
             <>
               <Power className="w-4 h-4 mr-1" />
-              Enabled
+              {formatMessage({ id: 'skills.state.enabled' })}
             </>
           ) : (
             <>
               <PowerOff className="w-4 h-4 mr-1" />
-              Disabled
+              {formatMessage({ id: 'skills.state.disabled' })}
             </>
           )}
         </Button>

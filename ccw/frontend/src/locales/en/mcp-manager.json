@@ -1,0 +1,337 @@
+{
+  "title": "MCP Servers",
+  "description": "Manage Model Context Protocol (MCP) servers for cross-CLI integration",
+  "tabs": {
+    "templates": "Templates",
+    "servers": "Servers",
+    "crossCli": "Cross-CLI"
+  },
+  "mode": {
+    "claude": "Claude",
+    "codex": "Codex"
+  },
+  "scope": {
+    "global": "Global",
+    "project": "Project"
+  },
+  "status": {
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "stats": {
+    "total": "Total Servers",
+    "enabled": "Enabled",
+    "global": "Global",
+    "project": "Project"
+  },
+  "command": "Command",
+  "args": "Arguments",
+  "env": "Environment Variables",
+  "codex": {
+    "configPath": "Config Path",
+    "readOnly": "Read-only",
+    "readOnlyNotice": "Codex MCP servers are managed via config.toml and cannot be edited here.",
+    "editable": "Editable",
+    "editableNotice": "This server can be edited. Changes will be saved to config.toml.",
+    "deleteConfirm": {
+      "title": "Remove Server \"{name}\"?",
+      "description": "This will remove \"{name}\" from your Codex config.toml file. This action cannot be undone.",
+      "confirm": "Remove Server",
+      "cancel": "Cancel",
+      "deleting": "Removing..."
+    }
+  },
+  "windows": {
+    "title": "Windows Compatibility",
+    "description": "Some MCP server commands require Windows-specific configuration for proper execution.",
+    "missingCount": "{count} missing command(s)",
+    "checking": "Checking Windows compatibility...",
+    "fixing": "Applying Windows compatibility fix...",
+    "autoFix": "Auto-Fix Commands",
+    "autoFixHint": "This will wrap commands with 'cmd /c' prefix for Windows compatibility.",
+    "install": "Download"
+  },
+  "filters": {
+    "all": "All",
+    "searchPlaceholder": "Search servers by name or command..."
+  },
+  "actions": {
+    "add": "Add Server",
+    "edit": "Edit Server",
+    "delete": "Delete Server",
+    "toggle": "Toggle Server",
+    "expand": "View Details"
+  },
+  "deleteConfirm": "Are you sure you want to delete the MCP server \"{name}\"?",
+  "emptyState": {
+    "title": "No MCP Servers Found",
+    "message": "Add an MCP server to enable cross-CLI integration with tools like Claude, Codex, and Qwen."
+  },
+  "dialog": {
+    "addTitle": "Add MCP Server",
+    "editTitle": "Edit MCP Server \"{name}\"",
+    "form": {
+      "template": "Template",
+      "templatePlaceholder": "Select a template to pre-fill the form",
+      "name": "Server Name",
+      "namePlaceholder": "e.g., my-mcp-server",
+      "command": "Command",
+      "commandPlaceholder": "e.g., npx, python, node",
+      "args": "Arguments",
+      "argsPlaceholder": "Comma-separated arguments, e.g., -v, --option=value",
+      "argsHint": "Separate multiple arguments with commas",
+      "env": "Environment Variables",
+      "envPlaceholder": "Key=value pairs (one per line), e.g.,\nAPI_KEY=your_key\nDEBUG=true",
+      "envHint": "Enter one key=value pair per line",
+      "scope": "Scope",
+      "enabled": "Enable this server"
+    },
+    "templates": {
+      "npx-stdio": "NPX STDIO",
+      "python-stdio": "Python STDIO",
+      "sse-server": "SSE Server"
+    },
+    "validation": {
+      "nameRequired": "Server name is required",
+      "nameExists": "A server with this name already exists",
+      "commandRequired": "Command is required"
+    },
+    "actions": {
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel"
+    }
+  },
+  "ccw": {
+    "title": "CCW MCP Server",
+    "description": "Special built-in MCP server for CCW file operations and memory management",
+    "status": {
+      "installed": "Installed",
+      "notInstalled": "Not Installed",
+      "special": "Built-in"
+    },
+    "tools": {
+      "label": "Available Tools",
+      "core": "Core",
+      "write_file": {
+        "name": "write_file",
+        "desc": "Write or create new files"
+      },
+      "edit_file": {
+        "name": "edit_file",
+        "desc": "Edit or replace file contents"
+      },
+      "read_file": {
+        "name": "read_file",
+        "desc": "Read file contents"
+      },
+      "core_memory": {
+        "name": "core_memory",
+        "desc": "Manage core memory entries"
+      },
+      "ask_question": {
+        "name": "ask_question",
+        "desc": "Ask interactive questions through A2UI interface"
+      }
+    },
+    "paths": {
+      "label": "Path Configuration",
+      "projectRoot": "Project Root",
+      "projectRootPlaceholder": "e.g., D:\\Projects\\MyProject",
+      "allowedDirs": "Allowed Directories",
+      "allowedDirsPlaceholder": "dir1,dir2,dir3",
+      "allowedDirsHint": "Comma-separated list of allowed directories",
+      "disableSandbox": "Disable Sandbox"
+    },
+    "actions": {
+      "enableAll": "Enable All",
+      "disableAll": "Disable All",
+      "install": "Install CCW MCP",
+      "installing": "Installing...",
+      "uninstall": "Uninstall",
+      "uninstalling": "Uninstalling...",
+      "uninstallConfirm": "Are you sure you want to uninstall CCW MCP?",
+      "saveConfig": "Save Configuration",
+      "saving": "Saving..."
+    }
+  },
+  "recommended": {
+    "title": "Recommended Servers",
+    "description": "Quickly install popular MCP servers with one click",
+    "servers": {
+      "ace": {
+        "name": "ACE Tool",
+        "description": "Advanced code search and context engine for intelligent code discovery",
+        "command": "mcp__ace-tool__search_context",
+        "install": "Install ACE",
+        "installing": "Installing..."
+      },
+      "chrome": {
+        "name": "Chrome DevTools",
+        "description": "Browser automation and debugging tools for web development",
+        "command": "mcp__chrome-devtools",
+        "install": "Install Chrome",
+        "installing": "Installing..."
+      },
+      "exa": {
+        "name": "Exa Search",
+        "description": "AI-powered web search with real-time crawling capabilities",
+        "command": "mcp__exa__search",
+        "install": "Install Exa",
+        "installing": "Installing..."
+      }
+    },
+    "actions": {
+      "install": "Install",
+      "installing": "Installing...",
+      "installed": "Installed",
+      "viewAll": "View All Servers"
+    }
+  },
+  "configType": {
+    "label": "Config Format",
+    "mcpJson": ".mcp.json",
+    "claudeJson": ".claude.json",
+    "switchWarning": "Switching config format will not migrate existing servers. You'll need to reconfigure servers in the new format.",
+    "switchConfirm": "Switch Config Format",
+    "switchCancel": "Keep Current"
+  },
+  "templates": {
+    "title": "Templates",
+    "description": "Reusable MCP server configuration templates",
+    "searchPlaceholder": "Search templates by name or description...",
+    "filter": {
+      "allCategories": "All Categories"
+    },
+    "actions": {
+      "install": "Install Template",
+      "delete": "Delete Template",
+      "saveAsTemplate": "Save as Template"
+    },
+    "loading": "Loading templates...",
+    "empty": {
+      "title": "No Templates Found",
+      "message": "Create your first template or install templates from the community",
+      "createFirst": "Create Your First Template"
+    },
+    "saveDialog": {
+      "title": "Save as Template",
+      "name": "Template Name",
+      "namePlaceholder": "e.g., My Python MCP Server",
+      "category": "Category",
+      "categoryPlaceholder": "Select a category",
+      "description": "Description",
+      "descriptionPlaceholder": "Brief description of what this template does...",
+      "validation": {
+        "nameRequired": "Template name is required"
+      },
+      "save": "Save Template",
+      "cancel": "Cancel"
+    },
+    "deleteDialog": {
+      "title": "Delete Template",
+      "message": "Are you sure you want to delete the template \"{name}\"? This action cannot be undone.",
+      "delete": "Delete",
+      "deleting": "Deleting...",
+      "cancel": "Cancel"
+    },
+    "categories": {
+      "stdio": "STDIO",
+      "sse": "SSE",
+      "language": "Language",
+      "official": "Official",
+      "custom": "Custom"
+    },
+    "feedback": {
+      "installSuccess": "Template installed successfully",
+      "installError": "Failed to install template",
+      "deleteSuccess": "Template deleted successfully",
+      "deleteError": "Failed to delete template",
+      "saveSuccess": "Template saved successfully",
+      "saveError": "Failed to save template"
+    }
+  },
+  "crossCli": {
+    "button": "Cross-CLI Copy",
+    "title": "Copy MCP Servers Between CLIs",
+    "selectServers": "Select servers to copy from {source}",
+    "selectServersHint": "Choose servers to copy. Configuration will be transformed for the target CLI format.",
+    "noServers": "No servers available in current configuration",
+    "selectedCount": "{count} server(s) selected",
+    "copying": "Copying...",
+    "copyButton": "Copy to {target}"
+  },
+  "allProjects": {
+    "title": "All Projects",
+    "name": "Project Name",
+    "servers": "Servers",
+    "lastModified": "Last Modified",
+    "actions": "Actions",
+    "current": "Current",
+    "openNewWindow": "Open in new window",
+    "empty": "No projects found",
+    "summary": "Showing {count} project(s)"
+  },
+  "otherProjects": {
+    "title": "Other Projects",
+    "description": "Discover and import MCP servers from your other projects",
+    "selectProject": "Select a project",
+    "selectProjectPlaceholder": "Choose a project...",
+    "noProjects": "No other projects available",
+    "noServers": "No MCP servers found in {project}",
+    "import": "Import",
+    "hint": "Imported servers will be added to your current project configuration"
+  },
+  "installCmd": {
+    "title": "Installation Command",
+    "cliCommand": "CLI Command",
+    "cliCommandHint": "Run this command in your terminal to install the server",
+    "jsonConfig": "JSON Configuration",
+    "jsonConfigHint": "Add this to your {filename} file",
+    "envVars": "Environment Variables",
+    "steps": "Installation Steps",
+    "step1": "Run the CLI command above in your terminal",
+    "step2": "Or manually add the JSON config to your configuration file",
+    "step3": "Restart your CLI to load the new server"
+  },
+  "configRequired": "config required",
+  "noConfigNeeded": "No configuration needed",
+  "reconfigure": "Reconfigure",
+  "wizard": {
+    "install": "Install",
+    "installing": "Installing...",
+    "installSuccess": "Server installed successfully",
+    "installError": "Failed to install server",
+    "validation": "Validation error",
+    "requiredFields": "Please fill in all required fields",
+    "scope": "Installation Scope",
+    "scope.global": "Global (All projects)",
+    "scope.project": "Project (Current project only)"
+  },
+  "ace-tool": {
+    "name": "ACE Tool",
+    "desc": "Advanced code search and context engine for intelligent code discovery",
+    "field": {
+      "baseUrl": "Base URL",
+      "baseUrl.desc": "ACE MCP relay server endpoint",
+      "token": "API Token",
+      "token.desc": "Your ACE API token for authentication"
+    }
+  },
+  "chrome-devtools": {
+    "name": "Chrome DevTools",
+    "desc": "Browser automation and debugging tools for web development"
+  },
+  "exa": {
+    "name": "Exa Search",
+    "desc": "AI-powered web search with real-time crawling capabilities",
+    "field": {
+      "apiKey": "API Key",
+      "apiKey.desc": "Your Exa API key (optional, some features may require it)"
+    }
+  },
+  "enterprise": {
+    "label": "Enterprise",
+    "tooltip": "Enterprise MCP server"
+  }
+}

@@ -3,32 +3,32 @@
 // ========================================
 // Application settings and configuration with CLI tools management
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useIntl } from 'react-intl';
 import {
   Settings,
   Moon,
-  Sun,
-  Globe,
   Bell,
-  Shield,
   Cpu,
   RefreshCw,
-  Save,
   RotateCcw,
   Check,
   X,
-  Loader2,
   ChevronDown,
   ChevronUp,
+  Languages,
+  Plus,
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
-import { useTheme, useConfig } from '@/hooks';
+import { ThemeSelector } from '@/components/shared/ThemeSelector';
+import { useTheme } from '@/hooks';
 import { useConfigStore, selectCliTools, selectDefaultCliTool, selectUserPreferences } from '@/stores/configStore';
 import type { CliToolConfig, UserPreferences } from '@/types/store';
 import { cn } from '@/lib/utils';
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
 
 // ========== CLI Tool Card Component ==========
 
@@ -41,6 +41,9 @@ interface CliToolCardProps {
   onToggleEnabled: () => void;
   onSetDefault: () => void;
   onUpdateModel: (field: 'primaryModel' | 'secondaryModel', value: string) => void;
+  onUpdateTags: (tags: string[]) => void;
+  onUpdateAvailableModels: (models: string[]) => void;
+  onUpdateSettingsFile: (settingsFile: string | undefined) => void;
 }
 
 function CliToolCard({
@@ -52,7 +55,49 @@ function CliToolCard({
   onToggleEnabled,
   onSetDefault,
   onUpdateModel,
+  onUpdateTags,
+  onUpdateAvailableModels,
+  onUpdateSettingsFile,
 }: CliToolCardProps) {
+  const { formatMessage } = useIntl();
+
+  // Local state for tag and model input
+  const [tagInput, setTagInput] = useState('');
+  const [modelInput, setModelInput] = useState('');
+
+  // Handler for adding tags
+  const handleAddTag = () => {
+    const newTag = tagInput.trim();
+    if (newTag && !config.tags.includes(newTag)) {
+      onUpdateTags([...config.tags, newTag]);
+      setTagInput('');
+    }
+  };
+
+  // Handler for removing tags
+  const handleRemoveTag = (tagToRemove: string) => {
+    onUpdateTags(config.tags.filter((t) => t !== tagToRemove));
+  };
+
+  // Handler for adding available models
+  const handleAddModel = () => {
+    const newModel = modelInput.trim();
+    const currentModels = config.availableModels || [];
+    if (newModel && !currentModels.includes(newModel)) {
+      onUpdateAvailableModels([...currentModels, newModel]);
+      setModelInput('');
+    }
+  };
+
+  // Handler for removing available models
+  const handleRemoveModel = (modelToRemove: string) => {
+    const currentModels = config.availableModels || [];
+    onUpdateAvailableModels(currentModels.filter((m) => m !== modelToRemove));
+  };
+
+  // Predefined tags
+  const predefinedTags = ['分析', 'Debug', 'implementation', 'refactoring', 'testing'];
+
   return (
     <Card className={cn('overflow-hidden', !config.enabled && 'opacity-60')}>
       {/* Header */}
@@ -77,7 +122,7 @@ function CliToolCard({
                   {toolId}
                 </span>
                 {isDefault && (
-                  <Badge variant="default" className="text-xs">Default</Badge>
+                  <Badge variant="default" className="text-xs">{formatMessage({ id: 'settings.cliTools.default' })}</Badge>
                 )}
                 <Badge variant="outline" className="text-xs">{config.type}</Badge>
               </div>
@@ -99,12 +144,12 @@ function CliToolCard({
               {config.enabled ? (
                 <>
                   <Check className="w-4 h-4 mr-1" />
-                  Enabled
+                  {formatMessage({ id: 'settings.cliTools.enabled' })}
                 </>
               ) : (
                 <>
                   <X className="w-4 h-4 mr-1" />
-                  Disabled
+                  {formatMessage({ id: 'settings.cliTools.disabled' })}
                 </>
               )}
             </Button>
@@ -133,7 +178,7 @@ function CliToolCard({
         <div className="border-t border-border p-4 space-y-4 bg-muted/30">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="text-sm font-medium text-foreground">Primary Model</label>
+              <label className="text-sm font-medium text-foreground">{formatMessage({ id: 'settings.cliTools.primaryModel' })}</label>
               <Input
                 value={config.primaryModel}
                 onChange={(e) => onUpdateModel('primaryModel', e.target.value)}
@@ -141,7 +186,7 @@ function CliToolCard({
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground">Secondary Model</label>
+              <label className="text-sm font-medium text-foreground">{formatMessage({ id: 'settings.cliTools.secondaryModel' })}</label>
               <Input
                 value={config.secondaryModel}
                 onChange={(e) => onUpdateModel('secondaryModel', e.target.value)}
@@ -149,9 +194,149 @@ function CliToolCard({
               />
             </div>
           </div>
+
+          {/* Tags Section */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              {formatMessage({ id: 'apiSettings.cliSettings.tags' })}
+            </label>
+            <p className="text-xs text-muted-foreground">
+              {formatMessage({ id: 'apiSettings.cliSettings.tagsDescription' })}
+            </p>
+            <div className="flex gap-2">
+              <div className="flex-1 flex flex-wrap gap-1.5 p-2 border border-input bg-background rounded-md min-h-[38px] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                {config.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary rounded text-xs h-6"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="hover:text-destructive transition-colors"
+                      aria-label={formatMessage({ id: 'apiSettings.cliSettings.removeTag' })}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddTag();
+                    }
+                  }}
+                  placeholder={config.tags.length === 0 ? formatMessage({ id: 'apiSettings.cliSettings.tagInputPlaceholder' }) : ''}
+                  className="flex-1 min-w-[120px] bg-transparent border-0 outline-none text-sm placeholder:text-muted-foreground"
+                />
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleAddTag}
+                variant="outline"
+                className="shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            {/* Predefined Tags */}
+            <div className="flex flex-wrap gap-1">
+              <span className="text-xs text-muted-foreground">
+                {formatMessage({ id: 'apiSettings.cliSettings.predefinedTags' })}:
+              </span>
+              {predefinedTags.map((predefinedTag) => (
+                <button
+                  key={predefinedTag}
+                  type="button"
+                  onClick={() => {
+                    if (!config.tags.includes(predefinedTag)) {
+                      onUpdateTags([...config.tags, predefinedTag]);
+                    }
+                  }}
+                  disabled={config.tags.includes(predefinedTag)}
+                  className="text-xs px-2 py-0.5 rounded border border-border hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {predefinedTag}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Available Models Section */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              {formatMessage({ id: 'apiSettings.cliSettings.availableModels' })}
+            </label>
+            <div className="flex gap-2">
+              <div className="flex-1 flex flex-wrap gap-1.5 p-2 border border-input bg-background rounded-md min-h-[38px] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                {(config.availableModels || []).map((model) => (
+                  <span
+                    key={model}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary rounded text-xs h-6"
+                  >
+                    {model}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveModel(model)}
+                      className="hover:text-destructive transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  value={modelInput}
+                  onChange={(e) => setModelInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddModel();
+                    }
+                  }}
+                  placeholder={(config.availableModels || []).length === 0 ? formatMessage({ id: 'apiSettings.cliSettings.availableModelsPlaceholder' }) : ''}
+                  className="flex-1 min-w-[120px] bg-transparent border-0 outline-none text-sm placeholder:text-muted-foreground"
+                />
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleAddModel}
+                variant="outline"
+                className="shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {formatMessage({ id: 'apiSettings.cliSettings.availableModelsHint' })}
+            </p>
+          </div>
+
+          {/* Settings File */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              {formatMessage({ id: 'apiSettings.cliSettings.settingsFile' })}
+            </label>
+            <Input
+              value={config.settingsFile || ''}
+              onChange={(e) => onUpdateSettingsFile(e.target.value || undefined)}
+              placeholder={formatMessage({ id: 'apiSettings.cliSettings.settingsFilePlaceholder' })}
+            />
+            <p className="text-xs text-muted-foreground">
+              {formatMessage({ id: 'apiSettings.cliSettings.settingsFileHint' })}
+            </p>
+          </div>
+
           {!isDefault && config.enabled && (
             <Button variant="outline" size="sm" onClick={onSetDefault}>
-              Set as Default
+              {formatMessage({ id: 'settings.cliTools.setDefault' })}
             </Button>
           )}
         </div>
@@ -163,6 +348,7 @@ function CliToolCard({
 // ========== Main Page Component ==========
 
 export function SettingsPage() {
+  const { formatMessage } = useIntl();
   const { theme, setTheme } = useTheme();
   const cliTools = useConfigStore(selectCliTools);
   const defaultCliTool = useConfigStore(selectDefaultCliTool);
@@ -170,7 +356,6 @@ export function SettingsPage() {
   const { updateCliTool, setDefaultCliTool, setUserPreferences, resetUserPreferences } = useConfigStore();
 
   const [expandedTools, setExpandedTools] = useState<Set<string>>(new Set());
-  const [isSaving, setIsSaving] = useState(false);
 
   const toggleToolExpand = (toolId: string) => {
     setExpandedTools((prev) => {
@@ -196,6 +381,18 @@ export function SettingsPage() {
     updateCliTool(toolId, { [field]: value });
   };
 
+  const handleUpdateTags = (toolId: string, tags: string[]) => {
+    updateCliTool(toolId, { tags });
+  };
+
+  const handleUpdateAvailableModels = (toolId: string, availableModels: string[]) => {
+    updateCliTool(toolId, { availableModels });
+  };
+
+  const handleUpdateSettingsFile = (toolId: string, settingsFile: string | undefined) => {
+    updateCliTool(toolId, { settingsFile });
+  };
+
   const handlePreferenceChange = (key: keyof UserPreferences, value: unknown) => {
     setUserPreferences({ [key]: value });
   };
@@ -206,10 +403,10 @@ export function SettingsPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Settings className="w-6 h-6 text-primary" />
-          Settings
+          {formatMessage({ id: 'settings.title' })}
         </h1>
         <p className="text-muted-foreground mt-1">
-          Configure your dashboard preferences and CLI tools
+          {formatMessage({ id: 'settings.description' })}
         </p>
       </div>
 
@@ -217,57 +414,54 @@ export function SettingsPage() {
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
           <Moon className="w-5 h-5" />
-          Appearance
+          {formatMessage({ id: 'settings.sections.appearance' })}
+        </h2>
+        <div className="space-y-6">
+          {/* Multi-Theme Selector */}
+          <div>
+            <p className="font-medium text-foreground mb-1">
+              {formatMessage({ id: 'settings.appearance.theme' })}
+            </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              {formatMessage({ id: 'settings.appearance.description' })}
+            </p>
+            <ThemeSelector />
+          </div>
+
+          {/* System Theme Toggle (Backward Compatibility) */}
+          <div className="flex items-center justify-between pt-4 border-t border-border">
+            <div>
+              <p className="font-medium text-foreground">{formatMessage({ id: 'settings.appearance.systemFollow' })}</p>
+              <p className="text-sm text-muted-foreground">
+                {formatMessage({ id: 'settings.appearance.systemFollowDesc' })}
+              </p>
+            </div>
+            <Button
+              variant={theme === 'system' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTheme('system')}
+            >
+              {formatMessage({ id: 'settings.appearance.themeOptions.system' })}
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {/* Language Settings */}
+      <Card className="p-6">
+        <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
+          <Languages className="w-5 h-5" />
+          {formatMessage({ id: 'settings.sections.language' })}
         </h2>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-foreground">Theme</p>
+              <p className="font-medium text-foreground">{formatMessage({ id: 'settings.language.displayLanguage' })}</p>
               <p className="text-sm text-muted-foreground">
-                Choose your preferred color theme
+                {formatMessage({ id: 'settings.language.chooseLanguage' })}
               </p>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant={theme === 'light' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setTheme('light')}
-              >
-                <Sun className="w-4 h-4 mr-2" />
-                Light
-              </Button>
-              <Button
-                variant={theme === 'dark' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setTheme('dark')}
-              >
-                <Moon className="w-4 h-4 mr-2" />
-                Dark
-              </Button>
-              <Button
-                variant={theme === 'system' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setTheme('system')}
-              >
-                System
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-foreground">Compact View</p>
-              <p className="text-sm text-muted-foreground">
-                Use a more compact layout for lists
-              </p>
-            </div>
-            <Button
-              variant={userPreferences.compactView ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handlePreferenceChange('compactView', !userPreferences.compactView)}
-            >
-              {userPreferences.compactView ? 'On' : 'Off'}
-            </Button>
+            <LanguageSwitcher />
           </div>
         </div>
       </Card>
@@ -276,10 +470,10 @@ export function SettingsPage() {
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
           <Cpu className="w-5 h-5" />
-          CLI Tools
+          {formatMessage({ id: 'settings.sections.cliTools' })}
         </h2>
         <p className="text-sm text-muted-foreground mb-4">
-          Configure available CLI tools and their models. Default tool: <strong className="text-foreground">{defaultCliTool}</strong>
+          {formatMessage({ id: 'settings.cliTools.description' })} <strong className="text-foreground">{defaultCliTool}</strong>
         </p>
         <div className="space-y-3">
           {Object.entries(cliTools).map(([toolId, config]) => (
@@ -293,6 +487,9 @@ export function SettingsPage() {
               onToggleEnabled={() => handleToggleToolEnabled(toolId)}
               onSetDefault={() => handleSetDefaultTool(toolId)}
               onUpdateModel={(field, value) => handleUpdateModel(toolId, field, value)}
+              onUpdateTags={(tags) => handleUpdateTags(toolId, tags)}
+              onUpdateAvailableModels={(models) => handleUpdateAvailableModels(toolId, models)}
+              onUpdateSettingsFile={(settingsFile) => handleUpdateSettingsFile(toolId, settingsFile)}
             />
           ))}
         </div>
@@ -302,14 +499,14 @@ export function SettingsPage() {
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
           <RefreshCw className="w-5 h-5" />
-          Data Refresh
+          {formatMessage({ id: 'settings.dataRefresh.title' })}
         </h2>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-foreground">Auto Refresh</p>
+              <p className="font-medium text-foreground">{formatMessage({ id: 'settings.dataRefresh.autoRefresh' })}</p>
               <p className="text-sm text-muted-foreground">
-                Automatically refresh data periodically
+                {formatMessage({ id: 'settings.dataRefresh.autoRefreshDesc' })}
               </p>
             </div>
             <Button
@@ -317,16 +514,16 @@ export function SettingsPage() {
               size="sm"
               onClick={() => handlePreferenceChange('autoRefresh', !userPreferences.autoRefresh)}
             >
-              {userPreferences.autoRefresh ? 'Enabled' : 'Disabled'}
+              {userPreferences.autoRefresh ? formatMessage({ id: 'settings.dataRefresh.enabled' }) : formatMessage({ id: 'settings.dataRefresh.disabled' })}
             </Button>
           </div>
 
           {userPreferences.autoRefresh && (
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-foreground">Refresh Interval</p>
+                <p className="font-medium text-foreground">{formatMessage({ id: 'settings.dataRefresh.refreshInterval' })}</p>
                 <p className="text-sm text-muted-foreground">
-                  How often to refresh data
+                  {formatMessage({ id: 'settings.dataRefresh.refreshIntervalDesc' })}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -350,14 +547,14 @@ export function SettingsPage() {
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
           <Bell className="w-5 h-5" />
-          Notifications
+          {formatMessage({ id: 'settings.notifications.title' })}
         </h2>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-foreground">Enable Notifications</p>
+              <p className="font-medium text-foreground">{formatMessage({ id: 'settings.notifications.enableNotifications' })}</p>
               <p className="text-sm text-muted-foreground">
-                Show notifications for workflow events
+                {formatMessage({ id: 'settings.notifications.enableNotificationsDesc' })}
               </p>
             </div>
             <Button
@@ -365,15 +562,15 @@ export function SettingsPage() {
               size="sm"
               onClick={() => handlePreferenceChange('notificationsEnabled', !userPreferences.notificationsEnabled)}
             >
-              {userPreferences.notificationsEnabled ? 'Enabled' : 'Disabled'}
+              {userPreferences.notificationsEnabled ? formatMessage({ id: 'settings.dataRefresh.enabled' }) : formatMessage({ id: 'settings.dataRefresh.disabled' })}
             </Button>
           </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-foreground">Sound Effects</p>
+              <p className="font-medium text-foreground">{formatMessage({ id: 'settings.notifications.soundEffects' })}</p>
               <p className="text-sm text-muted-foreground">
-                Play sound for notifications
+                {formatMessage({ id: 'settings.notifications.soundEffectsDesc' })}
               </p>
             </div>
             <Button
@@ -381,24 +578,24 @@ export function SettingsPage() {
               size="sm"
               onClick={() => handlePreferenceChange('soundEnabled', !userPreferences.soundEnabled)}
             >
-              {userPreferences.soundEnabled ? 'On' : 'Off'}
+              {userPreferences.soundEnabled ? formatMessage({ id: 'settings.notifications.on' }) : formatMessage({ id: 'settings.notifications.off' })}
             </Button>
           </div>
         </div>
       </Card>
 
       {/* Display Settings */}
-      <Card className="p-6">
+      <div className="py-4">
         <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
           <Settings className="w-5 h-5" />
-          Display Settings
+          {formatMessage({ id: 'settings.sections.display' })}
         </h2>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-foreground">Show Completed Tasks</p>
+              <p className="font-medium text-foreground">{formatMessage({ id: 'settings.display.showCompletedTasks' })}</p>
               <p className="text-sm text-muted-foreground">
-                Display completed tasks in task lists
+                {formatMessage({ id: 'settings.display.showCompletedTasksDesc' })}
               </p>
             </div>
             <Button
@@ -406,31 +603,31 @@ export function SettingsPage() {
               size="sm"
               onClick={() => handlePreferenceChange('showCompletedTasks', !userPreferences.showCompletedTasks)}
             >
-              {userPreferences.showCompletedTasks ? 'Show' : 'Hide'}
+              {userPreferences.showCompletedTasks ? formatMessage({ id: 'settings.display.show' }) : formatMessage({ id: 'settings.display.hide' })}
             </Button>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Reset Settings */}
       <Card className="p-6 border-destructive/50">
         <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
           <RotateCcw className="w-5 h-5" />
-          Reset Settings
+          {formatMessage({ id: 'common.actions.reset' })}
         </h2>
         <p className="text-sm text-muted-foreground mb-4">
-          Reset all user preferences to their default values. This cannot be undone.
+          {formatMessage({ id: 'settings.reset.description' })}
         </p>
         <Button
           variant="destructive"
           onClick={() => {
-            if (confirm('Reset all settings to defaults?')) {
+            if (confirm(formatMessage({ id: 'settings.reset.confirm' }))) {
               resetUserPreferences();
             }
           }}
         >
           <RotateCcw className="w-4 h-4 mr-2" />
-          Reset to Defaults
+          {formatMessage({ id: 'common.actions.resetToDefaults' })}
         </Button>
       </Card>
     </div>

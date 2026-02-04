@@ -1,0 +1,86 @@
+{
+  "title": "Memory",
+  "description": "Manage core memory, context, and knowledge base",
+  "actions": {
+    "add": "Add Memory",
+    "edit": "Edit",
+    "delete": "Delete",
+    "copy": "Copy",
+    "copySuccess": "Copied to clipboard",
+    "copyError": "Failed to copy",
+    "refresh": "Refresh",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "favoriteAdded": "Added to favorites",
+    "favoriteRemoved": "Removed from favorites",
+    "favoriteError": "Failed to update favorite status",
+    "archiveSuccess": "Memory archived",
+    "archiveError": "Failed to archive memory",
+    "unarchiveSuccess": "Memory restored",
+    "unarchiveError": "Failed to restore memory"
+  },
+  "tabs": {
+    "memories": "Memories",
+    "favorites": "Favorites",
+    "archived": "Archived"
+  },
+  "stats": {
+    "totalSize": "Total Size",
+    "count": "Count",
+    "claudeMdCount": "CLAUDE.md Files",
+    "totalEntries": "Total Entries"
+  },
+  "filters": {
+    "search": "Search memories...",
+    "tags": "Tags",
+    "clear": "Clear",
+    "all": "All"
+  },
+  "card": {
+    "id": "ID",
+    "content": "Content",
+    "summary": "Summary",
+    "tags": "Tags",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "size": "Size",
+    "favorite": "Favorite",
+    "archived": "Archived"
+  },
+  "emptyState": {
+    "title": "No Memories Stored",
+    "message": "Add context and knowledge to help Claude understand your project better.",
+    "createFirst": "Add First Memory"
+  },
+  "createDialog": {
+    "title": "Add Memory",
+    "editTitle": "Edit Memory",
+    "labels": {
+      "content": "Content",
+      "tags": "Tags",
+      "favorite": "Favorite",
+      "priority": "Priority"
+    },
+    "placeholders": {
+      "content": "Enter memory content...",
+      "tags": "e.g., project, config, api"
+    },
+    "buttons": {
+      "create": "Add Memory",
+      "update": "Update Memory",
+      "cancel": "Cancel",
+      "creating": "Creating...",
+      "updating": "Updating..."
+    }
+  },
+  "priority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High"
+  },
+  "types": {
+    "coreMemory": "Core Memory",
+    "workflow": "Workflow",
+    "cliHistory": "CLI History"
+  }
+}

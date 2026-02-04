@@ -15,6 +15,14 @@ export type { UseConfigReturn } from './useConfig';
 export { useNotifications } from './useNotifications';
 export type { UseNotificationsReturn, ToastOptions } from './useNotifications';
 
+export { useWebSocket } from './useWebSocket';
+export type { UseWebSocketOptions, UseWebSocketReturn } from './useWebSocket';
+
+export { useWebSocketNotifications } from './useWebSocketNotifications';
+
+export { useSystemNotifications } from './useSystemNotifications';
+export type { UseSystemNotificationsReturn, SystemNotificationOptions } from './useSystemNotifications';
+
 export { useDashboardStats, usePrefetchDashboardStats, dashboardStatsKeys } from './useDashboardStats';
 export type { UseDashboardStatsOptions, UseDashboardStatsReturn } from './useDashboardStats';
 
@@ -65,6 +73,8 @@ export {
   useUpdateIssue,
   useDeleteIssue,
   useIssueMutations,
+  useQueueMutations,
+  useIssueDiscovery,
   issuesKeys,
 } from './useIssues';
 export type {
@@ -74,6 +84,9 @@ export type {
   UseCreateIssueReturn,
   UseUpdateIssueReturn,
   UseDeleteIssueReturn,
+  UseQueueMutationsReturn,
+  FindingFilters,
+  UseIssueDiscoveryReturn,
 } from './useIssues';
 
 // ========== Skills ==========
@@ -94,12 +107,14 @@ export type {
 export {
   useCommands,
   useCommandSearch,
+  useCommandMutations,
   commandsKeys,
 } from './useCommands';
 export type {
   CommandsFilter,
   UseCommandsOptions,
   UseCommandsReturn,
+  UseCommandMutationsReturn,
 } from './useCommands';
 
 // ========== Memory ==========
@@ -119,3 +134,144 @@ export type {
   UseUpdateMemoryReturn,
   UseDeleteMemoryReturn,
 } from './useMemory';
+
+// ========== MCP Servers ==========
+export {
+  useMcpServers,
+  useUpdateMcpServer,
+  useCreateMcpServer,
+  useDeleteMcpServer,
+  useToggleMcpServer,
+  useMcpServerMutations,
+  useMcpTemplates,
+  useCreateTemplate,
+  useDeleteTemplate,
+  useInstallTemplate,
+  useProjectOperations,
+  mcpServersKeys,
+  mcpTemplatesKeys,
+} from './useMcpServers';
+export type {
+  UseMcpServersOptions,
+  UseMcpServersReturn,
+  UseUpdateMcpServerReturn,
+  UseCreateMcpServerReturn,
+  UseDeleteMcpServerReturn,
+  UseToggleMcpServerReturn,
+  UseMcpTemplatesOptions,
+  UseMcpTemplatesReturn,
+  UseCreateTemplateReturn,
+  UseDeleteTemplateReturn,
+  UseInstallTemplateReturn,
+  UseProjectOperationsReturn,
+} from './useMcpServers';
+
+// ========== CLI ==========
+export {
+  useCliEndpoints,
+  useToggleCliEndpoint,
+  cliEndpointsKeys,
+  useCliInstallations,
+  useInstallCliTool,
+  useUninstallCliTool,
+  useUpgradeCliTool,
+  cliInstallationsKeys,
+  useHooks,
+  useToggleHook,
+  hooksKeys,
+  useRules,
+  useToggleRule,
+  useCreateRule,
+  useDeleteRule,
+  rulesKeys,
+} from './useCli';
+export type {
+  UseCliEndpointsOptions,
+  UseCliEndpointsReturn,
+  UseCliInstallationsOptions,
+  UseCliInstallationsReturn,
+  UseHooksOptions,
+  UseHooksReturn,
+  UseRulesOptions,
+  UseRulesReturn,
+} from './useCli';
+
+// ========== CLI Execution ==========
+export {
+  useCliExecutionDetail,
+  cliExecutionKeys,
+} from './useCliExecution';
+export type {
+  UseCliExecutionOptions,
+  UseCliExecutionReturn,
+} from './useCliExecution';
+
+// ========== Workspace Query Keys ==========
+export {
+  useWorkspaceQueryKeys,
+} from './useWorkspaceQueryKeys';
+export type {
+  WorkspaceQueryKeys,
+} from './useWorkspaceQueryKeys';
+
+// ========== CodexLens ==========
+export {
+  useCodexLensDashboard,
+  useCodexLensStatus,
+  useCodexLensWorkspaceStatus,
+  useCodexLensConfig,
+  useCodexLensModels,
+  useCodexLensModelInfo,
+  useCodexLensEnv,
+  useCodexLensGpu,
+  useCodexLensIgnorePatterns,
+  useUpdateCodexLensConfig,
+  useBootstrapCodexLens,
+  useUninstallCodexLens,
+  useDownloadModel,
+  useDeleteModel,
+  useUpdateCodexLensEnv,
+  useSelectGpu,
+  useUpdateIgnorePatterns,
+  useCodexLensMutations,
+  codexLensKeys,
+  useCodexLensIndexes,
+  useCodexLensIndexingStatus,
+  useRebuildIndex,
+  useUpdateIndex,
+  useCancelIndexing,
+} from './useCodexLens';
+export type {
+  UseCodexLensDashboardOptions,
+  UseCodexLensDashboardReturn,
+  UseCodexLensStatusOptions,
+  UseCodexLensStatusReturn,
+  UseCodexLensWorkspaceStatusOptions,
+  UseCodexLensWorkspaceStatusReturn,
+  UseCodexLensConfigOptions,
+  UseCodexLensConfigReturn,
+  UseCodexLensModelsOptions,
+  UseCodexLensModelsReturn,
+  UseCodexLensModelInfoOptions,
+  UseCodexLensModelInfoReturn,
+  UseCodexLensEnvOptions,
+  UseCodexLensEnvReturn,
+  UseCodexLensGpuOptions,
+  UseCodexLensGpuReturn,
+  UseCodexLensIgnorePatternsOptions,
+  UseCodexLensIgnorePatternsReturn,
+  UseUpdateCodexLensConfigReturn,
+  UseBootstrapCodexLensReturn,
+  UseUninstallCodexLensReturn,
+  UseDownloadModelReturn,
+  UseDeleteModelReturn,
+  UseUpdateCodexLensEnvReturn,
+  UseSelectGpuReturn,
+  UseUpdateIgnorePatternsReturn,
+  UseCodexLensIndexesOptions,
+  UseCodexLensIndexesReturn,
+  UseCodexLensIndexingStatusReturn,
+  UseRebuildIndexReturn,
+  UseUpdateIndexReturn,
+  UseCancelIndexingReturn,
+} from './useCodexLens';
