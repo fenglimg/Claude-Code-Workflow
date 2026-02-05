@@ -12,6 +12,12 @@ Run from repo root.
 node .codex/skills/slash-command-outliner/scripts/scan-corpus.js --root=.claude/commands --out=.workflow/.scratchpad/commands.json
 ```
 
+## Init a cycle folder (manifests + requirements + TODO_LIST)
+
+```bash
+node .codex/skills/slash-command-outliner/scripts/init-cycle.js --cycle-id=cycle-v1-YYYYMMDDTHHMMSS-slashcmdoutliner
+```
+
 ## Regress all commands (cycle mode)
 
 ```bash
@@ -52,4 +58,27 @@ It enforces:
 ```bash
 node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=specs/outputs/gap-report.md
 node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=specs/outputs/generated-slash-outline.md
+```
+
+## LLM regress all (Codex/Claude runner + deterministic evidence gate)
+
+This runs an LLM to generate the skill outputs per command and then validates them with `verify-evidence.js`.
+
+```bash
+# Default: claude runner, use this skill root as reference
+node .codex/skills/slash-command-outliner/scripts/llm-regress-all.js --cycle-id=<id> --limit=3 --timeout-ms=1200000
+
+# Use codex runner
+node .codex/skills/slash-command-outliner/scripts/llm-regress-all.js --cycle-id=<id> --llm-tool=codex --limit=3 --timeout-ms=1200000
+
+# Iterate on failures
+node .codex/skills/slash-command-outliner/scripts/llm-regress-all.js --cycle-id=<id> --only=failed --timeout-ms=2400000
+```
+
+## LLM run until done (auto loop)
+
+Runs batches until `TODO_LIST.md` is fully checked; retries failures with a higher timeout.
+
+```bash
+node .codex/skills/slash-command-outliner/scripts/llm-run-until-done.js --cycle-id=<id> --llm-tool=codex --batch-size=10
 ```

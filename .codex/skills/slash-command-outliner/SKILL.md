@@ -34,8 +34,11 @@ This skill is designed to be **precise** (no fluff) and **stable** (non-regressi
 
 Use these to prove “all commands are covered” and to enforce non-regression:
 - Corpus scan + stats: `scripts/scan-corpus.js`
+- Init cycle (manifests + TODO + requirements): `scripts/init-cycle.js`
 - Generate per-command spec (no leakage): `scripts/derive-spec.js`
 - Generate outline from spec: `scripts/generate-outline.js`
 - Gap report vs reference + tooling: `scripts/gap-report.js`
 - Regress all commands: `scripts/regress-all.js`
+- LLM regress all (runner + evidence gate): `scripts/llm-regress-all.js`
+- LLM run until done (auto loop): `scripts/llm-run-until-done.js`
 

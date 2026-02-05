@@ -12,6 +12,12 @@ Run from repo root.
 node .claude/skills/slash-command-outliner/scripts/scan-corpus.js --root=.claude/commands --out=.workflow/.scratchpad/commands.json
 ```
 
+## Init a cycle folder (manifests + requirements + TODO_LIST)
+
+```bash
+node .claude/skills/slash-command-outliner/scripts/init-cycle.js --cycle-id=cycle-v1-YYYYMMDDTHHMMSS-slashcmdoutliner
+```
+
 ## Regress all commands (cycle mode)
 
 ```bash
@@ -49,4 +55,24 @@ It enforces:
 ```bash
 node .claude/skills/slash-command-outliner/scripts/verify-evidence.js --file=specs/outputs/gap-report.md
 node .claude/skills/slash-command-outliner/scripts/verify-evidence.js --file=specs/outputs/generated-slash-outline.md
+```
+
+## LLM regress all (Claude skill + deterministic evidence gate)
+
+This runs an LLM to generate the skill outputs per command and then validates them with `verify-evidence.js`.
+
+```bash
+node .claude/skills/slash-command-outliner/scripts/llm-regress-all.js --cycle-id=<id> --limit=3
+node .claude/skills/slash-command-outliner/scripts/llm-regress-all.js --cycle-id=<id> --only=failed
+
+# Use Codex as the LLM runner + the codex skill version as the prompt reference
+node .claude/skills/slash-command-outliner/scripts/llm-regress-all.js --cycle-id=<id> --llm-tool=codex --skill-root=.codex/skills/slash-command-outliner --limit=3
+```
+
+## LLM run until done (auto loop)
+
+Runs batches until `TODO_LIST.md` is fully checked; retries failures with a higher timeout.
+
+```bash
+node .claude/skills/slash-command-outliner/scripts/llm-run-until-done.js --cycle-id=<id> --llm-tool=codex --batch-size=10
 ```
