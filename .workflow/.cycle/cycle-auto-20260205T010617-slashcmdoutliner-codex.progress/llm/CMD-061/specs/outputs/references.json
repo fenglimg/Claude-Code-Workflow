@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "cycle-auto-20260205T010617-slashcmdoutliner-codex",
+  "command": "/workflow:tools:task-generate-agent",
+  "candidates": [
+    {
+      "slash": "/workflow:tools:task-generate-agent",
+      "file_path": ".claude/commands/workflow/tools/task-generate-agent.md",
+      "score": 100,
+      "why": "Exact target/oracle command doc; defines phases 0-3 and artifacts (IMPL_PLAN.md, TODO_LIST.md, .task/*.json)."
+    },
+    {
+      "slash": "/workflow:tools:task-generate-tdd",
+      "file_path": ".claude/commands/workflow/tools/task-generate-tdd.md",
+      "score": 88,
+      "why": "Same planning-artifact generation family; similar Phase 0 configuration + module detection + (optionally) parallel planning."
+    },
+    {
+      "slash": "/workflow:tools:test-task-generate",
+      "file_path": ".claude/commands/workflow/tools/test-task-generate.md",
+      "score": 82,
+      "why": "Same output shape (IMPL_PLAN.md + task JSONs + TODO_LIST.md) but specialized for tests; useful for validation/quality-gate patterns."
+    },
+    {
+      "slash": "/workflow:tools:context-gather",
+      "file_path": ".claude/commands/workflow/tools/context-gather.md",
+      "score": 64,
+      "why": "Upstream dependency producer of .process/context-package.json; documents session folder conventions and Task delegation patterns."
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 58,
+      "why": "End-to-end workflow that calls task generation in Phase 4; clarifies artifact expectations and phase boundaries."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:tools:task-generate-agent",
+    "file_path": ".claude/commands/workflow/tools/task-generate-agent.md"
+  }
+}
+

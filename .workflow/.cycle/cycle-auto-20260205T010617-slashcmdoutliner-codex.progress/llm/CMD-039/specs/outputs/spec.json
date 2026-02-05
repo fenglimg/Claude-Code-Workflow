@@ -1,0 +1,47 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "lite-fix",
+    "description": "Lightweight bug diagnosis and fix workflow with intelligent severity assessment and optional hotfix mode for production incidents",
+    "argument_hint": "[-y|--yes] [--hotfix] \"bug description or issue reference\"",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "Skill(*)",
+      "AskUserQuestion(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "iterative",
+    "primary_user_value": "Quickly assess bug severity, run targeted multi-angle diagnosis, produce a fix plan, and optionally hand off execution to /workflow:lite-execute."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/project-tech.json",
+      ".workflow/project-guidelines.json"
+    ],
+    "writes": [
+      ".workflow/lite-fix/<session>/diagnosis-*.json",
+      ".workflow/lite-fix/<session>/diagnoses-manifest.json",
+      ".workflow/lite-fix/<session>/planning-context.md",
+      ".workflow/lite-fix/<session>/fix-plan.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 3,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not claim implementation pointers are Existing unless verifiable in the repo now.",
+      "Avoid destructive actions without explicit user request; prefer minimal, reversible fixes unless --hotfix requires otherwise."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter fields present and allowed-tools match requirement",
+      "Supports -y/--yes auto mode and --hotfix mode",
+      "Produces a structured fix plan and session artifacts under .workflow/lite-fix/<session>/",
+      "Delegates execution to /workflow:lite-execute with the collected context"
+    ]
+  }
+}

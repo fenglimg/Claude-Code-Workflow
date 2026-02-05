@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/session/resume.md",
+  "created_at": "2026-02-05T01:06:17.000Z",
+  "command": {
+    "group": "workflow",
+    "name": "resume",
+    "description": "Resume the most recently paused workflow session with automatic session discovery and status update",
+    "argument_hint": "[WFS-<session-id>]",
+    "allowed_tools": ["Read(*)", "Write(*)", "Bash(*)"]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "single-shot",
+    "primary_user_value": "Resume a paused workflow session (auto-pick most recent) and mark it active so execution can continue."
+  },
+  "artifacts": {
+    "reads": [".workflow/active", ".workflow/active/WFS-*/workflow-session.json"],
+    "writes": [".workflow/active/WFS-*/workflow-session.json"]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 60,
+    "must_not": [
+      "Do not create/delete/move session directories",
+      "Do not modify archived sessions under .workflow/archives/",
+      "Do not change non-target metadata fields beyond status + resume timestamp",
+      "Do not resume a session whose status is not paused"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Select target session deterministically (explicit session id if provided; else most recent paused session)",
+      "Update workflow-session.json: set status=\"active\"",
+      "Write a resume timestamp field (resumed_at) as UTC ISO-8601",
+      "Print a short result summary including SESSION_ID and status"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/session/resume.md",
+    "code_pointers": [
+      "ccw/src/core/session-scanner.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/commands/session.ts"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      { "level": 1, "text": "Resume Workflow Session (/workflow:session:resume)" },
+      { "level": 2, "text": "Overview" },
+      { "level": 2, "text": "Usage" },
+      { "level": 2, "text": "Implementation Flow" },
+      { "level": 3, "text": "Step 1: Find Paused Sessions" },
+      { "level": 3, "text": "Step 2: Check Session Status" },
+      { "level": 3, "text": "Step 3: Find Most Recent Paused" },
+      { "level": 3, "text": "Step 4: Update Session Status" },
+      { "level": 3, "text": "Step 5: Add Resume Timestamp" },
+      { "level": 2, "text": "Simple Bash Commands" },
+      { "level": 3, "text": "Basic Operations" },
+      { "level": 3, "text": "Resume Result" }
+    ]
+  }
+}
+

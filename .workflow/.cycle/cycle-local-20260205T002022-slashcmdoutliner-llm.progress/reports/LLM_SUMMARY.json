@@ -1,0 +1,82 @@
+{
+  "cycle_id": "cycle-local-20260205T002022-slashcmdoutliner-llm",
+  "generated_at": "2026-02-04T16:25:49.294Z",
+  "processed_commands": 1,
+  "total_commands": 77,
+  "passed": 0,
+  "failed": 1,
+  "only": "pending",
+  "limit": 1,
+  "model": "",
+  "permission_mode": "bypassPermissions",
+  "top_failure_kinds": [
+    {
+      "kind": "TS evidence file not found: TBD",
+      "count": 19
+    },
+    {
+      "kind": "TS evidence must be under ccw/src/** (got: TBD)",
+      "count": 19
+    },
+    {
+      "kind": "Evidence must include ts: <file> / <function|case|pattern>.",
+      "count": 2
+    },
+    {
+      "kind": "TS evidence file not found: N/A (doc only)",
+      "count": 2
+    },
+    {
+      "kind": "TS evidence must be under ccw/src/** (got: N/A (doc only))",
+      "count": 2
+    },
+    {
+      "kind": "Docs evidence heading not found: .claude/commands/ccw-coordinator.md / async function handleCliCompletion(sessionId, taskId, output)",
+      "count": 1
+    },
+    {
+      "kind": "Docs evidence heading not found: .claude/commands/ccw-coordinator.md / const allCommands = registry.getAllCommandsSummary()",
+      "count": 1
+    },
+    {
+      "kind": "Docs evidence heading not found: .claude/commands/ccw-coordinator.md / const byCategory = registry.getAllCommandsByCategory()",
+      "count": 1
+    },
+    {
+      "kind": "Docs evidence heading not found: .claude/commands/ccw-coordinator.md / const cmd = registry.getCommand('lite-plan')",
+      "count": 1
+    },
+    {
+      "kind": "Docs evidence heading not found: .claude/commands/ccw-coordinator.md / function detectTaskType(text)",
+      "count": 1
+    },
+    {
+      "kind": "Docs evidence heading not found: .claude/commands/ccw-coordinator.md / function determineComplexity(text)",
+      "count": 1
+    },
+    {
+      "kind": "Docs evidence heading not found: .claude/commands/ccw-coordinator.md / function determinePortFlow(taskType, constraints)",
+      "count": 1
+    },
+    {
+      "kind": "Docs evidence heading not found: .claude/commands/ccw-coordinator.md / function formatCommand(cmd, previousResults, analysis)",
+      "count": 1
+    },
+    {
+      "kind": "Docs evidence heading not found: .claude/commands/ccw-coordinator.md / function parseOutput(output)",
+      "count": 1
+    },
+    {
+      "kind": "TS evidence anchor not found (literal match): ccw/src/commands/hook.ts / hook handling infrastructure",
+      "count": 1
+    },
+    {
+      "kind": "TS evidence anchor not found (literal match): ccw/src/commands/hook.ts / hook handling logic",
+      "count": 1
+    },
+    {
+      "kind": "TS evidence anchor not found (literal match): ccw/src/tools/command-registry.ts / public getCommand(name: string)",
+      "count": 1
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "tools:conflict-resolution",
+    "description": "Detect and resolve conflicts between plan and existing codebase using CLI-powered analysis with Gemini/Qwen",
+    "argument_hint": "[-y|--yes] --session WFS-session-id --context path/to/context-package.json",
+    "allowed_tools": [
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "loop",
+    "primary_user_value": "Identify conflicts between a workflow plan/context package and the current repository state, produce a structured resolution report, and (optionally) apply safe updates."
+  },
+  "artifacts": {
+    "reads": [
+      "path/to/context-package.json",
+      ".workflow/active/<WFS-session-id>/.process/context-package.json"
+    ],
+    "writes": [
+      ".workflow/active/<WFS-session-id>/.process/conflict-resolution.json",
+      ".workflow/active/<WFS-session-id>/.process/context-package.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 0,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not modify files outside the user-approved set of changes.",
+      "Do not apply code changes without an explicit confirmation step in the interaction loop.",
+      "Do not claim pointers are Existing unless verifiable in the repo."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name, description, allowed-tools",
+      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
+      "Writes conflict-resolution.json as the primary artifact",
+      "Evidence tables satisfy dual-source requirement (docs + TS)"
+    ]
+  }
+}
+

@@ -1,0 +1,40 @@
+{
+  "session_id": "ANL-slash-command-outliner-2026-02-04",
+  "topic": "讨论 slash-command-outliner 具体在做什么，当前还有没有优化的空间呢？",
+  "status": "completed",
+  "started": "2026-02-04T22:11:13+08:00",
+  "completed": "2026-02-04T22:45:00+08:00",
+  "summary": "用户主要在对话中使用 slash-command-outliner 生成新命令大纲，优先关注 gap-report/质量门禁的准确性与证据化，并希望产出能参考当前具体 slash 命令实现（命令文档与/或 TypeScript 实现）。",
+  "key_conclusions": [
+    {
+      "point": "新命令生成场景下，Implementation Pointers 必然包含“已存在（Existing）”与“计划创建（Planned）”两类；门禁必须显式区分两者，否则容易出现将 Planned 写成已验证事实的幻觉风险。",
+      "evidence": "示例输出 /learn:profile 中多处路径在仓库中并不存在，但 gap-report/outline 仍以“已验证/有效”语气描述。",
+      "confidence": "high"
+    },
+    {
+      "point": "为了“参考具体实现”，gap-report 的证据链需要同时覆盖命令文档（.claude/commands）与 TypeScript 实现（ccw/src），并把 reference 模式映射到新命令的具体步骤与实现落点。",
+      "evidence": "reference 命令文档（如 /issue:new）描述了行为模式；对应实现可在 ccw/src/commands/issue.ts 找到 CLI 子命令与 stdin pipe 等真实约束。",
+      "confidence": "high"
+    }
+  ],
+  "recommendations": [
+    {
+      "action": "在 gap-report 与 slash outline 中强制输出 Implementation Pointers 的 Evidence Table：pointer / status(Existing|Planned) / evidence / verify / why。",
+      "rationale": "把“门禁准确性”从主观叙述变成可验证断言；避免 Planned 被表述为已验证事实。",
+      "priority": "high"
+    },
+    {
+      "action": "把 P0 quality gates 扩展为：No false existence claims + Pointers must be labeled Existing/Planned，并在 Phase 04 明确执行规则。",
+      "rationale": "统一 specs 与实际门禁口径，减少产物漂移与误判。",
+      "priority": "high"
+    },
+    {
+      "action": "（可选）新增一个确定性校验脚本：扫描产物中标注为 Existing 的路径并验证存在性，失败则报 P0。",
+      "rationale": "给 LLM 产物一个可执行的底线检查，降低幻觉风险。",
+      "priority": "medium"
+    }
+  ],
+  "open_questions": [
+    "（可选）是否要增加确定性校验脚本：自动验证 Evidence Table 中所有 Existing 指针的路径存在性与 rg 锚点？"
+  ]
+}

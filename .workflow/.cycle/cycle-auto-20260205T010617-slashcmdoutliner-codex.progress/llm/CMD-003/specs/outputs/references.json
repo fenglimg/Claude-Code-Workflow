@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/ccw-debug",
+      "file_path": ".claude/commands/ccw-debug.md",
+      "score": 0.93,
+      "why": "Same coordinator shape (main-process, multi-phase), keyword-based mode detection, command-chain mapping, TODO/status tracking. Closest interaction model to ccw-plan."
+    },
+    {
+      "slash": "/ccw-test",
+      "file_path": ".claude/commands/ccw-test.md",
+      "score": 0.86,
+      "why": "Same 5-phase coordinator workflow (Analyze -> Select strategy -> Confirm -> Setup TODO/status -> Execute), similar tool surface and artifacts mindset."
+    },
+    {
+      "slash": "/ccw-coordinator",
+      "file_path": ".claude/commands/ccw-coordinator.md",
+      "score": 0.82,
+      "why": "Closest orchestration reference for building and executing a command chain with state persistence; overlaps with mode selection + sequential execution patterns."
+    },
+    {
+      "slash": "/ccw",
+      "file_path": ".claude/commands/ccw.md",
+      "score": 0.72,
+      "why": "System-level routing reference; explicitly relates ccw-plan to other coordinators and documents shared detection/selection principles."
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 0.68,
+      "why": "Core planning command likely executed inside ccw-plan chains; useful for artifact expectations and plan/verify integration boundaries."
+    }
+  ],
+  "selected": {
+    "slash": "/ccw-debug",
+    "file_path": ".claude/commands/ccw-debug.md",
+    "why": "Best match to the coordinator pattern and interaction model; use it to keep phases, evidence/pointers, and user-confirmation flow consistent."
+  }
+}
+

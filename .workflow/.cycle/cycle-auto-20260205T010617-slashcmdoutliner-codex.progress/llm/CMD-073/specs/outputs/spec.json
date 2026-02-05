@@ -1,0 +1,45 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "ui-design:import-from-code",
+    "description": "Import design system from code files (CSS/JS/HTML/SCSS) with automatic file discovery and parallel agent analysis",
+    "argument_hint": "[--design-id <id>] [--session <id>] [--source <path>]",
+    "allowed_tools": ["Read", "Write", "Bash", "Glob", "Grep", "Task", "TodoWrite"]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "single-shot",
+    "primary_user_value": "Discover relevant UI code files and extract style/animation/layout design-system artifacts into an existing design run using parallel agent analysis (no synthesis phase)."
+  },
+  "artifacts": {
+    "reads": [
+      "<sourceDir from --source>/**/*.{css,scss,js,ts,html}",
+      ".workflow/** (existing design-run directories for --design-id/--session resolution)"
+    ],
+    "writes": [
+      "<base_path>/.intermediates/import-analysis/discovered-files.json",
+      "<base_path>/style-extraction/style-1/design-tokens.json",
+      "<base_path>/style-extraction/style-1/completeness-report.json",
+      "<base_path>/animation-extraction/animation-tokens.json",
+      "<base_path>/animation-extraction/completeness-report.json",
+      "<base_path>/layout-extraction/layout-templates.json",
+      "<base_path>/layout-extraction/completeness-report.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "must_not": [
+      "Do not claim pointers are Existing unless verifiable in repo",
+      "No synthesis phase; each agent writes its own completeness-report.json",
+      "Base path must be resolved by --design-id > --session > error"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter complete (name/description/allowed-tools)",
+      "Allowed-tools match required workflow",
+      "Core sections present (Overview/Usage/Execution Process/Outputs/Error Handling)",
+      "Evidence tables pass verify-evidence.js (dual-source docs + TS anchors)"
+    ]
+  }
+}

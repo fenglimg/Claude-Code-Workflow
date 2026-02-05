@@ -1,0 +1,39 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "workflow:ui-design:codify-style",
+    "description": "Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)",
+    "argument_hint": "<path> [--package-name <name>] [--output-dir <path>] [--overwrite]",
+    "allowed_tools": ["Skill", "Bash", "Read", "TodoWrite"]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "single-shot",
+    "primary_user_value": "Extract styles from a codebase path and generate a shareable reference-style package with preview."
+  },
+  "artifacts": {
+    "reads": ["<path> (source code path)", ".workflow/reference_style/** (existence/overwrite checks)"],
+    "writes": [
+      ".workflow/reference_style/<package-name>/",
+      ".workflow/codify-temp-<timestamp>/ (temporary workspace; cleaned up)"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 600,
+    "must_not": [
+      "do not overwrite existing output package unless --overwrite is set",
+      "do not delete anything outside .workflow/",
+      "do not stop between phases (auto-continue)"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name/description/allowed-tools)",
+      "allowed-tools correct for orchestrator (Skill,Bash,Read,TodoWrite)",
+      "core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
+      "evidence tables: each pointer row includes docs + TS anchors"
+    ]
+  }
+}
+

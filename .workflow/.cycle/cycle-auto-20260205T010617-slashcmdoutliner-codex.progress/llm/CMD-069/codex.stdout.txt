@@ -1,0 +1,11 @@
+Wrote CMD-069 slash-command-outliner outputs to:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-069/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-069/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-069/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-069/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-069/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-069/specs/outputs/fix-plan.md`
+
+Evidence tables gate:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=...generated-slash-outline.md --file=...gap-report.md`
+- Result: `OK: evidence verification passed`

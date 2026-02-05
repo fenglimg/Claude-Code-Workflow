@@ -1,0 +1,54 @@
+{
+  "command": "/workflow:design-sync",
+  "oracle": {
+    "slash_doc": ".claude/commands/workflow/ui-design/design-sync.md",
+    "key_headings": [
+      "Design Sync Command",
+      "Overview",
+      "Execution Process",
+      "Output Structure",
+      "Integration with /workflow:plan",
+      "Error Handling"
+    ]
+  },
+  "slash_references": [
+    {
+      "file": ".claude/commands/workflow/ui-design/style-extract.md",
+      "why": "Similar multi-phase design artifact workflow; strong Execution Process + Output Structure patterns.",
+      "headings_to_compare": ["Style Extraction Command", "Execution Process", "Output Structure", "Error Handling"]
+    },
+    {
+      "file": ".claude/commands/workflow/plan.md",
+      "why": "Downstream consumer; validate the integration story and what /workflow:plan expects from session artifacts.",
+      "headings_to_compare": ["Overview", "Execution Process", "Outputs"]
+    },
+    {
+      "file": ".claude/commands/ccw-coordinator.md",
+      "why": "Demonstrates command discovery/registry usage and command-corpus assumptions.",
+      "headings_to_compare": ["Available Commands"]
+    }
+  ],
+  "ts_references": [
+    {
+      "file": "ccw/src/core/routes/commands-routes.ts",
+      "anchor": "function scanCommandsRecursive(",
+      "why": "Project command discovery for nested .claude/commands trees (supports ui-design subfolders)."
+    },
+    {
+      "file": "ccw/src/core/routes/commands-routes.ts",
+      "anchor": "return join(projectPath, '.claude', 'commands');",
+      "why": "Command root location for project commands (docs source)."
+    },
+    {
+      "file": "ccw/src/tools/session-manager.ts",
+      "anchor": "const ACTIVE_BASE = '.workflow/active';",
+      "why": "Session artifact base path used across workflow tooling; aligns with .workflow/active/WFS-... artifacts."
+    },
+    {
+      "file": "ccw/src/tools/command-registry.ts",
+      "anchor": "export class CommandRegistry {",
+      "why": "Command registry used by orchestration docs; note potential limitation for nested commands."
+    }
+  ]
+}
+

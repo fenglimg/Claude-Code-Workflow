@@ -1,0 +1,10 @@
+Wrote CMD-065 outputs (per slash-command-outliner templates) to:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-065/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-065/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-065/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-065/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-065/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-065/specs/outputs/fix-plan.md`
+
+Deterministic evidence gate passed:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-065/specs/outputs/gap-report.md --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-065/specs/outputs/generated-slash-outline.md`

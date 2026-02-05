@@ -1,0 +1,159 @@
+# TODO_LIST (slash-command-outliner LLM regression)
+
+- Cycle: `cycle-local-20260205T001900-slashcmdoutliner-llm`
+- Updated at: 2026-02-04T16:19:00.800Z
+
+- [ ] CMD-001 /ccw-coordinator (`.claude/commands/ccw-coordinator.md`)
+  - failed: claude exit code null
+- [ ] CMD-002 /ccw-debug (`.claude/commands/ccw-debug.md`)
+  - pending
+- [ ] CMD-003 /ccw-plan (`.claude/commands/ccw-plan.md`)
+  - pending
+- [ ] CMD-004 /ccw-test (`.claude/commands/ccw-test.md`)
+  - pending
+- [ ] CMD-005 /ccw (`.claude/commands/ccw.md`)
+  - pending
+- [ ] CMD-006 /cli:cli-init (`.claude/commands/cli/cli-init.md`)
+  - pending
+- [ ] CMD-007 /cli:codex-review (`.claude/commands/cli/codex-review.md`)
+  - pending
+- [ ] CMD-008 /codex-coordinator (`.claude/commands/codex-coordinator.md`)
+  - pending
+- [ ] CMD-009 /flow-create (`.claude/commands/flow-create.md`)
+  - pending
+- [ ] CMD-010 /issue:convert-to-plan (`.claude/commands/issue/convert-to-plan.md`)
+  - pending
+- [ ] CMD-011 /issue:issue:discover-by-prompt (`.claude/commands/issue/discover-by-prompt.md`)
+  - pending
+- [ ] CMD-012 /issue:issue:discover (`.claude/commands/issue/discover.md`)
+  - pending
+- [ ] CMD-013 /issue:execute (`.claude/commands/issue/execute.md`)
+  - pending
+- [ ] CMD-014 /issue:from-brainstorm (`.claude/commands/issue/from-brainstorm.md`)
+  - pending
+- [ ] CMD-015 /issue:new (`.claude/commands/issue/new.md`)
+  - pending
+- [ ] CMD-016 /issue:plan (`.claude/commands/issue/plan.md`)
+  - pending
+- [ ] CMD-017 /issue:queue (`.claude/commands/issue/queue.md`)
+  - pending
+- [ ] CMD-018 /memory:compact (`.claude/commands/memory/compact.md`)
+  - pending
+- [ ] CMD-019 /memory:docs-full-cli (`.claude/commands/memory/docs-full-cli.md`)
+  - pending
+- [ ] CMD-020 /memory:docs-related-cli (`.claude/commands/memory/docs-related-cli.md`)
+  - pending
+- [ ] CMD-021 /memory:load (`.claude/commands/memory/load.md`)
+  - pending
+- [ ] CMD-022 /memory:style-skill-memory (`.claude/commands/memory/style-skill-memory.md`)
+  - pending
+- [ ] CMD-023 /memory:tips (`.claude/commands/memory/tips.md`)
+  - pending
+- [ ] CMD-024 /memory:update-full (`.claude/commands/memory/update-full.md`)
+  - pending
+- [ ] CMD-025 /memory:update-related (`.claude/commands/memory/update-related.md`)
+  - pending
+- [ ] CMD-026 /workflow:analyze-with-file (`.claude/commands/workflow/analyze-with-file.md`)
+  - pending
+- [ ] CMD-027 /workflow:brainstorm-with-file (`.claude/commands/workflow/brainstorm-with-file.md`)
+  - pending
+- [ ] CMD-028 /workflow:artifacts (`.claude/commands/workflow/brainstorm/artifacts.md`)
+  - pending
+- [ ] CMD-029 /workflow:auto-parallel (`.claude/commands/workflow/brainstorm/auto-parallel.md`)
+  - pending
+- [ ] CMD-030 /workflow:role-analysis (`.claude/commands/workflow/brainstorm/role-analysis.md`)
+  - pending
+- [ ] CMD-031 /workflow:synthesis (`.claude/commands/workflow/brainstorm/synthesis.md`)
+  - pending
+- [ ] CMD-032 /workflow:clean (`.claude/commands/workflow/clean.md`)
+  - pending
+- [ ] CMD-033 /workflow:workflow:collaborative-plan-with-file (`.claude/commands/workflow/collaborative-plan-with-file.md`)
+  - pending
+- [ ] CMD-034 /workflow:debug-with-file (`.claude/commands/workflow/debug-with-file.md`)
+  - pending
+- [ ] CMD-035 /workflow:execute (`.claude/commands/workflow/execute.md`)
+  - pending
+- [ ] CMD-036 /workflow:init-guidelines (`.claude/commands/workflow/init-guidelines.md`)
+  - pending
+- [ ] CMD-037 /workflow:init (`.claude/commands/workflow/init.md`)
+  - pending
+- [ ] CMD-038 /workflow:lite-execute (`.claude/commands/workflow/lite-execute.md`)
+  - pending
+- [ ] CMD-039 /workflow:lite-fix (`.claude/commands/workflow/lite-fix.md`)
+  - pending
+- [ ] CMD-040 /workflow:lite-plan (`.claude/commands/workflow/lite-plan.md`)
+  - pending
+- [ ] CMD-041 /workflow:workflow:multi-cli-plan (`.claude/commands/workflow/multi-cli-plan.md`)
+  - pending
+- [ ] CMD-042 /workflow:plan-verify (`.claude/commands/workflow/plan-verify.md`)
+  - pending
+- [ ] CMD-043 /workflow:plan (`.claude/commands/workflow/plan.md`)
+  - pending
+- [ ] CMD-044 /workflow:replan (`.claude/commands/workflow/replan.md`)
+  - pending
+- [ ] CMD-045 /workflow:review-cycle-fix (`.claude/commands/workflow/review-cycle-fix.md`)
+  - pending
+- [ ] CMD-046 /workflow:review-module-cycle (`.claude/commands/workflow/review-module-cycle.md`)
+  - pending
+- [ ] CMD-047 /workflow:review-session-cycle (`.claude/commands/workflow/review-session-cycle.md`)
+  - pending
+- [ ] CMD-048 /workflow:review (`.claude/commands/workflow/review.md`)
+  - pending
+- [ ] CMD-049 /workflow:complete (`.claude/commands/workflow/session/complete.md`)
+  - pending
+- [ ] CMD-050 /workflow:list (`.claude/commands/workflow/session/list.md`)
+  - pending
+- [ ] CMD-051 /workflow:resume (`.claude/commands/workflow/session/resume.md`)
+  - pending
+- [ ] CMD-052 /workflow:solidify (`.claude/commands/workflow/session/solidify.md`)
+  - pending
+- [ ] CMD-053 /workflow:start (`.claude/commands/workflow/session/start.md`)
+  - pending
+- [ ] CMD-054 /workflow:tdd-plan (`.claude/commands/workflow/tdd-plan.md`)
+  - pending
+- [ ] CMD-055 /workflow:tdd-verify (`.claude/commands/workflow/tdd-verify.md`)
+  - pending
+- [ ] CMD-056 /workflow:test-cycle-execute (`.claude/commands/workflow/test-cycle-execute.md`)
+  - pending
+- [ ] CMD-057 /workflow:test-fix-gen (`.claude/commands/workflow/test-fix-gen.md`)
+  - pending
+- [ ] CMD-058 /workflow:code-validation-gate (`.claude/commands/workflow/tools/code-validation-gate.md`)
+  - pending
+- [ ] CMD-059 /workflow:conflict-resolution (`.claude/commands/workflow/tools/conflict-resolution.md`)
+  - pending
+- [ ] CMD-060 /workflow:gather (`.claude/commands/workflow/tools/context-gather.md`)
+  - pending
+- [ ] CMD-061 /workflow:task-generate-agent (`.claude/commands/workflow/tools/task-generate-agent.md`)
+  - pending
+- [ ] CMD-062 /workflow:task-generate-tdd (`.claude/commands/workflow/tools/task-generate-tdd.md`)
+  - pending
+- [ ] CMD-063 /workflow:tdd-coverage-analysis (`.claude/commands/workflow/tools/tdd-coverage-analysis.md`)
+  - pending
+- [ ] CMD-064 /workflow:test-concept-enhanced (`.claude/commands/workflow/tools/test-concept-enhanced.md`)
+  - pending
+- [ ] CMD-065 /workflow:test-context-gather (`.claude/commands/workflow/tools/test-context-gather.md`)
+  - pending
+- [ ] CMD-066 /workflow:test-task-generate (`.claude/commands/workflow/tools/test-task-generate.md`)
+  - pending
+- [ ] CMD-067 /workflow:animation-extract (`.claude/commands/workflow/ui-design/animation-extract.md`)
+  - pending
+- [ ] CMD-068 /workflow:workflow:ui-design:codify-style (`.claude/commands/workflow/ui-design/codify-style.md`)
+  - pending
+- [ ] CMD-069 /workflow:design-sync (`.claude/commands/workflow/ui-design/design-sync.md`)
+  - pending
+- [ ] CMD-070 /workflow:explore-auto (`.claude/commands/workflow/ui-design/explore-auto.md`)
+  - pending
+- [ ] CMD-071 /workflow:generate (`.claude/commands/workflow/ui-design/generate.md`)
+  - pending
+- [ ] CMD-072 /workflow:imitate-auto (`.claude/commands/workflow/ui-design/imitate-auto.md`)
+  - pending
+- [ ] CMD-073 /workflow:workflow:ui-design:import-from-code (`.claude/commands/workflow/ui-design/import-from-code.md`)
+  - pending
+- [ ] CMD-074 /workflow:layout-extract (`.claude/commands/workflow/ui-design/layout-extract.md`)
+  - pending
+- [ ] CMD-075 /workflow:workflow:ui-design:reference-page-generator (`.claude/commands/workflow/ui-design/reference-page-generator.md`)
+  - pending
+- [ ] CMD-076 /workflow:style-extract (`.claude/commands/workflow/ui-design/style-extract.md`)
+  - pending
+- [ ] CMD-077 /workflow:unified-execute-with-file (`.claude/commands/workflow/unified-execute-with-file.md`)
+  - pending

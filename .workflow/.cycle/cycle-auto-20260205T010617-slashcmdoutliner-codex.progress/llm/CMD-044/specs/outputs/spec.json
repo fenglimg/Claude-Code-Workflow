@@ -1,0 +1,52 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "replan",
+    "description": "Interactive workflow replanning with session-level artifact updates and boundary clarification through guided questioning",
+    "argument_hint": "[-y|--yes] [--session session-id] [task-id] \"requirements\"|file.md [--interactive]",
+    "allowed_tools": ["Read(*)", "Write(*)", "Edit(*)", "TodoWrite(*)", "Glob(*)", "Bash(*)"]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "iterative",
+    "primary_user_value": "Update an active workflow session or a specific task via guided clarification, then apply consistent artifact updates with backups and rollback"
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/",
+      ".workflow/active/{session_id}/workflow-session.json",
+      ".workflow/active/{session_id}/IMPL_PLAN.md",
+      ".workflow/active/{session_id}/TODO_LIST.md",
+      ".workflow/active/{session_id}/.task/*.json",
+      "{requirements_string_or_md_file}"
+    ],
+    "writes": [
+      ".workflow/active/{session_id}/workflow-session.json",
+      ".workflow/active/{session_id}/IMPL_PLAN.md",
+      ".workflow/active/{session_id}/TODO_LIST.md",
+      ".workflow/active/{session_id}/.task/*.json",
+      ".workflow/active/{session_id}/.process/backup/replan-{timestamp}/",
+      ".workflow/active/{session_id}/.process/backup/replan-{timestamp}/MANIFEST.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 6,
+    "time_budget_seconds": 900,
+    "must_not": [
+      "No destructive edits without creating a backup first",
+      "Do not modify artifacts outside the selected session",
+      "Do not exceed the task limit when generating/restructuring tasks",
+      "Do not introduce circular dependencies between tasks",
+      "Do not write invalid JSON task files"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter has name/description/allowed-tools (argument-hint recommended)",
+      "Allowed-tools matches described behavior",
+      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
+      "All implementation pointers labeled Existing vs Planned with dual-source evidence (docs + ccw/src TS anchors)"
+    ]
+  }
+}
+

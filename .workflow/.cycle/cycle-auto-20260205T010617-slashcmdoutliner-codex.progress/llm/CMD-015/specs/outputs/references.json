@@ -1,0 +1,41 @@
+{
+  "candidates": [
+    {
+      "slash": "/issue:new",
+      "file_path": ".claude/commands/issue/new.md",
+      "score": 1.0,
+      "why": "Exact command; defines phases for clarity detection, data extraction, optional clarification, optional GitHub publish, and local issue creation."
+    },
+    {
+      "slash": "/issue:from-brainstorm",
+      "file_path": ".claude/commands/issue/from-brainstorm.md",
+      "score": 0.78,
+      "why": "Same group and output type (structured issue), similar flow from unstructured input to normalized issue JSON."
+    },
+    {
+      "slash": "/issue:discover",
+      "file_path": ".claude/commands/issue/discover.md",
+      "score": 0.65,
+      "why": "Same group; uses context discovery patterns that can inform conditional context hints for /issue:new."
+    },
+    {
+      "slash": "/issue:plan",
+      "file_path": ".claude/commands/issue/plan.md",
+      "score": 0.6,
+      "why": "Direct follow-up command; helps ensure /issue:new output fields are sufficient for downstream planning."
+    },
+    {
+      "slash": "/issue:queue",
+      "file_path": ".claude/commands/issue/queue.md",
+      "score": 0.52,
+      "why": "Same storage family; useful for validating issue JSON fields and lifecycle statuses."
+    }
+  ],
+  "selected": {
+    "slash": "/issue:new",
+    "file_path": ".claude/commands/issue/new.md",
+    "score": 1.0,
+    "why": "Oracle command doc for CMD-015; use as the primary reference for structure and behavior."
+  }
+}
+

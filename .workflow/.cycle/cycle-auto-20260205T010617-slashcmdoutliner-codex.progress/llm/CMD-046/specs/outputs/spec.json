@@ -1,0 +1,47 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "review-module-cycle",
+    "description": "Independent multi-dimensional code review for specified modules/files. Analyzes specific code paths across 7 dimensions with hybrid parallel-iterative execution, independent of workflow sessions.",
+    "argument_hint": "<path-pattern> [--dimensions=security,architecture,...] [--max-iterations=N]",
+    "allowed_tools": ["Skill(*)", "TodoWrite(*)", "Read(*)", "Bash(*)", "Task(*)"]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "iterative",
+    "primary_user_value": "Run a multi-dimensional review over specific modules/files (not limited to git changes) and produce structured findings/progress artifacts that can be used for follow-up fixes."
+  },
+  "artifacts": {
+    "reads": [
+      "<path-pattern> (resolved to a concrete file list relative to project root)",
+      ".workflow/active/WFS-*/metadata.json (session context, if present)",
+      ".workflow/project-tech.json (if used by review agents)",
+      ".workflow/project-guidelines.json (if used by review agents)"
+    ],
+    "writes": [
+      ".workflow/active/WFS-{session-id}/.review/review-state.json",
+      ".workflow/active/WFS-{session-id}/.review/review-progress.json",
+      ".workflow/active/WFS-{session-id}/.review/dimensions/{dimension}.json",
+      ".workflow/active/WFS-{session-id}/.review/reports/{dimension}.md",
+      ".workflow/active/WFS-{session-id}/.review/iterations/{iteration}.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 3,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not claim pointers are Existing unless verifiable in the repo.",
+      "Do not perform destructive operations without explicit user request.",
+      "Do not leak secrets or sensitive code/data in generated artifacts.",
+      "Do not modify unrelated files outside the review output directory."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name, description, allowed-tools, group (argument-hint recommended)",
+      "Allowed-tools matches the intended workflow and described behavior",
+      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
+      "Evidence tables include dual-source docs+TS anchors and pass verify-evidence.js"
+    ]
+  }
+}

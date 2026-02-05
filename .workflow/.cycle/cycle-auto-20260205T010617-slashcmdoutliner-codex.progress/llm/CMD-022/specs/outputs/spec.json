@@ -1,0 +1,43 @@
+{
+  "command": {
+    "group": "memory",
+    "name": "style-skill-memory",
+    "title": "Memory: Style SKILL Memory Generator",
+    "description": "Generate SKILL memory package from style reference for easy loading and consistent design system usage",
+    "argument_hint": "[package-name] [--regenerate]",
+    "allowed_tools": ["Bash", "Read", "Write", "TodoWrite"]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "iterative",
+    "primary_user_value": "Convert a style reference package into a reusable SKILL memory index for consistent UI/design-system work."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/reference_style/{package-name}/design-tokens.json",
+      ".workflow/reference_style/{package-name}/layout-templates.json",
+      ".workflow/reference_style/{package-name}/animation-tokens.json (optional)",
+      ".claude/skills/style-{package-name}/SKILL.md (existence check)"
+    ],
+    "writes": [".claude/skills/style-{package-name}/SKILL.md"]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not overwrite an existing SKILL.md unless --regenerate is provided",
+      "Do not proceed if the input style reference package directory is missing",
+      "Do not claim outputs exist without verifying file creation"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter: name/description/argument-hint/allowed-tools/group present",
+      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
+      "Validates package existence before generation",
+      "Respects overwrite protection unless --regenerate",
+      "Writes .claude/skills/style-{package-name}/SKILL.md and verifies it exists"
+    ]
+  }
+}
+

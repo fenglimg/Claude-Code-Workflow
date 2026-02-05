@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/memory:docs-full-cli",
+      "file_path": ".claude/commands/memory/docs-full-cli.md",
+      "score": 0.95,
+      "why": "Same CLI-mode documentation generation family: gemini->qwen->codex fallback, batching, and similar phase structure (plan -> execute -> verify)."
+    },
+    {
+      "slash": "/memory:update-related",
+      "file_path": ".claude/commands/memory/update-related.md",
+      "score": 0.86,
+      "why": "Same change-detection + approval gate + batching pattern; differs mainly in artifact target (CLAUDE.md updates vs docs tree)."
+    },
+    {
+      "slash": "/memory:docs-related-cli",
+      "file_path": ".claude/commands/memory/docs-related-cli.md",
+      "score": 0.82,
+      "why": "Oracle command doc for this command; use as truth source during gap analysis (no-leak spec)."
+    },
+    {
+      "slash": "/memory:update-full",
+      "file_path": ".claude/commands/memory/update-full.md",
+      "score": 0.74,
+      "why": "Similar orchestration structure but full-scope updates rather than related-only updates."
+    },
+    {
+      "slash": "/cli:codex-review",
+      "file_path": ".claude/commands/cli/codex-review.md",
+      "score": 0.61,
+      "why": "Good reference for CLI invocation + allowed-tools frontmatter conventions (AskUserQuestion + Bash)."
+    }
+  ],
+  "selected": {
+    "slash": "/memory:docs-full-cli",
+    "file_path": ".claude/commands/memory/docs-full-cli.md",
+    "why": "Closest in behavior and structure while still being a different command, making it a strong non-regression reference."
+  }
+}
+

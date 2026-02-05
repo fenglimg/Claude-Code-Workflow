@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/tools/context-gather.md",
+  "command": {
+    "group": "workflow",
+    "name": "gather",
+    "description": "Intelligently collect project context using context-search-agent based on task description, packages into standardized JSON",
+    "argument_hint": "--session WFS-session-id \"task description\"",
+    "allowed_tools": ["Task(*)", "Read(*)", "Glob(*)"],
+    "usage_args": "--session WFS-session-id \"task description\""
+  },
+  "intent": {
+    "type": "plan",
+    "interaction": "single-shot",
+    "primary_user_value": "Collect and package actionable project context for implementation planning."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/<session_id>/.process/context-package.json",
+      ".workflow/active/<session_id>/planning-notes.md"
+    ],
+    "writes": [
+      ".workflow/active/<session_id>/.process/context-package.json",
+      ".workflow/active/<session_id>/.process/explorations-manifest.json",
+      ".workflow/active/<session_id>/.process/exploration-<angle>.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not claim pointers are Existing unless verifiable in repo now",
+      "Do not leak full oracle command markdown into spec"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter valid (name, description, allowed-tools, group)",
+      "Allowed-tools matches described behavior (or gap-report calls out mismatch)",
+      "Core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
+      "Evidence tables pass node .codex/skills/slash-command-outliner/scripts/verify-evidence.js"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      { "level": 1, "text": "Context Gather Command (/workflow:tools:context-gather)" },
+      { "level": 2, "text": "Overview" },
+      { "level": 2, "text": "Core Philosophy" },
+      { "level": 2, "text": "Execution Process" },
+      { "level": 2, "text": "Execution Flow" },
+      { "level": 3, "text": "Step 1: Context-Package Detection" },
+      { "level": 3, "text": "Step 2: Complexity Assessment & Parallel Explore" },
+      { "level": 2, "text": "Task Objective" },
+      { "level": 2, "text": "Assigned Context" },
+      { "level": 2, "text": "MANDATORY FIRST STEPS (Execute by Agent)" },
+      { "level": 2, "text": "Exploration Strategy (${angle} focus)" },
+      { "level": 2, "text": "Expected Output" },
+      { "level": 2, "text": "Success Criteria" },
+      { "level": 2, "text": "Output" },
+      { "level": 3, "text": "Step 3: Invoke Context-Search Agent" },
+      { "level": 2, "text": "Execution Mode" },
+      { "level": 2, "text": "Session Information" },
+      { "level": 2, "text": "User Intent (from Phase 1 - Planning Notes)" },
+      { "level": 2, "text": "Exploration Input (from Step 2)" },
+      { "level": 2, "text": "Mission" },
+      { "level": 3, "text": "Phase 1: Initialization & Pre-Analysis" },
+      { "level": 3, "text": "Phase 2: Multi-Source Context Discovery" },
+      { "level": 3, "text": "Phase 3: Synthesis, Assessment & Packaging" },
+      { "level": 2, "text": "Output Requirements" },
+      { "level": 2, "text": "Quality Validation" },
+      { "level": 2, "text": "Planning Notes Record (REQUIRED)" },
+      { "level": 2, "text": "Parameter Reference" },
+      { "level": 2, "text": "Output Schema" },
+      { "level": 2, "text": "Notes" }
+    ]
+  }
+}
+

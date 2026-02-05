@@ -1,0 +1,56 @@
+{
+  "command": {
+    "group": "issue",
+    "name": "issue:discover-by-prompt",
+    "description": "Discover issues from user prompt with Gemini-planned iterative multi-agent exploration; uses ACE semantic search for context gathering and supports cross-module comparison (e.g., frontend vs backend API contracts).",
+    "argument_hint": "[-y|--yes] <prompt> [--scope=src/**] [--depth=standard|deep] [--max-iterations=5]",
+    "allowed_tools": [
+      "Skill(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Bash(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "mcp__ace-tool__search_context(*)",
+      "mcp__exa__search(*)"
+    ]
+  },
+  "intent": {
+    "type": "analyze",
+    "interaction": "iterative",
+    "primary_user_value": "Turn a natural-language prompt into a prioritized set of actionable issue candidates, with optional cross-module/API-contract comparison, using planned multi-iteration exploration."
+  },
+  "artifacts": {
+    "reads": [
+      ".claude/workflows/cli-templates/schemas/discovery-state-schema.json",
+      ".claude/workflows/cli-templates/schemas/discovery-finding-schema.json"
+    ],
+    "writes": [
+      ".workflow/issues/discoveries/{DISCOVERY_ID}/discovery-state.json",
+      ".workflow/issues/discoveries/{DISCOVERY_ID}/iterations/{N}/{dimension}.json",
+      ".workflow/issues/discoveries/{DISCOVERY_ID}/comparison-analysis.json",
+      ".workflow/issues/discoveries/{DISCOVERY_ID}/discovery-issues.jsonl"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 5,
+    "time_budget_seconds": 1800,
+    "must_not": [
+      "Do not label implementation pointers as Existing unless verifiable in-repo.",
+      "Do not run destructive operations unless explicitly requested.",
+      "Do not persist sensitive context; keep ACE context and Gemini plan in-memory unless explicitly required."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter: name/description/allowed-tools present",
+      "Allowed-tools set is complete and contains no unsupported tools for the described behavior",
+      "Core sections present: Overview, Usage, Execution Process, Output/Artifacts, Error Handling",
+      "No broken artifact references (paths are created by the command or explicitly pre-existing)",
+      "Evidence tables pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js"
+    ]
+  }
+}
+

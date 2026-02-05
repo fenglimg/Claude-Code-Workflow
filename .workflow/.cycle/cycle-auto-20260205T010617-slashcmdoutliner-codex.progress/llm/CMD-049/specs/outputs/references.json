@@ -1,0 +1,60 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "complete"
+  },
+  "candidates": [
+    {
+      "slash": "/workflow:session:complete",
+      "file_path": ".claude/commands/workflow/session/complete.md",
+      "score": 100,
+      "why": [
+        "Same lifecycle action (archive active session, update manifests)",
+        "Same arguments surface ([-y|--yes] [--detailed])",
+        "Directly describes the intended phases + artifacts"
+      ]
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 82,
+      "why": [
+        "Same group; calls completion as a final step",
+        "Similar auto/interactive mode behavior with follow-up choice"
+      ]
+    },
+    {
+      "slash": "/workflow:session:solidify",
+      "file_path": ".claude/commands/workflow/session/solidify.md",
+      "score": 74,
+      "why": [
+        "Directly adjacent follow-up to completion (capture learnings)",
+        "Provides patterns for optional post-archive prompting"
+      ]
+    },
+    {
+      "slash": "/workflow:clean",
+      "file_path": ".claude/commands/workflow/clean.md",
+      "score": 63,
+      "why": [
+        "Touches workflow folder hygiene and session lifecycle references",
+        "Contains safety and recovery patterns for destructive operations"
+      ]
+    },
+    {
+      "slash": "/workflow:review",
+      "file_path": ".claude/commands/workflow/review.md",
+      "score": 58,
+      "why": [
+        "Adjacent phase in the common workflow chain before completion",
+        "Contains patterns for next-step selection and session state expectations"
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:session:complete",
+    "file_path": ".claude/commands/workflow/session/complete.md",
+    "reason": "Closest direct match (same intent, phases, artifacts, and args)."
+  }
+}
+

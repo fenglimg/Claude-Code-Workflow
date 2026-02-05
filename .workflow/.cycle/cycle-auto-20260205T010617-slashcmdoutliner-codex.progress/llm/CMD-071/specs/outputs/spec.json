@@ -1,0 +1,54 @@
+{
+  "derived_from": ".claude/commands/workflow/ui-design/generate.md",
+  "command": {
+    "group": "workflow",
+    "name": "generate",
+    "description": "Assemble UI prototypes by combining layout templates with design tokens (default animation support), pure assembler without new content generation",
+    "argument_hint": "[--design-id <id>] [--session <id>]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Task(ui-design-agent)",
+      "Bash(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "single-shot",
+    "primary_user_value": "Generate HTML/CSS UI prototypes by assembling layout templates with design tokens for /workflow:ui-design:generate (no new content generation)."
+  },
+  "artifacts": {
+    "reads": [
+      "{base_path}/layout-extraction/layout-*.json",
+      "{base_path}/style-extraction/style-*/design-tokens.json",
+      "{base_path}/animation-extraction/animation-tokens.json (optional)",
+      ".claude/workflows/_template-compare-matrix.html (optional)"
+    ],
+    "writes": [
+      "{base_path}/prototypes/{target}-style-{s}-layout-{l}.html",
+      "{base_path}/prototypes/{target}-style-{s}-layout-{l}.css",
+      "{base_path}/prototypes/compare.html",
+      "{base_path}/prototypes/index.html",
+      "{base_path}/prototypes/PREVIEW.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 0,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not invent layout or token content; only assemble existing inputs",
+      "Do not claim pointers are Existing unless verifiable in-repo",
+      "Do not write outside the resolved design-run base_path except for required tool/template reads"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter valid (name/description/allowed-tools; argument-hint if applicable)",
+      "Base path resolved by priority: --design-id > --session > auto-detect latest",
+      "Reads all layout-*.json templates and all style-*/design-tokens.json variants",
+      "Optionally reads animation-tokens.json when present",
+      "Writes prototypes and preview files; generated prototype count equals styles * layouts * targets"
+    ]
+  }
+}

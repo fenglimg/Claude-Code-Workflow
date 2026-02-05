@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-02-05T01:06:17Z",
+  "derived_from": ".claude/commands/workflow/session/solidify.md",
+  "command": {
+    "group": "workflow",
+    "name": "session:solidify",
+    "description": "Crystallize session learnings and user-defined constraints into permanent project guidelines.",
+    "argument_hint": "[-y|--yes] [--type <convention|constraint|learning>] [--category <category>] \"rule or insight\" [--interactive]",
+    "usage_args": "\"rule or insight\" [--type <convention|constraint|learning>] [--category <category>] [-y|--yes] [--interactive]",
+    "allowed_tools": ["Read(*)", "Write(*)", "AskUserQuestion(*)", "Bash(*)"]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "iterative",
+    "primary_user_value": "Persist important session decisions as durable project rules so future planning and tooling automatically respects them."
+  },
+  "artifacts": {
+    "reads": [".workflow/project-guidelines.json"],
+    "writes": [".workflow/project-guidelines.json"]
+  },
+  "constraints": {
+    "max_rounds": 3,
+    "time_budget_seconds": 120,
+    "must_not": [
+      "must not claim artifacts exist unless verified",
+      "must not overwrite project-guidelines.json without preserving existing content",
+      "must not add duplicate rules silently"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid: name/description/allowed-tools",
+      "handles non-interactive rule input and --interactive mode",
+      "writes a valid .workflow/project-guidelines.json (create scaffold if missing)",
+      "duplicate detection and clear user-facing confirmation",
+      "error handling for invalid --type/--category and malformed JSON"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {"level": 2, "text": "Auto Mode"},
+      {"level": 1, "text": "Session Solidify Command (/workflow:session:solidify)"},
+      {"level": 2, "text": "Overview"},
+      {"level": 2, "text": "Use Cases"},
+      {"level": 2, "text": "Parameters"},
+      {"level": 3, "text": "Type Categories"},
+      {"level": 2, "text": "Execution Process"},
+      {"level": 2, "text": "Implementation"},
+      {"level": 3, "text": "Step 1: Ensure Guidelines File Exists"},
+      {"level": 3, "text": "Step 2: Auto-detect Type (if not specified)"},
+      {"level": 3, "text": "Step 3: Build Entry"},
+      {"level": 3, "text": "Step 4: Update Guidelines File"},
+      {"level": 3, "text": "Step 5: Display Confirmation"},
+      {"level": 2, "text": "Interactive Mode"},
+      {"level": 2, "text": "Examples"},
+      {"level": 2, "text": "Integration with Planning"},
+      {"level": 2, "text": "Error Handling"},
+      {"level": 2, "text": "Related Commands"}
+    ]
+  },
+  "open_questions": [
+    "Requirement doc header says /workflow:solidify, but source command doc is /workflow:session:solidify. Decide canonical invocation and whether /workflow:solidify is an alias.",
+    "Define the authoritative category enum list exposed to users (doc lists subcategories). Should invalid categories error or fall back to 'other'?"
+  ]
+}

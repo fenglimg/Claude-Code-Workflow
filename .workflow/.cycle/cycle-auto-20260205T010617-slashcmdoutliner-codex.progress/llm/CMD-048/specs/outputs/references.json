@@ -1,0 +1,42 @@
+{
+  "command": "/workflow:review",
+  "candidates": [
+    {
+      "slash": "/workflow:review",
+      "file_path": ".claude/commands/workflow/review.md",
+      "score": 1,
+      "why": "Exact command identity and the oracle requirement doc points to it; contains the review type model and execution template."
+    },
+    {
+      "slash": "/workflow:review-session-cycle",
+      "file_path": ".claude/commands/workflow/review-session-cycle.md",
+      "score": 0.86,
+      "why": "Same family (review) + session-based review patterns + similar tooling chain (Gemini/Qwen/Codex) and artifacts under .workflow/active/<session>."
+    },
+    {
+      "slash": "/workflow:review-module-cycle",
+      "file_path": ".claude/commands/workflow/review-module-cycle.md",
+      "score": 0.82,
+      "why": "Same family (review) + multi-dimensional review execution patterns without requiring a session timeline."
+    },
+    {
+      "slash": "/workflow:review-cycle-fix",
+      "file_path": ".claude/commands/workflow/review-cycle-fix.md",
+      "score": 0.74,
+      "why": "Downstream consumer of review findings; useful to align report format/artifact expectations if review results are later auto-fixed."
+    },
+    {
+      "slash": "/workflow:session:complete",
+      "file_path": ".claude/commands/workflow/session/complete.md",
+      "score": 0.7,
+      "why": "Closest reusable pattern for discovering/validating a session folder and enumerating expected artifacts under <sessionPath>."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:review",
+    "file_path": ".claude/commands/workflow/review.md",
+    "score": 1,
+    "why": "Use as the primary oracle for headings and behavioral intent; keep spec non-leaky and treat the file as validation reference."
+  }
+}
+

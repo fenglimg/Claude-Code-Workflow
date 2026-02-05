@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "command": {
+    "group": "workflow",
+    "name": "lite-plan",
+    "slash": "/workflow:lite-plan"
+  },
+  "selected_reference": {
+    "slash": "/workflow:lite-plan",
+    "file_path": ".claude/commands/workflow/lite-plan.md",
+    "why": "Oracle for intended phases, flags, artifacts, and handoff to /workflow:lite-execute (non-leaky: use headings/structure, not full body)."
+  },
+  "additional_references": [
+    {
+      "slash": "/workflow:lite-execute",
+      "file_path": ".claude/commands/workflow/lite-execute.md",
+      "why": "Defines the execution handoff target and in-memory execution mode semantics."
+    },
+    {
+      "slash": "/workflow:lite-fix",
+      "file_path": ".claude/commands/workflow/lite-fix.md",
+      "why": "Sibling lite workflow; mirrors exploration→clarification→planning→confirmation patterns and artifact conventions."
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "why": "Broader planning conventions (TodoWrite patterns, coordinator checklist, error handling style)."
+    },
+    {
+      "slash": "/workflow:multi-cli-plan",
+      "file_path": ".claude/commands/workflow/multi-cli-plan.md",
+      "why": "Multi-agent exploration/planning orchestration patterns and output packaging conventions."
+    }
+  ],
+  "tooling_corpus": {
+    "ts_files": [
+      {
+        "file_path": "ccw/src/tools/command-registry.ts",
+        "why": "Reads slash command docs and exposes metadata like allowed-tools, argument-hint, group."
+      },
+      {
+        "file_path": "ccw/src/tools/session-manager.ts",
+        "why": "Routes lite-plan session file storage under .workflow/.lite-plan and supports content types like explorations-manifest."
+      },
+      {
+        "file_path": "ccw/src/commands/session-path-resolver.ts",
+        "why": "Maps filenames (plan.json, explorations-manifest.json, execution-context.json) to content types for tooling."
+      },
+      {
+        "file_path": "ccw/src/core/lite-scanner.ts",
+        "why": "Scans .workflow/.lite-plan directories and interprets plan.json/fix-plan.json for lite sessions."
+      },
+      {
+        "file_path": "ccw/src/core/services/flow-executor.ts",
+        "why": "Executes slash-command nodes via claude tool, relevant if lite-plan is invoked inside flows."
+      }
+    ]
+  }
+}
+

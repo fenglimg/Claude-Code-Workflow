@@ -1,0 +1,13 @@
+{
+  "cycle_id": "cycle-local-20260204T235906-slashcmdoutliner",
+  "generated_at": "2026-02-04T15:59:08.090Z",
+  "commands_processed": 1,
+  "total_commands": 77,
+  "total_p0_gaps": 0,
+  "total_p1_gaps": 2,
+  "snapshot_initialized": 1,
+  "snapshot_diffs": 0,
+  "gate_enabled": true,
+  "gate_passed": true,
+  "completed_commands": 1
+}

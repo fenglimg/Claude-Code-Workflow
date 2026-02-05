@@ -1,0 +1,42 @@
+{
+  "id": "CMD-053",
+  "command": "/workflow:session:start",
+  "candidates": [
+    {
+      "slash": "/workflow:session:start",
+      "file_path": ".claude/commands/workflow/session/start.md",
+      "score": 1.0,
+      "why": "Exact target command oracle; defines the required modes and output format."
+    },
+    {
+      "slash": "/workflow:session:list",
+      "file_path": ".claude/commands/workflow/session/list.md",
+      "score": 0.86,
+      "why": "Same domain (workflow sessions); lists WFS sessions and reads workflow-session.json metadata."
+    },
+    {
+      "slash": "/workflow:session:complete",
+      "file_path": ".claude/commands/workflow/session/complete.md",
+      "score": 0.8,
+      "why": "Same domain; archives/updates sessions and relies on consistent session_id + metadata conventions."
+    },
+    {
+      "slash": "/workflow:init",
+      "file_path": ".claude/commands/workflow/init.md",
+      "score": 0.72,
+      "why": "start delegates project-level initialization to workflow:init when project state files are missing."
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 0.68,
+      "why": "Calls /workflow:session:start in its execution flow; constrains expected output contract (SESSION_ID: ...)."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:session:start",
+    "file_path": ".claude/commands/workflow/session/start.md",
+    "why": "Highest-confidence reference for required behavior and structure hints."
+  }
+}
+

@@ -1,0 +1,75 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "cycle-auto-20260205T010617-slashcmdoutliner-codex",
+  "command": {
+    "group": "workflow",
+    "name": "task-generate-agent",
+    "description": "Generate implementation plan documents (IMPL_PLAN.md, task JSONs, TODO_LIST.md) using action-planning-agent; produces planning artifacts only (no code implementation).",
+    "argument_hint": "[-y|--yes] --session WFS-session-id",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "AskUserQuestion(*)",
+      "Task(*)"
+    ],
+    "full_slash": "/workflow:tools:task-generate-agent"
+  },
+  "intent": {
+    "type": "plan",
+    "interaction": "single-shot",
+    "primary_user_value": "Create workflow-session planning artifacts for a given session by delegating task breakdown to action-planning-agent, without executing implementation."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/WFS-{session-id}/workflow-session.json",
+      ".workflow/active/WFS-{session-id}/.process/context-package.json",
+      ".workflow/active/WFS-{session-id}/.process/conflict-resolution.json (optional)"
+    ],
+    "writes": [
+      ".workflow/active/WFS-{session-id}/IMPL_PLAN.md",
+      ".workflow/active/WFS-{session-id}/TODO_LIST.md",
+      ".workflow/active/WFS-{session-id}/.task/IMPL-*.json",
+      ".workflow/active/WFS-{session-id}/planning-notes.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not execute code implementation or run build/test commands as part of this command.",
+      "Do not re-sort or recompute context priorities; use context-package.prioritized_context as-is."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Validate --session is provided; fail fast with clear error if missing/invalid.",
+      "Generate IMPL_PLAN.md, TODO_LIST.md, and .task/IMPL-*.json under the session folder.",
+      "Preserve non-leaky behavior: command doc references only headings/structure; no full-copy of oracle content into derived specs."
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/tools/task-generate-agent.md",
+    "code_pointers": [
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/tools/ask-question.ts",
+      "ccw/src/tools/command-registry.ts"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      "Auto Mode",
+      "Generate Implementation Plan Command",
+      "Overview",
+      "Core Philosophy",
+      "Execution Process",
+      "Document Generation Lifecycle",
+      "Phase 0: User Configuration (Interactive)",
+      "Phase 1: Context Preparation & Module Detection (Command Responsibility)",
+      "Phase 2A: Single Agent Planning (Original Flow)",
+      "Phase 2B: N Parallel Planning (Multi-Module)",
+      "Phase 3: Integration (+1 Coordinator Agent, Multi-Module Only)"
+    ]
+  }
+}
+

@@ -1,0 +1,55 @@
+{
+  "command": {
+    "group": "cli",
+    "name": "cli-init",
+    "description": "Generate .gemini/ and .qwen/ config directories with settings.json and ignore files based on workspace technology detection",
+    "argument_hint": "[--tool gemini|qwen|all] [--output path] [--preview]",
+    "allowed_tools": ["Bash(*)", "Read(*)", "Write(*)", "Glob(*)"]
+  },
+  "intent": {
+    "type": "utility",
+    "interaction": "single-shot",
+    "primary_user_value": "Initialize Gemini/Qwen CLI configuration (settings + ignore rules) tailored to the detected workspace tech stack."
+  },
+  "artifacts": {
+    "reads": [
+      ".",
+      "**/package.json",
+      "**/requirements.txt",
+      "**/pyproject.toml",
+      "**/setup.py",
+      "**/pom.xml",
+      "**/build.gradle",
+      "**/Dockerfile"
+    ],
+    "writes": [
+      ".gemini/settings.json",
+      ".qwen/settings.json",
+      ".geminiignore",
+      ".qwenignore",
+      ".gemini.backup/",
+      ".qwen.backup/",
+      ".geminiignore.backup",
+      ".qwenignore.backup"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 300,
+    "must_not": [
+      "Write files when --preview is set",
+      "Overwrite existing config/ignore files without creating a backup",
+      "Skip workspace analysis (must run get_modules_by_depth first)"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter valid (name, description, allowed-tools, group)",
+      "Allowed-tools match behavior",
+      "Core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
+      "Workspace analysis runs before technology detection and file generation",
+      "Preview mode performs no writes"
+    ]
+  }
+}
+

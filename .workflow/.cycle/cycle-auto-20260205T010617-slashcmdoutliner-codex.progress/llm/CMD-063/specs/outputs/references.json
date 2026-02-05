@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:tools:code-validation-gate",
+      "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
+      "score": 92,
+      "why": "Same workflow/tools family; Bash-driven analysis + gating; strong error handling patterns; writes artifacts under .workflow/active/{session}/."
+    },
+    {
+      "slash": "/workflow:tdd-verify",
+      "file_path": ".claude/commands/workflow/tdd-verify.md",
+      "score": 90,
+      "why": "Direct orchestrator that calls /workflow:tools:tdd-coverage-analysis and consumes its artifacts; defines expected output contract."
+    },
+    {
+      "slash": "/workflow:tools:test-context-gather",
+      "file_path": ".claude/commands/workflow/tools/test-context-gather.md",
+      "score": 78,
+      "why": "Produces standardized .workflow/active/{session}/.process artifacts and includes detection-first flow; tool surface differs (Task/Glob)."
+    },
+    {
+      "slash": "/workflow:tools:test-concept-enhanced",
+      "file_path": ".claude/commands/workflow/tools/test-concept-enhanced.md",
+      "score": 70,
+      "why": "Test/coverage-related analysis workflows and structured reporting; uses external LLM tooling patterns not needed here."
+    },
+    {
+      "slash": "/workflow:tools:context-gather",
+      "file_path": ".claude/commands/workflow/tools/context-gather.md",
+      "score": 62,
+      "why": "Shows session-scoped artifact conventions under .workflow/active and tool orchestration patterns; tool surface differs (Task/Glob)."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:tools:code-validation-gate",
+    "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
+    "why": "Closest match for a Bash-only workflow tool command that runs checks, emits structured artifacts, and documents clear failure modes."
+  }
+}
+

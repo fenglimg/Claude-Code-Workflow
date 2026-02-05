@@ -1,0 +1,82 @@
+{
+  "command": "/workflow:ui-design:explore-auto",
+  "oracle": {
+    "slash_doc": ".claude/commands/workflow/ui-design/explore-auto.md",
+    "key_headings": [
+      "UI Design Auto Workflow Command",
+      "Overview & Execution Model",
+      "Execution Process",
+      "Core Rules",
+      "Parameter Requirements",
+      "Execution Modes",
+      "10-Phase Execution",
+      "TodoWrite Pattern",
+      "Completion Output"
+    ]
+  },
+  "candidates": [
+    {
+      "slash": "/workflow:ui-design:imitate-auto",
+      "file_path": ".claude/commands/workflow/ui-design/imitate-auto.md",
+      "score": 0.95,
+      "why": "Closest orchestrator-style workflow: multi-phase, session-scoped .workflow outputs, single confirmation gate, Skill(task-attach) + TodoWrite collapse/auto-continue patterns."
+    },
+    {
+      "slash": "/workflow:ui-design:generate",
+      "file_path": ".claude/commands/workflow/ui-design/generate.md",
+      "score": 0.78,
+      "why": "Downstream assembler that produces prototypes + preview artifacts (compare.html/PREVIEW.md); informs artifacts and verification for Phase 10."
+    },
+    {
+      "slash": "/workflow:ui-design:style-extract",
+      "file_path": ".claude/commands/workflow/ui-design/style-extract.md",
+      "score": 0.74,
+      "why": "Phase-level command referenced by explore-auto; provides Setup/Validation patterns and output layout for style-extraction artifacts."
+    },
+    {
+      "slash": "/workflow:ui-design:layout-extract",
+      "file_path": ".claude/commands/workflow/ui-design/layout-extract.md",
+      "score": 0.72,
+      "why": "Phase-level command referenced by explore-auto; defines layout template outputs and device-type handling for Phase 9."
+    },
+    {
+      "slash": "/workflow:ui-design:animation-extract",
+      "file_path": ".claude/commands/workflow/ui-design/animation-extract.md",
+      "score": 0.7,
+      "why": "Conditional phase command referenced by explore-auto; defines animation artifacts (animation-tokens.json/animation-guide.md) used for assembly."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:ui-design:imitate-auto",
+    "file_path": ".claude/commands/workflow/ui-design/imitate-auto.md",
+    "why": "Best structural match for an autonomous, multi-phase UI design workflow orchestrator."
+  },
+  "ts_evidence_pool": [
+    {
+      "file": "ccw/src/core/routes/commands-routes.ts",
+      "anchor": "function scanCommandsRecursive(",
+      "why": "CCW command discovery scans nested .claude/commands trees (supports ui-design subfolders)."
+    },
+    {
+      "file": "ccw/src/tools/session-manager.ts",
+      "anchor": "const ACTIVE_BASE = '.workflow/active';",
+      "why": "Canonical session artifact base path used across workflow tooling; aligns with --session outputs."
+    },
+    {
+      "file": "ccw/src/tools/ui-generate-preview.js",
+      "anchor": "Generate compare.html and index.html for UI prototypes",
+      "why": "Preview generation implementation for compare.html/PREVIEW.md artifacts referenced by the UI design pipeline."
+    },
+    {
+      "file": "ccw/src/tools/ui-instantiate-prototypes.js",
+      "anchor": "Optionally generates preview files (compare.html, index.html, PREVIEW.md)",
+      "why": "Prototype instantiation notes document preview artifacts; useful to align generate/explore-auto outputs."
+    },
+    {
+      "file": "ccw/src/tools/command-registry.ts",
+      "anchor": "const normalized = commandName.startsWith('/workflow:')",
+      "why": "Slash command normalization pattern; useful to validate command naming and discovery assumptions."
+    }
+  ]
+}
+

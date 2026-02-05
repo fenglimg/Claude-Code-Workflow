@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/ccw-test",
+      "file_path": ".claude/commands/ccw-test.md",
+      "score": 1,
+      "why": "Direct oracle for this command; contains the required 5-phase workflow, modes, tracking, and examples."
+    },
+    {
+      "slash": "/ccw-plan",
+      "file_path": ".claude/commands/ccw-plan.md",
+      "score": 0.88,
+      "why": "Same coordinator pattern: 5-phase workflow, mode detection, command chain mapping, optional confirmation, session dir + status.json, TodoWrite tracking."
+    },
+    {
+      "slash": "/ccw-debug",
+      "file_path": ".claude/commands/ccw-debug.md",
+      "score": 0.84,
+      "why": "Very similar coordinator scaffolding (analysis -> strategy -> confirm -> tracking -> execute) and shares testing-oriented subchains."
+    },
+    {
+      "slash": "/workflow:test-fix-gen",
+      "file_path": ".claude/commands/workflow/test-fix-gen.md",
+      "score": 0.78,
+      "why": "Primary subcommand in ccw-test command-chain mapping for gen/fix modes; provides test-generation patterns."
+    },
+    {
+      "slash": "/workflow:test-cycle-execute",
+      "file_path": ".claude/commands/workflow/test-cycle-execute.md",
+      "score": 0.74,
+      "why": "Primary iterative subcommand in ccw-test fix mode; provides auto-iteration and execution/fix loop patterns."
+    }
+  ],
+  "selected": {
+    "slash": "/ccw-test",
+    "file_path": ".claude/commands/ccw-test.md",
+    "reason": "Requirement doc explicitly designates this command doc as the oracle; use it to validate outline completeness and avoid drift."
+  }
+}
+

@@ -1,0 +1,12 @@
+Used skill `slash-command-outliner` (to generate CCW-aligned outlines + evidence-gated pointers from the requirement doc).
+
+Wrote outputs to:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-010/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-010/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-010/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-010/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-010/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-010/specs/outputs/fix-plan.md`
+
+Evidence gate:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.../gap-report.md --file=.../generated-slash-outline.md` ✅ passed

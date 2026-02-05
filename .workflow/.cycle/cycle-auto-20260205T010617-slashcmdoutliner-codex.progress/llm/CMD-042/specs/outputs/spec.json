@@ -1,0 +1,42 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "plan-verify",
+    "description": "Perform READ-ONLY verification analysis between IMPL_PLAN.md, task JSONs, and brainstorming artifacts. Generates structured report with quality gate recommendation. Does NOT modify any files.",
+    "argument_hint": "[optional: --session session-id]",
+    "allowed_tools": ["Read(*)", "Write(*)", "Glob(*)", "Bash(*)"]
+  },
+  "intent": {
+    "type": "analyze",
+    "interaction": "single-shot",
+    "primary_user_value": "Produce a structured verification report that highlights gaps/inconsistencies between the implementation plan, task JSONs, and synthesis artifacts, with a clear proceed/block recommendation."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active",
+      ".workflow/active/WFS-{session}/workflow-session.json (optional)",
+      ".workflow/active/WFS-{session}/planning-notes.md (optional)",
+      ".workflow/active/WFS-{session}/IMPL_PLAN.md",
+      ".workflow/active/WFS-{session}/.task/*.json",
+      ".workflow/active/WFS-{session}/.brainstorming/*/analysis.md"
+    ],
+    "writes": [".workflow/active/WFS-{session}/.process/PLAN_VERIFICATION.md"]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 300,
+    "must_not": [
+      "Modify IMPL_PLAN.md, any task JSONs, or brainstorming artifacts",
+      "Create, delete, or rename task files",
+      "Write outside .workflow/active/WFS-{session}/.process/PLAN_VERIFICATION.md"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Writes PLAN_VERIFICATION.md containing: executive summary (recommendation), findings summary, analysis by dimension, findings by severity, and next steps",
+      "Hard-fails when required artifacts are missing (synthesis role analysis files, IMPL_PLAN.md, task JSONs); warns and continues when optional artifacts are missing",
+      "Generated outline + gap report include evidence tables with pointers labeled Existing/Planned and dual-source evidence (docs + TS)"
+    ]
+  }
+}
+

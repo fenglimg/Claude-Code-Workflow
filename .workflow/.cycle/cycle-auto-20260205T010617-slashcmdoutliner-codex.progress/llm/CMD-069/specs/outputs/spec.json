@@ -1,0 +1,55 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "design-sync",
+    "description": "Synchronize finalized design system references to brainstorming artifacts, preparing them for /workflow:plan consumption",
+    "argument_hint": "--session <session_id> [--selected-prototypes \"<list>\"]",
+    "allowed_tools": ["Read(*)", "Write(*)", "Edit(*)", "TodoWrite(*)", "Glob(*)", "Bash(*)"]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "single-shot",
+    "primary_user_value": "Update brainstorming artifacts to reference the latest design system (via @ links) so /workflow:plan can automatically discover tokens, style guide, and selected prototypes."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/WFS-{session}/.brainstorming/role analysis documents",
+      ".workflow/active/WFS-{session}/.brainstorming/ui-designer/analysis*.md",
+      ".workflow/active/WFS-{session}/.brainstorming/*/analysis*.md",
+      ".workflow/active/WFS-{session}/design-run-* (existence checks only)",
+      ".workflow/active/WFS-{session}/design-run-*/style-extraction/**/design-tokens.json (existence checks only)",
+      ".workflow/active/WFS-{session}/design-run-*/style-extraction/**/style-guide.md (existence checks only)",
+      ".workflow/active/WFS-{session}/design-run-*/prototypes/*.html (existence checks only)",
+      ".workflow/active/WFS-{session}/design-run-*/prototypes/*-notes.md (optional, minimal context)"
+    ],
+    "writes": [
+      ".workflow/active/WFS-{session}/.brainstorming/role analysis documents",
+      ".workflow/active/WFS-{session}/.brainstorming/ui-designer/analysis*.md",
+      ".workflow/active/WFS-{session}/.brainstorming/ui-designer/design-system-reference.md",
+      ".workflow/active/WFS-{session}/.brainstorming/ux-expert/analysis*.md (conditional)",
+      ".workflow/active/WFS-{session}/.brainstorming/system-architect/analysis*.md (conditional)",
+      ".workflow/active/WFS-{session}/.brainstorming/product-manager/analysis*.md (conditional)",
+      ".workflow/active/WFS-{session}/.process/context-package.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 900,
+    "must_not": [
+      "Do not read design-tokens.json, style-guide.md, or prototype HTML contents (existence check only; generate @ references).",
+      "Do not duplicate design content into brainstorming artifacts; references only.",
+      "Do not make unrelated changes outside the target session folder.",
+      "Do not claim pointers are Existing unless verifiable in the repo right now."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Slash doc frontmatter has name/description/allowed-tools",
+      "Allowed-tools match actual required operations (Read/Write/Edit/Glob/Bash/TodoWrite)",
+      "Core sections present: Overview, Usage, Execution Process, Outputs / Artifacts, Error Handling",
+      "No broken artifact references (session-scoped paths are created/updated by the command)",
+      "Implementation pointers labeled Existing vs Planned with dual-source evidence (docs + ccw/src anchor)"
+    ]
+  }
+}
+

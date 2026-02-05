@@ -1,0 +1,13 @@
+Used skill `slash-command-outliner` templates + quality gates for CMD-046 and wrote the requested outputs under:
+`.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-046/specs/outputs/`
+
+- `spec.json`
+- `references.json`
+- `generated-slash-outline.md`
+- `generated-agent-outline.md`
+- `gap-report.md`
+- `fix-plan.md`
+
+Evidence gates:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.../generated-slash-outline.md` ✅
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.../gap-report.md` ✅

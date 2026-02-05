@@ -1,0 +1,13 @@
+Wrote CMD-031 slash-command-outliner outputs under:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-031/specs/outputs/`
+
+Files created:
+- `.../spec.json`
+- `.../references.json`
+- `.../generated-slash-outline.md`
+- `.../generated-agent-outline.md`
+- `.../gap-report.md`
+- `.../fix-plan.md`
+
+Quality gate:
+- Ran `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js` on `gap-report.md` + `generated-slash-outline.md` → `OK: evidence verification passed`.

@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:session:list",
+      "file_path": ".claude/commands/workflow/session/list.md",
+      "score": 0.92,
+      "why": "Same session family; enumerates WFS sessions, reads workflow-session.json, uses recent-session selection patterns."
+    },
+    {
+      "slash": "/workflow:session:start",
+      "file_path": ".claude/commands/workflow/session/start.md",
+      "score": 0.86,
+      "why": "Same artifacts (.workflow/active/WFS-*); covers session discovery and conflict handling patterns."
+    },
+    {
+      "slash": "/workflow:session:complete",
+      "file_path": ".claude/commands/workflow/session/complete.md",
+      "score": 0.78,
+      "why": "Same session metadata file; demonstrates state transitions and safe/atomic file operations conventions."
+    },
+    {
+      "slash": "/workflow:session:solidify",
+      "file_path": ".claude/commands/workflow/session/solidify.md",
+      "score": 0.62,
+      "why": "Shows JSON read/modify/write patterns and optional interactive behavior; related lifecycle step after completion."
+    },
+    {
+      "slash": "/workflow:unified-execute-with-file",
+      "file_path": ".claude/commands/workflow/unified-execute-with-file.md",
+      "score": 0.41,
+      "why": "Contains a 'Session Resume' section but focuses on execution sessions rather than WFS workflow sessions."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:session:list",
+    "file_path": ".claude/commands/workflow/session/list.md",
+    "why": "Closest match for session discovery + metadata inspection without introducing archival/interactive complexity."
+  }
+}
+

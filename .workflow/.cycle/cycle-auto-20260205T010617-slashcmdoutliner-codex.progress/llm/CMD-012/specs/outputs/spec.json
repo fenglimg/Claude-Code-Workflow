@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-02-04T19:36:58.4587234Z",
+  "command": {
+    "group": "issue",
+    "name": "discover",
+    "description": "Discover potential issues from multiple perspectives (bug, UX, test, quality, security, performance, maintainability, best-practices) using CLI explore; optionally enrich with external research for security and best-practices.",
+    "argument_hint": "[-y|--yes] <path-pattern> [--perspectives=bug,ux,...] [--external]",
+    "usage_args": "<path-pattern> [--perspectives=bug,ux,test,quality,security,performance,maintainability,best-practices] [--external] [-y|--yes]",
+    "allowed_tools": [
+      "Skill(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Bash(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Glob(*)",
+      "Grep(*)"
+    ]
+  },
+  "intent": {
+    "type": "analyze",
+    "interaction": "iterative",
+    "primary_user_value": "Produce a discovery session (findings + candidate issues) scoped to the user-specified files/modules, with optional export into the issue workflow."
+  },
+  "artifacts": {
+    "reads": [
+      "<path-pattern>",
+      ".workflow/project-tech.json",
+      ".claude/workflows/cli-templates/schemas/discovery-state-schema.json",
+      ".claude/workflows/cli-templates/schemas/discovery-finding-schema.json",
+      ".claude/workflows/cli-templates/schemas/issues-jsonl-schema.json"
+    ],
+    "writes": [
+      ".workflow/issues/discoveries/index.json",
+      ".workflow/issues/discoveries/{discovery-id}/discovery-state.json",
+      ".workflow/issues/discoveries/{discovery-id}/perspectives/{perspective}.json",
+      ".workflow/issues/discoveries/{discovery-id}/external-research.json",
+      ".workflow/issues/discoveries/{discovery-id}/discovery-issues.jsonl",
+      ".workflow/issues/discoveries/{discovery-id}/summary.md",
+      ".workflow/issues/issues.jsonl"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 3,
+    "time_budget_seconds": 1800,
+    "must_not": [
+      "Do not expand scope beyond the user-provided <path-pattern> (no whole-repo scanning by default).",
+      "Do not run external research unless --external is explicitly provided.",
+      "Do not export findings as issues without user confirmation (unless --yes).",
+      "Do not overwrite an existing discovery session; always create a new {discovery-id}."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter has name, description, allowed-tools (argument-hint optional).",
+      "Outline includes required sections: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling.",
+      "All artifact paths referenced are either produced by the command or explicitly pre-existing."
+    ]
+  }
+}
+

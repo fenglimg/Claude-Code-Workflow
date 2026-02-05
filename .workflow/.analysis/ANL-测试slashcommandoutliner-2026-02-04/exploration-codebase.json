@@ -1,0 +1,79 @@
+{
+  "session_id": "ANL-测试slashcommandoutliner-2026-02-04",
+  "timestamp": "2026-02-04T23:55:57+08:00",
+  "topic": "如何测试 .claude/skills/slash-command-outliner 以确保能够达到效果",
+  "relevant_files": [
+    {
+      "path": ".claude/skills/slash-command-outliner/SKILL.md",
+      "why": "Skill 目标/阶段/硬规则/可选确定性验证脚本入口"
+    },
+    {
+      "path": ".claude/skills/slash-command-outliner/specs/quality-gates.md",
+      "why": "P0 gate 定义（frontmatter、sections、evidence Existing/Planned、非回归策略）"
+    },
+    {
+      "path": ".claude/skills/slash-command-outliner/specs/corpus-scope.md",
+      "why": "测试/验证需要覆盖的语料范围：.claude/commands + ccw/src tooling/server"
+    },
+    {
+      "path": ".claude/skills/slash-command-outliner/phases/04-gap-report-and-iterate.md",
+      "why": "明确要求运行确定性 evidence gate（verify-evidence.js）作为 P0"
+    },
+    {
+      "path": ".claude/skills/slash-command-outliner/scripts/README.md",
+      "why": "脚本使用说明：scan-corpus / regress-all / verify-evidence"
+    },
+    {
+      "path": ".claude/skills/slash-command-outliner/scripts/scan-corpus.js",
+      "why": "扫描 .claude/commands 输出命令清单（可用于构造 corpus-manifest）"
+    },
+    {
+      "path": ".claude/skills/slash-command-outliner/scripts/regress-all.js",
+      "why": "全量回归入口；读取 corpus-manifest + tooling-manifest；生成 current/expected/diff 快照"
+    },
+    {
+      "path": ".claude/skills/slash-command-outliner/scripts/verify-evidence.js",
+      "why": "对 LLM 输出（outline/gap-report）的 evidence 表格进行确定性校验"
+    },
+    {
+      "path": ".claude/skills/slash-command-outliner/scripts/verify-evidence.test.js",
+      "why": "使用 node:test 的现有单测样例（可作为测试入口）"
+    },
+    {
+      "path": ".claude/skills/slash-command-outliner/scripts/lib/pipeline.js",
+      "why": "确定性管线：deriveSpecFromCommandFile / renderOutlineFromSpec / computeGapReport"
+    },
+    {
+      "path": ".claude/commands/**.md",
+      "why": "命令语料；verify-evidence dual-source 证据来源之一"
+    },
+    {
+      "path": "ccw/src/**",
+      "why": "verify-evidence dual-source 证据来源之一；implementation-hints tooling corpus"
+    }
+  ],
+  "patterns": [
+    "确定性脚本（Node ESM）+ node:test 单测（verify-evidence.test.js）",
+    "证据门禁：Existing/Planned + docs/ts 双证据 + 可验证路径/anchor（verify-evidence.js）",
+    "非回归快照：regression/current vs expected，diff 阻断（regress-all.js + specs/quality-gates.md）"
+  ],
+  "constraints": [
+    "regress-all.js 依赖 cycle 目录结构：.workflow/.cycle/<id>.progress/corpus/{corpus-manifest.json,tooling-manifest.json}",
+    "repo 当前存在 cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress，但缺少 corpus/ 下的 manifests（regress-all 默认会失败）",
+    "Windows 路径分隔符：脚本内部会 normalize 为 POSIX（replaceAll('\\\\','/'))"
+  ],
+  "integration_points": [
+    ".claude/skills/slash-command-outliner <-> .claude/commands (语料扫描/引用/证据)",
+    "slash-command-outliner scripts <-> ccw/src (tooling/server corpus，用于 hints/证据)",
+    "regress-all <-> .workflow/.cycle (非回归快照存储与差异输出)"
+  ],
+  "_metadata": {
+    "node_version": "v20.16.0",
+    "tools_used": [
+      "ccw tool exec get_modules_by_depth",
+      "gemini -p (headless)",
+      "node --test (planned)"
+    ]
+  }
+}
+

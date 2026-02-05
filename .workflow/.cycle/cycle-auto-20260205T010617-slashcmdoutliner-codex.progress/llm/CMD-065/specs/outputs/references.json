@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:tools:test-context-gather",
+      "file_path": ".claude/commands/workflow/tools/test-context-gather.md",
+      "score": 1.0,
+      "why": "Exact oracle command doc for the requested behavior, headings, artifacts, and agent invocation flow."
+    },
+    {
+      "slash": "/workflow:tools:context-gather",
+      "file_path": ".claude/commands/workflow/tools/context-gather.md",
+      "score": 0.9,
+      "why": "Closest orchestrator pattern (detection-first + Task subagent + standardized package write under .workflow/active/{session}/.process)."
+    },
+    {
+      "slash": "/workflow:tools:tdd-coverage-analysis",
+      "file_path": ".claude/commands/workflow/tools/tdd-coverage-analysis.md",
+      "score": 0.8,
+      "why": "Coverage-oriented analysis patterns and validation steps that align with 'coverage-first' philosophy."
+    },
+    {
+      "slash": "/workflow:tools:test-concept-enhanced",
+      "file_path": ".claude/commands/workflow/tools/test-concept-enhanced.md",
+      "score": 0.75,
+      "why": "Test workflow tool with structured outputs and integration points in the test pipeline."
+    },
+    {
+      "slash": "/workflow:tools:test-task-generate",
+      "file_path": ".claude/commands/workflow/tools/test-task-generate.md",
+      "score": 0.7,
+      "why": "Downstream consumer of test-context packages; useful to keep output schema/artifacts compatible."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:tools:test-context-gather",
+    "file_path": ".claude/commands/workflow/tools/test-context-gather.md",
+    "why": "Use the dedicated command doc as the primary oracle, then gap-check against tooling (ccw/src/tools registry + session_manager routing)."
+  }
+}
+

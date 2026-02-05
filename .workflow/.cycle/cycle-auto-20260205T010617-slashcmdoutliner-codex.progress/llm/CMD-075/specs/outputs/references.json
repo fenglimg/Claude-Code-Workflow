@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "cycle-auto-20260205T010617-slashcmdoutliner-codex",
+  "command_id": "CMD-075",
+  "generated_at": "2026-02-05T12:59:40.1234744Z",
+  "candidates": [
+    {
+      "slash": "/workflow:ui-design:generate",
+      "file_path": ".claude/commands/workflow/ui-design/generate.md",
+      "score": 0.92,
+      "why": [
+        "Same workflow/ui-design family",
+        "Uses Task(ui-design-agent) + Bash + Read/Write + TodoWrite",
+        "Produces shareable HTML/CSS artifacts from a design-run base path"
+      ]
+    },
+    {
+      "slash": "/workflow:ui-design:import-from-code",
+      "file_path": ".claude/commands/workflow/ui-design/import-from-code.md",
+      "score": 0.86,
+      "why": [
+        "Same workflow/ui-design family and phase-style execution model",
+        "Validates paths and writes structured artifacts under .workflow/",
+        "Heavy use of Bash for file discovery/copy and Task(ui-design-agent)"
+      ]
+    },
+    {
+      "slash": "/workflow:ui-design:layout-extract",
+      "file_path": ".claude/commands/workflow/ui-design/layout-extract.md",
+      "score": 0.78,
+      "why": [
+        "Same extraction-artifact workflow (layout-extraction/*)",
+        "Validation + output structure sections match expected outline sections",
+        "Uses agent tasks and writes deterministic files under a design-run directory"
+      ]
+    },
+    {
+      "slash": "/workflow:ui-design:reference-page-generator",
+      "file_path": ".claude/commands/workflow/ui-design/reference-page-generator.md",
+      "score": 0.75,
+      "why": [
+        "Oracle command doc for this command; used for verification, not as the reference pattern"
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:ui-design:generate",
+    "file_path": ".claude/commands/workflow/ui-design/generate.md",
+    "score": 0.92,
+    "why": [
+      "Closest end-to-end execution shape: validate inputs -> prepare artifacts -> agent-generated HTML/CSS outputs",
+      "Same UI design subfamily conventions and tool surface"
+    ]
+  }
+}
+

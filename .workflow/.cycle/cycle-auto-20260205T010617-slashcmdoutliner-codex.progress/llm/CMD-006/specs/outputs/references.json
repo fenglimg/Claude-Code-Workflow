@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/cli:cli-init",
+      "file_path": ".claude/commands/cli/cli-init.md",
+      "score": 1.0,
+      "why": "Exact command; matches group, artifacts, and allowed-tools surface."
+    },
+    {
+      "slash": "/cli:codex-review",
+      "file_path": ".claude/commands/cli/codex-review.md",
+      "score": 0.72,
+      "why": "Same group (cli); similar CLI-style options + EXECUTION INSTRUCTIONS structure."
+    },
+    {
+      "slash": "/workflow:init",
+      "file_path": ".claude/commands/workflow/init.md",
+      "score": 0.68,
+      "why": "Initialization workflow; uses get_modules_by_depth early and produces workspace artifacts."
+    },
+    {
+      "slash": "/workflow:analyze-with-file",
+      "file_path": ".claude/commands/workflow/analyze-with-file.md",
+      "score": 0.62,
+      "why": "Calls get_modules_by_depth early; structured steps and validation checklists."
+    },
+    {
+      "slash": "/workflow:brainstorm-with-file",
+      "file_path": ".claude/commands/workflow/brainstorm-with-file.md",
+      "score": 0.55,
+      "why": "Tool-driven workspace scan patterns; integrates generated outputs into next steps."
+    }
+  ],
+  "selected": {
+    "slash": "/cli:cli-init",
+    "file_path": ".claude/commands/cli/cli-init.md",
+    "why": "Oracle command doc specified by requirements; use as the primary reference for gaps and non-regression."
+  }
+}
+

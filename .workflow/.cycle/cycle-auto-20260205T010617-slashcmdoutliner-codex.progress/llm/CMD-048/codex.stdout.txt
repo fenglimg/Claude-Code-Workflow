@@ -1,0 +1,12 @@
+Wrote CMD-048 outputs under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-048/specs/outputs/`:
+
+- `spec.json`
+- `references.json` (selected oracle: `.claude/commands/workflow/review.md`)
+- `generated-slash-outline.md`
+- `generated-agent-outline.md`
+- `gap-report.md`
+- `fix-plan.md`
+
+Evidence gates passed:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-048/specs/outputs/generated-slash-outline.md`
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-048/specs/outputs/gap-report.md`

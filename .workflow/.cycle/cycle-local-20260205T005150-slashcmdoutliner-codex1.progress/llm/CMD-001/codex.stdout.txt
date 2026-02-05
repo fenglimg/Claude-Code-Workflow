@@ -1,0 +1,13 @@
+Wrote CMD-001 outputs under `.workflow/.cycle/cycle-local-20260205T005150-slashcmdoutliner-codex1.progress/llm/CMD-001/specs/outputs/`:
+
+- `spec.json`
+- `references.json`
+- `generated-slash-outline.md`
+- `generated-agent-outline.md`
+- `gap-report.md`
+- `fix-plan.md`
+
+Evidence gates (P0) passed:
+
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-local-20260205T005150-slashcmdoutliner-codex1.progress/llm/CMD-001/specs/outputs/gap-report.md`
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-local-20260205T005150-slashcmdoutliner-codex1.progress/llm/CMD-001/specs/outputs/generated-slash-outline.md`

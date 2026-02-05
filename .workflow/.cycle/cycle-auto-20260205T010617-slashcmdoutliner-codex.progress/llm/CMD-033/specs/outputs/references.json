@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-02-05T11:59:43.8480953+08:00",
+  "for_command": {
+    "group": "workflow",
+    "name": "collaborative-plan-with-file"
+  },
+  "scoring_rubric": {
+    "same_group": 0.4,
+    "planning_intent": 0.3,
+    "parallel_or_task_oriented": 0.2,
+    "workflow_artifacts": 0.1
+  },
+  "candidates": [
+    {
+      "slash": "/workflow:multi-cli-plan",
+      "file_path": ".claude/commands/workflow/multi-cli-plan.md",
+      "score": 0.95,
+      "why": [
+        "workflow planning command family",
+        "Task/AskUserQuestion-driven multi-phase orchestration",
+        "writes planning artifacts under .workflow",
+        "covers iterative decision/validation loops"
+      ]
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 0.85,
+      "why": [
+        "workflow planning baseline with phases and auto mode",
+        "strong section structure and output artifact conventions",
+        "good reference for error handling and confirmations"
+      ]
+    },
+    {
+      "slash": "/workflow:lite-plan",
+      "file_path": ".claude/commands/workflow/lite-plan.md",
+      "score": 0.70,
+      "why": [
+        "simpler planning flow with -y auto mode",
+        "useful for concise usage/examples patterns"
+      ]
+    },
+    {
+      "slash": "/workflow:plan-verify",
+      "file_path": ".claude/commands/workflow/plan-verify.md",
+      "score": 0.65,
+      "why": [
+        "planning validation and quality gates",
+        "helpful for acceptance criteria and verification steps"
+      ]
+    },
+    {
+      "slash": "/workflow:unified-execute-with-file",
+      "file_path": ".claude/commands/workflow/unified-execute-with-file.md",
+      "score": 0.60,
+      "why": [
+        "workflow session folder + artifact handling patterns",
+        "useful error handling and file I/O conventions"
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:multi-cli-plan",
+    "file_path": ".claude/commands/workflow/multi-cli-plan.md",
+    "why": "Closest match on iterative orchestration + Task-driven delegation + planning artifacts; use as structure/style reference."
+  }
+}
+

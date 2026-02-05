@@ -1,0 +1,183 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/ccw-coordinator.md",
+  "created_at": "2026-02-04T15:59:07.157Z",
+  "command": {
+    "group": "",
+    "name": "ccw-coordinator",
+    "description": "Command orchestration tool - analyze requirements, recommend chain, execute sequentially with state persistence",
+    "argument_hint": "[task description]",
+    "allowed_tools": [
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Write(*)",
+      "Bash(*)",
+      "Glob(*)",
+      "Grep(*)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/ccw-coordinator.md",
+    "code_pointers": [
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor.ts",
+      ".claude/commands/workflow/lite-plan.md",
+      ".claude/commands/workflow/lite-execute.md",
+      ".claude/commands/workflow/test-cycle-execute.md",
+      ".claude/commands/workflow/plan.md",
+      ".claude/commands/issue/discover.md",
+      ".claude/commands/issue/plan.md",
+      ".claude/commands/issue/queue.md",
+      ".claude/commands/issue/execute.md"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "CCW Coordinator Command"
+      },
+      {
+        "level": 2,
+        "text": "Core Concept: Minimum Execution Units (最小执行单元)"
+      },
+      {
+        "level": 3,
+        "text": "What is a Minimum Execution Unit?"
+      },
+      {
+        "level": 3,
+        "text": "Minimum Execution Units"
+      },
+      {
+        "level": 3,
+        "text": "Command-to-Unit Mapping (命令与最小单元的映射)"
+      },
+      {
+        "level": 3,
+        "text": "Atomic Group Rules"
+      },
+      {
+        "level": 2,
+        "text": "3-Phase Workflow"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Analyze Requirements"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Discover Commands & Recommend Chain"
+      },
+      {
+        "level": 4,
+        "text": "Command Port Definition"
+      },
+      {
+        "level": 4,
+        "text": "Recommendation Algorithm"
+      },
+      {
+        "level": 4,
+        "text": "Display to User"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2b: Get User Confirmation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: Execute Sequential Command Chain"
+      },
+      {
+        "level": 2,
+        "text": "State File Structure"
+      },
+      {
+        "level": 3,
+        "text": "Status Flow"
+      },
+      {
+        "level": 3,
+        "text": "Field Descriptions"
+      },
+      {
+        "level": 2,
+        "text": "CommandRegistry Integration"
+      },
+      {
+        "level": 2,
+        "text": "Universal Prompt Template"
+      },
+      {
+        "level": 3,
+        "text": "Standard Format"
+      },
+      {
+        "level": 3,
+        "text": "Prompt Content Template"
+      },
+      {
+        "level": 3,
+        "text": "Template Variables"
+      },
+      {
+        "level": 3,
+        "text": "Command Parameter Patterns"
+      },
+      {
+        "level": 3,
+        "text": "Complete Examples"
+      },
+      {
+        "level": 2,
+        "text": "Execution Flow"
+      },
+      {
+        "level": 2,
+        "text": "Key Design Principles"
+      },
+      {
+        "level": 2,
+        "text": "CLI Execution Model"
+      },
+      {
+        "level": 3,
+        "text": "CLI Invocation Format"
+      },
+      {
+        "level": 3,
+        "text": "Prompt Assembly"
+      },
+      {
+        "level": 1,
+        "text": "Planning command"
+      },
+      {
+        "level": 1,
+        "text": "Execution command (with session reference)"
+      },
+      {
+        "level": 1,
+        "text": "Lite execution (in-memory from previous plan)"
+      },
+      {
+        "level": 3,
+        "text": "Serial Blocking"
+      },
+      {
+        "level": 2,
+        "text": "Available Commands"
+      },
+      {
+        "level": 3,
+        "text": "Testing Commands Distinction"
+      },
+      {
+        "level": 3,
+        "text": "Task Type Routing (Pipeline Summary)"
+      }
+    ]
+  }
+}

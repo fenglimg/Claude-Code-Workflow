@@ -1,0 +1,62 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "explore-auto",
+    "description": "Interactive exploratory UI design workflow with style-centric batch generation, creates design variants from prompts/images with parallel execution and user selection",
+    "argument_hint": "[--input \"<value>\"] [--targets \"<list>\"] [--target-type \"page|component\"] [--session <id>] [--style-variants <count>] [--layout-variants <count>]",
+    "allowed_tools": [
+      "Skill(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Bash(*)",
+      "Glob(*)",
+      "Write(*)",
+      "Task(conceptual-planning-agent)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "loop",
+    "primary_user_value": "Generate a matrix of UI prototypes by extracting styles/layouts from prompts/images/code with one confirmation step, then auto-running phases to assemble and preview variants."
+  },
+  "artifacts": {
+    "reads": [
+      "--input (prompt text and/or file paths/globs; multiple inputs split by '|')",
+      "Image inputs resolved via Glob (e.g., design-refs/*, screenshots/*.png)",
+      "Code inputs (directory/file path) for optional import + completeness assessment",
+      ".workflow/active/WFS-{session}/ (if --session; existence and base resolution)",
+      "{base_path}/style-extraction/style-1/design-tokens.json (existence checks; optional pass-through reads)",
+      "{base_path}/animation-extraction/animation-tokens.json (existence checks; optional pass-through reads)",
+      "{base_path}/layout-extraction/layout-*.json (existence checks; optional pass-through reads)"
+    ],
+    "writes": [
+      ".workflow/{design_id}/.run-metadata.json (no --session)",
+      ".workflow/active/WFS-{session}/{design_id}/.run-metadata.json (with --session)",
+      "{base_path}/style-extraction/**",
+      "{base_path}/animation-extraction/** (conditional)",
+      "{base_path}/layout-extraction/**",
+      "{base_path}/prototypes/** (including compare.html and PREVIEW.md)"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 2,
+    "time_budget_seconds": 3600,
+    "must_not": [
+      "Do not introduce additional user interaction points after Phase 5 target confirmation.",
+      "Do not stop between phases 7-10; auto-continue after each task-attachment/collapse cycle until Phase 10 completes.",
+      "Do not write outside the computed {base_path} under .workflow/ (except read-only discovery checks).",
+      "Do not delete anything outside {base_path} when cleaning prior artifacts.",
+      "Do not claim pointers are Existing unless verifiable in the repo right now."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Slash doc frontmatter has name/description/allowed-tools",
+      "Allowed-tools match the required operations (Skill/TodoWrite/Read/Write/Glob/Bash/Task)",
+      "Core sections present: Overview, Usage, Execution Process, Outputs / Artifacts, Error Handling",
+      "No broken artifact references (run/session-scoped paths are created/updated by the workflow)",
+      "Implementation pointers labeled Existing vs Planned with dual-source evidence (docs + ccw/src anchor)"
+    ]
+  }
+}
+

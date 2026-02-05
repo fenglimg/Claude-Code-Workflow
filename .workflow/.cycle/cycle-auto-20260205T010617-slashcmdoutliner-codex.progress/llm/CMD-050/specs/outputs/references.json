@@ -1,0 +1,39 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:session:list",
+      "file_path": ".claude/commands/workflow/session/list.md",
+      "score": 1,
+      "why": "Exact command oracle for session listing structure, metadata fields, progress counts, and output format."
+    },
+    {
+      "slash": "/workflow:session:start",
+      "file_path": ".claude/commands/workflow/session/start.md",
+      "score": 0.86,
+      "why": "Same session family; enumerates .workflow/active sessions and reads workflow-session.json for metadata."
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 0.78,
+      "why": "Contains a discovery phase that lists sessions with metadata and handles 'no/single/multiple sessions' cases."
+    },
+    {
+      "slash": "/workflow:session:complete",
+      "file_path": ".claude/commands/workflow/session/complete.md",
+      "score": 0.72,
+      "why": "Reads session metadata and counts artifacts; useful for defining progress/statistics conventions."
+    },
+    {
+      "slash": "/workflow:review-session-cycle",
+      "file_path": ".claude/commands/workflow/review-session-cycle.md",
+      "score": 0.6,
+      "why": "Operates over workflow sessions and their artifacts; useful for shared session path conventions."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:session:list",
+    "file_path": ".claude/commands/workflow/session/list.md",
+    "why": "Best-fit reference and required oracle for CMD-050."
+  }
+}

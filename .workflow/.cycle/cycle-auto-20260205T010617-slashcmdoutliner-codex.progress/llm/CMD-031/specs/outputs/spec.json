@@ -1,0 +1,52 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "synthesis",
+    "description": "Clarify and refine role analyses through intelligent Q&A and targeted updates with synthesis agent",
+    "argument_hint": "[-y|--yes] [optional: --session session-id]",
+    "allowed_tools": [
+      "Task(conceptual-planning-agent)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Glob(*)",
+      "AskUserQuestion(*)"
+    ]
+  },
+  "intent": {
+    "type": "brainstorm",
+    "interaction": "iterative",
+    "primary_user_value": "Collect targeted clarifications, propose enhancements, and apply selected updates across role analysis documents within a workflow session."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/WFS-*/workflow-session.json",
+      ".workflow/active/WFS-*/.brainstorming/*/analysis*.md",
+      ".workflow/active/WFS-*/.process/context-package.json",
+      "guidance-specification.md"
+    ],
+    "writes": [
+      ".workflow/active/WFS-*/.brainstorming/*/analysis*.md",
+      ".workflow/active/WFS-*/.process/context-package.json",
+      ".workflow/active/WFS-*/workflow-session.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 0,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not claim repo pointers as Existing unless verifiable in the repo now.",
+      "Do not exceed 4 questions per AskUserQuestion call.",
+      "Do not expose sensitive information from local files."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name/description/allowed-tools (argument-hint recommended).",
+      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling.",
+      "Evidence tables include dual-source docs + TS anchors and pass verify-evidence.js."
+    ]
+  }
+}
+

@@ -1,0 +1,11 @@
+Wrote CMD-012 outputs under:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-012/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-012/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-012/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-012/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-012/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-012/specs/outputs/fix-plan.md`
+
+Evidence gates:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.../gap-report.md` -> OK
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.../generated-slash-outline.md` -> OK

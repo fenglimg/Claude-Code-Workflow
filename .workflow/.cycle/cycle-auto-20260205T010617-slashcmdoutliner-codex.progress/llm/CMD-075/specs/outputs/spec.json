@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "cycle-auto-20260205T010617-slashcmdoutliner-codex",
+  "command_id": "CMD-075",
+  "derived_from": ".claude/commands/workflow/ui-design/reference-page-generator.md",
+  "created_at": "2026-02-05T12:59:40.1234744Z",
+  "command": {
+    "group": "workflow",
+    "name": "ui-design:reference-page-generator",
+    "description": "Generate multi-component reference pages and documentation from design run extraction",
+    "argument_hint": "[--design-run <path>] [--package-name <name>] [--output-dir <path>]",
+    "allowed_tools": ["Read", "Write", "Bash", "Task", "TodoWrite"]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "single-shot",
+    "primary_user_value": "Generate a shareable reference package (tokens + layout templates + preview HTML/CSS) from an existing UI design run."
+  },
+  "artifacts": {
+    "reads": [
+      "<design-run>/layout-extraction/layout-templates.json",
+      "<design-run>/style-extraction/style-1/design-tokens.json",
+      "<design-run>/animation-extraction/animation-tokens.json (optional)",
+      "<output-dir>/<package-name>/metadata.json (optional; overwrite detection)"
+    ],
+    "writes": [
+      "<output-dir>/<package-name>/layout-templates.json",
+      "<output-dir>/<package-name>/design-tokens.json",
+      "<output-dir>/<package-name>/animation-tokens.json (optional)",
+      "<output-dir>/<package-name>/preview.html",
+      "<output-dir>/<package-name>/preview.css"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 900,
+    "must_not": [
+      "no MCP tools or web research",
+      "no destructive operations (rm/move) outside the output package directory",
+      "do not overwrite non-empty package directories unless they are validated as a prior package"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name/description/argument-hint/allowed-tools (+ group)",
+      "Validate required flags: --design-run and --package-name",
+      "Validate package-name format: ^[a-z0-9][a-z0-9-]*$",
+      "Validate design-run directory exists",
+      "Validate required extraction inputs exist (layout-templates.json + design-tokens.json)",
+      "Create package output directory (default .workflow/reference_style)",
+      "Copy extraction artifacts into package directory",
+      "Generate preview.html and preview.css via Task(ui-design-agent)",
+      "Print completion message with package location and generated file list"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      { "level": 1, "text": "UI Design: Reference Page Generator" },
+      { "level": 2, "text": "Overview" },
+      { "level": 2, "text": "Usage" },
+      { "level": 3, "text": "Command Syntax" },
+      { "level": 2, "text": "Flags" },
+      { "level": 2, "text": "Execution Process" },
+      { "level": 3, "text": "Phase 0: Setup & Validation" },
+      { "level": 3, "text": "Phase 1: Prepare Component Data" },
+      { "level": 3, "text": "Phase 2: Preview Generation (Final Phase)" },
+      { "level": 2, "text": "Output Structure" },
+      { "level": 2, "text": "Completion Message" },
+      { "level": 2, "text": "Error Handling" },
+      { "level": 3, "text": "Common Errors" }
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/ui-design/reference-page-generator.md",
+    "code_pointers": [
+      "ccw/src/core/routes/commands-routes.ts",
+      "ccw/src/config/storage-paths.ts",
+      ".claude/agents/ui-design-agent.md"
+    ]
+  }
+}
+

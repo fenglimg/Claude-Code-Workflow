@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "cycle-auto-20260205T010617-slashcmdoutliner-codex",
+  "command_id": "CMD-062",
+  "derived_from": ".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-062.requirements.md",
+  "command": {
+    "group": "workflow:tools",
+    "name": "task-generate-tdd",
+    "title": "Autonomous TDD Task Generation Command",
+    "description": "Autonomous TDD task generation using action-planning-agent with Red-Green-Refactor cycles, test-first structure, and cycle validation",
+    "argument_hint": "[-y|--yes] --session WFS-session-id",
+    "usage_args": "--session WFS-<session-id> [-y|--yes]",
+    "allowed_tools": [
+      "Task(action-planning-agent)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Write(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "mcp__ace-tool__search_context(*)"
+    ],
+    "allowed_tools_csv": "Task(action-planning-agent), AskUserQuestion(*), Read(*), Write(*), Glob(*), Bash(*), mcp__ace-tool__search_context(*)"
+  },
+  "intent": {
+    "type": "plan",
+    "interaction": "iterative",
+    "primary_user_value": "Generate TDD planning artifacts for a workflow session: IMPL_PLAN.md + IMPL-*.json tasks + TODO_LIST.md, with quantified Red-Green-Refactor cycles."
+  },
+  "inputs": {
+    "required": [
+      "--session WFS-<session-id>"
+    ],
+    "optional": [
+      "-y|--yes (auto mode: skip interactive configuration and use defaults)"
+    ]
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/{session-id}/.process/context-package.json",
+      ".workflow/active/{session-id}/.process/ANALYSIS_RESULTS.md (if present)",
+      ".workflow/active/{session-id}/.process/test-context-package.json (if present)",
+      ".workflow/active/{session-id}/.process/TEST_ANALYSIS_RESULTS.md (if present)"
+    ],
+    "writes": [
+      ".workflow/active/{session-id}/IMPL_PLAN.md",
+      ".workflow/active/{session-id}/.task/IMPL-*.json",
+      ".workflow/active/{session-id}/TODO_LIST.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 6,
+    "time_budget_seconds": 600,
+    "must_not": [
+      "Do not implement code changes; planning artifacts only.",
+      "Do not exceed 18 generated IMPL tasks for a single session.",
+      "Do not emit unquantified test requirements (must include explicit counts/targets)."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter is complete and allowed-tools matches actual behavior",
+      "Generated artifacts paths and naming follow session conventions",
+      "Each task includes a complete Red-Green-Refactor cycle with quantified test cases and coverage targets",
+      "Evidence tables are dual-source (docs + TS) and pass verify-evidence gate"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/tools/task-generate-tdd.md",
+    "code_pointers": [
+      ".claude/agents/action-planning-agent.md",
+      ".claude/commands/workflow/tdd-plan.md",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/commands/session-path-resolver.ts",
+      "ccw/src/core/session-scanner.ts"
+    ]
+  }
+}
+

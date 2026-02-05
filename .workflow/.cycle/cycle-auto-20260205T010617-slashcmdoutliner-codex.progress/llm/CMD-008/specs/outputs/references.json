@@ -1,0 +1,45 @@
+{
+  "candidates": [
+    {
+      "slash": "/ccw-coordinator",
+      "file_path": ".claude/commands/ccw-coordinator.md",
+      "score": 0.95,
+      "why": "Closest orchestration pattern: minimum execution units, multi-phase analysis, user confirmation, sequential execution, and persisted resumable state."
+    },
+    {
+      "slash": "/ccw",
+      "file_path": ".claude/commands/ccw.md",
+      "score": 0.80,
+      "why": "Also an orchestrator; useful for intent analysis + workflow routing patterns (but executes in main process, not external sequential executor)."
+    },
+    {
+      "slash": "/ccw-plan",
+      "file_path": ".claude/commands/ccw-plan.md",
+      "score": 0.55,
+      "why": "Has structured planning phases and artifact expectations that can inform coordinator recommendation output format."
+    },
+    {
+      "slash": "/ccw-test",
+      "file_path": ".claude/commands/ccw-test.md",
+      "score": 0.50,
+      "why": "Provides patterns for test-related routing and artifacts that should appear as atomic units in recommended pipelines."
+    },
+    {
+      "slash": "/meta-skill:flow-create",
+      "file_path": ".claude/commands/flow-create.md",
+      "score": 0.40,
+      "why": "Demonstrates an interactive, multi-phase generator flow with explicit file outputs and step-by-step execution."
+    }
+  ],
+  "selected": {
+    "slash": "/ccw-coordinator",
+    "file_path": ".claude/commands/ccw-coordinator.md",
+    "score": 0.95,
+    "why": "Selected as the primary reference because it matches the coordinator workflow and state persistence model most closely."
+  },
+  "oracle": {
+    "slash": "/codex-coordinator",
+    "file_path": ".claude/commands/codex-coordinator.md",
+    "why": "Oracle command doc for gap analysis; do not copy verbatim into spec/outlines."
+  }
+}

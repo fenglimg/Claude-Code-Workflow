@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "cycle-auto-20260205T010617-slashcmdoutliner-codex",
+  "command_id": "CMD-043",
+  "command": {
+    "group": "workflow",
+    "name": "plan",
+    "slash": "/workflow:plan"
+  },
+  "candidates": [
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 1.0,
+      "why": [
+        "Exact match (oracle) for CMD-043",
+        "Defines the 5-phase orchestration and artifacts"
+      ]
+    },
+    {
+      "slash": "/workflow:lite-plan",
+      "file_path": ".claude/commands/workflow/lite-plan.md",
+      "score": 0.82,
+      "why": [
+        "Same workflow family (planning)",
+        "Similar artifacts and session semantics"
+      ]
+    },
+    {
+      "slash": "/workflow:plan-verify",
+      "file_path": ".claude/commands/workflow/plan-verify.md",
+      "score": 0.78,
+      "why": [
+        "Quality-gate adjacent (plan verification)",
+        "Validates IMPL_PLAN.md and task JSON prerequisites"
+      ]
+    },
+    {
+      "slash": "/workflow:tools:task-generate-agent",
+      "file_path": ".claude/commands/workflow/tools/task-generate-agent.md",
+      "score": 0.75,
+      "why": [
+        "Phase 4 implementation-plan + task JSON generation",
+        "Defines expected deliverables and quality standards"
+      ]
+    },
+    {
+      "slash": "/workflow:tools:context-gather",
+      "file_path": ".claude/commands/workflow/tools/context-gather.md",
+      "score": 0.72,
+      "why": [
+        "Phase 2 context packaging + conflict risk signal",
+        "Defines context-package.json structure"
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:plan",
+    "file_path": ".claude/commands/workflow/plan.md",
+    "why": "Oracle reference for CMD-043 (exact command)."
+  }
+}
+

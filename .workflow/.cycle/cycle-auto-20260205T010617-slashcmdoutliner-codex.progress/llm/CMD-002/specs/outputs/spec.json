@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-02-05T01:26:51.7303891+08:00",
+  "derived_from": ".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-002.requirements.md",
+  "command": {
+    "group": "",
+    "name": "ccw-debug",
+    "description": "Debug coordinator - analyze issue, select debug strategy, execute debug workflow in main process",
+    "argument_hint": "[--mode cli|debug|test|bidirectional] [--yes|-y] \"bug description\"",
+    "usage_args": "[--mode cli|debug|test|bidirectional] [--yes|-y] \"bug description\"",
+    "allowed_tools": [
+      "Skill(*)",
+      "TodoWrite(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Bash(*)"
+    ]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "iterative",
+    "primary_user_value": "Turn a bug report into a chosen debug strategy (cli|debug|test|bidirectional), run the corresponding command chain, and track progress/state for resume/escalation."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/.ccw-debug/*/status.json",
+      ".claude/commands/**/*.md"
+    ],
+    "writes": [
+      ".workflow/.ccw-debug/{session_id}/status.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 0,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not run destructive operations unless the user explicitly requests",
+      "Do not claim pointers are Existing without repo-verifiable evidence",
+      "Do not leak full oracle command docs into the spec"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name, description, allowed-tools (argument-hint recommended)",
+      "Core sections present: Overview, Usage, Execution Process, Outputs / Artifacts, Error Handling",
+      "Evidence tables include dual-source evidence (docs + TS) for each pointer row",
+      "All pointers labeled Existing vs Planned; Existing pointers are verifiable paths"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/ccw-debug.md",
+    "code_pointers": [
+      "ccw/src/core/routes/commands-routes.ts",
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/core/routes/cli-routes.ts"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "CCW-Debug Command - Debug Coordinator"
+      },
+      {
+        "level": 2,
+        "text": "Execution Model"
+      },
+      {
+        "level": 2,
+        "text": "5-Phase Workflow"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Analyze Issue"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1.5: Issue Clarification (if clarity < 2)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Select Debug Strategy & Build Command Chain"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3: User Confirmation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Setup TODO Tracking & Status File"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Execute Debug Chain"
+      },
+      {
+        "level": 2,
+        "text": "Usage"
+      }
+    ]
+  }
+}
+

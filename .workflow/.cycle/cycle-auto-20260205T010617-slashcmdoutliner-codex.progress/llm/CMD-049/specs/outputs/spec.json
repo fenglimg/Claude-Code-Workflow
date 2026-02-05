@@ -1,0 +1,59 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "complete",
+    "description": "Mark active workflow session as complete (archive it, update manifest, remove active flag).",
+    "argument_hint": "[-y|--yes] [--detailed]",
+    "allowed_tools": [
+      "Skill(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Write(*)",
+      "Bash(*)"
+    ]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "single-shot",
+    "primary_user_value": "Close out the active workflow session safely and leave an archived record + updated manifest."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/",
+      ".workflow/active/<WFS-*>/workflow-session.json",
+      ".workflow/active/<WFS-*>/IMPL_PLAN.md",
+      ".workflow/active/<WFS-*>/.tasks/*.json",
+      ".workflow/active/<WFS-*>/.summaries/*.md",
+      ".workflow/active/<WFS-*>/.review/dimensions/*.json (optional)",
+      ".workflow/archives/manifest.json (or initialize as [])",
+      ".workflow/project-tech.json (optional)"
+    ],
+    "writes": [
+      ".workflow/active/<WFS-*>/.archiving (temporary marker; supports resume)",
+      ".workflow/archives/<WFS-*>/ (moved session)",
+      ".workflow/archives/manifest.json (append archive entry)",
+      ".workflow/project-tech.json (optional update)",
+      ".workflow/archives/<WFS-*>/.archiving (removed on success)"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 300,
+    "must_not": [
+      "Do not delete/move anything outside .workflow/ without explicit user confirmation",
+      "Do not rely on network access",
+      "Do not claim success unless archive move + manifest update complete",
+      "Do not mark pointers as Existing unless verifiable in-repo"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter contains name, description, allowed-tools, group, argument-hint",
+      "Allowed-tools covers described behavior (or delegates via Skill) without unsupported tools",
+      "Core sections present (Overview, Usage, Inputs, Execution Process, Outputs/Artifacts, Error Handling)",
+      "No broken artifact references (paths created by the command or explicitly optional/pre-existing)",
+      "Evidence tables: pointers labeled Existing/Planned with dual-source evidence (docs + ccw/src anchors)"
+    ]
+  }
+}
+

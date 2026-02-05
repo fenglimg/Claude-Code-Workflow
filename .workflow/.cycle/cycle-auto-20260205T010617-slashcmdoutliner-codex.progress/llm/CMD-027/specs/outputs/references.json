@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:brainstorm-with-file",
+      "file_path": ".claude/commands/workflow/brainstorm-with-file.md",
+      "score": 1.0,
+      "why": "Exact oracle command doc; same interaction model and session artifacts (.workflow/.brainstorm/*)."
+    },
+    {
+      "slash": "/workflow:multi-cli-plan",
+      "file_path": ".claude/commands/workflow/multi-cli-plan.md",
+      "score": 0.86,
+      "why": "Multi-CLI collaboration pattern (cli-discuss-agent), iterative rounds, session folder artifacts."
+    },
+    {
+      "slash": "/workflow:collaborative-plan-with-file",
+      "file_path": ".claude/commands/workflow/collaborative-plan-with-file.md",
+      "score": 0.78,
+      "why": "Phase-based interactive workflow, writes session artifacts under .workflow/*, uses Task + AskUserQuestion."
+    },
+    {
+      "slash": "/workflow:analyze-with-file",
+      "file_path": ".claude/commands/workflow/analyze-with-file.md",
+      "score": 0.64,
+      "why": "With-file family; file-centered workflow and structured artifacts (good baseline for inputs/outputs conventions)."
+    },
+    {
+      "slash": "/workflow:debug-with-file",
+      "file_path": ".claude/commands/workflow/debug-with-file.md",
+      "score": 0.6,
+      "why": "Interactive multi-step workflow with artifacts and error-handling patterns under .workflow/*."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:brainstorm-with-file",
+    "file_path": ".claude/commands/workflow/brainstorm-with-file.md",
+    "score": 1.0,
+    "why": "Use the oracle for gap analysis while keeping the spec non-leaky."
+  }
+}

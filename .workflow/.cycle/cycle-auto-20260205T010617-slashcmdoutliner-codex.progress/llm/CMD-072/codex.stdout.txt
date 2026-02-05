@@ -1,0 +1,11 @@
+Wrote CMD-072 outliner outputs under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-072/specs/outputs/`:
+
+- `spec.json`
+- `references.json`
+- `generated-slash-outline.md`
+- `generated-agent-outline.md`
+- `gap-report.md`
+- `fix-plan.md`
+
+Evidence gates:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.../gap-report.md --file=.../generated-slash-outline.md` -> PASS

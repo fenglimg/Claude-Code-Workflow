@@ -1,0 +1,55 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "clean",
+    "description": "Intelligent code cleanup with mainline detection, stale artifact discovery, and safe execution",
+    "argument_hint": "[-y|--yes] [--dry-run] [\"focus area\"]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "Write(*)"
+    ]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "iterative",
+    "primary_user_value": "Mainline-aware drift discovery and safe cleanup of stale sessions, drifted docs, and dead code."
+  },
+  "artifacts": {
+    "reads": [
+      ".git/**",
+      ".workflow/**",
+      ".claude/**",
+      "ccw/src/**"
+    ],
+    "writes": [
+      ".workflow/.clean/clean-<YYYY-MM-DD>/mainline-profile.json",
+      ".workflow/.clean/clean-<YYYY-MM-DD>/cleanup-manifest.json",
+      ".workflow/.clean/clean-<YYYY-MM-DD>/cleanup-report.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 4,
+    "time_budget_seconds": 900,
+    "must_not": [
+      "Execute destructive deletes without explicit user confirmation unless --yes/-y is provided",
+      "Delete anything outside the repo working directory",
+      "Perform any deletions when --dry-run is provided",
+      "Hide failed deletions/errors; report them clearly"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter complete (name/description/allowed-tools; group recommended)",
+      "Core sections present (Overview/Usage/Execution Process/Outputs/Error Handling)",
+      "Evidence tables pass verify-evidence.js (dual-source docs + TS; no false Existing)",
+      "--dry-run produces analysis only (no deletions)",
+      "--yes/-y uses safe defaults (sessions only, low risk) and skips confirmations"
+    ]
+  }
+}
+

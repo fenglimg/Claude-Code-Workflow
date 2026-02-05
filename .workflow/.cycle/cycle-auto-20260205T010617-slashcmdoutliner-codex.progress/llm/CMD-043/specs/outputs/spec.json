@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "cycle-auto-20260205T010617-slashcmdoutliner-codex",
+  "command_id": "CMD-043",
+  "derived_from": ".claude/commands/workflow/plan.md",
+  "created_at": "2026-02-05T05:52:32.6646876Z",
+  "command": {
+    "group": "workflow",
+    "name": "plan",
+    "title": "Workflow Plan",
+    "description": "5-phase planning workflow with action-planning-agent task generation, outputs IMPL_PLAN.md and task JSONs",
+    "argument_hint": "[-y|--yes] \"text description\"|file.md",
+    "usage_args": "[-y|--yes] \"text description\"|file.md",
+    "allowed_tools": ["Skill(*)", "TodoWrite(*)", "Read(*)", "Bash(*)"]
+  },
+  "intent": {
+    "type": "plan",
+    "interaction": "iterative",
+    "primary_user_value": "Run a 5-phase planning workflow that produces an implementation plan (IMPL_PLAN.md) plus actionable task JSONs for execution."
+  },
+  "artifacts": {
+    "reads": [
+      ".claude/commands/workflow/plan.md",
+      ".workflow/active/<sessionId>/workflow-session.json",
+      ".workflow/active/<sessionId>/.process/context-package.json",
+      ".workflow/active/<sessionId>/.brainstorming/**",
+      ".claude/workflows/cli-templates/prompts/workflow-impl-plan-template.txt"
+    ],
+    "writes": [
+      ".workflow/active/<sessionId>/planning-notes.md",
+      ".workflow/active/<sessionId>/IMPL_PLAN.md",
+      ".workflow/active/<sessionId>/.task/IMPL-*.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 5,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Claim a pointer is Existing unless verifiable in the repo now",
+      "Include non-repo evidence sources for pointer rows (must be docs + TS)",
+      "Stop mid-workflow unless the user explicitly asks to pause"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter complete (name, description, allowed-tools)",
+      "Allowed-tools correct",
+      "Core sections present (Overview, Usage, Execution Process, Outputs / Artifacts, Error Handling)",
+      "No broken artifact references",
+      "Evidence tables pass verify-evidence.js"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/plan.md",
+    "code_pointers": [
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/core/routes/session-routes.ts",
+      "ccw/src/commands/session.ts",
+      "ccw/src/commands/session-path-resolver.ts",
+      ".claude/workflows/cli-templates/prompts/workflow-impl-plan-template.txt"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      { "level": 2, "text": "Auto Mode" },
+      { "level": 1, "text": "Workflow Plan Command (/workflow:plan)" },
+      { "level": 2, "text": "Coordinator Role" },
+      { "level": 2, "text": "Core Rules" },
+      { "level": 2, "text": "Execution Process" },
+      { "level": 2, "text": "5-Phase Execution" },
+      { "level": 3, "text": "Phase 1: Session Discovery" },
+      { "level": 2, "text": "User Intent (Phase 1)" },
+      { "level": 2, "text": "Context Findings (Phase 2)" },
+      { "level": 2, "text": "Conflict Decisions (Phase 3)" },
+      { "level": 2, "text": "Consolidated Constraints (Phase 4 Input)" },
+      { "level": 2, "text": "Task Generation (Phase 4)" },
+      { "level": 2, "text": "N+1 Context" },
+      { "level": 3, "text": "Decisions" },
+      { "level": 3, "text": "Deferred" },
+      { "level": 3, "text": "Phase 2: Context Gathering" },
+      { "level": 3, "text": "Phase 3: Conflict Resolution" },
+      { "level": 3, "text": "Phase 3.5: Pre-Task Generation Validation (Optional Quality Gate)" },
+      { "level": 3, "text": "Phase 4: Task Generation" },
+      { "level": 2, "text": "TodoWrite Pattern" },
+      { "level": 3, "text": "Key Principles" },
+      { "level": 2, "text": "Input Processing" },
+      { "level": 2, "text": "Data Flow" },
+      { "level": 2, "text": "Execution Flow Diagram" },
+      { "level": 2, "text": "Error Handling" },
+      { "level": 2, "text": "Coordinator Checklist" },
+      { "level": 2, "text": "Structure Template Reference" },
+      { "level": 1, "text": "Phase 1" },
+      { "level": 1, "text": "Phase 2" },
+      { "level": 2, "text": "Related Commands" }
+    ]
+  }
+}
+

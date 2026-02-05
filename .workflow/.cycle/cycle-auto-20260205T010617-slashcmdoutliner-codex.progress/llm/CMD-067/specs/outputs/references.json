@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "command": {
+    "group": "workflow",
+    "name": "animation-extract",
+    "oracle_doc": ".claude/commands/workflow/ui-design/animation-extract.md"
+  },
+  "selected_reference": {
+    "slash": "/workflow:layout-extract",
+    "file_path": ".claude/commands/workflow/ui-design/layout-extract.md",
+    "why": "Closest sibling command: same base path resolution, images glob support, refine vs explore mode, and optional interactive selection."
+  },
+  "references": [
+    {
+      "slash": "/workflow:style-extract",
+      "file_path": ".claude/commands/workflow/ui-design/style-extract.md",
+      "why": "Similar extraction pipeline with base_path detection, variant/refine patterns, and artifact verification."
+    },
+    {
+      "slash": "/workflow:imitate-auto",
+      "file_path": ".claude/commands/workflow/ui-design/imitate-auto.md",
+      "why": "Orchestrator pattern that composes ui-design extraction commands and demonstrates cross-command execution sequencing."
+    }
+  ],
+  "tooling_anchors": [
+    {
+      "file_path": "ccw/src/commands/install.ts",
+      "anchor": "scanDisabledCommandsRecursive(commandsDir, commandsDir, result.commands)",
+      "why": "Verifiable ccw/src anchor for evidence tables (commands corpus scanning recursion)."
+    }
+  ]
+}
+

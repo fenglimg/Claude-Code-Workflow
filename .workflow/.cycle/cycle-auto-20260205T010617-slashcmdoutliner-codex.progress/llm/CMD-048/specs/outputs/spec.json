@@ -1,0 +1,40 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "review",
+    "description": "Post-implementation review with specialized types (security/architecture/action-items/quality) using analysis agents and Gemini",
+    "argument_hint": "[--type=security|architecture|action-items|quality] [--archived] [optional: session-id]",
+    "allowed_tools": ["Skill(*)", "TodoWrite(*)", "Read(*)", "Bash(*)", "Task(*)"]
+  },
+  "intent": {
+    "type": "analyze",
+    "interaction": "single-shot",
+    "primary_user_value": "Generate a specialized post-implementation review report for a completed workflow session (quality/security/architecture/action-items)."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/",
+      ".workflow/archives/",
+      "<sessionPath>/.summaries/IMPL-*.md"
+    ],
+    "writes": ["<sessionPath>/REVIEW-<type>.md"]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 1800,
+    "must_not": [
+      "Do not claim a pointer is Existing unless it is verifiable in the repo now.",
+      "Evidence must be dual-source: docs (.claude/commands/**.md) + ts (ccw/src/**).",
+      "If unsure, mark as Planned and add a concrete Verify step."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name, description, argument-hint, allowed-tools, group",
+      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
+      "No broken artifact references represented as Existing",
+      "Evidence tables pass verify-evidence.js on generated-slash-outline.md and gap-report.md"
+    ]
+  }
+}
+

@@ -1,0 +1,42 @@
+{
+  "command": {
+    "group": "other",
+    "name": "ccw-test",
+    "description": "Test coordinator - analyze testing needs, select test strategy, execute test workflow in main process",
+    "argument_hint": "[--mode gen|fix|verify|tdd] [--yes|-y] \"test description\"",
+    "allowed_tools": ["Skill(*)", "TodoWrite(*)", "AskUserQuestion(*)", "Read(*)", "Bash(*)"]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "loop",
+    "primary_user_value": "Coordinate test generation/execution/fix/verification via a 5-phase workflow with progress tracking (TodoWrite + status.json) and optional auto-iteration in fix mode."
+  },
+  "artifacts": {
+    "reads": [
+      "project source + tests (as needed via Read/Bash)",
+      ".claude/commands/workflow/*.md (invoked via Skill command chain)"
+    ],
+    "writes": [
+      ".workflow/.ccw-test/<session_id>/status.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 0,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Claim an implementation pointer is Existing unless it is verifiable in-repo.",
+      "Omit dual-source evidence (docs + ts) for any pointer row in evidence tables.",
+      "Perform destructive operations without explicit user request."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name/description/allowed-tools, argument-hint recommended)",
+      "allowed-tools correct for described behavior (Skill/TodoWrite/AskUserQuestion/Read/Bash)",
+      "core sections present (Overview/Usage/Execution Process/Outputs/Artifacts/Error Handling)",
+      "artifact references are not broken (Existing vs Planned explicitly labeled where applicable)",
+      "evidence tables pass verify-evidence.js"
+    ]
+  }
+}
+

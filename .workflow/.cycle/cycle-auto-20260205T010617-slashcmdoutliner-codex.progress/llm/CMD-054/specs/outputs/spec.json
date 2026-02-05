@@ -1,0 +1,84 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "tdd-plan",
+    "description": "TDD workflow planning with Red-Green-Refactor task chain generation, test-first development structure, and cycle tracking",
+    "argument_hint": "\"feature description\"|file.md",
+    "allowed_tools": ["Skill(*)", "TodoWrite(*)", "Read(*)", "Bash(*)"]
+  },
+  "intent": {
+    "type": "plan",
+    "interaction": "loop",
+    "primary_user_value": "Generate a complete, test-first (Red-Green-Refactor) implementation task plan for a workflow session and validate its TDD structure before execution."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/{sessionId}/workflow-session.json",
+      ".workflow/active/{sessionId}/.process/context-package.json",
+      ".workflow/active/{sessionId}/.process/test-context-package.json"
+    ],
+    "writes": [
+      ".workflow/active/{sessionId}/.task/IMPL-*.json",
+      ".workflow/active/{sessionId}/IMPL_PLAN.md",
+      ".workflow/active/{sessionId}/TODO_LIST.md",
+      ".workflow/active/{sessionId}/.process/tdd-warnings.log"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 0,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not stop early; auto-continue through all phases until completion.",
+      "Do not read project files before Phase 1 (session discovery) begins.",
+      "Do not write production code as part of this command; planning + validation only.",
+      "Do not claim pointers exist unless they are verifiable in-repo."
+    ]
+  },
+  "execution": {
+    "model": "orchestrator",
+    "phases": [
+      {
+        "id": 1,
+        "name": "Session Discovery",
+        "calls": ["/workflow:session:start"]
+      },
+      {
+        "id": 2,
+        "name": "Context Gathering",
+        "calls": ["/workflow:tools:context-gather"]
+      },
+      {
+        "id": 3,
+        "name": "Test Coverage Analysis",
+        "calls": ["/workflow:tools:test-context-gather"]
+      },
+      {
+        "id": 4,
+        "name": "Conflict Resolution (conditional)",
+        "calls": ["/workflow:tools:conflict-resolution", "/compact (built-in)"]
+      },
+      {
+        "id": 5,
+        "name": "TDD Task Generation",
+        "calls": ["/workflow:tools:task-generate-tdd"]
+      },
+      {
+        "id": 6,
+        "name": "TDD Structure Validation & Action Plan Verification",
+        "calls": ["verify artifacts + task structure", "/workflow:plan-verify (recommended follow-up)"]
+      }
+    ]
+  },
+  "oracle": {
+    "command_doc": ".claude/commands/workflow/tdd-plan.md",
+    "notes": "Oracle is used for gap analysis only; spec intentionally contains only identity, artifacts, constraints, and phase names."
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name, description, allowed-tools, group.",
+      "Core sections exist: Overview, Usage, Inputs, Outputs / Artifacts, Execution Process, Error Handling.",
+      "Execution is 6-phase and auto-continues; Phase 0 is TodoWrite init.",
+      "Generated tasks encode Red-Green-Refactor steps (3-step implementation_approach with tdd_phase)."
+    ]
+  }
+}

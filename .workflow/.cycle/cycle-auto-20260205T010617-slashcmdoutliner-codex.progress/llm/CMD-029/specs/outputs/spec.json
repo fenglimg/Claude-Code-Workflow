@@ -1,0 +1,56 @@
+{
+  "command": {
+    "group": "workflow",
+    "namespace": "brainstorm",
+    "route": "workflow:brainstorm:auto-parallel",
+    "name": "auto-parallel",
+    "title": "Workflow Brainstorm Parallel Auto",
+    "description": "Parallel brainstorming automation with dynamic role selection and concurrent execution across multiple perspectives",
+    "argument_hint": "[-y|--yes] topic or challenge description [--count N]",
+    "allowed_tools": [
+      "Skill(*)",
+      "Task(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Bash(*)",
+      "Glob(*)"
+    ],
+    "doc_path": ".claude/commands/workflow/brainstorm/auto-parallel.md"
+  },
+  "intent": {
+    "type": "brainstorm",
+    "interaction": "loop",
+    "primary_user_value": "Run a 3-phase multi-role brainstorm (framework generation -> parallel role analysis -> synthesis) and persist results to a session folder."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/",
+      ".workflow/active/WFS-*/workflow-session.json",
+      ".workflow/active/WFS-*/.brainstorming/guidance-specification.md",
+      ".workflow/active/WFS-*/.brainstorming/*"
+    ],
+    "writes": [
+      ".workflow/active/WFS-{topic}/workflow-session.json",
+      ".workflow/active/WFS-{topic}/.brainstorming/guidance-specification.md",
+      ".workflow/active/WFS-{topic}/.brainstorming/{role}/analysis.md",
+      ".workflow/active/WFS-{topic}/.brainstorming/synthesis-specification.md"
+    ]
+  },
+  "constraints": {
+    "must_not": [
+      "Do not run destructive shell commands without explicit user request",
+      "Do not claim created artifacts exist unless they are written/verified",
+      "Do not invoke tools outside allowed-tools (directly)"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name/description/allowed-tools)",
+      "allowed-tools correct for orchestrator behavior",
+      "core sections present (Overview/Usage/Execution Process/Outputs/Error Handling)",
+      "implementation pointers evidence-gated (docs + ts)"
+    ]
+  }
+}
+

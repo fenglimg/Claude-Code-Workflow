@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/ccw",
+      "file_path": ".claude/commands/ccw.md",
+      "score": 100,
+      "why": "Exact oracle command doc for CMD-005."
+    },
+    {
+      "slash": "/ccw-plan",
+      "file_path": ".claude/commands/ccw-plan.md",
+      "score": 88,
+      "why": "Same core phases (analyze, clarify, build chain, confirm, track state) but focused on planning-only orchestration."
+    },
+    {
+      "slash": "/ccw-coordinator",
+      "file_path": ".claude/commands/ccw-coordinator.md",
+      "score": 84,
+      "why": "Shares the minimum execution unit concept and command-chain recommendation, but uses an external/CLI execution model."
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 74,
+      "why": "Closest execution-phase reference (execution lifecycle, TODO generation, status updates) for chain execution patterns."
+    },
+    {
+      "slash": "/workflow:unified-execute-with-file",
+      "file_path": ".claude/commands/workflow/unified-execute-with-file.md",
+      "score": 68,
+      "why": "Closest with-file reference (documented exploration + multi-CLI collaboration patterns)."
+    }
+  ],
+  "selected": {
+    "slash": "/ccw",
+    "file_path": ".claude/commands/ccw.md",
+    "score": 100,
+    "why": "Selected because CMD-005 explicitly references this file as the oracle."
+  }
+}

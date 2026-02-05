@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "command": {
+    "slash": "/cli:codex-review",
+    "group": "cli",
+    "name": "codex-review"
+  },
+  "candidates": [
+    {
+      "slash": "/cli:codex-review",
+      "file_path": ".claude/commands/cli/codex-review.md",
+      "score": 1.0,
+      "why": "Same command (oracle). Defines argument parsing, interactive AskUserQuestion flow, and exact ccw cli invocation for codex review mode."
+    },
+    {
+      "slash": "/workflow:unified-execute-with-file",
+      "file_path": ".claude/commands/workflow/unified-execute-with-file.md",
+      "score": 0.72,
+      "why": "Demonstrates structured prompting + tool selection + delegating to ccw cli (including codex) with a guided flow and validation steps."
+    },
+    {
+      "slash": "/issue:execute",
+      "file_path": ".claude/commands/issue/execute.md",
+      "score": 0.64,
+      "why": "Shows end-to-end execution orchestration with ccw cli invocation patterns and result handling; similar 'execute + display' loop."
+    },
+    {
+      "slash": "/ccw-coordinator",
+      "file_path": ".claude/commands/ccw-coordinator.md",
+      "score": 0.58,
+      "why": "Contains ccw cli prompt construction conventions and background Bash execution patterns that mirror how /cli:codex-review should run ccw cli."
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 0.55,
+      "why": "Interactive execution flow using AskUserQuestion + Bash with explicit error handling; good reference for guided selection UX and constraints."
+    }
+  ],
+  "selected": {
+    "slash": "/cli:codex-review",
+    "file_path": ".claude/commands/cli/codex-review.md",
+    "why": "Highest-fidelity reference (exact command, exact constraints, exact invocation)."
+  }
+}

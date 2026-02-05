@@ -1,0 +1,59 @@
+{
+  "command": {
+    "group": "",
+    "name": "ccw-debug"
+  },
+  "candidates": [
+    {
+      "slash": "/ccw-coordinator",
+      "file_path": ".claude/commands/ccw-coordinator.md",
+      "score": 0.93,
+      "why": [
+        "Orchestrator command: analyze -> recommend/confirm -> execute chain",
+        "Has explicit phase workflow and state/status conventions",
+        "Uses AskUserQuestion-style interaction patterns"
+      ]
+    },
+    {
+      "slash": "/workflow:debug-with-file",
+      "file_path": ".claude/commands/workflow/debug-with-file.md",
+      "score": 0.87,
+      "why": [
+        "Debug-focused workflow with file/context handling",
+        "Pairs well with ccw-debug 'debug' and 'bidirectional' chains"
+      ]
+    },
+    {
+      "slash": "/workflow:test-fix-gen",
+      "file_path": ".claude/commands/workflow/test-fix-gen.md",
+      "score": 0.85,
+      "why": [
+        "Test-driven fix generation step in ccw-debug chains (test/bidirectional)",
+        "Establishes sequential execution expectations for test workflows"
+      ]
+    },
+    {
+      "slash": "/workflow:test-cycle-execute",
+      "file_path": ".claude/commands/workflow/test-cycle-execute.md",
+      "score": 0.84,
+      "why": [
+        "Iterative test cycle execution step in ccw-debug chains",
+        "Likely shares error handling and reporting patterns"
+      ]
+    },
+    {
+      "slash": "/ccw-test",
+      "file_path": ".claude/commands/ccw-test.md",
+      "score": 0.78,
+      "why": [
+        "High-level testing coordinator patterns adjacent to ccw-debug test modes"
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/ccw-coordinator",
+    "file_path": ".claude/commands/ccw-coordinator.md",
+    "why": "Closest match for multi-phase orchestration, user confirmation, and state tracking patterns; use as primary style reference while ccw-debug specializes the strategy/mode decision + parallel (bidirectional) execution."
+  }
+}
+

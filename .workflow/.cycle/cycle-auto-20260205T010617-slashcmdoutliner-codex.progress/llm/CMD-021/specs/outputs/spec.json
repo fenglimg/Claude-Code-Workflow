@@ -1,0 +1,37 @@
+{
+  "command": {
+    "group": "memory",
+    "name": "load",
+    "title": "Memory Load Command (/memory:load)",
+    "description": "Delegate to universal-executor agent to analyze project via Gemini/Qwen CLI and return JSON core content package for task context",
+    "argument_hint": "[--tool gemini|qwen] \"task context description\"",
+    "allowed_tools": ["Task(*)", "Bash(*)"]
+  },
+  "intent": {
+    "type": "analyze",
+    "interaction": "single-shot",
+    "primary_user_value": "Analyze the current project and load a structured Core Content Package into memory for subsequent tasks"
+  },
+  "artifacts": {
+    "reads": ["./ (project working tree)"],
+    "writes": []
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "modify project files (read-only analysis)",
+      "run destructive shell commands without explicit user request",
+      "expose secrets from env/files in the returned package"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name/description/allowed-tools/group)",
+      "allowed-tools correct for described behavior",
+      "core sections present (Overview/Usage/Execution Process/Outputs/Error Handling)",
+      "evidence tables pass verify-evidence.js"
+    ]
+  }
+}
+

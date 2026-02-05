@@ -1,0 +1,15 @@
+{
+  "cycle_id": "cycle-local-20260205T005150-slashcmdoutliner-codex1",
+  "generated_at": "2026-02-04T17:07:05.384Z",
+  "processed_commands": 1,
+  "total_commands": 77,
+  "passed": 1,
+  "failed": 0,
+  "only": "pending",
+  "limit": 1,
+  "llm_tool": "codex",
+  "model": "",
+  "permission_mode": "bypassPermissions",
+  "skill_root": ".codex/skills/slash-command-outliner",
+  "top_failure_kinds": []
+}

@@ -1,0 +1,49 @@
+{
+  "command": {
+    "group": "memory",
+    "name": "update-full",
+    "description": "Update all CLAUDE.md files using layer-based execution (Layer 3->1) with batched agents (4 modules/agent) and gemini->qwen->codex fallback; <20 modules uses direct parallel.",
+    "argument_hint": "[--tool gemini|qwen|codex] [--path <directory>]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Grep(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "Write(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "iterative",
+    "primary_user_value": "Safely update CLAUDE.md across all modules using layer-based batching with tool fallback and a final safety verification."
+  },
+  "artifacts": {
+    "reads": [
+      "<workspace>/<target path>/**/*",
+      "<workspace>/<target path>/**/CLAUDE.md"
+    ],
+    "writes": [
+      "<workspace>/<target path>/**/CLAUDE.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 1800,
+    "must_not": [
+      "Modify non-CLAUDE.md files without explicit user confirmation",
+      "Perform destructive git operations (reset/clean)"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter: name/description/argument-hint/allowed-tools/group present",
+      "Core sections present: Overview, Usage, Inputs, Outputs/Artifacts, Execution Process, Error Handling",
+      "Evidence tables pass verify-evidence.js (docs + ts anchors)",
+      "Safety verification step ensures only CLAUDE.md is modified (or abort with clear report)"
+    ]
+  }
+}
+

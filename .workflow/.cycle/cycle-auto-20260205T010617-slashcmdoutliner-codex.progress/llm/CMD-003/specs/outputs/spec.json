@@ -1,0 +1,48 @@
+{
+  "command": {
+    "group": "other",
+    "name": "ccw-plan",
+    "description": "Planning coordinator - analyze requirements, select planning strategy, execute planning workflow in main process",
+    "argument_hint": "[--mode lite|multi-cli|full|plan-verify|replan|cli|issue|rapid-to-issue|brainstorm-with-file|analyze-with-file] [--yes|-y] \"task description\"",
+    "allowed_tools": [
+      "Skill(*)",
+      "TodoWrite(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Grep(*)",
+      "Glob(*)"
+    ]
+  },
+  "intent": {
+    "type": "plan",
+    "interaction": "iterative",
+    "primary_user_value": "Turn a task description into an appropriate planning strategy and execute the corresponding planning command chain (optionally with plan verification), with TODO/status tracking for visibility."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/.ccw-plan/{session_id}/status.json"
+    ],
+    "writes": [
+      ".workflow/.ccw-plan/{session_id}/status.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 5,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not claim implementation pointers exist unless verifiable in-repo",
+      "Do not execute destructive operations without explicit user request",
+      "Do not modify unrelated files"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name/description/allowed-tools (argument-hint recommended)",
+      "Allowed-tools matches intended workflow",
+      "Core sections present: Overview, Usage, Execution Process, Output/Artifacts, Error Handling",
+      "All artifact references are either created by the command or documented as pre-existing",
+      "Implementation pointers are labeled Existing vs Planned with dual-source evidence"
+    ]
+  }
+}
+

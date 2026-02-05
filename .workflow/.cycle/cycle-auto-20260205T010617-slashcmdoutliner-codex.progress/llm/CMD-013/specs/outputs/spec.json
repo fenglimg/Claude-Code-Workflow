@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "cycle-auto-20260205T010617-slashcmdoutliner-codex",
+  "command_id": "CMD-013",
+  "created_at": "2026-02-04T19:51:53.7266350Z",
+  "derived_from": ".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-013.requirements.md",
+  "oracle": {
+    "command_doc": ".claude/commands/issue/execute.md"
+  },
+  "command": {
+    "group": "issue",
+    "name": "execute",
+    "description": "Execute queue with DAG-based parallel orchestration (one commit per solution)",
+    "argument_hint": "[-y|--yes] --queue <queue-id> [--worktree [<existing-path>]]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Bash(*)",
+      "Read(*)",
+      "AskUserQuestion(*)"
+    ],
+    "usage_args": "--queue <queue-id> [--worktree [<existing-path>]] [-y|--yes]"
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "loop",
+    "primary_user_value": "Execute an issue queue by querying its solution-level DAG, dispatching ready solutions to executors in parallel batches, and committing once per solution."
+  },
+  "artifacts": {
+    "reads": [
+      "ccw issue queue list --brief --json",
+      "ccw issue queue dag --queue <queue-id>",
+      "ccw issue detail <item-id>"
+    ],
+    "writes": [
+      "ccw issue done <item-id>",
+      "git commits (one per solution)",
+      ".ccw/worktrees/queue-exec-<queue-id>/ (optional, when --worktree)"
+    ]
+  },
+  "constraints": {
+    "must_not": [
+      "Do not auto-select a queue without explicit user confirmation (unless --yes).",
+      "Do not create more than one git commit per solution.",
+      "Do not create separate git worktrees per solution; at most one worktree per queue execution."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter: name/description/allowed-tools present and correct",
+      "Core sections present (Overview, Usage, Execution Process, Output/Artifacts, Error Handling)",
+      "Implementation pointers labeled Existing vs Planned with dual-source evidence",
+      "Evidence tables pass verify-evidence.js"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      { "level": 2, "text": "Auto Mode" },
+      { "level": 1, "text": "Issue Execute Command (/issue:execute)" },
+      { "level": 2, "text": "Overview" },
+      { "level": 2, "text": "Queue ID Requirement (MANDATORY)" },
+      { "level": 3, "text": "If Queue ID Not Provided" },
+      { "level": 2, "text": "Usage" },
+      { "level": 2, "text": "Execution Flow" },
+      { "level": 2, "text": "Implementation" },
+      { "level": 3, "text": "Phase 0: Validate Queue ID" },
+      { "level": 3, "text": "Phase 1: Get DAG & User Selection" },
+      { "level": 2, "text": "Queue DAG (Solution-Level)" },
+      { "level": 3, "text": "Phase 0 & 2: Setup Queue Worktree & Dispatch" },
+      { "level": 3, "text": "Executor Dispatch" },
+      { "level": 2, "text": "Execute Solution: ${SOLUTION_ID}" },
+      { "level": 3, "text": "Step 1: Get Solution Details" },
+      { "level": 3, "text": "Step 2: Execute All Tasks Sequentially" },
+      { "level": 3, "text": "Step 3: Commit Solution (Once)" },
+      { "level": 3, "text": "Step 4: Report Completion" },
+      { "level": 3, "text": "Important Notes" },
+      { "level": 3, "text": "Phase 3: Check Next Batch" },
+      { "level": 2, "text": "Batch Complete" },
+      { "level": 3, "text": "Phase 4: Worktree Completion (after ALL batches)" },
+      { "level": 2, "text": "Parallel Execution Model" },
+      { "level": 2, "text": "CLI Endpoint Contract" },
+      { "level": 3, "text": "ccw issue queue list --brief --json" },
+      { "level": 3, "text": "ccw issue queue dag --queue <queue-id>" },
+      { "level": 3, "text": "ccw issue detail <item_id>" },
+      { "level": 3, "text": "ccw issue done <item_id>" },
+      { "level": 2, "text": "Error Handling" },
+      { "level": 2, "text": "Related Commands" }
+    ]
+  }
+}
+

@@ -1,0 +1,39 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:ui-design:style-extract",
+      "file_path": ".claude/commands/workflow/ui-design/style-extract.md",
+      "score": 1,
+      "why": "Exact match (same command). Covers images/text/hybrid input, variants vs refine mode, and optional interactive confirmation."
+    },
+    {
+      "slash": "/workflow:ui-design:layout-extract",
+      "file_path": ".claude/commands/workflow/ui-design/layout-extract.md",
+      "score": 0.86,
+      "why": "Same extraction workflow shape (input parsing, base path inference, variants/refine, optional interactive selection) and similar artifacts under .workflow."
+    },
+    {
+      "slash": "/workflow:ui-design:animation-extract",
+      "file_path": ".claude/commands/workflow/ui-design/animation-extract.md",
+      "score": 0.74,
+      "why": "Same design-extraction family; focuses on analysis-options + iterative confirmation and parallel generation patterns."
+    },
+    {
+      "slash": "/workflow:ui-design:generate",
+      "file_path": ".claude/commands/workflow/ui-design/generate.md",
+      "score": 0.63,
+      "why": "Consumes extracted artifacts (layout + tokens) and writes multiple output variants; useful for output validation and variant directory conventions."
+    },
+    {
+      "slash": "/workflow:ui-design:codify-style",
+      "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
+      "score": 0.58,
+      "why": "Orchestrator-style workflow doc; useful for CCW conventions around incremental steps and artifact naming without copying full content."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:ui-design:style-extract",
+    "file_path": ".claude/commands/workflow/ui-design/style-extract.md",
+    "why": "Highest-confidence oracle for this command (exact match)."
+  }
+}

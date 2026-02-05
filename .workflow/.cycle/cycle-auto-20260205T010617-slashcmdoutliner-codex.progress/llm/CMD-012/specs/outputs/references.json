@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-02-04T19:36:58.4587234Z",
+  "command": "/issue:discover",
+  "candidates": [
+    {
+      "slash": "/issue:discover",
+      "file_path": ".claude/commands/issue/discover.md",
+      "score": 1,
+      "why": "Exact oracle command: same perspectives model, discovery artifacts, optional external research, and export-to-issues flow."
+    },
+    {
+      "slash": "/issue:discover-by-prompt",
+      "file_path": ".claude/commands/issue/discover-by-prompt.md",
+      "score": 0.86,
+      "why": "Same command family (issue discovery), similar multi-round orchestration (AskUserQuestion + Task), and uses external research tooling patterns."
+    },
+    {
+      "slash": "/issue:plan",
+      "file_path": ".claude/commands/issue/plan.md",
+      "score": 0.62,
+      "why": "Same issue workflow lifecycle and post-discovery next-step; demonstrates orchestrator patterns and safe handling of large issue stores."
+    },
+    {
+      "slash": "/issue:new",
+      "file_path": ".claude/commands/issue/new.md",
+      "score": 0.56,
+      "why": "Shows issue JSONL schema expectations and minimal clarification patterns (auto-mode vs interactive)."
+    },
+    {
+      "slash": "/issue:convert-to-plan",
+      "file_path": ".claude/commands/issue/convert-to-plan.md",
+      "score": 0.49,
+      "why": "Demonstrates converting artifacts into issue workflow outputs and safe file IO patterns under .workflow/issues/."
+    }
+  ],
+  "selected": {
+    "slash": "/issue:discover",
+    "file_path": ".claude/commands/issue/discover.md",
+    "score": 1,
+    "why": "Use the exact oracle as the primary reference for required headings, artifacts, and orchestration steps."
+  }
+}
+

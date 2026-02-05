@@ -1,0 +1,41 @@
+{
+  "command": "/workflow:ui-design:generate",
+  "selected": {
+    "slash": "/workflow:ui-design:generate",
+    "file_path": ".claude/commands/workflow/ui-design/generate.md",
+    "score": 1,
+    "why": "Exact match (same command). Canonical behavior + artifact contract for prototype assembly and preview generation."
+  },
+  "candidates": [
+    {
+      "slash": "/workflow:ui-design:generate",
+      "file_path": ".claude/commands/workflow/ui-design/generate.md",
+      "score": 1,
+      "why": "Exact match; contains full phase breakdown, artifact paths, and preview generation usage (ui_generate_preview)."
+    },
+    {
+      "slash": "/workflow:ui-design:layout-extract",
+      "file_path": ".claude/commands/workflow/ui-design/layout-extract.md",
+      "score": 0.82,
+      "why": "Same ui-design family; produces layout-extraction inputs consumed by generate; similar base-path/session conventions and agent usage."
+    },
+    {
+      "slash": "/workflow:ui-design:style-extract",
+      "file_path": ".claude/commands/workflow/ui-design/style-extract.md",
+      "score": 0.78,
+      "why": "Same ui-design family; produces style-extraction inputs consumed by generate; similar validation and multi-variant outputs."
+    },
+    {
+      "slash": "/workflow:ui-design:animation-extract",
+      "file_path": ".claude/commands/workflow/ui-design/animation-extract.md",
+      "score": 0.66,
+      "why": "Same artifact ecosystem; optional animation tokens integrate into assembly stage."
+    },
+    {
+      "slash": "/workflow:ui-design:explore-auto",
+      "file_path": ".claude/commands/workflow/ui-design/explore-auto.md",
+      "score": 0.6,
+      "why": "Orchestrator command that calls generate as a phase; good reference for sequencing and reporting conventions."
+    }
+  ]
+}

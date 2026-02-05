@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:tdd-verify",
+      "file_path": ".claude/commands/workflow/tdd-verify.md",
+      "score": 100,
+      "why": "Exact command oracle specified by the requirement doc; same group and behavior (4-phase orchestrator producing a compliance report)."
+    },
+    {
+      "slash": "/workflow:plan-verify",
+      "file_path": ".claude/commands/workflow/plan-verify.md",
+      "score": 82,
+      "why": "Similar verification/reporting shape (read-only analysis + quality gate recommendation) and same .workflow session conventions."
+    },
+    {
+      "slash": "/workflow:tdd-plan",
+      "file_path": ".claude/commands/workflow/tdd-plan.md",
+      "score": 78,
+      "why": "Same TDD family; defines related command chain and shared session/task artifact structure used by tdd-verify."
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 65,
+      "why": "Same session discovery and orchestrator conventions; commonly precedes tdd-verify in the workflow chain."
+    },
+    {
+      "slash": "/workflow:tools:tdd-coverage-analysis",
+      "file_path": ".claude/commands/workflow/tools/tdd-coverage-analysis.md",
+      "score": 60,
+      "why": "Direct sub-command dependency invoked by tdd-verify Phase 3; defines the intermediate artifacts consumed by the compliance report."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:tdd-verify",
+    "file_path": ".claude/commands/workflow/tdd-verify.md",
+    "why": "Selected because it is the explicit oracle reference for CMD-055 and provides the authoritative headings/sections to align the outline and evidence pointers."
+  }
+}
+

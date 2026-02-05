@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-007.requirements.md",
+  "oracle_command_doc": ".claude/commands/cli/codex-review.md",
+  "command": {
+    "group": "cli",
+    "name": "codex-review",
+    "description": "Interactive code review using Codex CLI via ccw endpoint with configurable review target, model, and custom instructions",
+    "argument_hint": "[--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]",
+    "usage_args": "[--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]",
+    "allowed_tools": [
+      "Bash(*)",
+      "AskUserQuestion(*)",
+      "Read(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "iterative",
+    "primary_user_value": "Run a structured, interactive code review over uncommitted changes / a base branch diff / a specific commit using codex review via ccw cli."
+  },
+  "artifacts": {
+    "reads": [
+      "git working tree (status/diff)",
+      "git refs (branches)",
+      "git history (recent commits)",
+      "optional: prompt/rule templates via ccw cli"
+    ],
+    "writes": [
+      "ccw cli execution history (storage-managed; may be under ~/.ccw/ or legacy .workflow/.cli-history)"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 6,
+    "time_budget_seconds": 600,
+    "must_not": [
+      "Do not run destructive git operations.",
+      "Do not claim to have reviewed anything until ccw cli returns output.",
+      "Do not construct an invalid codex invocation: target flags (--uncommitted/--base/--commit) must not be combined with a positional prompt."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter keys present: name, description, allowed-tools, group.",
+      "Command usage matches argument-hint.",
+      "Execution flow supports both direct flags and interactive selection.",
+      "Enforces/communicates the codex review constraint: target flags are mutually exclusive with [PROMPT].",
+      "Implementation pointers include dual-source evidence (docs + TS) and pass verify-evidence.js."
+    ]
+  },
+  "structure_hints": {
+    "headings_only": [
+      "Codex Review Command (/cli:codex-review)",
+      "Overview",
+      "Prompt Template Format",
+      "EXECUTION INSTRUCTIONS - START HERE",
+      "Step 1: Parse Arguments",
+      "Step 2: Interactive Parameter Selection",
+      "Step 3: Build Prompt and Command",
+      "Step 4: Execute via CCW CLI",
+      "Step 5: Execute and Display Results",
+      "Quick Usage Examples",
+      "Direct Execution (No Interaction)",
+      "Interactive Mode",
+      "Focus Area Mapping",
+      "Error Handling",
+      "No Changes to Review",
+      "Invalid Branch",
+      "Invalid Commit",
+      "Integration Notes",
+      "Validation Constraints"
+    ]
+  }
+}

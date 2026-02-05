@@ -1,0 +1,53 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "tdd-plan"
+  },
+  "scoring": {
+    "rubric": [
+      "+40 same group/workflow-orchestrator",
+      "+20 phased execution model",
+      "+20 same allowed-tools surface (Skill, TodoWrite, Read, Bash)",
+      "+10 writes to .workflow/active session artifacts",
+      "+10 similar auto-mode / minimal user interaction"
+    ],
+    "max_score": 100
+  },
+  "candidates": [
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 95,
+      "why": "Closest orchestrator: phased plan flow, same tool surface, same session artifact patterns, and similar conflict-resolution + task-generation chain."
+    },
+    {
+      "slash": "/workflow:lite-plan",
+      "file_path": ".claude/commands/workflow/lite-plan.md",
+      "score": 78,
+      "why": "Planning-focused command with explicit artifacts and phases; differs by exploration/clarification loop and extra flags."
+    },
+    {
+      "slash": "/workflow:multi-cli-plan",
+      "file_path": ".claude/commands/workflow/multi-cli-plan.md",
+      "score": 66,
+      "why": "Orchestrator with session folder outputs; differs by multi-agent delegation and AskUserQuestion-driven decision points."
+    },
+    {
+      "slash": "/workflow:plan-verify",
+      "file_path": ".claude/commands/workflow/plan-verify.md",
+      "score": 58,
+      "why": "Verification phase reference (reporting + artifact validation) used as a follow-up quality gate after planning."
+    },
+    {
+      "slash": "/workflow:replan",
+      "file_path": ".claude/commands/workflow/replan.md",
+      "score": 52,
+      "why": "Session/task lifecycle command that manipulates existing plan/task artifacts; useful for recovery/edit patterns but not primary planning generation."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:plan",
+    "file_path": ".claude/commands/workflow/plan.md",
+    "why": "Best match for phased orchestrator structure and shared workflow session artifact model; extend with TDD-specific compliance + validation phases."
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "command": {
+    "group": "workflow:tools",
+    "name": "test-context-gather",
+    "description": "Collect test coverage context using test-context-search-agent and package into standardized test-context JSON",
+    "argument_hint": "--session WFS-test-session-id",
+    "allowed_tools": ["Task(*)", "Read(*)", "Glob(*)"]
+  },
+  "intent": {
+    "type": "utility",
+    "interaction": "single-shot",
+    "primary_user_value": "Gather reusable test coverage + framework context for a test session; return an existing valid package when present, otherwise invoke test-context-search-agent and write a standardized test-context-package.json."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/{test_session_id}/workflow-session.json",
+      ".workflow/active/{test_session_id}/.process/test-context-package.json"
+    ],
+    "writes": [".workflow/active/{test_session_id}/.process/test-context-package.json"]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not claim implementation pointers are Existing unless verifiable in the repo now.",
+      "Evidence must be dual-source: docs (.claude/commands/**.md) + ts (ccw/src/**).",
+      "If unsure, mark pointers Planned and include concrete Verify steps."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter valid: name/description/allowed-tools present; argument-hint included.",
+      "Allowed-tools matches behavior surface (Task, Read, Glob only).",
+      "Core sections present: Overview, Usage, Inputs, Outputs/Artifacts, Execution Process, Error Handling.",
+      "Writes standardized test-context package at .workflow/active/{test_session_id}/.process/test-context-package.json (or returns existing valid package)."
+    ]
+  }
+}
+

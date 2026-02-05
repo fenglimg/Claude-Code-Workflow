@@ -1,0 +1,28 @@
+{
+  "command": {
+    "name": "ccw-coordinator",
+    "group": null,
+    "description": "Command orchestration tool - analyze requirements, recommend chain, execute sequentially with state persistence",
+    "argument_hint": "[task description]",
+    "allowed_tools": ["Task(*)", "AskUserQuestion(*)", "Read(*)", "Write(*)", "Bash(*)", "Glob(*)", "Grep(*)"]
+  },
+  "status": "existing",
+  "implementation_status": {
+    "command_doc": "existing",
+    "core_logic": "planned",
+    "integration": "planned"
+  },
+  "key_features": [
+    "3-phase workflow: analyze → recommend → execute",
+    "Minimum execution units (atomic command groups)",
+    "Dynamic command discovery via CommandRegistry",
+    "State persistence in .workflow/.ccw-coordinator/",
+    "Hook-based serial execution with background CLI",
+    "Smart parameter assembly based on previous results",
+    "User confirmation with adjustment options"
+  ],
+  "artifacts": {
+    "state_file": ".workflow/.ccw-coordinator/{session_id}/state.json",
+    "command_source": ".claude/commands/ccw-coordinator.md"
+  }
+}

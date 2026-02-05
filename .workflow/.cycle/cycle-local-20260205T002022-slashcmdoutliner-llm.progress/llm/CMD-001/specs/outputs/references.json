@@ -1,0 +1,47 @@
+{
+  "primary_reference": {
+    "command": "ccw-coordinator",
+    "file": ".claude/commands/ccw-coordinator.md",
+    "status": "existing",
+    "reason": "Source of truth for command specification"
+  },
+  "related_commands": [
+    {
+      "command": "workflow:lite-plan",
+      "relationship": "orchestrated_by",
+      "note": "Planning command in minimum execution units"
+    },
+    {
+      "command": "workflow:execute",
+      "relationship": "orchestrated_by",
+      "note": "Execution command in minimum execution units"
+    },
+    {
+      "command": "issue:discover",
+      "relationship": "orchestrated_by",
+      "note": "Issue workflow commands"
+    }
+  ],
+  "implementation_references": [
+    {
+      "type": "tool",
+      "name": "CommandRegistry",
+      "file": "ccw/src/tools/command-registry.ts",
+      "status": "existing",
+      "usage": "Dynamic command discovery and metadata retrieval"
+    },
+    {
+      "type": "hook",
+      "name": "CLI completion callback",
+      "file": "ccw/src/commands/hook.ts",
+      "status": "existing",
+      "usage": "Background task completion handling"
+    }
+  ],
+  "design_patterns": [
+    "Port-based pipeline composition",
+    "Atomic execution units",
+    "State machine with hook callbacks",
+    "Smart parameter assembly"
+  ]
+}

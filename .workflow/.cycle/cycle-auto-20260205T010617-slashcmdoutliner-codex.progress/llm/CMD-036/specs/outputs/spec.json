@@ -1,0 +1,36 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "init-guidelines",
+    "description": "Interactive wizard to fill project-guidelines.json based on project analysis",
+    "argument_hint": "[--reset]",
+    "allowed_tools": ["Read(*)", "Write(*)", "AskUserQuestion(*)"]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "iterative",
+    "primary_user_value": "Create/update .workflow/project-guidelines.json (conventions, constraints, quality rules) tailored to the project as described by .workflow/project-tech.json."
+  },
+  "artifacts": {
+    "reads": [".workflow/project-tech.json", ".workflow/project-guidelines.json"],
+    "writes": [".workflow/project-guidelines.json"]
+  },
+  "constraints": {
+    "max_rounds": 5,
+    "time_budget_seconds": 900,
+    "must_not": [
+      "Do not overwrite existing guidelines without explicit confirmation unless --reset.",
+      "Do not generate generic rules unrelated to the detected tech/architecture.",
+      "Do not expose secrets; only summarize and write user-maintained guidelines."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name, description, argument-hint, allowed-tools, group.",
+      "If .workflow/project-tech.json is missing, stop with an actionable message to run /workflow:init.",
+      "Wizard runs 5 rounds: coding conventions; file structure & docs; architecture & stack; performance & security; quality rules.",
+      "Writes valid JSON to .workflow/project-guidelines.json and updates _metadata.updated_by to workflow:init-guidelines."
+    ]
+  }
+}
+

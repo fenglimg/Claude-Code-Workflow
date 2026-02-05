@@ -1,0 +1,39 @@
+{
+  "candidates": [
+    {
+      "slash": "/memory:update-full",
+      "file_path": ".claude/commands/memory/update-full.md",
+      "score": 100,
+      "why": "Exact command match (oracle) with full 3-layer + batching + fallback + safety workflow."
+    },
+    {
+      "slash": "/memory:update-related",
+      "file_path": ".claude/commands/memory/update-related.md",
+      "score": 92,
+      "why": "Same CLAUDE.md update domain; similar batching + tool fallback; different scope (git-changed vs full)."
+    },
+    {
+      "slash": "/memory:docs-full-cli",
+      "file_path": ".claude/commands/memory/docs-full-cli.md",
+      "score": 88,
+      "why": "Same 3-layer + <20 direct parallel vs >=20 agent batching pattern; same tool fallback surface."
+    },
+    {
+      "slash": "/memory:docs-related-cli",
+      "file_path": ".claude/commands/memory/docs-related-cli.md",
+      "score": 84,
+      "why": "Similar multi-phase, tool-driven automation with plan presentation + verification; different artifact outputs."
+    },
+    {
+      "slash": "/memory:compact",
+      "file_path": ".claude/commands/memory/compact.md",
+      "score": 70,
+      "why": "Memory-family command with structured phases and safety considerations; different primary outcome."
+    }
+  ],
+  "selected": {
+    "slash": "/memory:update-full",
+    "file_path": ".claude/commands/memory/update-full.md"
+  }
+}
+

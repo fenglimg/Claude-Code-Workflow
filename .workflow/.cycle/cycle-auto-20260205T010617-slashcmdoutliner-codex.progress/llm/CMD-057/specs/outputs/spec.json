@@ -1,0 +1,49 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "test-fix-gen",
+    "description": "Create test-fix workflow session with progressive test layers (L0-L3), AI code validation, and test task generation",
+    "argument_hint": "(source-session-id | \"feature description\" | /path/to/file.md)",
+    "allowed_tools": ["Skill(*)", "TodoWrite(*)", "Read(*)", "Bash(*)"]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "loop",
+    "primary_user_value": "Create a new test workflow session, gather context, produce L0-L3 test analysis, generate test tasks/artifacts, and return next-step guidance for executing the test cycle."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/<sourceSessionId>/ (session mode)",
+      "<input-file>.md (file prompt mode)",
+      ".workflow/active/<testSessionId>/.process/* (phase outputs as needed)"
+    ],
+    "writes": [
+      ".workflow/active/<testSessionId>/workflow-session.json (or equivalent session metadata)",
+      ".workflow/active/<testSessionId>/.process/context-package.json",
+      ".workflow/active/<testSessionId>/.process/TEST_ANALYSIS_RESULTS.md",
+      ".workflow/active/<testSessionId>/IMPL_PLAN.md",
+      ".workflow/active/<testSessionId>/TODO_LIST.md",
+      ".workflow/active/<testSessionId>/.task/IMPL-*.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not stop early: execute all phases and auto-continue until completion.",
+      "Do not perform unrelated changes; orchestrator-only behavior.",
+      "Do not claim implementation pointers are Existing unless verifiable in the repo now.",
+      "Do not expose sensitive data from sessions or environment variables in logs/output."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter valid: name/description/allowed-tools (+ argument-hint recommended)",
+      "Allowed-tools match orchestrator behavior (Skill, TodoWrite, Read, Bash)",
+      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
+      "All implementation pointers are labeled Existing/Planned with dual-source evidence (docs + ccw/src anchor)",
+      "Evidence tables pass verify-evidence.js for generated-slash-outline.md and gap-report.md"
+    ]
+  }
+}
+

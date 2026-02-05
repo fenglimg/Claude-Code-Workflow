@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/tools/test-task-generate.md",
+  "created_at": "2026-02-05T01:06:17.000Z",
+  "command": {
+    "group": "workflow",
+    "name": "test-task-generate",
+    "description": "Generate test planning documents (IMPL_PLAN.md, test task JSONs, TODO_LIST.md) by invoking test-action-planning-agent",
+    "argument_hint": "--session WFS-test-session-id",
+    "slash": "/workflow:tools:test-task-generate",
+    "allowed_tools": [
+      "Task(*)",
+      "Read(*)",
+      "Write(*)",
+      "Glob(*)"
+    ]
+  },
+  "intent": {
+    "type": "plan",
+    "interaction": "single-shot",
+    "primary_user_value": "Produce test planning artifacts (IMPL_PLAN.md, IMPL-*.json tasks, TODO_LIST.md) for an existing WFS test session; optionally enrich requirements via Gemini before task generation."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/<session>/workflow-session.json",
+      ".workflow/active/<session>/.process/TEST_ANALYSIS_RESULTS.md",
+      ".workflow/active/<session>/.process/test-context-package.json"
+    ],
+    "writes": [
+      ".workflow/active/<session>/test-planning-notes.md",
+      ".workflow/active/<session>/.task/IMPL-*.json",
+      ".workflow/active/<session>/IMPL_PLAN.md",
+      ".workflow/active/<session>/TODO_LIST.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not execute tests or implement code; planning artifacts only.",
+      "Do not write outside the session folder under .workflow/active/<session>/.",
+      "If required inputs are missing, fail with actionable guidance (which upstream command produces them)."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name, description, allowed-tools (argument-hint recommended).",
+      "Core sections present: Overview, Usage, Execution Process, Outputs / Artifacts, Error Handling.",
+      "Implementation pointer evidence tables pass verify-evidence.js (dual-source docs + TS; no false Existing claims).",
+      "Explicitly states planning-only behavior (no test execution / no code edits)."
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/tools/test-task-generate.md",
+    "code_pointers": [
+      ".claude/agents/test-action-planning-agent.md",
+      ".claude/agents/cli-execution-agent.md",
+      "ccw/src/core/routes/commands-routes.ts",
+      "ccw/src/tools/command-registry.ts"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      { "level": 1, "text": "Generate Test Planning Documents Command" },
+      { "level": 2, "text": "Overview" },
+      { "level": 2, "text": "Execution Process" },
+      { "level": 2, "text": "Phase 1: Context Preparation" },
+      { "level": 2, "text": "Phase 1.5: Gemini Test Enhancement" },
+      { "level": 2, "text": "Task Generation (Phase 2)" },
+      { "level": 2, "text": "Output" },
+      { "level": 2, "text": "Integration & Usage" },
+      { "level": 2, "text": "Validation" },
+      { "level": 2, "text": "Related Commands" }
+    ]
+  }
+}
+

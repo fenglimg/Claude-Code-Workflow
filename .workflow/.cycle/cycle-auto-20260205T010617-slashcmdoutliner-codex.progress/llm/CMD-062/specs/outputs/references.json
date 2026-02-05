@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "cycle-auto-20260205T010617-slashcmdoutliner-codex",
+  "command_id": "CMD-062",
+  "command": {
+    "slash": "/workflow:tools:task-generate-tdd",
+    "file_path": ".claude/commands/workflow/tools/task-generate-tdd.md"
+  },
+  "candidates": [
+    {
+      "slash": "/workflow:tools:task-generate-agent",
+      "file_path": ".claude/commands/workflow/tools/task-generate-agent.md",
+      "score": 0.95,
+      "why": "Same workflow/tools family; same session inputs; same planning-artifact outputs; invokes action-planning-agent."
+    },
+    {
+      "slash": "/workflow:tools:test-task-generate",
+      "file_path": ".claude/commands/workflow/tools/test-task-generate.md",
+      "score": 0.86,
+      "why": "Similar planning artifact generation; includes task JSON generation + validation gates; shows agent-invocation structure."
+    },
+    {
+      "slash": "/workflow:tdd-plan",
+      "file_path": ".claude/commands/workflow/tdd-plan.md",
+      "score": 0.82,
+      "why": "Coordinator-level command that calls TDD task generation as a phase; clarifies chain integration points and artifact expectations."
+    },
+    {
+      "slash": "/workflow:tools:tdd-coverage-analysis",
+      "file_path": ".claude/commands/workflow/tools/tdd-coverage-analysis.md",
+      "score": 0.74,
+      "why": "Adjacent phase input for TDD task generation (coverage gaps and test focus); shares session path conventions and validation style."
+    },
+    {
+      "slash": "/workflow:tools:context-gather",
+      "file_path": ".claude/commands/workflow/tools/context-gather.md",
+      "score": 0.69,
+      "why": "Upstream prerequisite for context-package discovery; provides established patterns for session discovery + context-package handling."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:tools:task-generate-agent",
+    "file_path": ".claude/commands/workflow/tools/task-generate-agent.md",
+    "why": "Closest match to the required two-phase flow (context preparation -> planning doc generation) and shares the same session artifacts and action-planning-agent invocation pattern."
+  }
+}
+

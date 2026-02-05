@@ -1,0 +1,1523 @@
+Reading prompt from stdin...
+OpenAI Codex v0.93.0 (research preview)
+--------
+workdir: C:\Project\Claude-Code-Workflow
+model: gpt-5.2
+provider: codex
+approval: never
+sandbox: danger-full-access
+reasoning effort: high
+reasoning summaries: auto
+session id: 019c29df-3e1a-70f0-9376-9c9aab5b61d4
+--------
+user
+Use the repo skill: slash-command-outliner (path: .codex/skills/slash-command-outliner).
+
+Cycle: cycle-auto-20260205T010617-slashcmdoutliner-codex
+Command: CMD-007
+
+Input requirement doc (non-leaky): `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-007.requirements.md`
+
+Write the following output files (create directories as needed) under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs`:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/fix-plan.md`
+
+Hard rules (P0):
+- Follow templates: .codex/skills/slash-command-outliner/templates/*
+- Follow gates: .codex/skills/slash-command-outliner/specs/quality-gates.md
+- Evidence tables MUST pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js
+- Never label a pointer as Existing unless it is verifiable in the repo now.
+- For ANY pointer row, provide dual-source evidence:
+  - docs: .claude/commands/**.md / <real heading text>
+  - ts: ccw/src/** / <literal anchor string present in file>
+- Avoid placeholders like TBD/N/A in evidence rows; if unsure, mark as Planned and add Verify steps.
+
+Keep the written files concise; do not write extra files unless necessary.
+
+deprecated: `[features].web_search_request` is deprecated. Use `web_search` instead.
+  Set `web_search` to `"live"`, `"cached"`, or `"disabled"` in config.toml.
+mcp: ace-tool starting
+mcp: ccw-tools starting
+mcp: exa starting
+mcp: ccw-tools ready
+mcp: ace-tool ready
+mcp: exa ready
+mcp startup: ready: ccw-tools, ace-tool, exa
+
+thinking
+**Gathering context for templates**
+
+I’m trying to gather context using tools, specifically by calling smart_search to find templates. I’m wondering if I could just list the directory in the shell, but the instructions seem to prefer using MCP. It looks like calling smart_search to find files that match certain patterns is the best approach. So, I’ll just go ahead and use smart_search to find both templates and skill specifications in one call.
+tool ccw-tools.smart_search({"action":"find_files","path":"C:/Project/Claude-Code-Workflow","pattern":".codex/skills/slash-command-outliner/**","limit":200})
+ccw-tools.smart_search({"action":"find_files","path":"C:/Project/Claude-Code-Workflow","pattern":".codex/skills/slash-command-outliner/**","limit":200}) success in 112ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"success\": true,\n  \"results\": [],\n  \"metadata\": {\n    \"pattern\": \".codex/skills/slash-command-outliner/**\",\n    \"backend\": \"ripgrep\",\n    \"count\": 0,\n    \"pagination\": {\n      \"offset\": 0,\n      \"limit\": 200,\n      \"total\": 0,\n      \"has_more\": false\n    }\n  }\n}",
+      "type": "text"
+    }
+  ]
+}
+
+thinking
+**Troubleshooting search issues**
+
+It seems like the smart_search didn't find anything. I'm wondering if it's because I used backslashes instead of forward slashes for the Windows path. The error mentions backend ripgrep with empty results, which makes me think that the repository might not have that specific path. Maybe it's actually under C:/Project/Claude-Code-Workflow/.codex/skills/slash-command-outliner, considering the dot at the start. Could it be that smart_search ignores hidden directories? I should set includeHidden to true and try again.
+tool ccw-tools.smart_search({"action":"find_files","path":"C:/Project/Claude-Code-Workflow","pattern":".codex/skills/slash-command-outliner/**","limit":200,"includeHidden":true})
+ccw-tools.smart_search({"action":"find_files","path":"C:/Project/Claude-Code-Workflow","pattern":".codex/skills/slash-command-outliner/**","limit":200,"includeHidden":true}) success in 100ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"success\": true,\n  \"results\": [\n    {\n      \"path\": \".codex/skills/slash-command-outliner/templates/slash-command-outline.md\",\n      \"type\": \"file\",\n      \"name\": \"slash-command-outline.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/templates/gap-report.md\",\n      \"type\": \"file\",\n      \"name\": \"gap-report.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/templates/agent-outline.md\",\n      \"type\": \"file\",\n      \"name\": \"agent-outline.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/specs/spec-input.md\",\n      \"type\": \"file\",\n      \"name\": \"spec-input.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/specs/quality-gates.md\",\n      \"type\": \"file\",\n      \"name\": \"quality-gates.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/specs/corpus-scope.md\",\n      \"type\": \"file\",\n      \"name\": \"corpus-scope.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/SKILL.md\",\n      \"type\": \"file\",\n      \"name\": \"SKILL.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/scripts/verify-evidence.test.js\",\n      \"type\": \"file\",\n      \"name\": \"verify-evidence.test.js\",\n      \"extension\": \"js\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/scripts/verify-evidence.js\",\n      \"type\": \"file\",\n      \"name\": \"verify-evidence.js\",\n      \"extension\": \"js\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/scripts/scan-corpus.js\",\n      \"type\": \"file\",\n      \"name\": \"scan-corpus.js\",\n      \"extension\": \"js\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/scripts/regress-all.js\",\n      \"type\": \"file\",\n      \"name\": \"regress-all.js\",\n      \"extension\": \"js\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/scripts/README.md\",\n      \"type\": \"file\",\n      \"name\": \"README.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/scripts/lib/snapshots.js\",\n      \"type\": \"file\",\n      \"name\": \"snapshots.js\",\n      \"extension\": \"js\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/scripts/lib/pipeline.js\",\n      \"type\": \"file\",\n      \"name\": \"pipeline.js\",\n      \"extension\": \"js\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/scripts/lib/implementation-hints.js\",\n      \"type\": \"file\",\n      \"name\": \"implementation-hints.js\",\n      \"extension\": \"js\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/scripts/lib/command-md.js\",\n      \"type\": \"file\",\n      \"name\": \"command-md.js\",\n      \"extension\": \"js\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/scripts/generate-outline.js\",\n      \"type\": \"file\",\n      \"name\": \"generate-outline.js\",\n      \"extension\": \"js\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/scripts/gap-report.js\",\n      \"type\": \"file\",\n      \"name\": \"gap-report.js\",\n      \"extension\": \"js\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/scripts/derive-spec.js\",\n      \"type\": \"file\",\n      \"name\": \"derive-spec.js\",\n      \"extension\": \"js\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/phases/05-regression-and-closure.md\",\n      \"type\": \"file\",\n      \"name\": \"05-regression-and-closure.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/phases/04-gap-report-and-iterate.md\",\n      \"type\": \"file\",\n      \"name\": \"04-gap-report-and-iterate.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/phases/03-generate-outlines.md\",\n      \"type\": \"file\",\n      \"name\": \"03-generate-outlines.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/phases/02-retrieve-and-rank-references.md\",\n      \"type\": \"file\",\n      \"name\": \"02-retrieve-and-rank-references.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".codex/skills/slash-command-outliner/phases/01-collect-spec.md\",\n      \"type\": \"file\",\n      \"name\": \"01-collect-spec.md\",\n      \"extension\": \"md\"\n    }\n  ],\n  \"metadata\": {\n    \"pattern\": \".codex/skills/slash-command-outliner/**\",\n    \"backend\": \"ripgrep\",\n    \"count\": 24,\n    \"pagination\": {\n      \"offset\": 0,\n      \"limit\": 200,\n      \"total\": 24,\n      \"has_more\": false\n    }\n  }\n}",
+      "type": "text"
+    }
+  ]
+}
+
+thinking
+**Reviewing requirements and scripts**
+
+I need to dive into the templates, scripts, and requirements document now. I want to check if I can use the `Get-Content -Raw` command in PowerShell to read multiple files at once, perhaps using a single call with `cat`. Since I'll be producing spec.json, references.json, and outlines, I should consider running the derive-spec.js, gap-report.js, and generate-outline.js scripts to automate the process. However, the outputs need to go into a specified directory, so I'll read through the SKILL.md for guidance on the procedure.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/SKILL.md' in C:/Project/Claude-Code-Workflow succeeded in 348ms:
+---
+name: slash-command-outliner
+description: Codex version of slash-command-outliner. Generate CCW-aligned slash command development outlines from a requirement/spec doc, validated via corpus-wide iteration and non-regression. Triggers on "slash command outliner", "slash 命令大纲", "slash 命令生成器", "命令大纲".
+allowed-tools: Read, Write, AskUserQuestion, Task, Bash, TodoWrite, mcp__ace-tool__search_context
+---
+
+# Slash Command Outliner (Codex)
+
+Input a **slash command requirement/spec document**. Output a **CCW-aligned, end-to-end development outline** (Slash MD outline + Agent MD outline) plus a **gap-report** that compares against reference implementations and CCW server/tooling corpus. Improve quality by iterating across **all** existing commands with **non-regression snapshots**.
+
+This skill is designed to be **precise** (no fluff) and **stable** (non-regression gate).
+
+## Canonical Workflow (Phases)
+
+1) `phases/01-collect-spec.md`  
+2) `phases/02-retrieve-and-rank-references.md`  
+3) `phases/03-generate-outlines.md`  
+4) `phases/04-gap-report-and-iterate.md`  
+5) `phases/05-regression-and-closure.md`
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/spec-input.md' in C:/Project/Claude-Code-Workflow succeeded in 363ms:
+# Spec Input (Schema + Rules)
+
+The spec is the only “source input” for outline generation. It must be **minimal** and **non-leaky**.
+
+## Minimal JSON Schema (informal)
+
+```json
+{
+  "command": {
+    "group": "workflow|issue|learn|cli|other",
+    "name": "kebab-case",
+    "description": "one sentence",
+    "argument_hint": "[--flag] \"args\"",
+    "allowed_tools": ["Read(*)", "Write(*)"]
+  },
+  "intent": {
+    "type": "analyze|plan|execute|brainstorm|manage|utility",
+    "interaction": "single-shot|iterative|loop",
+    "primary_user_value": "what this command accomplishes"
+  },
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/quality-gates.md' in C:/Project/Claude-Code-Workflow succeeded in 350ms:
+# Quality Gates (Non-regression First)
+
+## P0 Gates (Must Pass)
+
+P0 failure means “not CCW-aligned” and blocks completion.
+
+1) **Frontmatter completeness**
+   - `name`, `description`, `allowed-tools` must exist
+   - `argument-hint` optional but recommended for non-trivial commands
+2) **Allowed-tools correctness**
+   - no tools outside the supported CCW set for the intended workflow
+   - no missing tools required by the described behavior
+3) **Core sections present**
+   - at least: `Overview`, `Usage`, `Execution Process`, `Output/Artifacts`, `Error Handling`
+4) **No broken artifact references**
+   - referenced paths must be either created by the command or explicitly documented as pre-existing
+
+5) **Implementation pointers must be evidence-based (Existing vs Planned)**
+   - Every implementation pointer (file/module/CLI subcommand/tool entry) MUST be labeled:
+     - `Existing`: verifiable in repo now
+
+thinking
+**Gathering evidence requirements**
+
+I need to compile pointers for evidence since the user requires that the evidence table meets specific conditions. It must pass through a verification step involving verify-evidence.js, and rows should have dual-source evidence consisting of documentation and a TypeScript anchor string. I should avoid placeholders and, if I'm unsure, I’ll mark it as "Planned" with steps to verify later. It looks like our outlines will include an implementation pointers table with designated evidence row fields, so I’ll check the template file.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/slash-command-outline.md' in C:/Project/Claude-Code-Workflow succeeded in 372ms:
+---
+name: {{command.name}}
+description: {{command.description}}
+argument-hint: "{{command.argument_hint}}"
+allowed-tools: {{command.allowed_tools_csv}}
+group: {{command.group}}
+---
+
+# {{command.title}}
+
+## Overview
+
+- Goal: {{intent.primary_user_value}}
+- Command: `/{{command.group}}:{{command.name}}`
+
+## Usage
+
+```bash
+/{{command.group}}:{{command.name}} {{command.usage_args}}
+```
+
+thinking
+**Exploring script functionality**
+
+It seems there's some ambiguity about the script's role. I think it might focus on parsing and ensuring proper formatting while checking for the existence of something. I'll need to verify this by looking into `verify-evidence.js` to understand its functionality better. It's essential to clarify this aspect to ensure everything works as intended. Let's dive in and see what we can find there!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/verify-evidence.js' in C:/Project/Claude-Code-Workflow succeeded in 359ms:
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+export function usage() {
+  console.log(
+    [
+      'Usage:',
+      '  node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<path.md> [--file=<path2.md> ...]',
+      '',
+      'Behavior:',
+      '  - Extracts evidence tables from markdown (gap-report and/or outline)',
+      '  - Enforces evidence-based gates:',
+      '    - Each row must label Status as Existing or Planned',
+      '    - Evidence must include BOTH docs and ts anchors:',
+      '      - docs: .claude/commands/**.md / <section heading>',
+      '      - ts: ccw/src/** / <function|case|pattern>',
+      '    - Existing rows must point to verifiable pointers (paths must exist when pointer looks like a path)',
+      '',
+      'Notes:',
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-007.requirements.md' in C:/Project/Claude-Code-Workflow succeeded in 358ms:
+# Requirement (non-leaky): /cli:codex-review
+
+## Source
+
+- Command doc (oracle, do not paste full contents into spec): `.claude/commands/cli/codex-review.md`
+
+## Command Identity
+
+- group: cli
+- name: codex-review
+- description: Interactive code review using Codex CLI via ccw endpoint with configurable review target, model, and custom instructions
+- argument-hint: [--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]
+- allowed-tools: Bash(*), AskUserQuestion(*), Read(*)
+
+## Structure Hints (Headings Only)
+
+- Codex Review Command (/cli:codex-review)
+  - Overview
+  - Prompt Template Format
+  - EXECUTION INSTRUCTIONS - START HERE
+
+thinking
+**Producing specifications**
+
+I see we already have the requirement document, so it might be easiest for me to create spec.json manually using the spec-input schema. I also think references.json could list the reference set, which would include the existing command documentation and similar commands. However, I might need to ensure it matches what the scripts expect. To verify that, I'll take a look at generate-outline.js or derive-spec.js to examine their schema.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/derive-spec.js' in C:/Project/Claude-Code-Workflow succeeded in 353ms:
+import { deriveSpecFromCommandFile, writeJson } from './lib/pipeline.js';
+
+function usage() {
+  console.log(
+    [
+      'Usage:',
+      '  node .codex/skills/slash-command-outliner/scripts/derive-spec.js --command=.claude/commands/workflow/plan.md --out=spec.json',
+      '',
+      'Produces a minimal, non-leaky spec JSON (frontmatter + headings only).',
+    ].join('\n')
+  );
+}
+
+function parseArgs(argv) {
+  const args = {};
+  for (const a of argv) {
+    if (!a.startsWith('--')) continue;
+    const [k, v] = a.split('=');
+    args[k] = v ?? true;
+  }
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/generate-outline.js' in C:/Project/Claude-Code-Workflow succeeded in 368ms:
+import fs from 'node:fs';
+import path from 'node:path';
+
+import { renderOutlineFromSpec, writeText } from './lib/pipeline.js';
+import { findImplementationHints } from './lib/implementation-hints.js';
+
+function usage() {
+  console.log(
+    [
+      'Usage:',
+      '  node .codex/skills/slash-command-outliner/scripts/generate-outline.js --spec=spec.json --out=outline.md',
+      '    [--tooling-manifest=tooling.json]',
+      '',
+      'Generates a CCW-aligned slash command outline deterministically (no LLM).',
+    ].join('\n')
+  );
+}
+
+function parseArgs(argv) {
+  const args = {};
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/gap-report.js' in C:/Project/Claude-Code-Workflow succeeded in 361ms:
+import fs from 'node:fs';
+import path from 'node:path';
+
+import { computeGapReport, writeText } from './lib/pipeline.js';
+
+function usage() {
+  console.log(
+    [
+      'Usage:',
+      '  node .codex/skills/slash-command-outliner/scripts/gap-report.js \\',
+      '    --spec=spec.json --outline=outline.md --reference=.claude/commands/workflow/plan.md \\',
+      '    --tooling-manifest=tooling.json --out=gap-report.md',
+    ].join('\n')
+  );
+}
+
+function parseArgs(argv) {
+  const args = {};
+  for (const a of argv) {
+    if (!a.startsWith('--')) continue;
+
+thinking
+**Reviewing evidence table requirements**
+
+I see that the gap report script is minimal and not using a template, and it doesn't include evidence tables, but the user mentioned that those must pass verify-evidence.js. I think we should definitely include evidence tables in our markdown outputs, likely in both generated-slash-outline.md and the gap report, at least once. It sounds like we need to ensure these tables pass consistently across all outputs by including them in both documents. Running the script on our files should help confirm the accuracy of the evidence tables too.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/scan-corpus.js' in C:/Project/Claude-Code-Workflow succeeded in 356ms:
+import fs from 'node:fs';
+import path from 'node:path';
+
+import { readCommandFile, toPosixPath } from './lib/command-md.js';
+
+function usage() {
+  // Keep this script dependency-free (no commander).
+  console.log(
+    [
+      'Usage:',
+      '  node .codex/skills/slash-command-outliner/scripts/scan-corpus.js --root=.claude/commands --out=corpus.json',
+      '',
+      'Notes:',
+      '  - Excludes node_modules/ and _disabled/ directories',
+    ].join('\n')
+  );
+}
+
+function parseArgs(argv) {
+  const args = {};
+
+thinking
+**Inspections on references**
+
+I need to look closely at references.json since it's crucial for our output. There's no set template, but it might list top commands and tool pointers to help us fulfill phase 02. I’ll check how the phases are structured and inspect the references schema in the pipeline library. So, let's dig into pipeline.js and see what it reveals. That should clarify my next steps!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/lib/pipeline.js' in C:/Project/Claude-Code-Workflow succeeded in 344ms:
+import fs from 'node:fs';
+import path from 'node:path';
+
+import { extractHeadings, parseYamlHeader, readCommandFile, toPosixPath } from './command-md.js';
+import { findImplementationHints } from './implementation-hints.js';
+
+export function splitCsv(s) {
+  return String(s || '')
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+function inferGroupFromCommandPath(commandPath, headerGroup) {
+  if (headerGroup && String(headerGroup).trim().length > 0) return String(headerGroup).trim();
+  const p = toPosixPath(String(commandPath || ''));
+  const marker = '.claude/commands/';
+  const idx = p.indexOf(marker);
+  if (idx === -1) return '';
+  const rel = p.slice(idx + marker.length);
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/agent-outline.md' in C:/Project/Claude-Code-Workflow succeeded in 347ms:
+# Agent Outline: {{command.group}}:{{command.name}}
+
+## Purpose
+
+Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
+
+## Execution Model
+
+- Default: incremental, testable changes
+- Use ACE-tool to find existing patterns before adding new abstractions
+
+## State & Artifacts
+
+- Session folder (if used): `.workflow/...`
+- Required outputs:
+  - Slash MD (command doc)
+  - Any scripts/modules referenced by the command
+  - Validation notes / regression snapshots
+
+## Tooling
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/gap-report.md' in C:/Project/Claude-Code-Workflow succeeded in 344ms:
+# Gap Report: {{command.group}}:{{command.name}}
+
+## Reference
+
+- Selected reference: {{reference.slash}} (`{{reference.file_path}}`)
+
+## P0 Gaps (Must Fix)
+
+{{gaps.p0}}
+
+## P1 Gaps (Should Fix)
+
+{{gaps.p1}}
+
+## P2 Gaps (Optional)
+
+{{gaps.p2}}
+
+## Implementation Pointers (Evidence)
+
+
+
+
+thinking
+**Ensuring evidence tables are included**
+
+I see that the gap-report template has an evidence table with placeholders we need to replace with real data. The agent-outline template is minimal and doesn't include an evidence table, which is necessary for the verify-evidence step. Although hard rules dictate that evidence tables must pass, it doesn't explicitly say every file must have one. It’s a good precaution to include an evidence table in each markdown output to avoid failure. Let's ensure all outputs meet this requirement!
+thinking
+**Including evidence tables in outputs**
+
+I need to ensure that the verify script checks for evidence tables with specific columns: pointer, status, evidence, and verification. Each file input should have at least one evidence table. This means I should include them in generated-slash-outline.md, generated-agent-outline.md, gap-report.md, and possibly fix-plan.md, even if fix-plan might not strictly require it. To keep things concise, I could add a small evidence table with a few pointers that references the same documents and related anchors, which should be sufficient.
+thinking
+**Finding headings for evidence**
+
+When writing evidence rows, I need real file headings and anchor strings. First, I'll check the `.claude/commands/cli/codex-review.md` file for headings like `## Overview` to use as documentation evidence. For the TS anchors, I'll locate where the codex-review command is implemented. I'll search for the "codex-review" string in the ccw/src directory using a smart_search query. This should help me gather the necessary information for the evidence tables.
+tool ccw-tools.smart_search({"action":"search","path":"C:/Project/Claude-Code-Workflow","query":"codex-review","includeHidden":true,"limit":20})
+2026-02-04T18:20:10.326852Z ERROR rmcp::transport::async_rw: Error reading from stream: serde error expected value at line 1 column 2
+ccw-tools.smart_search({"action":"search","path":"C:/Project/Claude-Code-Workflow","query":"codex-review","includeHidden":true,"limit":20}) failed in 3.02s:
+
+thinking
+**Troubleshooting tool issues**
+
+The MCP tool crashed, which is frustrating. I’m considering retrying, but if it fails again, I’ll switch to using shell `rg`. Even though the instructions specify to use MCP, it’s not working. I should also think about using the ace search context as a backup. For now, I’ll try mcp__ace-tool__search_context since that’s recommended. Let’s tackle this issue and see if we can get it working!
+tool ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Locate implementation of /cli:codex-review slash command or codex-review in code. Keywords: codex-review, cli command registry, codex review"})
+ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Locate implementation of /cli:codex-review slash command or codex-review in code. Keywords: codex-review, cli command registry, codex review"}) success in 7.19s:
+{
+  "content": [
+    {
+      "text": "The following code sections were retrieved:\nPath: .claude\\commands\\cli\\codex-review.md\n     1\t---\r\n     2\tname: codex-review\r\n     3\tdescription: Interactive code review using Codex CLI via ccw endpoint with configurable review target, model, and custom instructions\r\n     4\targument-hint: \"[--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]\"\r\n     5\tallowed-tools: Bash(*), AskUserQuestion(*), Read(*)\r\n     6\t---\r\n     7\t\r\n     8\t# Codex Review Command (/cli:codex-review)\r\n     9\t\r\n    10\t## Overview\r\n    11\tInteractive code review command that invokes `codex review` via ccw cli endpoint with guided parameter selection.\r\n    12\t\r\n    13\t**Codex Review Parameters** (from `codex review --help`):\r\n    14\t| Parameter | Description |\r\n    15\t|-----------|-------------|\r\n    16\t| `[PROMPT]` | Custom review instructions (positional) |\r\n    17\t| `-c model=<model>` | Override model via config |\r\n    18\t| `--uncommitted` | Review staged, unstaged, and untracked changes |\r\n    19\t| `--base <BRANCH>` | Review changes against base branch |\r\n    20\t| `--commit <SHA>` | Review changes introduced by a commit |\r\n    21\t| `--title <TITLE>` | Optional commit title for review summary |\r\n    22\t\r\n    23\t## Prompt Template Format\r\n    24\t\r\n    25\tFollow the standard ccw cli prompt template:\r\n    26\t\r\n    27\t```\r\n    28\tPURPOSE: [what] + [why] + [success criteria] + [constraints/scope]\r\n    29\tTASK: • [step 1] • [step 2] • [step 3]\r\n    30\tMODE: review\r\n    31\tCONTEXT: [review target description] | Memory: [relevant context]\r\n    32\tEXPECTED: [deliverable format] + [quality criteria]\r\n    33\tCONSTRAINTS: [focus constraints]\r\n    34\t```\r\n    35\t\r\n    36\t## EXECUTION INSTRUCTIONS - START HERE\r\n    37\t\r\n    38\t**When this command is triggered, follow these exact steps:**\r\n    39\t\r\n    40\t### Step 1: Parse Arguments\r\n    41\t\r\n    42\tCheck if user provided arguments directly:\r\n    43\t- `--uncommitted` → Record target = uncommitted\r\n    44\t- `--base <branch>` → Record target = base, branch name\r\n    45\t- `--commit <sha>` → Record target = commit, sha value\r\n    46\t- `--model <model>` → Record model selection\r\n    47\t- `--title <title>` → Record title\r\n    48\t- Remaining text → Use as custom focus/prompt\r\n...\n   174\t\r\n   175\tBased on selection, set `{target_description}`:\r\n   176\t- Uncommitted: `Reviewing uncommitted changes (staged + unstaged + untracked)`\r\n   177\t- Base branch: `Reviewing changes against {branch} branch`\r\n   178\t- Commit: `Reviewing changes introduced by commit {sha}`\r\n   179\t\r\n   180\t### Step 4: Execute via CCW CLI\r\n   181\t\r\n   182\tBuild and execute the ccw cli command:\r\n   183\t\r\n   184\t```bash\r\n   185\t# Base structure\r\n   186\tccw cli -p \"<PROMPT>\" --tool codex --mode review [OPTIONS]\r\n   187\t```\r\n   188\t\r\n   189\t**Command Construction:**\r\n   190\t\r\n   191\t```bash\r\n   192\t# Variables from user selection\r\n   193\tTARGET_FLAG=\"\"      # --uncommitted | --base <branch> | --commit <sha>\r\n   194\tMODEL_FLAG=\"\"       # --model <model> (if not default)\r\n   195\tTITLE_FLAG=\"\"       # --title \"<title>\" (if provided)\r\n...\n   215\t\r\n   216\t# Execute\r\n   217\tccw cli -p \"$PROMPT\" --tool codex --mode review $TARGET_FLAG $MODEL_FLAG $TITLE_FLAG\r\n   218\t```\r\n   219\t\r\n   220\t**Full Example Commands:**\r\n   221\t\r\n   222\t**Option 1: With custom prompt (reviews uncommitted by default):**\r\n   223\t```bash\r\n   224\tccw cli -p \"\r\n   225\tPURPOSE: Comprehensive code review to identify issues and improve quality; success = actionable feedback with priorities\r\n   226\tTASK: • Review correctness and logic • Check standards compliance • Identify bugs and edge cases • Evaluate documentation\r\n   227\tMODE: review\r\n   228\tCONTEXT: Reviewing uncommitted changes | Memory: Project conventions\r\n   229\tEXPECTED: Structured report with severity levels, file:line refs, improvement suggestions\r\n   230\tCONSTRAINTS: Actionable feedback\r\n   231\t\" --tool codex --mode review --rule analysis-review-code-quality\r\n   232\t```\r\n   233\t\r\n   234\t**Option 2: Target flag only (no prompt allowed):**\r\n   235\t```bash\r\n   236\tccw cli --tool codex --mode review --uncommitted\r\n   237\t```\r\n   238\t\r\n   239\t### Step 5: Execute and Display Results\r\n   240\t\r\n   241\t```bash\r\n   242\tBash({\r\n   243\t  command: \"ccw cli -p \\\"$PROMPT\\\" --tool codex --mode review $FLAGS\",\r\n   244\t  run_in_background: true\r\n   245\t})\r\n   246\t```\r\n   247\t\r\n   248\tWait for completion and display formatted results.\r\n   249\t\r\n   250\t## Quick Usage Examples\r\n   251\t\r\n   252\t### Direct Execution (No Interaction)\r\n   253\t\r\n   254\t```bash\r\n   255\t# Review uncommitted changes with default settings\r\n   256\t/cli:codex-review --uncommitted\r\n   257\t\r\n   258\t# Review against main branch\r\n   259\t/cli:codex-review --base main\r\n   260\t\r\n   261\t# Review specific commit\r\n   262\t/cli:codex-review --commit abc123\r\n   263\t\r\n   264\t# Review with custom model\r\n   265\t/cli:codex-review --uncommitted --model o3\r\n   266\t\r\n   267\t# Review with security focus\r\n   268\t/cli:codex-review --uncommitted security\r\n   269\t\r\n   270\t# Full options\r\n   271\t/cli:codex-review --base main --model o3 --title \"Auth Feature\" security\r\n   272\t```\r\n   273\t\r\n   274\t### Interactive Mode\r\n   275\t\r\n   276\t```bash\r\n   277\t# Start interactive selection (guided flow)\r\n   278\t/cli:codex-review\r\n   279\t```\r\n   280\t\r\n   281\t## Focus Area Mapping\r\n...\n   305\t\r\n   306\t### Invalid Commit\r\n   307\t```bash\r\n   308\t# Show recent commits\r\n   309\tgit log --oneline -10\r\n   310\t```\r\n   311\t\r\n   312\t## Integration Notes\r\n   313\t\r\n   314\t- Uses `ccw cli --tool codex --mode review` endpoint\r\n   315\t- Model passed via prompt (codex uses `-c model=` internally)\r\n   316\t- Target flags (`--uncommitted`, `--base`, `--commit`) passed through to codex\r\n   317\t- Prompt follows standard ccw cli template format for consistency\r\n   318\t\r\n   319\t## Validation Constraints\r\n   320\t\r\n   321\t**IMPORTANT: Target flags and prompt are mutually exclusive**\r\n   322\t\r\n   323\tThe codex CLI has a constraint where target flags (`--uncommitted`, `--base`, `--commit`) cannot be used with a positional `[PROMPT]` argument:\r\n...\n   335\t\r\n   336\t**Valid combinations:**\r\n   337\t| Command | Result |\r\n   338\t|---------|--------|\r\n   339\t| `codex review \"Focus on security\"` | ✓ Custom prompt, reviews uncommitted (default) |\r\n   340\t| `codex review --uncommitted` | ✓ No prompt, uses default review |\r\n   341\t| `codex review --base main` | ✓ No prompt, uses default review |\r\n   342\t| `codex review --commit abc123` | ✓ No prompt, uses default review |\r\n   343\t| `codex review --uncommitted \"prompt\"` | ✗ Invalid - mutually exclusive |\r\n   344\t| `codex review --base main \"prompt\"` | ✗ Invalid - mutually exclusive |\r\n   345\t| `codex review --commit abc123 \"prompt\"` | ✗ Invalid - mutually exclusive |\r\n   346\t\r\n   347\t**Examples:**\r\n   348\t```bash\r\n   349\t# ✓ Valid: prompt only (reviews uncommitted by default)\r\n   350\tccw cli -p \"Focus on security\" --tool codex --mode review\r\n   351\t\r\n   352\t# ✓ Valid: target flag only (no prompt)\r\n   353\tccw cli --tool codex --mode review --uncommitted\r\n   354\tccw cli --tool codex --mode review --base main\r\n   355\tccw cli --tool codex --mode review --commit abc123\r\n   356\t\r\n   357\t# ✗ Invalid: target flag with prompt (will fail)\r\n   358\tccw cli -p \"Review this\" --tool codex --mode review --uncommitted\r\n   359\tccw cli -p \"Review this\" --tool codex --mode review --base main\r\n   360\tccw cli -p \"Review this\" --tool codex --mode review --commit abc123\r\n   361\t```\r\n...\n\nPath: ccw\\docs-site\\docs\\commands\\cli\\codex-review.mdx\n     1\t---\r\n     2\ttitle: /cli:codex-review\r\n     3\tsidebar_label: /cli:codex-review\r\n     4\tsidebar_position: 2\r\n     5\tdescription: Interactive code review using Codex CLI with configurable review targets\r\n     6\t---\r\n     7\t\r\n     8\t# /cli:codex-review\r\n     9\t\r\n    10\tInteractive code review command that invokes `codex review` via CCW CLI endpoint with guided parameter selection.\r\n    11\t\r\n    12\t## Overview\r\n    13\t\r\n    14\tThe `/cli:codex-review` command provides an interface to Codex's powerful code review capabilities, supporting multiple review targets and customizable review parameters.\r\n    15\t\r\n    16\t## Review Parameters\r\n    17\t\r\n    18\t| Parameter | Description |\r\n    19\t|-----------|-------------|\r\n    20\t| `[PROMPT]` | Custom review instructions (positional) |\r\n    21\t| `-c model=&lt;model&gt;` | Override model via config |\r\n    22\t| `--uncommitted` | Review staged, unstaged, and untracked changes |\r\n    23\t| `--base &lt;BRANCH&gt;` | Review changes against base branch |\r\n    24\t| `--commit &lt;SHA&gt;` | Review changes introduced by a commit |\r\n    25\t| `--title &lt;TITLE&gt;` | Optional commit title for review summary |\r\n    26\t\r\n    27\t## Usage\r\n    28\t\r\n    29\t### Direct Execution (No Interaction)\r\n    30\t\r\n    31\t```bash\r\n    32\t# Review uncommitted changes\r\n    33\t/cli:codex-review --uncommitted\r\n    34\t\r\n    35\t# Review against main branch\r\n    36\t/cli:codex-review --base main\r\n    37\t\r\n    38\t# Review specific commit\r\n    39\t/cli:codex-review --commit abc123\r\n    40\t\r\n    41\t# Review with custom model\r\n    42\t/cli:codex-review --uncommitted --model o3\r\n    43\t\r\n    44\t# Review with security focus\r\n    45\t/cli:codex-review --uncommitted security\r\n    46\t\r\n    47\t# Full options\r\n    48\t/cli:codex-review --base main --model o3 --title \"Auth Feature\" security\r\n    49\t```\r\n    50\t\r\n    51\t### Interactive Mode\r\n    52\t\r\n    53\t```bash\r\n    54\t# Start interactive selection (guided flow)\r\n    55\t/cli:codex-review\r\n    56\t```\r\n    57\t\r\n    58\t## Review Targets\r\n    59\t\r\n    60\t| Target | Description | Use Case |\r\n    61\t|--------|-------------|----------|\r\n    62\t| **Uncommitted** | Reviews staged, unstaged, and untracked changes | Quick pre-commit review |\r\n    63\t| **Base Branch** | Reviews changes against specified branch | PR review, branch comparison |\r\n    64\t| **Commit** | Reviews changes introduced by specific commit | Historical commit review |\r\n    65\t\r\n    66\t## Focus Areas\r\n...\n    78\t\r\n    79\t1. **Select Review Target** - Choose uncommitted, base branch, or commit\r\n    80\t2. **Select Focus Area** - Choose general, security, performance, or code quality\r\n    81\t3. **Configure Options** - Set model, title, and custom instructions\r\n    82\t4. **Execute Review** - Runs Codex review with selected parameters\r\n    83\t5. **Display Results** - Shows structured review findings\r\n    84\t\r\n    85\t### Command Construction\r\n    86\t\r\n    87\t```bash\r\n    88\t# Base structure\r\n    89\tccw cli -p \"<PROMPT>\" --tool codex --mode review [OPTIONS]\r\n...\n   137\t\r\n   138\t## Error Handling\r\n   139\t\r\n   140\t### No Changes to Review\r\n   141\t\r\n   142\t```\r\n   143\tNo changes found for review target. Suggestions:\r\n   144\t- For --uncommitted: Make some code changes first\r\n   145\t- For --base: Ensure branch exists and has diverged\r\n   146\t- For --commit: Verify commit SHA exists\r\n   147\t```\r\n   148\t\r\n   149\t### Invalid Branch\r\n   150\t\r\n   151\t```bash\r\n   152\t# Show available branches\r\n   153\tgit branch -a --list | head -20\r\n   154\t```\r\n   155\t\r\n   156\t### Invalid Commit\r\n   157\t\r\n   158\t```bash\r\n   159\t# Show recent commits\r\n   160\tgit log --oneline -10\r\n   161\t```\r\n   162\t\r\n   163\t## Examples\r\n   164\t\r\n   165\t### Pre-Commit Review\r\n   166\t\r\n   167\t```bash\r\n   168\t# Quick review before committing\r\n   169\t/cli:codex-review --uncommitted\r\n   170\t\r\n   171\t# Output:\r\n   172\t# Reviewing 3 files with 45 changes\r\n   173\t# - src/auth/login.ts: 2 issues found\r\n   174\t# - src/user/profile.ts: 1 issue found\r\n   175\t# - tests/auth.test.ts: No issues\r\n   176\t```\r\n   177\t\r\n   178\t### Branch Comparison\r\n   179\t\r\n   180\t```bash\r\n   181\t# Review feature branch against main\r\n   182\t/cli:codex-review --base feature-auth\r\n   183\t\r\n   184\t# Shows all differences between branches\r\n   185\t```\r\n   186\t\r\n   187\t### Security-Focused Review\r\n   188\t\r\n   189\t```bash\r\n   190\t# Security review of uncommitted changes\r\n   191\t/cli:codex-review --uncommitted \"Focus on security vulnerabilities, injection risks, authentication issues\"\r\n   192\t\r\n   193\t# Prioritizes security-related findings\r\n   194\t```\r\n   195\t\r\n   196\t## Related Commands\r\n   197\t\r\n   198\t- **/cli:cli-init** - Initialize CLI configuration\r\n   199\t- **/workflow:review-session-cycle** - Session-based code review\r\n   200\t- **/workflow:review-module-cycle** - Module-specific code review\r\n   201\t\r\n   202\t## Integration Notes\r\n...\n\nPath: ccw\\src\\tools\\command-registry.ts\n     1\t/**\r\n     2\t * Command Registry Tool\r\n     3\t *\r\n     4\t * Features:\r\n     5\t * 1. Scan and parse YAML headers from command files\r\n     6\t * 2. Read from global ~/.claude/commands/workflow directory\r\n     7\t * 3. Support on-demand extraction (not full scan)\r\n     8\t * 4. Cache parsed metadata for performance\r\n     9\t */\r\n    10\t\r\n    11\timport { existsSync, readdirSync, readFileSync, statSync } from 'fs';\r\n    12\timport { join } from 'path';\r\n    13\timport { homedir } from 'os';\r\n    14\t\r\n    15\texport interface CommandMetadata {\r\n    16\t  name: string;\r\n    17\t  command: string;\r\n    18\t  description: string;\r\n    19\t  argumentHint: string;\r\n    20\t  allowedTools: string[];\r\n    21\t  filePath: string;\r\n    22\t  group?: string;\r\n    23\t}\r\n    24\t\r\n    25\texport interface CommandSummary {\r\n    26\t  name: string;\r\n    27\t  description: string;\r\n    28\t}\r\n    29\t\r\n    30\texport class CommandRegistry {\r\n    31\t  private commandDir: string | null;\r\n    32\t  private cache: Map<string, CommandMetadata>;\r\n    33\t\r\n    34\t  constructor(commandDir?: string) {\r\n    35\t    this.cache = new Map();\r\n    36\t\r\n    37\t    if (commandDir) {\r\n    38\t      this.commandDir = commandDir;\r\n    39\t    } else {\r\n    40\t      this.commandDir = this.findCommandDir();\r\n    41\t    }\r\n    42\t  }\r\n    43\t\r\n    44\t  /**\r\n    45\t   * Auto-detect ~/.claude/commands/workflow directory\r\n    46\t   */\r\n    47\t  private findCommandDir(): string | null {\r\n    48\t    // Try relative to current working directory\r\n    49\t    const relativePath = join('.claude', 'commands', 'workflow');\r\n    50\t    if (existsSync(relativePath)) {\r\n    51\t      return relativePath;\r\n    52\t    }\r\n    53\t\r\n    54\t    // Try user home directory\r\n    55\t    const homeDir = homedir();\r\n    56\t    const homeCommandDir = join(homeDir, '.claude', 'commands', 'workflow');\r\n    57\t    if (existsSync(homeCommandDir)) {\r\n    58\t      return homeCommandDir;\r\n    59\t    }\r\n    60\t\r\n    61\t    return null;\r\n    62\t  }\r\n...\n   118\t\r\n   119\t  /**\r\n   120\t   * Get single command metadata\r\n   121\t   * @param commandName Command name (e.g., \"lite-plan\" or \"/workflow:lite-plan\")\r\n   122\t   * @returns Command metadata or null\r\n   123\t   */\r\n   124\t  public getCommand(commandName: string): CommandMetadata | null {\r\n   125\t    if (!this.commandDir) {\r\n   126\t      console.error('ERROR: ~/.claude/commands/workflow directory not found');\r\n   127\t      return null;\r\n   128\t    }\r\n   129\t\r\n   130\t    // Normalize command name\r\n   131\t    const normalized = commandName.startsWith('/workflow:')\r\n   132\t      ? commandName.substring('/workflow:'.length)\r\n   133\t      : commandName;\r\n   134\t\r\n   135\t    // Check cache\r\n   136\t    const cached = this.cache.get(normalized);\r\n   137\t    if (cached) {\r\n   138\t      return cached;\r\n   139\t    }\r\n   140\t\r\n   141\t    // Read command file\r\n   142\t    const filePath = join(this.commandDir, `${normalized}.md`);\r\n   143\t    if (!existsSync(filePath)) {\r\n   144\t      return null;\r\n   145\t    }\r\n   146\t\r\n   147\t    try {\r\n   148\t      const content = readFileSync(filePath, 'utf-8');\r\n   149\t      const header = this.parseYamlHeader(content);\r\n   150\t\r\n   151\t      if (header && header.name) {\r\n   152\t        const toolsStr = header['allowed-tools'] || '';\r\n   153\t        const allowedTools = toolsStr\r\n   154\t          .split(',')\r\n   155\t          .map((t: string) => t.trim())\r\n   156\t          .filter((t: string) => t);\r\n   157\t\r\n   158\t        const result: CommandMetadata = {\r\n   159\t          name: header.name,\r\n   160\t          command: `/workflow:${header.name}`,\r\n   161\t          description: header.description || '',\r\n   162\t          argumentHint: header['argument-hint'] || '',\r\n   163\t          allowedTools: allowedTools,\r\n   164\t          filePath: filePath,\r\n   165\t          group: header.group || undefined\r\n   166\t        };\r\n   167\t\r\n   168\t        // Cache result\r\n   169\t        this.cache.set(normalized, result);\r\n   170\t        return result;\r\n   171\t      }\r\n   172\t    } catch (error) {\r\n   173\t      const err = error as Error;\r\n   174\t      console.error(`Failed to read command ${filePath}:`, err.message);\r\n   175\t    }\r\n   176\t\r\n   177\t    return null;\r\n   178\t  }\r\n...\n   208\t\r\n   209\t    try {\r\n   210\t      const files = readdirSync(this.commandDir);\r\n   211\t\r\n   212\t      for (const file of files) {\r\n   213\t        // Skip _disabled directory\r\n   214\t        if (file === '_disabled') continue;\r\n   215\t\r\n   216\t        if (!file.endsWith('.md')) continue;\r\n   217\t\r\n   218\t        const filePath = join(this.commandDir, file);\r\n   219\t        const stat = statSync(filePath);\r\n   220\t\r\n   221\t        if (stat.isDirectory()) continue;\r\n   222\t\r\n   223\t        try {\r\n   224\t          const content = readFileSync(filePath, 'utf-8');\r\n   225\t          const header = this.parseYamlHeader(content);\r\n   226\t\r\n   227\t          if (header && header.name) {\r\n   228\t            const commandName = `/workflow:${header.name}`;\r\n   229\t            result.set(commandName, {\r\n   230\t              name: header.name,\r\n   231\t              description: header.description || ''\r\n   232\t            });\r\n   233\t          }\r\n   234\t        } catch (error) {\r\n   235\t          // Skip files that fail to read\r\n   236\t          continue;\r\n   237\t        }\r\n   238\t      }\r\n   239\t    } catch (error) {\r\n   240\t      // Return empty map if directory read fails\r\n   241\t      return result;\r\n   242\t    }\r\n   243\t\r\n   244\t    return result;\r\n   245\t  }\r\n...\n   280\t\r\n   281\t  /**\r\n   282\t   * Convert to JSON for serialization\r\n   283\t   */\r\n   284\t  public toJSON(): Record<string, any> {\r\n   285\t    const result: Record<string, CommandMetadata> = {};\r\n   286\t    for (const [key, value] of this.cache) {\r\n   287\t      result[`/workflow:${key}`] = value;\r\n   288\t    }\r\n   289\t    return result;\r\n   290\t  }\r\n   291\t\r\n   292\t  /**\r\n   293\t   * Clear the command cache\r\n   294\t   * Use this to invalidate cached commands after enable/disable operations\r\n   295\t   * @returns void\r\n   296\t   */\r\n   297\t  public clearCache(): void {\r\n   298\t    this.cache.clear();\r\n   299\t  }\r\n   300\t}\r\n   301\t\r\n   302\t/**\r\n   303\t * Export function for direct usage\r\n   304\t */\r\n   305\texport function createCommandRegistry(commandDir?: string): CommandRegistry {\r\n   306\t  return new CommandRegistry(commandDir);\r\n   307\t}\r\n   308\t\r\n   309\t/**\r\n   310\t * Export function to get all commands\r\n   311\t */\r\n   312\texport function getAllCommandsSync(): Map<string, CommandSummary> {\r\n   313\t  const registry = new CommandRegistry();\r\n   314\t  return registry.getAllCommandsSummary();\r\n   315\t}\r\n...\n\nPath: ccw\\src\\core\\routes\\commands-routes.ts\n...\n    59\t\r\n    60\tinterface CommandGroupsConfig {\r\n    61\t  groups: Record<string, GroupDefinition>;  // Custom group definitions\r\n    62\t  assignments: Record<string, string>;      // commandName -> groupId mapping\r\n    63\t}\r\n    64\t\r\n    65\t// ========== Helper Functions ==========\r\n    66\t\r\n    67\tfunction isRecord(value: unknown): value is Record<string, unknown> {\r\n    68\t  return typeof value === 'object' && value !== null;\r\n    69\t}\r\n    70\t\r\n    71\t/**\r\n    72\t * Get commands directory path\r\n    73\t */\r\n    74\tfunction getCommandsDir(location: CommandLocation, projectPath: string): string {\r\n    75\t  if (location === 'project') {\r\n    76\t    return join(projectPath, '.claude', 'commands');\r\n    77\t  }\r\n    78\t  return join(homedir(), '.claude', 'commands');\r\n    79\t}\r\n...\n\n",
+      "type": "text"
+    }
+  ]
+}
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem -Path .claude/commands/cli -Filter *.md | Select-Object -ExpandProperty Name' in C:/Project/Claude-Code-Workflow succeeded in 367ms:
+cli-init.md
+codex-review.md
+
+thinking
+**Searching for code pointers**
+
+I want to create an evidence table that includes new file pointers related to existing implementations. The next step is to locate TS files that implement `ccw cli` or the tool `codex`. I’ll search in the `ccw/src` directory for `--tool codex` or just `codex`. I’ll use the shell command `rg` because of an MCP issue, even though they prefer MCP. Alright, let’s run `rg "codex" ccw/src -n` and use PowerShell if it's installed.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "codex" ccw/src | Select-Object -First 50' in C:/Project/Claude-Code-Workflow succeeded in 386ms:
+ccw/src\utils\uv-manager.ts:17:import { getCodexLensDataDir, getCodexLensVenvDir } from './codexlens-path.js';
+ccw/src\utils\uv-manager.ts:767: * @param dataDir - Base data directory (defaults to ~/.codexlens)
+ccw/src\utils\codexlens-path.ts:9: * 2. Default: ~/.codexlens
+ccw/src\utils\codexlens-path.ts:26:  return join(homedir(), '.codexlens');
+ccw/src\types\litellm-api-config.ts:449:  codexlensEmbeddingRotation?: CodexLensEmbeddingRotation;
+ccw/src\types\loop.ts:27:  tool: 'bash' | 'gemini' | 'codex' | 'qwen' | string;
+ccw/src\types\loop.ts:29:  /** Execution mode (for gemini/codex/claude) */
+ccw/src\types\loop.ts:199:  tool: 'gemini' | 'qwen' | 'codex' | 'bash';
+ccw/src\cli.ts:117:    .description('Install Claude Code Workflow to your system (includes .codex/prompts)')
+ccw/src\cli.ts:149:    .option('--action <action>', 'Action to perform (for codex_lens)')
+ccw/src\cli.ts:150:    .option('--query <query>', 'Search query (for codex_lens)')
+ccw/src\cli.ts:151:    .option('--limit <n>', 'Max results (for codex_lens)', '20')
+ccw/src\cli.ts:152:    .option('--file <file>', 'File path for symbol extraction (for codex_lens)')
+ccw/src\cli.ts:153:    .option('--files <files>', 'Comma-separated file paths (for codex_lens update)')
+ccw/src\cli.ts:154:    .option('--languages <langs>', 'Comma-separated languages (for codex_lens init)')
+ccw/src\cli.ts:177:    .description('Unified CLI tool executor (gemini/qwen/codex/claude)')
+ccw/src\cli.ts:185:    .option('--includeDirs <dirs>', 'Additional directories (--include-directories for gemini/qwen, --add-dir for codex/claude)')
+ccw/src\cli.ts:195:    .option('--inject-mode <mode>', 'Inject mode: none, full, progressive (default: codex=full, others=none)')
+ccw/src\cli.ts:199:    .option('--uncommitted', 'Review uncommitted changes (codex review)')
+ccw/src\cli.ts:200:    .option('--base <branch>', 'Review changes against base branch (codex review)')
+
+thinking
+**Using codex-review for documentation**
+
+I think the simplest approach is to use the codex-review document itself as evidence for each pointer row. It's located in `.claude/commands/cli/codex-review.md`, so it should exist. I need to make sure that the headings used in the document are all present and accounted for. I'll read the list of headings to ensure accuracy and quickly parse through the document. Let's open that document now!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .claude/commands/cli/codex-review.md' in C:/Project/Claude-Code-Workflow succeeded in 358ms:
+---
+name: codex-review
+description: Interactive code review using Codex CLI via ccw endpoint with configurable review target, model, and custom instructions
+argument-hint: "[--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]"
+allowed-tools: Bash(*), AskUserQuestion(*), Read(*)
+---
+
+# Codex Review Command (/cli:codex-review)
+
+## Overview
+Interactive code review command that invokes `codex review` via ccw cli endpoint with guided parameter selection.
+
+**Codex Review Parameters** (from `codex review --help`):
+| Parameter | Description |
+|-----------|-------------|
+| `[PROMPT]` | Custom review instructions (positional) |
+| `-c model=<model>` | Override model via config |
+| `--uncommitted` | Review staged, unstaged, and untracked changes |
+| `--base <BRANCH>` | Review changes against base branch |
+| `--commit <SHA>` | Review changes introduced by a commit |
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -TotalCount 260 ccw/src/cli.ts | Select-Object -Skip 160 | Select-Object -First 80' in C:/Project/Claude-Code-Workflow succeeded in 381ms:
+    .option('--location <loc>', 'Session location: active|lite-plan|lite-fix (init); Filter: active|archived|both (list)')
+    .option('--type <type>', 'Content type or session type')
+    .option('--content <json>', 'Content for write/update')
+    .option('--task-id <id>', 'Task ID for task content')
+    .option('--filename <name>', 'Filename for process/chat/etc')
+    .option('--dimension <dim>', 'Dimension for review-dim')
+    .option('--iteration <iter>', 'Iteration for review-iter')
+    .option('--subdir <dir>', 'Subdirectory for mkdir')
+    .option('--raw', 'Output raw content only')
+    .option('--no-metadata', 'Exclude metadata from list')
+    .option('--no-update-status', 'Skip status update on archive')
+    .action((subcommand, args, options) => sessionCommand(subcommand, args, options));
+
+  // CLI command
+  program
+    .command('cli [subcommand] [args...]')
+    .description('Unified CLI tool executor (gemini/qwen/codex/claude)')
+    .option('-p, --prompt <prompt>', 'Prompt text (alternative to positional argument)')
+    .option('-f, --file <file>', 'Read prompt from file (best for multi-line prompts)')
+    .option('--tool <tool>', 'CLI tool to use (reads from cli-settings.json defaultTool if not specified)')
+
+thinking
+**Reviewing code changes**
+
+I'm going to focus on using anchor `.option('--uncommitted', 'Review uncommitted changes (codex review)')` as evidence for my task. The next step is to open the file `ccw/src/commands/cli.ts` and look specifically around the lines where the codex review logic is implemented. It's important to ensure I have the right context before moving forward. Let’s make sure everything is clear!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -TotalCount 760 ccw/src/commands/cli.ts | Select-Object -Skip 620 | Select-Object -First 120' in C:/Project/Claude-Code-Workflow succeeded in 402ms:
+    const { resolve } = await import('path');
+    const filePath = resolve(file);
+    if (!existsSync(filePath)) {
+      console.error(chalk.red(`Error: File not found: ${filePath}`));
+      process.exit(1);
+    }
+    finalPrompt = readFileSync(filePath, 'utf8').trim();
+    if (!finalPrompt) {
+      console.error(chalk.red('Error: File is empty'));
+      process.exit(1);
+    }
+  } else if (!process.stdin.isTTY) {
+    // Read from stdin (piped input) - enables: echo "prompt" | ccw cli --tool gemini
+    // This bypasses Windows shell multi-line argument limitations
+    const { readFileSync } = await import('fs');
+    try {
+      finalPrompt = readFileSync(0, 'utf8').trim(); // fd 0 = stdin
+      if (debug) {
+        console.log(chalk.gray(`  Read ${finalPrompt.length} chars from stdin`));
+      }
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "getCommandsDir'"\\(\" ccw/src/core/routes/commands-routes.ts
+Get-Content -TotalCount 120 ccw/src/core/routes/commands-routes.ts | Select-Object -Skip 60 | Select-Object -First 40" in C:/Project/Claude-Code-Workflow succeeded in 393ms:
+74:function getCommandsDir(location: CommandLocation, projectPath: string): string {
+292:    const projectDir = getCommandsDir('project', projectPath);
+296:    const userDir = getCommandsDir('user', projectPath);
+363:    const commandsDir = getCommandsDir(location, projectPath);
+  groups: Record<string, GroupDefinition>;  // Custom group definitions
+  assignments: Record<string, string>;      // commandName -> groupId mapping
+}
+
+// ========== Helper Functions ==========
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+/**
+ * Get commands directory path
+ */
+function getCommandsDir(location: CommandLocation, projectPath: string): string {
+  if (location === 'project') {
+    return join(projectPath, '.claude', 'commands');
+
+thinking
+**Reviewing references format**
+
+I need to create a references.json file that lists the selected references, like document and TypeScript file paths, along with anchor patterns used for generating content. I should double-check the phases instructions to see what's specifically required. The slash-command-outliner skill probably has a specific format I need to follow. I'll quickly skim through the phase documentation to make sure I'm including everything needed correctly.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/01-collect-spec.md' in C:/Project/Claude-Code-Workflow succeeded in 359ms:
+# Phase 01: Collect Spec (No Leakage)
+
+## Goal
+
+Turn a human requirement/rules document into a **minimal, structured spec** that is sufficient to generate:
+
+- Slash command outline (CCW command MD skeleton)
+- Agent outline (execution + tools + state)
+
+Do **not** copy/paste existing implementation docs as input; treat them as oracle only during gap analysis.
+
+## Required Inputs (ask if missing)
+
+1. Command identity:
+   - `group` (workflow|issue|learn|cli|other)
+   - `name` (kebab-case)
+   - `description` (one sentence)
+   - `argument-hint` (optional)
+2. Allowed tools:
+   - exact list for frontmatter `allowed-tools`
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/02-retrieve-and-rank-references.md' in C:/Project/Claude-Code-Workflow succeeded in 359ms:
+# Phase 02: Retrieve + Rank References
+
+## Goal
+
+Find the closest existing commands and extract **reusable patterns** without copying full content.
+
+## Steps
+
+1) Use `mcp__ace-tool__search_context` to recall similar commands and relevant tooling code.
+2) Produce Top N candidates (default N=5) with deterministic scoring:
+   - same `group` / command family
+   - similar interaction model (AskUserQuestion, multi-round loop, etc.)
+   - similar artifacts (writes to `.workflow/*`, `.claude/*`, etc.)
+   - similar allowed-tools surface
+3) Require user confirmation for Top 1 (high-confidence can be preselected but must be overridable).
+
+## Output
+
+Write:
+- `specs/outputs/references.json`
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/03-generate-outlines.md' in C:/Project/Claude-Code-Workflow succeeded in 349ms:
+# Phase 03: Generate Outlines (Slash MD + Agent MD)
+
+## Goal
+
+Generate:
+- a **Slash command MD outline** that matches CCW conventions (frontmatter + required sections)
+- an **Agent outline** that explains execution model, state, and validation strategy
+
+Use templates; keep output concise and implementation-oriented.
+
+## Inputs
+
+- `specs/outputs/spec.json`
+- `specs/outputs/references.json` (selected reference)
+- Rules: `../specs/quality-gates.md`
+
+## Output Files
+
+- `specs/outputs/generated-slash-outline.md` (based on `../templates/slash-command-outline.md`)
+- `specs/outputs/generated-agent-outline.md` (based on `../templates/agent-outline.md`)
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/04-gap-report-and-iterate.md' in C:/Project/Claude-Code-Workflow succeeded in 348ms:
+# Phase 04: Gap Report + Iterate
+
+## Goal
+
+Compare the generated outlines against:
+1) The selected reference command implementation (oracle)
+2) The CCW server/tooling corpus (routes, mcp tools, cli internals)
+
+Then propose the smallest set of changes to close gaps.
+
+## Inputs
+
+- `specs/outputs/generated-slash-outline.md`
+- `specs/outputs/generated-agent-outline.md`
+- `specs/outputs/references.json`
+- Tooling scope: `../specs/corpus-scope.md`
+
+## Output
+
+Write:
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/05-regression-and-closure.md' in C:/Project/Claude-Code-Workflow succeeded in 357ms:
+# Phase 05: Regression + Closure
+
+## Goal
+
+Make sure improvements do not regress previously-validated commands (non-regression).
+
+## What to Update (Cycle Mode)
+
+When iterating against the full corpus:
+- Update per-command status in `corpus-manifest.json`
+- Check off `TODO_LIST.md` items
+- Save snapshots in `regression/expected/` for commands marked completed
+- Write snapshot diffs into `regression/diff/` and block on unexpected changes
+
+## Non-regression Policy
+
+See `../specs/quality-gates.md`.
+
+## Completion Criteria
+
+
+thinking
+**Searching for code path**
+
+I think it’s better to look for the actual path in the code, like `ccw/src/storage`. I’ll search for the `.workflow` string related to the CLI command. Using `rg` sounds like a good approach since it should help me find what I need more efficiently. I want to make sure I locate everything accurately and streamline my process. Let’s get started on this!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "cli-history" ccw/src/commands/cli.ts | Select-Object -First 40' in C:/Project/Claude-Code-Workflow succeeded in 418ms:
+31:import { getHistoryStore, findProjectWithExecution } from '../tools/cli-history-store.js';
+354:  console.log(chalk.gray('    --cli-history       Clean only CLI history'));
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -TotalCount 120 ccw/src/tools/cli-history-store.ts | Select-Object -First 120' in C:/Project/Claude-Code-Workflow succeeded in 374ms:
+/**
+ * CLI History Store - SQLite Storage Backend
+ * Provides persistent storage for CLI execution history with efficient queries
+ */
+
+import Database from 'better-sqlite3';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, rmdirSync } from 'fs';
+import { join, dirname, resolve } from 'path';
+import { parseSessionFile, formatConversation, extractConversationPairs, type ParsedSession, type ParsedTurn } from './session-content-parser.js';
+import { StoragePaths, ensureStorageDir, getProjectId, getCCWHome } from '../config/storage-paths.js';
+import type { CliOutputUnit } from './cli-output-converter.js';
+
+// Types
+export interface ConversationTurn {
+  turn: number;
+  timestamp: string;
+  prompt: string;
+  duration_ms: number;
+  status: 'success' | 'error' | 'timeout';
+  exit_code: number | null;
+
+thinking
+**Inspecting storage paths**
+
+I’m thinking about storage paths, possibly under `.workflow` or `.ccw`. My next step will be to inspect the `ccw/src/config/storage-paths.ts` file to figure out the actual folder structure. It seems like an important detail to get right, and I'm curious to see how everything is organized. A closer look should clarify where everything is stored, so that’s my plan!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "cliHistory" ccw/src/config/storage-paths.ts
+Get-Content -TotalCount 160 ccw/src/config/storage-paths.ts | Select-Object -Skip 1 | Select-Object -First 140' in C:/Project/Claude-Code-Workflow succeeded in 404ms:
+363:  cliHistory: string;
+429:    cliHistory: join(projectDir, 'cli-history'),
+451:    cliHistory: join(projectDir, 'cli-history'),
+631:  cliHistory: (projectPath: string) => join(projectPath, '.workflow', '.cli-history'),
+651:    existsSync(LegacyPaths.cliHistory(projectPath)) ||
+681:  ensureStorageDir(paths.cliHistory);
+ * Centralized Storage Paths Configuration
+ * Single source of truth for all CCW storage locations
+ *
+ * All data is stored under ~/.ccw/ with project isolation via SHA256 hash
+ */
+
+import { homedir } from 'os';
+import { join, resolve, dirname, relative, sep } from 'path';
+import { createHash } from 'crypto';
+import { existsSync, mkdirSync, renameSync, rmSync, readdirSync, cpSync } from 'fs';
+import { readdir } from 'fs/promises';
+
+// Environment variable override for custom storage location
+// Made dynamic to support testing environments
+
+
+
+thinking
+**Clarifying CLI history paths**
+
+I'm looking at the file that discusses CLI history and its storage paths. It points out that the legacy path is `.workflow/.cli-history`, while the current one is `/.ccw/projects/<id>/cli-history`. I need to clarify that `ccw cli` writes CLI history to both locations depending on whether it’s using legacy or current paths. The output artifacts section needs paths relative to the repo, but we must ensure they exist or are documented. I'll specify that artifacts can be created by the command.
+thinking
+**Determining artifact outputs and references**
+
+To keep things simple, I think I should set `artifacts.writes` to either empty or specify "None (command delegates to `ccw cli` which stores history under CCW data dir)." The outline template mandates a list, so I can include "Writes: none (except ccw cli history cache)." In phase 02, references.json needs candidates and selected commands. Since there are only two CLI commands, I'd likely reference the existing command file for codex-review. Since the requirement specifies the oracle document, I'll consider it the primary reference.
+thinking
+**Searching for command candidates**
+
+I'm considering a candidate list that would likely include codex-review (with a score of 1.0) and perhaps some other interactive commands using AskUserQuestion. I'll look for the top five commands that incorporate AskUserQuestion and potentially Bash. For that, I'll search command documents for references to "AskUserQuestion" and "ccw cli." Even though the user needs confirmation for the top candidate, I can preselect given the automated pipeline. I should also gather at least three candidates for references.json from directives mentioned by the user.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "AskUserQuestion'"\\(\" .claude/commands | Select-Object -First 30" in C:/Project/Claude-Code-Workflow succeeded in 402ms:
+.claude/commands\ccw-debug.md:5:allowed-tools: Skill(*), TodoWrite(*), AskUserQuestion(*), Read(*), Bash(*)
+.claude/commands\flow-create.md:35:  const metadata = await AskUserQuestion({
+.claude/commands\flow-create.md:83:  return await AskUserQuestion({
+.claude/commands\flow-create.md:164:  return await AskUserQuestion({
+.claude/commands\flow-create.md:179:  return await AskUserQuestion({
+.claude/commands\flow-create.md:219:  return await AskUserQuestion({
+.claude/commands\flow-create.md:240:  const customize = await AskUserQuestion({
+.claude/commands\flow-create.md:278:    const continueAdding = await AskUserQuestion({
+.claude/commands\ccw-test.md:5:allowed-tools: Skill(*), TodoWrite(*), AskUserQuestion(*), Read(*), Bash(*)
+.claude/commands\ccw-coordinator.md:5:allowed-tools: Task(*), AskUserQuestion(*), Read(*), Write(*), Bash(*), Glob(*), Grep(*)
+.claude/commands\ccw-coordinator.md:455:  const response = await AskUserQuestion({
+.claude/commands\ccw-coordinator.md:564:      const action = await AskUserQuestion({
+.claude/commands\codex-coordinator.md:188:  const response = await AskUserQuestion({
+.claude/commands\ccw-plan.md:5:allowed-tools: Skill(*), TodoWrite(*), AskUserQuestion(*), Read(*), Grep(*), Glob(*)
+.claude/commands\workflow\collaborative-plan-with-file.md:5:allowed-tools: TodoWrite(*), Task(*), AskUserQuestion(*), Read(*), Bash(*), Write(*), Glob(*), Grep(*), mcp__ace-tool__search_context(*)
+.claude/commands\workflow\collaborative-plan-with-file.md:312:  AskUserQuestion({
+.claude/commands\workflow\analyze-with-file.md:5:allowed-tools: TodoWrite(*), Task(*), AskUserQuestion(*), Read(*), Grep(*), Glob(*), Bash(*), Edit(*), Write(*)
+.claude/commands\workflow\debug-with-file.md:5:allowed-tools: TodoWrite(*), Task(*), AskUserQuestion(*), Read(*), Grep(*), Glob(*), Bash(*), Edit(*), Write(*)
+.claude/commands\workflow\lite-execute.md:82:  userSelection = AskUserQuestion({
+.claude/commands\workflow\execute.md:184:  AskUserQuestion({
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "'"\\bccw cli\\b\" .claude/commands | Select-Object -First 50" in C:/Project/Claude-Code-Workflow succeeded in 397ms:
+.claude/commands\ccw-debug.md:96:| **cli** | ccw cli --mode analysis --rule analysis-diagnose-bug-root-cause | Analysis only |
+.claude/commands\ccw-debug.md:241:| "Login timeout error (quick)" | cli | ccw cli → analysis → (escalate or done) |
+.claude/commands\ccw-debug.md:263:CCWD:cli: [1/1] ccw cli --mode analysis      [in_progress]
+.claude/commands\ccw-plan.md:24:| **CLI-Assisted Planning** | ccw cli (analysis) → recommendations | quick analysis + decision |
+.claude/commands\ccw-plan.md:107:| **cli** | ccw cli --mode analysis --rule planning-* | None | Quick planning recommendation |
+.claude/commands\ccw-plan.md:201:| "Quick: should we use OAuth2?" | cli | ccw cli --mode analysis → recommendation | Immediate planning advice |
+.claude/commands\ccw-plan.md:231:CCWP:cli: [1/1] ccw cli --mode analysis         [in_progress]
+.claude/commands\ccw-plan.md:314:Quick Input → ccw cli --mode analysis --rule planning-* → Recommendations → User Decision:
+.claude/commands\ccw-coordinator.md:533:    // Format: ccw cli -p "PROMPT" --tool <tool> --mode <mode>
+.claude/commands\ccw-coordinator.md:534:    // Note: -y is a command parameter INSIDE the prompt, not a ccw cli parameter
+.claude/commands\ccw-coordinator.md:538:        `ccw cli -p "${escapePrompt(prompt)}" --tool claude --mode write`,
+.claude/commands\ccw-coordinator.md:601:// Returns prompt content to be used with: ccw cli -p "RETURNED_VALUE" --tool claude --mode write
+.claude/commands\ccw-coordinator.md:889:ccw cli -p "PROMPT_CONTENT" --tool <tool> --mode <mode>
+.claude/commands\ccw-coordinator.md:926:ccw cli -p '/workflow:plan -y "Implement user registration with email validation"
+.claude/commands\ccw-coordinator.md:933:ccw cli -p '/workflow:execute -y --resume-session="WFS-plan-20250124"
+.claude/commands\ccw-coordinator.md:943:ccw cli -p '/workflow:lite-fix -y "Fix login timeout in auth module"
+.claude/commands\ccw-coordinator.md:983:**IMPORTANT**: The `ccw cli` command executes prompts through external tools. The format is:
+.claude/commands\ccw-coordinator.md:986:ccw cli -p "PROMPT_CONTENT" --tool <tool> --mode <mode>
+.claude/commands\ccw-coordinator.md:994:**Note**: `-y` is a **command parameter inside the prompt**, NOT a `ccw cli` parameter.
+.claude/commands\ccw-coordinator.md:1011:ccw cli -p '/workflow:plan -y "Implement user registration feature"
+
+
+
+
+
+thinking
+**Clarifying command outline generation**
+
+I need to focus on generating CCW-aligned slash command development outlines from a requirement document, not writing the command documentation itself. The generated outline should act as a template matching required sections and incorporating key steps for the user. While it can replicate headings from the existing command doc, it needs to be more structured and concise. If there are any discrepancies with the reference doc or points that need verification, I'll mark those as planned and include steps to address them.
+thinking
+**Confirming pointers and creating outputs**
+
+I can confirm details by reading files and searching for anchors, so I’ll label certain pointers as Existing, but I must remember the user’s rule: only label them Existing if they’re verifiable in the repository. I’ll check this using Test-Path to ensure accuracy. Next, I need to create the outputs in the specified directory path, using the write_file tool for file creation while avoiding extra file writing. 
+
+For spec.json, I’ll include schema_version, derived_from, and created_at, along with required minimal inputs like command group, name, and description. It should also cover execution and user value during interactions.
+thinking
+**Specifying reads and writes**
+
+I’ll specify that the command will read from the `ccw` repository via git, particularly from `ccw/src`. This command calls the `ccw cli`, which interacts with project files based on user prompts—an external tool that’s safe to use.
+
+In terms of writes, there won’t be any. I have to ensure certain constraints are met, such as not running destructive operations and not claiming a review is complete until results return from the CLI.
+
+For the references.json file, I'll include a candidates list featuring five entries, each with relevant attributes like slash, file_path, and a score based on their similarity.
+thinking
+**Finalizing codex-review details**
+
+I’ve decided to go with codex-review. For the generated-slash-outline.md, I’ll use a template that includes the actual frontmatter, specifying the name as codex-review, along with the description and argument-hint being the same.
+
+The allowed-tools will be `Bash(*)`, `AskUserQuestion(*)`, and `Read(*)`, all grouped under cli. The title should be set to `# Codex Review Command (/cli:codex-review)`, as this matches the existing document's requirements. 
+
+In the usage section, I’ll detail the command and include input requirements, specifying if the target flag requires a branch or commit sha. Finally, for outputs, there’ll be no writes, but I’ll note that it reads git status, branches, and commits, mentioning relevant code locations as necessary.
+thinking
+**Clarifying command documentation and evidence**
+
+It turns out the ccw CLI files are relevant for the slash command context since the command doc uses the Bash tool for execution. I need to include pointers to relevant TypeScript files in the evidence table, ensuring one row per pointer.
+
+For the first pointer, I’ll use `.claude/commands/cli/codex-review.md`, confirming its existence and checking for the heading "Codex Review Command." The second pointer is `ccw/src/cli.ts`, and I’ll look for the heading "Integration Notes" to gather more evidence. Similarly, I’ll check the third pointer, `ccw/src/commands/cli.ts`, against the evidence related to "Validation Constraints." 
+
+Lastly, for `ccw/src/tools/template-discovery.ts`, I’ll check for evidence of the `loadProtocol` function to confirm it. Each pointer will have proper documentation backing it up.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Test-Path ccw/src/tools/template-discovery.ts' in C:/Project/Claude-Code-Workflow succeeded in 363ms:
+True
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "export function loadProtocol" ccw/src/tools/template-discovery.ts
+Get-Content -TotalCount 120 ccw/src/tools/template-discovery.ts | Select-Object -First 60' in C:/Project/Claude-Code-Workflow succeeded in 396ms:
+180:export function loadProtocol(mode: string): string {
+/**
+ * Template Discovery Module
+ *
+ * Provides auto-discovery and loading of CLI templates from
+ * ~/.claude/workflows/cli-templates/
+ *
+ * Features:
+ * - Scan prompts/ directory (flat structure with category-function.txt naming)
+ * - Match template names (e.g., "analysis-review-architecture" or just "review-architecture")
+ * - Load protocol files based on mode (analysis/write)
+ * - Cache template content for performance
+ */
+
+import { readdirSync, readFileSync, existsSync } from 'fs';
+import { join, basename, extname } from 'path';
+import { homedir } from 'os';
+
+// ============================================================================
+// Types
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+@(
+  '"'.claude/commands/cli/codex-review.md',
+  '.claude/commands/workflow/unified-execute-with-file.md',
+  '.claude/commands/issue/execute.md',
+  '.claude/commands/ccw-coordinator.md',
+  '.claude/commands/workflow/execute.md'
+) | ForEach-Object { \""'$_: $(Test-Path $_)" }' in C:/Project/Claude-Code-Workflow exited 1 in 342ms:
+[31;1mParserError: [0m
+[31;1m[36;1mLine |[0m
+[31;1m[36;1m[36;1m  11 | [0m ) | ForEach-Object { "[36;1m$_:[0m $(Test-Path $_)" }[0m
+[31;1m[36;1m[36;1m[0m[36;1m[0m[36;1m     | [31;1m                       ~~~[0m
+[31;1m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m     | [31;1mVariable reference is not valid. ':' was not followed by a valid variable name character. Consider using ${} to[0m
+[31;1m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m[31;1m[36;1m     | [31;1mdelimit the name.[0m
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+@(
+  '"'.claude/commands/cli/codex-review.md',
+  '.claude/commands/workflow/unified-execute-with-file.md',
+  '.claude/commands/issue/execute.md',
+  '.claude/commands/ccw-coordinator.md',
+  '.claude/commands/workflow/execute.md'
+) | ForEach-Object { \""'${_} => $(Test-Path $_)" }' in C:/Project/Claude-Code-Workflow succeeded in 391ms:
+.claude/commands/cli/codex-review.md => True
+.claude/commands/workflow/unified-execute-with-file.md => True
+.claude/commands/issue/execute.md => True
+.claude/commands/ccw-coordinator.md => True
+.claude/commands/workflow/execute.md => True
+
+
+
+
+
+
+thinking
+**Clarifying script commands**
+
+I’m figuring out some guidelines for using a script with cells. I realize that the evidence cell can’t include newlines, and it stops at newline characters. So, keeping everything on one line makes sense. Also, when we're dealing with pointer cells, they shouldn’t have commas or newlines either, and I should ensure a single pointer in backticks.  
+
+Now, I'll verify the columns: existing rows need at least one verify command while planned rows can be left empty, but including commands helps cover bases.
+thinking
+**Verifying anchor strings**
+
+I need to ensure that for each pointer row, the TypeScript evidence files exist and that they contain the correct anchors. First, I’ll extract the exact anchor strings.  
+
+For example, from `ccw/src/core/routes/commands-routes.ts`, the anchor `return join(projectPath, '.claude', 'commands');` includes a single quote inside, so our evidence cell anchor should reflect that exactly. I'll confirm that as we saw in the file.  
+
+From `cli.ts`, there's the anchor `.option('--uncommitted', 'Review uncommitted changes (codex review)')`, and I'll confirm that too. 
+
+I’ll keep verifying these elements, including headings and the template discovery file. Finally, I need to outline the execution process, starting with parsing arguments.
+thinking
+**Handling command behaviors**
+
+I've been thinking about how to handle flags used with prompts. If a user tries to use both, the command documentation says it will fail due to codex CLI constraints. So, I’m considering intercepting this situation by warning the user and asking them to choose one. In slash commands, pre-checking would prompt users to remove prompts when a target flag is present, even though the requirement states that this combination is invalid.
+
+The outline needs to reflect proper error handling for these cases. If no target is specified, I’ll allow interactive selection using AskUserQuestion so the user can choose their review target, model, focus area, or branch. When building the command, if focus and prompt are used without target flags, I'll build the `-p` prompt template and call `ccw cli -p ... --tool codex --mode review`. If a target flag is in use, I’ll avoid the prompt to pass the necessary flags.
+thinking
+**Clarifying CLI options**
+
+I’ve been thinking about the `--model` option in the ccw CLI. It's meant for the tool executor, not necessarily for codex's `-c` model. The documentation implies that the model is passed via the prompt, but the CLI code has the line `.option('--model <model>', 'Model override')`, which actually passes the model to the underlying runner. I should clarify that in my outline, indicating the model is passed as `--model` when calling `ccw cli`.
+
+Additionally, the review title is likely passed as `--title` to the codex review. When executing via CCW CLI, I'd run Bash with `run_in_background: true` for asynchronous operation, then display the output. This command documentation mentions using the Bash tool in Claude. 
+
+For the display results, I'll highlight key outputs and mention options like "Show available branches" and "Show recent commits." I also need to address error handling for scenarios such as no changes or invalid branches/commits, incorporating minimal direct usage examples per guidelines. Lastly, I can outline agent steps for implementing or updating the command documentation.
+thinking
+**Outlining agent implementation**
+
+I'm focusing on creating an outline to implement and evolve the slash command. I’ll start with preparation, checking the documentation file and TypeScript pointers. Then, during the development tasks, I need to update the command documentation and possibly implement tests if CLI code is edited—though my main outline focuses on the command itself. 
+
+I'll mention existing testing patterns in `ccw/src/commands/cli.test.ts` and check for similarities without bloating the outline. It’s important to verify these aspects clearly and concisely. For the gap report, I'll select the reference `/cli:codex-review` and list implementation hints referencing existing TypeScript behavior. I also need to carefully handle file creation, ensure ASCII encoding, and gather relevant headings used as evidence. 
+
+Lastly, I need to make sure the anchors match in TypeScript evidence without indentation, for reliable matching.
+thinking
+**Preparing output files**
+
+I need to ensure that headings match correctly, particularly when it comes to including punctuation. For example, I’ll stick with simple headings like `Integration Notes`. I also have to check that our `references.json` doesn’t contain unnecessary entries like "ask user confirmation.”
+
+Despite a potential intermittent issue with mcp smart_search crashing, I can still move forward. Now, I’ll use the `write_file` tool to generate the necessary output files, starting with crafting the contents for `spec.json`. This will help keep everything organized and efficient!
+tool ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/spec.json","content":"{\n  \"schema_version\": \"1.0.0\",\n  \"derived_from\": \".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-007.requirements.md\",\n  \"oracle_command_doc\": \".claude/commands/cli/codex-review.md\",\n  \"command\": {\n    \"group\": \"cli\",\n    \"name\": \"codex-review\",\n    \"description\": \"Interactive code review using Codex CLI via ccw endpoint with configurable review target, model, and custom instructions\",\n    \"argument_hint\": \"[--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]\",\n    \"usage_args\": \"[--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]\",\n    \"allowed_tools\": [\n      \"Bash(*)\",\n      \"AskUserQuestion(*)\",\n      \"Read(*)\"\n    ]\n  },\n  \"intent\": {\n    \"type\": \"execute\",\n    \"interaction\": \"iterative\",\n    \"primary_user_value\": \"Run a structured, interactive code review over uncommitted changes / a base branch diff / a specific commit using codex review via ccw cli.\"\n  },\n  \"artifacts\": {\n    \"reads\": [\n      \"git working tree (status/diff)\",\n      \"git refs (branches)\",\n      \"git history (recent commits)\",\n      \"optional: prompt/rule templates via ccw cli\"\n    ],\n    \"writes\": [\n      \"ccw cli execution history (storage-managed; may be under ~/.ccw/ or legacy .workflow/.cli-history)\"\n    ]\n  },\n  \"constraints\": {\n    \"max_rounds\": 6,\n    \"time_budget_seconds\": 600,\n    \"must_not\": [\n      \"Do not run destructive git operations.\",\n      \"Do not claim to have reviewed anything until ccw cli returns output.\",\n      \"Do not construct an invalid codex invocation: target flags (--uncommitted/--base/--commit) must not be combined with a positional prompt.\"\n    ]\n  },\n  \"acceptance\": {\n    \"p0\": [\n      \"Frontmatter keys present: name, description, allowed-tools, group.\",\n      \"Command usage matches argument-hint.\",\n      \"Execution flow supports both direct flags and interactive selection.\",\n      \"Enforces/communicates the codex review constraint: target flags are mutually exclusive with [PROMPT].\",\n      \"Implementation pointers include dual-source evidence (docs + TS) and pass verify-evidence.js.\"\n    ]\n  },\n  \"structure_hints\": {\n    \"headings_only\": [\n      \"Codex Review Command (/cli:codex-review)\",\n      \"Overview\",\n      \"Prompt Template Format\",\n      \"EXECUTION INSTRUCTIONS - START HERE\",\n      \"Step 1: Parse Arguments\",\n      \"Step 2: Interactive Parameter Selection\",\n      \"Step 3: Build Prompt and Command\",\n      \"Step 4: Execute via CCW CLI\",\n      \"Step 5: Execute and Display Results\",\n      \"Quick Usage Examples\",\n      \"Direct Execution (No Interaction)\",\n      \"Interactive Mode\",\n      \"Focus Area Mapping\",\n      \"Error Handling\",\n      \"No Changes to Review\",\n      \"Invalid Branch\",\n      \"Invalid Commit\",\n      \"Integration Notes\",\n      \"Validation Constraints\"\n    ]\n  }\n}\n"})
+ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/spec.json","content":"{\n  \"schema_version\": \"1.0.0\",\n  \"derived_from\": \".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-007.requirements.md\",\n  \"oracle_command_doc\": \".claude/commands/cli/codex-review.md\",\n  \"command\": {\n    \"group\": \"cli\",\n    \"name\": \"codex-review\",\n    \"description\": \"Interactive code review using Codex CLI via ccw endpoint with configurable review target, model, and custom instructions\",\n    \"argument_hint\": \"[--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]\",\n    \"usage_args\": \"[--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]\",\n    \"allowed_tools\": [\n      \"Bash(*)\",\n      \"AskUserQuestion(*)\",\n      \"Read(*)\"\n    ]\n  },\n  \"intent\": {\n    \"type\": \"execute\",\n    \"interaction\": \"iterative\",\n    \"primary_user_value\": \"Run a structured, interactive code review over uncommitted changes / a base branch diff / a specific commit using codex review via ccw cli.\"\n  },\n  \"artifacts\": {\n    \"reads\": [\n      \"git working tree (status/diff)\",\n      \"git refs (branches)\",\n      \"git history (recent commits)\",\n      \"optional: prompt/rule templates via ccw cli\"\n    ],\n    \"writes\": [\n      \"ccw cli execution history (storage-managed; may be under ~/.ccw/ or legacy .workflow/.cli-history)\"\n    ]\n  },\n  \"constraints\": {\n    \"max_rounds\": 6,\n    \"time_budget_seconds\": 600,\n    \"must_not\": [\n      \"Do not run destructive git operations.\",\n      \"Do not claim to have reviewed anything until ccw cli returns output.\",\n      \"Do not construct an invalid codex invocation: target flags (--uncommitted/--base/--commit) must not be combined with a positional prompt.\"\n    ]\n  },\n  \"acceptance\": {\n    \"p0\": [\n      \"Frontmatter keys present: name, description, allowed-tools, group.\",\n      \"Command usage matches argument-hint.\",\n      \"Execution flow supports both direct flags and interactive selection.\",\n      \"Enforces/communicates the codex review constraint: target flags are mutually exclusive with [PROMPT].\",\n      \"Implementation pointers include dual-source evidence (docs + TS) and pass verify-evidence.js.\"\n    ]\n  },\n  \"structure_hints\": {\n    \"headings_only\": [\n      \"Codex Review Command (/cli:codex-review)\",\n      \"Overview\",\n      \"Prompt Template Format\",\n      \"EXECUTION INSTRUCTIONS - START HERE\",\n      \"Step 1: Parse Arguments\",\n      \"Step 2: Interactive Parameter Selection\",\n      \"Step 3: Build Prompt and Command\",\n      \"Step 4: Execute via CCW CLI\",\n      \"Step 5: Execute and Display Results\",\n      \"Quick Usage Examples\",\n      \"Direct Execution (No Interaction)\",\n      \"Interactive Mode\",\n      \"Focus Area Mapping\",\n      \"Error Handling\",\n      \"No Changes to Review\",\n      \"Invalid Branch\",\n      \"Invalid Commit\",\n      \"Integration Notes\",\n      \"Validation Constraints\"\n    ]\n  }\n}\n"}) failed in 0ms:
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$path = '"'.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/spec.json'
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent "'$path) | Out-Null
+@'"'
+{
+  \"schema_version\": \"1.0.0\",
+  \"derived_from\": \".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-007.requirements.md\",
+  \"oracle_command_doc\": \".claude/commands/cli/codex-review.md\",
+  \"command\": {
+    \"group\": \"cli\",
+    \"name\": \"codex-review\",
+    \"description\": \"Interactive code review using Codex CLI via ccw endpoint with configurable review target, model, and custom instructions\",
+    \"argument_hint\": \"[--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]\",
+    \"usage_args\": \"[--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]\",
+    \"allowed_tools\": [
+      \"Bash(*)\",
+      \"AskUserQuestion(*)\",
+      \"Read(*)\"
+    ]
+  },
+  \"intent\": {
+    \"type\": \"execute\",
+    \"interaction\": \"iterative\",
+    \"primary_user_value\": \"Run a structured, interactive code review over uncommitted changes / a base branch diff / a specific commit using codex review via ccw cli.\"
+  },
+  \"artifacts\": {
+    \"reads\": [
+      \"git working tree (status/diff)\",
+      \"git refs (branches)\",
+      \"git history (recent commits)\",
+      \"optional: prompt/rule templates via ccw cli\"
+    ],
+    \"writes\": [
+      \"ccw cli execution history (storage-managed; may be under ~/.ccw/ or legacy .workflow/.cli-history)\"
+    ]
+  },
+  \"constraints\": {
+    \"max_rounds\": 6,
+    \"time_budget_seconds\": 600,
+    \"must_not\": [
+      \"Do not run destructive git operations.\",
+      \"Do not claim to have reviewed anything until ccw cli returns output.\",
+      \"Do not construct an invalid codex invocation: target flags (--uncommitted/--base/--commit) must not be combined with a positional prompt.\"
+    ]
+  },
+  \"acceptance\": {
+    \"p0\": [
+      \"Frontmatter keys present: name, description, allowed-tools, group.\",
+      \"Command usage matches argument-hint.\",
+      \"Execution flow supports both direct flags and interactive selection.\",
+      \"Enforces/communicates the codex review constraint: target flags are mutually exclusive with [PROMPT].\",
+      \"Implementation pointers include dual-source evidence (docs + TS) and pass verify-evidence.js.\"
+    ]
+  },
+  \"structure_hints\": {
+    \"headings_only\": [
+      \"Codex Review Command (/cli:codex-review)\",
+      \"Overview\",
+      \"Prompt Template Format\",
+      \"EXECUTION INSTRUCTIONS - START HERE\",
+      \"Step 1: Parse Arguments\",
+      \"Step 2: Interactive Parameter Selection\",
+      \"Step 3: Build Prompt and Command\",
+      \"Step 4: Execute via CCW CLI\",
+      \"Step 5: Execute and Display Results\",
+      \"Quick Usage Examples\",
+      \"Direct Execution (No Interaction)\",
+      \"Interactive Mode\",
+      \"Focus Area Mapping\",
+      \"Error Handling\",
+      \"No Changes to Review\",
+      \"Invalid Branch\",
+      \"Invalid Commit\",
+      \"Integration Notes\",
+      \"Validation Constraints\"
+    ]
+  }
+}
+'@ | Set-Content -Encoding utf8NoBOM -Path "'$path' in C:/Project/Claude-Code-Workflow succeeded in 369ms:
+
+
+thinking
+**Crafting scoring details**
+
+I’m working on references.json to create a scoring system. I need it to be deterministic, so I’ll define five candidates with numeric scores and brief explanations for each one. It's important to ensure the logic is clear in why a candidate is selected. Now, it’s time to write the file with all these details laid out. I want to get this right so everything is organized and easy to understand!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$path = '"'.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/references.json'
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent "'$path) | Out-Null
+@'"'
+{
+  \"schema_version\": \"1.0.0\",
+  \"command\": {
+    \"slash\": \"/cli:codex-review\",
+    \"group\": \"cli\",
+    \"name\": \"codex-review\"
+  },
+  \"candidates\": [
+    {
+      \"slash\": \"/cli:codex-review\",
+      \"file_path\": \".claude/commands/cli/codex-review.md\",
+      \"score\": 1.0,
+      \"why\": \"Same command (oracle). Defines argument parsing, interactive AskUserQuestion flow, and exact ccw cli invocation for codex review mode.\"
+    },
+    {
+      \"slash\": \"/workflow:unified-execute-with-file\",
+      \"file_path\": \".claude/commands/workflow/unified-execute-with-file.md\",
+      \"score\": 0.72,
+      \"why\": \"Demonstrates structured prompting + tool selection + delegating to ccw cli (including codex) with a guided flow and validation steps.\"
+    },
+    {
+      \"slash\": \"/issue:execute\",
+      \"file_path\": \".claude/commands/issue/execute.md\",
+      \"score\": 0.64,
+      \"why\": \"Shows end-to-end execution orchestration with ccw cli invocation patterns and result handling; similar 'execute + display' loop.\"
+    },
+    {
+      \"slash\": \"/ccw-coordinator\",
+      \"file_path\": \".claude/commands/ccw-coordinator.md\",
+      \"score\": 0.58,
+      \"why\": \"Contains ccw cli prompt construction conventions and background Bash execution patterns that mirror how /cli:codex-review should run ccw cli.\"
+    },
+    {
+      \"slash\": \"/workflow:execute\",
+      \"file_path\": \".claude/commands/workflow/execute.md\",
+      \"score\": 0.55,
+      \"why\": \"Interactive execution flow using AskUserQuestion + Bash with explicit error handling; good reference for guided selection UX and constraints.\"
+    }
+  ],
+  \"selected\": {
+    \"slash\": \"/cli:codex-review\",
+    \"file_path\": \".claude/commands/cli/codex-review.md\",
+    \"why\": \"Highest-fidelity reference (exact command, exact constraints, exact invocation).\"
+  }
+}
+'@ | Set-Content -Encoding utf8NoBOM -Path "'$path' in C:/Project/Claude-Code-Workflow succeeded in 368ms:
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "cliHistory: '"\\(projectPath: string\\) =>\" ccw/src/config/storage-paths.ts" in C:/Project/Claude-Code-Workflow succeeded in 362ms:
+631:  cliHistory: (projectPath: string) => join(projectPath, '.workflow', '.cli-history'),
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$path = '"'.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/generated-slash-outline.md'
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent "'$path) | Out-Null
+@'"'
+---
+name: codex-review
+description: Interactive code review using Codex CLI via ccw endpoint with configurable review target, model, and custom instructions
+argument-hint: \"[--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]\"
+allowed-tools: Bash(*), AskUserQuestion(*), Read(*)
+group: cli
+---
+
+# Codex Review Command (/cli:codex-review)
+
+## Overview
+
+- Goal: Run a structured, interactive code review over uncommitted changes, a base-branch diff, or a specific commit via "'`ccw cli --tool codex --mode review`.
+- Command: `/cli:codex-review`
+- Key constraint: target flags (`--uncommitted|--base|--commit`) are mutually exclusive with a positional `[prompt]`.
+
+## Usage
+
+```bash
+/cli:codex-review [--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]
+```
+
+## Inputs
+
+- Required inputs:
+  - None (interactive mode prompts for selections)
+- Optional inputs:
+  - Review target:
+    - `--uncommitted`
+    - `--base <branch>`
+    - `--commit <sha>`
+  - `--model <model>` (optional override)
+  - `--title <title>` (optional summary label)
+  - `[prompt]` (custom review focus; only allowed when NO target flag is provided)
+
+## Outputs / Artifacts
+
+- Writes:
+  - None intentionally (delegates to `ccw cli`, which persists execution history under CCW storage).
+- Reads:
+  - Git working tree / branch list / recent commits (for target validation and selection).
+  - Local repository files indirectly, as evaluated by the external review tool invoked via `ccw cli`.
+
+## Implementation Pointers
+
+- Command doc: `.claude/commands/cli/codex-review.md`
+- Likely code locations:
+  - `ccw/src/cli.ts` (CLI surface: `ccw cli ... --uncommitted|--base|--commit|--title`)
+  - `ccw/src/commands/cli.ts` (review-mode flag handling + prompt/flag constraints)
+  - `ccw/src/tools/template-discovery.ts` (template/protocol loading when prompt mode is used)
+  - `ccw/src/config/storage-paths.ts` (where `ccw cli` history may be stored, including legacy `.workflow/.cli-history`)
+
+### Evidence (Existing vs Planned)
+
+You MUST label each pointer as `Existing` (verifiable in repo now) or `Planned` (will be created/modified).
+
+Rules:
+- `Existing` MUST include evidence from BOTH:
+  - a command doc source: `.claude/commands/**.md` (section heading is sufficient)
+  - a TypeScript source: `ccw/src/**` (function name / subcommand case / a ripgrep-able string)
+- If you cannot verify, downgrade to `Planned` and add a concrete `Verify` step (e.g. `Test-Path <path>`, `rg "<pattern>" <path>`).
+
+| Pointer | Status | Evidence (docs + TS) | Verify | Why |
+|---|---|---|---|---|
+| `.claude/commands/cli/codex-review.md` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Codex Review Command (/cli:codex-review)` ; ts: `ccw/src/core/routes/commands-routes.ts` / `return join(projectPath, '"'.claude', 'commands');"'` | `Test-Path .claude/commands/cli/codex-review.md; rg "Codex Review Command" .claude/commands/cli/codex-review.md` | canonical slash command doc + how commands are discovered/served |
+| `ccw/src/cli.ts` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Integration Notes` ; ts: `ccw/src/cli.ts` / `.option('"'--uncommitted', 'Review uncommitted changes (codex review)')"'` | `Test-Path ccw/src/cli.ts; rg "Review uncommitted changes (codex review)" ccw/src/cli.ts` | defines ccw CLI flags used by this command |
+| `ccw/src/commands/cli.ts` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Validation Constraints` ; ts: `ccw/src/commands/cli.ts` / `// codex review: --uncommitted, --base, --commit are all mutually exclusive with [PROMPT]` | `Test-Path ccw/src/commands/cli.ts; rg "mutually exclusive with '"\\[PROMPT\\]\" ccw/src/commands/cli.ts"'` | enforces prompt vs target-flag constraints and skips templates when needed |
+| `ccw/src/tools/template-discovery.ts` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Prompt Template Format` ; ts: `ccw/src/tools/template-discovery.ts` / `export function loadProtocol(mode: string): string {` | `Test-Path ccw/src/tools/template-discovery.ts; rg "export function loadProtocol'"\\(\" ccw/src/tools/template-discovery.ts"'` | loads protocol/templates appended to prompts in prompt-mode |
+| `ccw/src/config/storage-paths.ts` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Integration Notes` ; ts: `ccw/src/config/storage-paths.ts` / `cliHistory: (projectPath: string) => join(projectPath, '"'.workflow', '.cli-history'),"'` | `Test-Path ccw/src/config/storage-paths.ts; rg "join'"\\(projectPath, '\\.workflow', '\\.cli-history'\\)\" ccw/src/config/storage-paths.ts"'` | clarifies where legacy CLI history may be stored for this execution |
+
+Notes:
+- One row per pointer.
+- TS evidence anchors are literal substrings present in the referenced file.
+
+## Execution Process
+
+1. Parse arguments.
+   - Accept: `--uncommitted`, `--base <branch>`, `--commit <sha>`, `--model <model>`, `--title <title>`, and optional `[prompt]`.
+   - Validate: if any target flag is present AND `[prompt]` is also present, stop and tell the user it is invalid (target flags cannot be combined with `[PROMPT]`).
+2. If no target specified, run interactive selection via `AskUserQuestion`:
+   - Review target: uncommitted vs base-branch vs commit.
+   - If base-branch selected: offer common branches and/or show `git branch -a --list | head -20`.
+   - If commit selected: show `git log --oneline -10` and request a SHA.
+   - Optional model selection.
+   - Focus area selection (general/security/performance/code quality).
+3. Build the `ccw cli` command.
+   - Prompt-mode (NO target flags): construct a ccw prompt-template string; include `MODE: review`, `CONTEXT: <target description>`, `EXPECTED: <structured review>`, and optional focus constraints.
+   - Target-flag mode: do not pass a prompt (`-p` omitted). Pass exactly one of `--uncommitted|--base|--commit` and optional `--model`/`--title`.
+4. Execute via CCW CLI (Bash tool).
+   - Run in background where appropriate: `ccw cli ... --tool codex --mode review ...`.
+5. Display results.
+   - Present a structured review summary and point the user to any follow-up actions (fixes, tests, reruns).
+
+## Error Handling
+
+- No changes to review: explain what was checked and suggest choosing a different target or making changes first.
+- Invalid branch: show available branches (`git branch -a --list | head -20`) and re-prompt.
+- Invalid commit: show recent commits (`git log --oneline -10`) and re-prompt.
+- Execution failure (ccw cli / codex error): surface stderr succinctly and suggest retry flags (e.g., different target, remove prompt when using target flags).
+
+## Examples
+
+- Interactive:
+  - `/cli:codex-review`
+- Direct (no interaction):
+  - `/cli:codex-review --uncommitted`
+  - `/cli:codex-review --base main`
+  - `/cli:codex-review --commit abc123`
+- Prompt-mode focus (no target flag):
+  - `/cli:codex-review security`
+- Invalid (must fail fast):
+  - `/cli:codex-review --uncommitted "focus"`
+'"'@ | Set-Content -Encoding utf8NoBOM -Path "'$path' in C:/Project/Claude-Code-Workflow succeeded in 376ms:
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$path = '"'.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/generated-agent-outline.md'
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent "'$path) | Out-Null
+@'"'
+# Agent Outline: cli:codex-review
+
+## Purpose
+
+Implement and/or evolve "'`/cli:codex-review` to provide an interactive review runner that delegates execution to `ccw cli --tool codex --mode review`.
+
+## Execution Model
+
+- Default: incremental, testable changes.
+- Primary loop: validate inputs -> (optional) AskUserQuestion-guided selection -> build command -> execute -> present results.
+- Evidence-first: use existing command docs + ccw CLI implementation to avoid inventing behavior.
+
+## State & Artifacts
+
+- Source command doc:
+  - `.claude/commands/cli/codex-review.md`
+- Runtime artifacts (created by `ccw cli`, not by the command doc itself):
+  - CLI execution history / caches (location depends on storage configuration; legacy under `.workflow/.cli-history`).
+
+## Tooling
+
+- Allowed tools: Bash(*), AskUserQuestion(*), Read(*)
+- Non-negotiables:
+  - no unrelated changes
+  - enforce/communicate: target flags are mutually exclusive with `[PROMPT]`
+
+## Implementation Checklist
+
+1. Validate command doc frontmatter and headings (P0 sections present; allowed-tools correct).
+2. Confirm ccw CLI arg surface supports the described flags (`--uncommitted|--base|--commit|--title`).
+3. Confirm ccw CLI behavior matches the doc constraint (prompt skipped when using review target flags).
+4. If behavior diverges:
+   - DOC scope: update `.claude/commands/cli/codex-review.md` to match actual ccw CLI behavior.
+   - CODE scope: adjust `ccw/src/commands/cli.ts` to restore intended behavior; add/update tests.
+
+## Evidence Table (Docs + TS)
+
+| Pointer | Status | Evidence | Verify | Notes |
+|---|---|---|---|---|
+| `.claude/commands/cli/codex-review.md` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Codex Review Command (/cli:codex-review)` ; ts: `ccw/src/core/routes/commands-routes.ts` / `return join(projectPath, '"'.claude', 'commands');"'` | `Test-Path .claude/commands/cli/codex-review.md` | slash command doc + command discovery path |
+| `ccw/src/cli.ts` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Integration Notes` ; ts: `ccw/src/cli.ts` / `.option('"'--uncommitted', 'Review uncommitted changes (codex review)')"'` | `Test-Path ccw/src/cli.ts` | CLI flag surface |
+| `ccw/src/commands/cli.ts` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Validation Constraints` ; ts: `ccw/src/commands/cli.ts` / `// codex review: --uncommitted, --base, --commit are all mutually exclusive with [PROMPT]` | `Test-Path ccw/src/commands/cli.ts` | enforcement of the prompt/flag constraint |
+| `ccw/src/tools/template-discovery.ts` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Prompt Template Format` ; ts: `ccw/src/tools/template-discovery.ts` / `export function loadProtocol(mode: string): string {` | `Test-Path ccw/src/tools/template-discovery.ts` | template/protocol loading when prompt-mode is used |
+| `ccw/src/config/storage-paths.ts` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Integration Notes` ; ts: `ccw/src/config/storage-paths.ts` / `cliHistory: (projectPath: string) => join(projectPath, '"'.workflow', '.cli-history'),"'` | `Test-Path ccw/src/config/storage-paths.ts` | legacy history path reference for execution artifacts |
+
+## Validation Strategy
+
+- P0 gates:
+  - frontmatter + allowed-tools + core sections + artifact references
+  - evidence tables pass `verify-evidence.js`
+- Runtime validation (manual):
+  - try representative invocations (prompt-mode vs target-flag-mode) and confirm mutual-exclusivity behavior.
+'"'@ | Set-Content -Encoding utf8NoBOM -Path "'$path' in C:/Project/Claude-Code-Workflow succeeded in 380ms:
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$path = '"'.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/gap-report.md'
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent "'$path) | Out-Null
+@'"'
+# Gap Report: cli:codex-review
+
+## Reference
+
+- Selected reference: /cli:codex-review ("'`.claude/commands/cli/codex-review.md`)
+
+## P0 Gaps (Must Fix)
+
+- None.
+
+## P1 Gaps (Should Fix)
+
+- Keep the doc'"'s model list and examples in sync with any changes to ccw CLI flags (documentation drift risk).
+- If ccw CLI behavior changes, ensure the doc still accurately states the mutual-exclusivity constraint and template-skipping behavior.
+
+## P2 Gaps (Optional)
+
+- Add a short troubleshooting snippet for common codex CLI failures (tool not installed, auth/config issues).
+
+## Implementation Pointers (Evidence)
+
+You MUST provide an evidence table for all key implementation pointers mentioned in the outlines.
+
+Rules (P0):
+- Every pointer MUST be labeled "'`Existing` or `Planned`.
+- `Existing` MUST be verifiable (path exists). Include a concrete `Verify` command for each existing pointer.
+- Do NOT describe `Planned` pointers as “validated/exists”.
+- Evidence MUST reference BOTH sources somewhere in this section:
+  - command docs: `.claude/commands/**.md` (section heading is enough)
+  - TypeScript implementation: `ccw/src/**` (function name / subcommand case / ripgrep-able string)
+
+| Pointer | Status | Evidence | Verify | Notes |
+|---|---|---|---|---|
+| `.claude/commands/cli/codex-review.md` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Codex Review Command (/cli:codex-review)` ; ts: `ccw/src/core/routes/commands-routes.ts` / `return join(projectPath, '"'.claude', 'commands');"'` | `Test-Path .claude/commands/cli/codex-review.md` | canonical command doc |
+| `ccw/src/cli.ts` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Integration Notes` ; ts: `ccw/src/cli.ts` / `.option('"'--uncommitted', 'Review uncommitted changes (codex review)')"'` | `Test-Path ccw/src/cli.ts; rg "Review uncommitted changes (codex review)" ccw/src/cli.ts` | CLI surface for review flags |
+| `ccw/src/commands/cli.ts` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Validation Constraints` ; ts: `ccw/src/commands/cli.ts` / `// codex review: --uncommitted, --base, --commit are all mutually exclusive with [PROMPT]` | `Test-Path ccw/src/commands/cli.ts; rg "skipTemplates" ccw/src/commands/cli.ts` | constraint enforcement + template skipping |
+| `ccw/src/tools/template-discovery.ts` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Prompt Template Format` ; ts: `ccw/src/tools/template-discovery.ts` / `export function loadProtocol(mode: string): string {` | `Test-Path ccw/src/tools/template-discovery.ts` | protocol/template loader used by ccw cli |
+| `ccw/src/config/storage-paths.ts` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Integration Notes` ; ts: `ccw/src/config/storage-paths.ts` / `cliHistory: (projectPath: string) => join(projectPath, '"'.workflow', '.cli-history'),"'` | `Test-Path ccw/src/config/storage-paths.ts` | legacy history path; helps explain where artifacts land |
+
+## Implementation Hints (Tooling/Server)
+
+- `ccw/src/commands/cli.ts` explicitly treats review mode with `--uncommitted|--base|--commit` as a prompt-less execution path (skip templates and avoid passing a prompt).
+- `ccw/src/cli.ts` exposes codex review flags on the `ccw cli` command, enabling the slash command doc to delegate without inventing parameters.
+- Command discovery/serving relies on the `.claude/commands` directory (see `ccw/src/core/routes/commands-routes.ts`).
+
+## Proposed Fix Plan (Minimal)
+
+- DOC: Ensure `.claude/commands/cli/codex-review.md` keeps the mutual-exclusivity constraint prominently documented.
+- DOC: Periodically validate examples against `ccw cli --help` output (flags and defaults can drift).
+- CODE (only if drift is found): adjust `ccw/src/commands/cli.ts` to preserve review-mode constraints; add a targeted regression test.
+'"'@ | Set-Content -Encoding utf8NoBOM -Path "'$path' in C:/Project/Claude-Code-Workflow succeeded in 368ms:
+
+
+thinking
+**Adding verification steps**
+
+I want to include verification steps in my process. It's essential to ensure everything is accurate and reliable before moving on to the next part. Writing the file is the next action I need to take, and I want to make sure that all the necessary checks are in place. That way, I can prevent any potential errors later on. So, I’m preparing to write that file while keeping those verification steps in mind!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$path = '"'.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/fix-plan.md'
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent "'$path) | Out-Null
+@'"'
+# Fix Plan: cli:codex-review
+
+## Minimal Fix List
+
+- DOC: Keep "'`.claude/commands/cli/codex-review.md` aligned with `ccw cli` actual options (`--uncommitted|--base|--commit|--title|--model`) and their constraints.
+- DOC: Fail fast on invalid combinations (target flag + `[prompt]`) before executing `ccw cli`.
+- CODE (only if needed): If ccw CLI behavior drifts, update `ccw/src/commands/cli.ts` so review mode continues to skip templates and does not pass prompts when target flags are used.
+- TEST (only if code changes): Add a focused regression test that covers mutual exclusivity and template-skipping in review mode.
+
+## Evidence (Docs + TS)
+
+| Pointer | Status | Evidence | Verify | Notes |
+|---|---|---|---|---|
+| `.claude/commands/cli/codex-review.md` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Validation Constraints` ; ts: `ccw/src/commands/cli.ts` / `// codex review: --uncommitted, --base, --commit are all mutually exclusive with [PROMPT]` | `Test-Path .claude/commands/cli/codex-review.md; Test-Path ccw/src/commands/cli.ts` | doc <-> implementation contract |
+| `ccw/src/cli.ts` | Existing | docs: `.claude/commands/cli/codex-review.md` / `Integration Notes` ; ts: `ccw/src/cli.ts` / `.option('"'--uncommitted', 'Review uncommitted changes (codex review)')"'` | `Test-Path ccw/src/cli.ts` | CLI flag surface for review mode |
+
+## Verify Steps
+
+- `node ccw/src/cli.ts --help` is not applicable; instead compare `ccw cli --help` output against the doc examples.
+- Re-run evidence gate:
+  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/generated-slash-outline.md`
+  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/gap-report.md`
+'"'@ | Set-Content -Encoding utf8NoBOM -Path "'$path' in C:/Project/Claude-Code-Workflow succeeded in 370ms:
+
+
+thinking
+**Verifying evidence**
+
+I need to focus on running an evidence verification for the gap-report and generated-slash-outline as needed. I plan on using the command `node verify-evidence.js` with the appropriate file paths. It's essential to ensure that Node is available and ready for use. I should also remember to run it with the required encoding lines. Let's get this verification underway and make sure everything checks out!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/gap-report.md' in C:/Project/Claude-Code-Workflow succeeded in 376ms:
+OK: evidence verification passed
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/generated-slash-outline.md' in C:/Project/Claude-Code-Workflow succeeded in 378ms:
+OK: evidence verification passed
+
+thinking
+**Fixing the verification plan**
+
+I’m thinking about how to quickly verify the agent outline and ensure there aren't any evidence issues if they run. It seems like a good idea to do this efficiently, so I’m working on a plan to address any potential problems. I want to make sure everything is in order and clear for the task ahead. Let’s move forward and get this organized!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/generated-agent-outline.md' in C:/Project/Claude-Code-Workflow succeeded in 375ms:
+OK: evidence verification passed
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/fix-plan.md' in C:/Project/Claude-Code-Workflow succeeded in 344ms:
+OK: evidence verification passed
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem -Path .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs | Select-Object Name,Length' in C:/Project/Claude-Code-Workflow succeeded in 327ms:
+
+[32;1mName                      [0m[32;1m Length[0m
+[32;1m----                      [0m [32;1m------[0m
+fix-plan.md                  1923
+gap-report.md                3806
+generated-agent-outline.md   3495
+generated-slash-outline.md   6958
+references.json              1791
+spec.json                    2857
+
+codex
+Wrote CMD-007 outputs under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-007/specs/outputs/`:
+- `spec.json`
+- `references.json`
+- `generated-slash-outline.md`
+- `generated-agent-outline.md`
+- `gap-report.md`
+- `fix-plan.md`
+
+Evidence gate results:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.../gap-report.md` -> OK
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.../generated-slash-outline.md` -> OK
+- (also verified) `.../generated-agent-outline.md` -> OK, `.../fix-plan.md` -> OK
+tokens used
+119,773

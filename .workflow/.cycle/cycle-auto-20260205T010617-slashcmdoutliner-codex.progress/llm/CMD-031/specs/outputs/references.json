@@ -1,0 +1,41 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:brainstorm:synthesis",
+      "file_path": ".claude/commands/workflow/brainstorm/synthesis.md",
+      "score": 1,
+      "why": "Exact oracle command doc for this requirement (same behavior + phases + tools)."
+    },
+    {
+      "slash": "/workflow:brainstorm:role-analysis",
+      "file_path": ".claude/commands/workflow/brainstorm/role-analysis.md",
+      "score": 0.86,
+      "why": "Same brainstorm family, same session + analysis*.md artifacts, similar AskUserQuestion + iterative flow patterns."
+    },
+    {
+      "slash": "/workflow:brainstorm:auto-parallel",
+      "file_path": ".claude/commands/workflow/brainstorm/auto-parallel.md",
+      "score": 0.74,
+      "why": "Same brainstorm suite and orchestration style; useful for TodoWrite-based phase tracking + parallel Task usage patterns."
+    },
+    {
+      "slash": "/workflow:brainstorm:artifacts",
+      "file_path": ".claude/commands/workflow/brainstorm/artifacts.md",
+      "score": 0.68,
+      "why": "Same session directory and phase-based workflow; good for shared preconditions and session validation patterns."
+    },
+    {
+      "slash": "/workflow:session:start",
+      "file_path": ".claude/commands/workflow/session/start.md",
+      "score": 0.49,
+      "why": "Best reference for workflow session discovery, --session handling, and .workflow/active/WFS-* conventions."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:brainstorm:synthesis",
+    "file_path": ".claude/commands/workflow/brainstorm/synthesis.md",
+    "selected_by": "cycle-auto",
+    "note": "Oracle reference; if command naming differs in your command runner, verify invocation mapping from nested .claude/commands paths."
+  }
+}
+

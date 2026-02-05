@@ -1,0 +1,39 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:ui-design:imitate-auto",
+      "file_path": ".claude/commands/workflow/ui-design/imitate-auto.md",
+      "score": 100,
+      "why": "Oracle command doc for CMD-072; exact workflow + phases + task-attachment semantics."
+    },
+    {
+      "slash": "/workflow:ui-design:explore-auto",
+      "file_path": ".claude/commands/workflow/ui-design/explore-auto.md",
+      "score": 92,
+      "why": "Same UI-design orchestrator family; shows unified --input parsing, directory setup, TodoWrite auto-continue, and attach→execute→collapse pattern."
+    },
+    {
+      "slash": "/workflow:ui-design:codify-style",
+      "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
+      "score": 82,
+      "why": "Orchestrator-style wrapper that validates params, composes subcommands, and documents TodoWrite + error handling patterns."
+    },
+    {
+      "slash": "/workflow:ui-design:generate",
+      "file_path": ".claude/commands/workflow/ui-design/generate.md",
+      "score": 78,
+      "why": "Downstream assembler phase; defines output verification and prototypes/preview artifacts."
+    },
+    {
+      "slash": "/workflow:ui-design:import-from-code",
+      "file_path": ".claude/commands/workflow/ui-design/import-from-code.md",
+      "score": 74,
+      "why": "Conditional Phase 0.5 pattern; shows file discovery + parallel extraction outputs used as upstream context."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:ui-design:imitate-auto",
+    "file_path": ".claude/commands/workflow/ui-design/imitate-auto.md",
+    "why": "Selected because CMD-072 explicitly targets this command and the repo already contains the full oracle doc."
+  }
+}

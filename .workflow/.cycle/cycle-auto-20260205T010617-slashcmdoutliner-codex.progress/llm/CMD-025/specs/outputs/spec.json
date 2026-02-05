@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-025.requirements.md",
+  "command": {
+    "group": "memory",
+    "name": "update-related",
+    "description": "Update CLAUDE.md for git-changed modules using batched agent execution (4 modules/agent) with gemini->qwen->codex fallback, <15 modules uses direct execution",
+    "argument_hint": "[--tool gemini|qwen|codex]",
+    "usage_args": "[--tool gemini|qwen|codex]",
+    "allowed_tools": ["Task(*)", "AskUserQuestion(*)", "Read(*)", "Write(*)", "Bash(*)"]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "iterative",
+    "primary_user_value": "Update only the CLAUDE.md files impacted by recent git changes (plus parent context), with batching, tool fallback, and safety verification."
+  },
+  "artifacts": {
+    "reads": [".git/", "working tree (changed modules + parent dirs)"],
+    "writes": ["CLAUDE.md (changed modules + parent dirs, potentially root)"]
+  },
+  "constraints": {
+    "max_rounds": 6,
+    "time_budget_seconds": 900,
+    "must_not": [
+      "execute without explicit y/n confirmation",
+      "modify non-CLAUDE.md files (safety check must catch and stop)",
+      "claim pointers exist without verifying them in-repo"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name, description, allowed-tools)",
+      "allowed-tools correct for described behavior",
+      "core sections present (Overview, Usage, Outputs/Artifacts, Execution Process, Error Handling)",
+      "implementation pointers evidence-based (Existing vs Planned + dual-source)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/memory/update-related.md",
+    "code_pointers": [
+      "ccw/src/tools/detect-changed-modules.ts",
+      "ccw/src/tools/update-module-claude.js",
+      "ccw/src/core/routes/files-routes.ts"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      "Related Documentation Update (/memory:update-related)",
+      "Overview",
+      "Core Rules",
+      "Tool Fallback Hierarchy",
+      "Phase 1: Change Detection & Analysis",
+      "Phase 2: Plan Presentation",
+      "Phase 3A: Direct Execution (<15 modules)",
+      "Phase 3B: Agent Batch Execution (>=15 modules)",
+      "Phase 4: Safety Verification",
+      "Execution Summary",
+      "Error Handling",
+      "Tool Reference",
+      "Usage Examples",
+      "Daily development update",
+      "After feature work with specific tool",
+      "Code quality review after implementation",
+      "Key Advantages",
+      "Coordinator Checklist",
+      "Comparison with Full Update"
+    ]
+  }
+}

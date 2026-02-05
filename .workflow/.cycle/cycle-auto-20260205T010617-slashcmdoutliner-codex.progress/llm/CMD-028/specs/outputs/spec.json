@@ -1,0 +1,51 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "artifacts",
+    "description": "Interactive clarification generating confirmed guidance specification through role-based analysis and synthesis",
+    "argument_hint": "[-y|--yes] topic or challenge description [--count N]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Glob(*)",
+      "AskUserQuestion(*)"
+    ]
+  },
+  "intent": {
+    "type": "brainstorm",
+    "interaction": "iterative",
+    "primary_user_value": "Turn a topic/challenge into a Confirmed Guidance Specification by asking targeted, role-based questions and synthesizing decisions into a single guidance document."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/WFS-{topic}/.brainstorming/context-package.json (if resuming/iterating)",
+      ".workflow/active/WFS-{topic}/.brainstorming/guidance-specification.md (if updating)"
+    ],
+    "writes": [
+      ".workflow/active/WFS-{topic}/.brainstorming/guidance-specification.md",
+      ".workflow/active/WFS-{topic}/.brainstorming/context-package.json",
+      ".workflow/active/WFS-{topic}/.brainstorming/session-metadata.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 0,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not exceed 4 questions per AskUserQuestion call; batch into multi-round interactions.",
+      "Do not ask generic questions; every question should reference topic keywords/context.",
+      "Do not claim pointers exist unless verifiable; label as Planned when unsure.",
+      "Do not write outside the session folder under .workflow/active/WFS-{topic}/.brainstorming/ without explicit user request."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name, description, allowed-tools)",
+      "allowed-tools matches described behavior",
+      "core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
+      "auto mode (-y/--yes) behavior defined",
+      "evidence tables pass verify-evidence.js"
+    ]
+  }
+}
+

@@ -1,0 +1,42 @@
+{
+  "derived_from": ".claude/commands/workflow/tools/test-concept-enhanced.md",
+  "command": {
+    "group": "workflow",
+    "name": "test-concept-enhanced",
+    "description": "Coordinate test analysis workflow using cli-execution-agent to generate test strategy via Gemini",
+    "argument_hint": "--session WFS-test-session-id --context path/to/test-context-package.json",
+    "allowed_tools": ["Task(*)", "Read(*)", "Write(*)", "Glob(*)"]
+  },
+  "intent": {
+    "type": "analyze",
+    "interaction": "single-shot",
+    "primary_user_value": "Generate actionable test generation strategy and requirements from a test-context package using Gemini via cli-execution-agent."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/{test_session_id}/workflow-session.json",
+      "{context_path}"
+    ],
+    "writes": [
+      ".workflow/active/{test_session_id}/.process/gemini-test-analysis.md",
+      ".workflow/active/{test_session_id}/.process/TEST_ANALYSIS_RESULTS.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 1200,
+    "must_not": [
+      "No code generation or codebase modifications (strategy/planning only).",
+      "Do not claim pointers are Existing unless verifiable in the repo."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name, description, argument-hint, allowed-tools (and group if used).",
+      "Validates required inputs: --session and --context.",
+      "Produces or verifies expected outputs: gemini-test-analysis.md and TEST_ANALYSIS_RESULTS.md.",
+      "Evidence tables (if present) pass verify-evidence.js gates (docs + TS anchors)."
+    ]
+  }
+}
+

@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-02-05T01:06:17Z",
+  "candidates": [
+    {
+      "slash": "/workflow:session:solidify",
+      "file_path": ".claude/commands/workflow/session/solidify.md",
+      "score": 1,
+      "why": "Exact oracle command doc referenced by requirements; defines parameters, type/category taxonomy, interactive mode, and artifacts."
+    },
+    {
+      "slash": "/workflow:init-guidelines",
+      "file_path": ".claude/commands/workflow/init-guidelines.md",
+      "score": 0.86,
+      "why": "Creates/updates .workflow/project-guidelines.json scaffold; provides baseline structure and write patterns for guidelines." 
+    },
+    {
+      "slash": "/workflow:tools:context-gather",
+      "file_path": ".claude/commands/workflow/tools/context-gather.md",
+      "score": 0.8,
+      "why": "Downstream consumer of project-guidelines.json (loads conventions/constraints/learnings into context-package.json)."
+    },
+    {
+      "slash": "/workflow:session:start",
+      "file_path": ".claude/commands/workflow/session/start.md",
+      "score": 0.62,
+      "why": "Session-family command patterns (auto mode, guardrails, and .workflow state initialization)."
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 0.55,
+      "why": "Planning flow integration point; solidified guidelines must influence planning outputs consistently."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:session:solidify",
+    "file_path": ".claude/commands/workflow/session/solidify.md",
+    "score": 1,
+    "why": "Oracle reference for this command; gap analysis should compare generated outline against it without leaking full contents into the spec."
+  }
+}

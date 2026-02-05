@@ -1,0 +1,2979 @@
+Reading prompt from stdin...
+OpenAI Codex v0.93.0 (research preview)
+--------
+workdir: C:\Project\Claude-Code-Workflow
+model: gpt-5.2
+provider: codex
+approval: never
+sandbox: danger-full-access
+reasoning effort: high
+reasoning summaries: auto
+session id: 019c2d4e-e54d-7613-ba5c-d68e334f7a9e
+--------
+user
+Use the repo skill: slash-command-outliner (path: .codex/skills/slash-command-outliner).
+
+Cycle: cycle-auto-20260205T010617-slashcmdoutliner-codex
+Command: CMD-063
+
+Input requirement doc (non-leaky): `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-063.requirements.md`
+
+Write the following output files (create directories as needed) under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs`:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md`
+
+Hard rules (P0):
+- Follow templates: .codex/skills/slash-command-outliner/templates/*
+- Follow gates: .codex/skills/slash-command-outliner/specs/quality-gates.md
+- Evidence tables MUST pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js
+- Never label a pointer as Existing unless it is verifiable in the repo now.
+- For ANY pointer row, provide dual-source evidence:
+  - docs: .claude/commands/**.md / <real heading text>
+  - ts: ccw/src/** / <literal anchor string present in file>
+- Avoid placeholders like TBD/N/A in evidence rows; if unsure, mark as Planned and add Verify steps.
+
+Keep the written files concise; do not write extra files unless necessary.
+
+deprecated: `[features].web_search_request` is deprecated. Use `web_search` instead.
+  Set `web_search` to `"live"`, `"cached"`, or `"disabled"` in config.toml.
+mcp: ccw-tools starting
+mcp: exa starting
+mcp: ace-tool starting
+mcp: ccw-tools ready
+mcp: ace-tool ready
+mcp: exa ready
+mcp startup: ready: ccw-tools, ace-tool, exa
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/SKILL.md' in C:\Project\Claude-Code-Workflow succeeded in 307ms:
+---
+name: slash-command-outliner
+description: Codex version of slash-command-outliner. Generate CCW-aligned slash command development outlines from a requirement/spec doc, validated via corpus-wide iteration and non-regression. Triggers on "slash command outliner", "slash 命令大纲", "slash 命令生成器", "命令大纲".
+allowed-tools: Read, Write, AskUserQuestion, Task, Bash, TodoWrite, mcp__ace-tool__search_context
+---
+
+# Slash Command Outliner (Codex)
+
+Input a **slash command requirement/spec document**. Output a **CCW-aligned, end-to-end development outline** (Slash MD outline + Agent MD outline) plus a **gap-report** that compares against reference implementations and CCW server/tooling corpus. Improve quality by iterating across **all** existing commands with **non-regression snapshots**.
+
+This skill is designed to be **precise** (no fluff) and **stable** (non-regression gate).
+
+## Canonical Workflow (Phases)
+
+1) `phases/01-collect-spec.md`  
+2) `phases/02-retrieve-and-rank-references.md`  
+3) `phases/03-generate-outlines.md`  
+4) `phases/04-gap-report-and-iterate.md`  
+5) `phases/05-regression-and-closure.md`
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/quality-gates.md' in C:\Project\Claude-Code-Workflow succeeded in 306ms:
+# Quality Gates (Non-regression First)
+
+## P0 Gates (Must Pass)
+
+P0 failure means “not CCW-aligned” and blocks completion.
+
+1) **Frontmatter completeness**
+   - `name`, `description`, `allowed-tools` must exist
+   - `argument-hint` optional but recommended for non-trivial commands
+2) **Allowed-tools correctness**
+   - no tools outside the supported CCW set for the intended workflow
+   - no missing tools required by the described behavior
+3) **Core sections present**
+   - at least: `Overview`, `Usage`, `Execution Process`, `Output/Artifacts`, `Error Handling`
+4) **No broken artifact references**
+   - referenced paths must be either created by the command or explicitly documented as pre-existing
+
+5) **Implementation pointers must be evidence-based (Existing vs Planned)**
+   - Every implementation pointer (file/module/CLI subcommand/tool entry) MUST be labeled:
+     - `Existing`: verifiable in repo now
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem -Recurse .codex/skills/slash-command-outliner/templates | Select-Object FullName' in C:\Project\Claude-Code-Workflow succeeded in 319ms:
+
+[32;1mFullName[0m
+[32;1m--------[0m
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\templates\agent-outline.md
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\templates\gap-report.md
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\templates\slash-command-outline.md
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-063.requirements.md' in C:\Project\Claude-Code-Workflow succeeded in 327ms:
+# Requirement (non-leaky): /workflow:tdd-coverage-analysis
+
+## Source
+
+- Command doc (oracle, do not paste full contents into spec): `.claude/commands/workflow/tools/tdd-coverage-analysis.md`
+
+## Command Identity
+
+- group: workflow
+- name: tdd-coverage-analysis
+- description: Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification
+- argument-hint: --session WFS-session-id
+- allowed-tools: Read(*), Write(*), Bash(*)
+
+## Structure Hints (Headings Only)
+
+- TDD Coverage Analysis Command
+  - Overview
+  - Core Responsibilities
+  - Execution Process
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem .codex/skills/slash-command-outliner -Force | Select-Object Name' in C:\Project\Claude-Code-Workflow succeeded in 337ms:
+
+[32;1mName[0m
+[32;1m----[0m
+phases
+scripts
+specs
+templates
+SKILL.md
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem .codex/skills/slash-command-outliner/phases | Select-Object Name' in C:\Project\Claude-Code-Workflow succeeded in 334ms:
+
+[32;1mName[0m
+[32;1m----[0m
+01-collect-spec.md
+02-retrieve-and-rank-references.md
+03-generate-outlines.md
+04-gap-report-and-iterate.md
+05-regression-and-closure.md
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/slash-command-outline.md' in C:\Project\Claude-Code-Workflow succeeded in 306ms:
+---
+name: {{command.name}}
+description: {{command.description}}
+argument-hint: "{{command.argument_hint}}"
+allowed-tools: {{command.allowed_tools_csv}}
+group: {{command.group}}
+---
+
+# {{command.title}}
+
+## Overview
+
+- Goal: {{intent.primary_user_value}}
+- Command: `/{{command.group}}:{{command.name}}`
+
+## Usage
+
+```bash
+/{{command.group}}:{{command.name}} {{command.usage_args}}
+```
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/agent-outline.md' in C:\Project\Claude-Code-Workflow succeeded in 305ms:
+# Agent Outline: {{command.group}}:{{command.name}}
+
+## Purpose
+
+Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
+
+## Execution Model
+
+- Default: incremental, testable changes
+- Use ACE-tool to find existing patterns before adding new abstractions
+
+## State & Artifacts
+
+- Session folder (if used): `.workflow/...`
+- Required outputs:
+  - Slash MD (command doc)
+  - Any scripts/modules referenced by the command
+  - Validation notes / regression snapshots
+
+## Tooling
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/gap-report.md' in C:\Project\Claude-Code-Workflow succeeded in 314ms:
+# Gap Report: {{command.group}}:{{command.name}}
+
+## Reference
+
+- Selected reference: {{reference.slash}} (`{{reference.file_path}}`)
+
+## P0 Gaps (Must Fix)
+
+{{gaps.p0}}
+
+## P1 Gaps (Should Fix)
+
+{{gaps.p1}}
+
+## P2 Gaps (Optional)
+
+{{gaps.p2}}
+
+## Implementation Pointers (Evidence)
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem .codex/skills/slash-command-outliner/scripts | Select-Object Name' in C:\Project\Claude-Code-Workflow succeeded in 322ms:
+
+[32;1mName[0m
+[32;1m----[0m
+lib
+derive-spec.js
+gap-report.js
+generate-outline.js
+README.md
+regress-all.js
+scan-corpus.js
+verify-evidence.js
+verify-evidence.test.js
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/verify-evidence.js' in C:\Project\Claude-Code-Workflow succeeded in 327ms:
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+export function usage() {
+  console.log(
+    [
+      'Usage:',
+      '  node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<path.md> [--file=<path2.md> ...]',
+      '',
+      'Behavior:',
+      '  - Extracts evidence tables from markdown (gap-report and/or outline)',
+      '  - Enforces evidence-based gates:',
+      '    - Each row must label Status as Existing or Planned',
+      '    - Evidence must include BOTH docs and ts anchors:',
+      '      - docs: .claude/commands/**.md / <section heading>',
+      '      - ts: ccw/src/** / <function|case|pattern>',
+      '    - Existing rows must point to verifiable pointers (paths must exist when pointer looks like a path)',
+      '',
+      'Notes:',
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/01-collect-spec.md' in C:\Project\Claude-Code-Workflow succeeded in 313ms:
+# Phase 01: Collect Spec (No Leakage)
+
+## Goal
+
+Turn a human requirement/rules document into a **minimal, structured spec** that is sufficient to generate:
+
+- Slash command outline (CCW command MD skeleton)
+- Agent outline (execution + tools + state)
+
+Do **not** copy/paste existing implementation docs as input; treat them as oracle only during gap analysis.
+
+## Required Inputs (ask if missing)
+
+1. Command identity:
+   - `group` (workflow|issue|learn|cli|other)
+   - `name` (kebab-case)
+   - `description` (one sentence)
+   - `argument-hint` (optional)
+2. Allowed tools:
+   - exact list for frontmatter `allowed-tools`
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/02-retrieve-and-rank-references.md' in C:\Project\Claude-Code-Workflow succeeded in 301ms:
+# Phase 02: Retrieve + Rank References
+
+## Goal
+
+Find the closest existing commands and extract **reusable patterns** without copying full content.
+
+## Steps
+
+1) Use `mcp__ace-tool__search_context` to recall similar commands and relevant tooling code.
+2) Produce Top N candidates (default N=5) with deterministic scoring:
+   - same `group` / command family
+   - similar interaction model (AskUserQuestion, multi-round loop, etc.)
+   - similar artifacts (writes to `.workflow/*`, `.claude/*`, etc.)
+   - similar allowed-tools surface
+3) Require user confirmation for Top 1 (high-confidence can be preselected but must be overridable).
+
+## Output
+
+Write:
+- `specs/outputs/references.json`
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/spec-input.md' in C:\Project\Claude-Code-Workflow succeeded in 300ms:
+# Spec Input (Schema + Rules)
+
+The spec is the only “source input” for outline generation. It must be **minimal** and **non-leaky**.
+
+## Minimal JSON Schema (informal)
+
+```json
+{
+  "command": {
+    "group": "workflow|issue|learn|cli|other",
+    "name": "kebab-case",
+    "description": "one sentence",
+    "argument_hint": "[--flag] \"args\"",
+    "allowed_tools": ["Read(*)", "Write(*)"]
+  },
+  "intent": {
+    "type": "analyze|plan|execute|brainstorm|manage|utility",
+    "interaction": "single-shot|iterative|loop",
+    "primary_user_value": "what this command accomplishes"
+  },
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/03-generate-outlines.md' in C:\Project\Claude-Code-Workflow succeeded in 322ms:
+# Phase 03: Generate Outlines (Slash MD + Agent MD)
+
+## Goal
+
+Generate:
+- a **Slash command MD outline** that matches CCW conventions (frontmatter + required sections)
+- an **Agent outline** that explains execution model, state, and validation strategy
+
+Use templates; keep output concise and implementation-oriented.
+
+## Inputs
+
+- `specs/outputs/spec.json`
+- `specs/outputs/references.json` (selected reference)
+- Rules: `../specs/quality-gates.md`
+
+## Output Files
+
+- `specs/outputs/generated-slash-outline.md` (based on `../templates/slash-command-outline.md`)
+- `specs/outputs/generated-agent-outline.md` (based on `../templates/agent-outline.md`)
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/04-gap-report-and-iterate.md' in C:\Project\Claude-Code-Workflow succeeded in 303ms:
+# Phase 04: Gap Report + Iterate
+
+## Goal
+
+Compare the generated outlines against:
+1) The selected reference command implementation (oracle)
+2) The CCW server/tooling corpus (routes, mcp tools, cli internals)
+
+Then propose the smallest set of changes to close gaps.
+
+## Inputs
+
+- `specs/outputs/generated-slash-outline.md`
+- `specs/outputs/generated-agent-outline.md`
+- `specs/outputs/references.json`
+- Tooling scope: `../specs/corpus-scope.md`
+
+## Output
+
+Write:
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/05-regression-and-closure.md' in C:\Project\Claude-Code-Workflow succeeded in 303ms:
+# Phase 05: Regression + Closure
+
+## Goal
+
+Make sure improvements do not regress previously-validated commands (non-regression).
+
+## What to Update (Cycle Mode)
+
+When iterating against the full corpus:
+- Update per-command status in `corpus-manifest.json`
+- Check off `TODO_LIST.md` items
+- Save snapshots in `regression/expected/` for commands marked completed
+- Write snapshot diffs into `regression/diff/` and block on unexpected changes
+
+## Non-regression Policy
+
+See `../specs/quality-gates.md`.
+
+## Completion Criteria
+
+
+
+thinking
+**Clarifying pointer requirements**
+
+I’m realizing that for a planned pointer, I need evidence from existing TS files instead of the planned files. The pointer cell might show the planned file path, but the TS evidence cell must point to a real TS file with an anchor string, which is fine since it doesn't check for path existence in the planned context. Similarly, the documentation evidence must also come from existing documents, like Oracle docs. I’ll avoid using placeholders and focus on dual-source evidence for every pointer row.
+thinking
+**Gathering evidence for pointers**
+
+I'm realizing there's a requirement for any pointer row to include documentation and TS references. For documentation, it should look like `.claude/commands/**.md / <real heading text>` and for TS, it needs to be `ccw/src/** / <literal anchor string present in the file>`. The verify-evidence script checks if the specified heading and anchor string exist. I need to find a TS file and an anchor for each pointer. I'll explore existing commands and examine the content of `.claude/commands/workflow/tools/tdd-coverage-analysis.md` for the headings.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Test-Path .claude/commands/workflow/tools/tdd-coverage-analysis.md; Get-Content -Raw .claude/commands/workflow/tools/tdd-coverage-analysis.md' in C:\Project\Claude-Code-Workflow succeeded in 311ms:
+True
+---
+name: tdd-coverage-analysis
+description: Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification
+argument-hint: "--session WFS-session-id"
+allowed-tools: Read(*), Write(*), Bash(*)
+---
+
+# TDD Coverage Analysis Command
+
+## Overview
+Analyze test coverage and verify Red-Green-Refactor cycle execution for TDD workflow validation.
+
+## Core Responsibilities
+- Extract test files from TEST tasks
+- Run test suite with coverage
+- Parse coverage metrics
+- Verify TDD cycle execution (Red -> Green -> Refactor)
+- Generate coverage and cycle reports
+
+
+thinking
+**Investigating command structure**
+
+I suspect that CCW uses nested groups like `/workflow:tools:tdd-coverage-analysis`. To confirm this, I plan to search within the `.claude/commands/workflow/tools` directory. It’s a good idea to look at the existing commands folder to see the frontmatter group field and related details. I'll also check other command documentation in that same tools folder. There’s quite a bit to explore here, so let’s get to it!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem .claude/commands/workflow -Recurse -Filter *.md | Select-Object FullName | Select-Object -First 30' in C:\Project\Claude-Code-Workflow succeeded in 332ms:
+
+[32;1mFullName[0m
+[32;1m--------[0m
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\analyze-with-file.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\brainstorm-with-file.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\clean.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\collaborative-plan-with-file.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\debug-with-file.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\execute.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\init-guidelines.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\init.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\lite-execute.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\lite-fix.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\lite-plan.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\multi-cli-plan.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\plan-verify.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\plan.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\replan.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\review-cycle-fix.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\review-module-cycle.md
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem .claude/commands/workflow -Directory | Select-Object Name' in C:\Project\Claude-Code-Workflow succeeded in 330ms:
+
+[32;1mName[0m
+[32;1m----[0m
+brainstorm
+session
+tools
+ui-design
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem .claude/commands/workflow/tools -Filter *.md | Select-Object Name' in C:\Project\Claude-Code-Workflow succeeded in 333ms:
+
+[32;1mName[0m
+[32;1m----[0m
+code-validation-gate.md
+conflict-resolution.md
+context-gather.md
+task-generate-agent.md
+task-generate-tdd.md
+tdd-coverage-analysis.md
+test-concept-enhanced.md
+test-context-gather.md
+test-task-generate.md
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -TotalCount 40 .claude/commands/workflow/tools/code-validation-gate.md' in C:\Project\Claude-Code-Workflow succeeded in 318ms:
+---
+name: code-validation-gate
+description: Validate AI-generated code for common errors (imports, variables, types) before test execution
+argument-hint: "--session WFS-test-session-id [--fix] [--strict]"
+examples:
+  - /workflow:tools:code-validation-gate --session WFS-test-auth
+  - /workflow:tools:code-validation-gate --session WFS-test-auth --fix
+  - /workflow:tools:code-validation-gate --session WFS-test-auth --strict
+---
+
+# Code Validation Gate Command
+
+## Overview
+
+Pre-test validation gate that checks AI-generated code for common errors before test execution. This prevents wasted test cycles on code with fundamental issues like import errors, variable conflicts, and type mismatches.
+
+## Core Philosophy
+
+- **Fail Fast**: Catch fundamental errors before expensive test execution
+- **AI-Aware**: Specifically targets common AI code generation mistakes
+
+thinking
+**Considering documentation structure**
+
+I'm noticing that many existing documents lack the group field in their frontmatter, like the code-validation-gate, which only includes name and description. The template does have a group field, but that might not align with existing formats. Although the quality gate doesn’t require it, following the provided template structure is crucial. I'll also need to check the corpus-scope document for TS code locations to ensure everything matches up correctly. Let's keep focused on that.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/corpus-scope.md' in C:\Project\Claude-Code-Workflow succeeded in 321ms:
+# Corpus Scope (All Commands + Tooling)
+
+## Slash Command Corpus (Must Cover 100%)
+
+- `.claude/commands/**/*.md`
+  - exclude: `node_modules/`
+  - exclude: `_disabled/`
+
+## Server/Tooling Capability Corpus (Must Be Referenced in Gap Analysis)
+
+These are not “slash command targets”, but are required to detect hidden dependencies:
+
+- `ccw/src/server/routes/**/*`
+- `ccw/src/mcp-server/**/*`
+- `ccw/src/tools/**/*`
+- `ccw/src/commands/**/*`
+
+
+
+thinking
+**Searching for TS Evidence**
+
+I need to gather TS evidence from ccw/src/**. I’ll focus on locating relevant TS code, probably in the command execution pipeline or tool tasks. There might already be a `tdd-verify` command established, so my next step is to look into `.claude/commands/workflow/tdd-verify.md` to see if it calls the tool. I should open that document to use it as evidence, gathering all the necessary details.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -TotalCount 80 .claude/commands/workflow/tdd-verify.md' in C:\Project\Claude-Code-Workflow succeeded in 319ms:
+---
+name: tdd-verify
+description: Verify TDD workflow compliance against Red-Green-Refactor cycles. Generates quality report with coverage analysis and quality gate recommendation. Orchestrates sub-commands for comprehensive validation.
+argument-hint: "[optional: --session WFS-session-id]"
+allowed-tools: Skill(*), TodoWrite(*), Read(*), Write(*), Bash(*), Glob(*)
+---
+
+# TDD Verification Command (/workflow:tdd-verify)
+
+## Goal
+
+Verify TDD workflow execution quality by validating Red-Green-Refactor cycle compliance, test coverage completeness, and task chain structure integrity. This command orchestrates multiple analysis phases and generates a comprehensive compliance report with quality gate recommendation.
+
+**Output**: A structured Markdown report saved to `.workflow/active/WFS-{session}/TDD_COMPLIANCE_REPORT.md` containing:
+- Executive summary with compliance score and quality gate recommendation
+- Task chain validation (TEST → IMPL → REFACTOR structure)
+- Test coverage metrics (line, branch, function)
+- Red-Green-Refactor cycle verification
+- Best practices adherence assessment
+- Actionable improvement recommendations
+tool ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Existing slash command docs for /workflow:tools:* and their implementation pointers/evidence patterns. Also find TypeScript code handling workflow tool commands or command registry. Keywords: workflow tools command handler, tdd-verify, code-validation-gate, command routing, /workflow:tools:"})
+ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Existing slash command docs for /workflow:tools:* and their implementation pointers/evidence patterns. Also find TypeScript code handling workflow tool commands or command registry. Keywords: workflow tools command handler, tdd-verify, code-validation-gate, command routing, /workflow:tools:"}) success in 8.47s:
+{
+  "content": [
+    {
+      "text": "The following code sections were retrieved:\nPath: .claude\\commands\\workflow\\tools\\task-generate-tdd.md\n     1\t---\r\n     2\tname: task-generate-tdd\r\n     3\tdescription: Autonomous TDD task generation using action-planning-agent with Red-Green-Refactor cycles, test-first structure, and cycle validation\r\n     4\targument-hint: \"[-y|--yes] --session WFS-session-id\"\r\n     5\texamples:\r\n     6\t  - /workflow:tools:task-generate-tdd --session WFS-auth\r\n     7\t  - /workflow:tools:task-generate-tdd -y --session WFS-auth\r\n     8\t---\r\n     9\t\r\n    10\t## Auto Mode\r\n    11\t\r\n    12\tWhen `--yes` or `-y`: Skip user questions, use defaults (no materials, Agent executor).\r\n    13\t\r\n    14\t# Autonomous TDD Task Generation Command\r\n    15\t\r\n    16\t## Overview\r\n    17\tAutonomous TDD task JSON and IMPL_PLAN.md generation using action-planning-agent with two-phase execution: discovery and document generation. Generates complete Red-Green-Refactor cycles contained within each task.\r\n...\n   656\t\r\n   657\t**File Count**:\r\n   658\t- **Old approach**: 5 features = 15 task JSON files (TEST/IMPL/REFACTOR × 5)\r\n   659\t- **New approach**: 5 features = 5 task JSON files (IMPL-N × 5)\r\n   660\t- **Complex feature**: 1 feature = 1 container + M subtasks (IMPL-N + IMPL-N.M)\r\n   661\t\r\n   662\t## Validation Rules\r\n   663\t\r\n   664\t### Task Completeness\r\n   665\t- Every IMPL-N must contain complete TDD workflow in `flow_control.implementation_approach`\r\n   666\t- Each task must have 3 steps with `tdd_phase`: \"red\", \"green\", \"refactor\"\r\n   667\t- Every task must have `meta.tdd_workflow: true`\r\n   668\t\r\n   669\t### Dependency Enforcement\r\n   670\t- Sequential features: IMPL-N depends_on [\"IMPL-(N-1)\"] if needed\r\n   671\t- Complex feature subtasks: IMPL-N.M depends_on [\"IMPL-N.(M-1)\"] or parent dependencies\r\n   672\t- No circular dependencies allowed\r\n...\n   693\t\r\n   694\t### TDD Generation Errors\r\n   695\t| Error | Cause | Resolution |\r\n   696\t|-------|-------|------------|\r\n   697\t| Task count exceeds 18 | Too many features or subtasks | Re-scope requirements or merge features into multiple TDD sessions |\r\n   698\t| Missing test framework | No test config | Configure testing first |\r\n   699\t| Invalid TDD workflow | Missing tdd_phase or incomplete flow_control | Fix TDD structure in ANALYSIS_RESULTS.md |\r\n   700\t| Missing tdd_workflow flag | Task doesn't have meta.tdd_workflow: true | Add TDD workflow metadata |\r\n   701\t\r\n   702\t## Integration & Usage\r\n   703\t\r\n   704\t**Command Chain**:\r\n   705\t- Called by: `/workflow:tdd-plan` (Phase 4)\r\n   706\t- Invokes: `action-planning-agent` for autonomous task generation\r\n   707\t- Followed by: `/workflow:execute`, `/workflow:tdd-verify`\r\n   708\t\r\n   709\t**Basic Usage**:\r\n   710\t```bash\r\n   711\t# Standard execution\r\n   712\t/workflow:tools:task-generate-tdd --session WFS-auth\r\n   713\t\r\n   714\t# With semantic CLI request (include in task description)\r\n   715\t# e.g., \"Generate TDD tasks for auth module, use Codex for implementation\"\r\n   716\t```\r\n   717\t\r\n   718\t**CLI Tool Selection**: Determined semantically from user's task description. Include \"use Codex/Gemini/Qwen\" in your request for CLI execution.\r\n   719\t\r\n   720\t**Output**:\r\n   721\t- TDD task JSON files in `.task/` directory (IMPL-N.json format)\r\n   722\t- IMPL_PLAN.md with TDD Implementation Tasks section\r\n   723\t- TODO_LIST.md with internal TDD phase indicators\r\n   724\t- Session state updated with task count and TDD metadata\r\n   725\t- MCP enhancements integrated (if available)\r\n   726\t\r\n   727\t## Test Coverage Analysis Integration\r\n...\n\nPath: .claude\\commands\\workflow\\tools\\code-validation-gate.md\n...\n   110\t\r\n   111\t**Target File Discovery**:\r\n   112\t- Source files: `context.focus_paths` from context-package\r\n   113\t- Generated tests: `.workflow/active/{session_id}/.task/IMPL-001-output/`\r\n   114\t- All TypeScript/JavaScript in target directories\r\n   115\t\r\n   116\t### Phase 2: Validation Execution\r\n   117\t\r\n   118\t**Execute validation checks in order of dependency.**\r\n   119\t\r\n   120\t#### L0.1: TypeScript Compilation\r\n   121\t\r\n   122\t```bash\r\n   123\t# Primary check - catches most fundamental errors\r\n   124\tnpx tsc --noEmit --skipLibCheck --project tsconfig.json 2>&1\r\n   125\t\r\n   126\t# Parse output for errors\r\n   127\t# Critical: Any compilation error blocks further validation\r\n   128\t```\r\n   129\t\r\n   130\t**Error Patterns**:\r\n   131\t```\r\n   132\terror TS2307: Cannot find module 'xxx'\r\n   133\terror TS2451: Cannot redeclare block-scoped variable 'xxx'\r\n   134\terror TS2322: Type 'xxx' is not assignable to type 'yyy'\r\n   135\t```\r\n   136\t\r\n   137\t#### L0.2: Import Validation\r\n...\n\nPath: .claude\\commands\\workflow\\tools\\test-task-generate.md\n     1\t---\r\n     2\tname: test-task-generate\r\n     3\tdescription: Generate test planning documents (IMPL_PLAN.md, test task JSONs, TODO_LIST.md) by invoking test-action-planning-agent\r\n     4\targument-hint: \"--session WFS-test-session-id\"\r\n     5\texamples:\r\n     6\t  - /workflow:tools:test-task-generate --session WFS-test-auth\r\n     7\t---\r\n     8\t\r\n     9\t# Generate Test Planning Documents Command\r\n    10\t\r\n    11\t## Overview\r\n    12\t\r\n    13\tGenerate test planning documents (IMPL_PLAN.md, test task JSONs, TODO_LIST.md) by invoking **test-action-planning-agent**.\r\n    14\t\r\n    15\tThis command produces **test planning artifacts only** - it does NOT execute tests or implement code. Actual test execution requires separate execution command (e.g., /workflow:test-cycle-execute).\r\n    16\t\r\n    17\t### Agent Specialization\r\n    18\t\r\n    19\tThis command invokes `@test-action-planning-agent` - a specialized variant of action-planning-agent with:\r\n    20\t- Progressive L0-L3 test layers (Static, Unit, Integration, E2E)\r\n    21\t- AI code issue detection (L0.5) with severity levels\r\n    22\t- Project type templates (React, Node API, CLI, Library, Monorepo)\r\n    23\t- Test anti-pattern detection with quality gates\r\n    24\t- Layer completeness thresholds and coverage targets\r\n    25\t\r\n    26\t**See**: `d:\\Claude_dms3\\.claude\\agents\\test-action-planning-agent.md` for complete test specifications.\r\n    27\t\r\n    28\t---\r\n    29\t\r\n    30\t## Execution Process\r\n    31\t\r\n    32\t```\r\n    33\tInput Parsing:\r\n    34\t   └─ Parse flags: --session\r\n...\n   383\t\r\n   384\t### Usage Examples\r\n   385\t```bash\r\n   386\t# Standard execution\r\n   387\t/workflow:tools:test-task-generate --session WFS-test-auth\r\n   388\t\r\n   389\t# With semantic CLI request (include in task description when calling /workflow:test-fix-gen)\r\n   390\t# e.g., \"Generate tests, use Codex for implementation and fixes\"\r\n   391\t```\r\n   392\t\r\n   393\t### Output Validation\r\n   394\t\r\n   395\t**Minimum Requirements**:\r\n   396\t- 4 task JSON files created\r\n   397\t- IMPL_PLAN.md exists with test-specific sections\r\n   398\t- TODO_LIST.md exists with test phase hierarchy\r\n   399\t- All tasks reference TEST_ANALYSIS_RESULTS.md specifications\r\n   400\t- L0-L3 layers explicitly defined in IMPL-001\r\n   401\t- AI issue detection configured in IMPL-001.3\r\n   402\t- Quality gates with thresholds in IMPL-001.5\r\n   403\t\r\n   404\t---\r\n   405\t\r\n   406\t## Related Commands\r\n   407\t\r\n   408\t**Called By**:\r\n   409\t- `/workflow:test-fix-gen` - Phase 4: Generate test planning documents\r\n...\n\nPath: ccw\\src\\tools\\command-registry.ts\n...\n   118\t\r\n   119\t  /**\r\n   120\t   * Get single command metadata\r\n   121\t   * @param commandName Command name (e.g., \"lite-plan\" or \"/workflow:lite-plan\")\r\n   122\t   * @returns Command metadata or null\r\n   123\t   */\r\n   124\t  public getCommand(commandName: string): CommandMetadata | null {\r\n   125\t    if (!this.commandDir) {\r\n   126\t      console.error('ERROR: ~/.claude/commands/workflow directory not found');\r\n   127\t      return null;\r\n   128\t    }\r\n   129\t\r\n   130\t    // Normalize command name\r\n   131\t    const normalized = commandName.startsWith('/workflow:')\r\n   132\t      ? commandName.substring('/workflow:'.length)\r\n   133\t      : commandName;\r\n   134\t\r\n   135\t    // Check cache\r\n   136\t    const cached = this.cache.get(normalized);\r\n   137\t    if (cached) {\r\n   138\t      return cached;\r\n   139\t    }\r\n   140\t\r\n   141\t    // Read command file\r\n   142\t    const filePath = join(this.commandDir, `${normalized}.md`);\r\n   143\t    if (!existsSync(filePath)) {\r\n   144\t      return null;\r\n   145\t    }\r\n   146\t\r\n   147\t    try {\r\n   148\t      const content = readFileSync(filePath, 'utf-8');\r\n   149\t      const header = this.parseYamlHeader(content);\r\n   150\t\r\n   151\t      if (header && header.name) {\r\n   152\t        const toolsStr = header['allowed-tools'] || '';\r\n   153\t        const allowedTools = toolsStr\r\n   154\t          .split(',')\r\n   155\t          .map((t: string) => t.trim())\r\n   156\t          .filter((t: string) => t);\r\n   157\t\r\n   158\t        const result: CommandMetadata = {\r\n   159\t          name: header.name,\r\n   160\t          command: `/workflow:${header.name}`,\r\n   161\t          description: header.description || '',\r\n   162\t          argumentHint: header['argument-hint'] || '',\r\n   163\t          allowedTools: allowedTools,\r\n   164\t          filePath: filePath,\r\n   165\t          group: header.group || undefined\r\n   166\t        };\r\n   167\t\r\n   168\t        // Cache result\r\n   169\t        this.cache.set(normalized, result);\r\n   170\t        return result;\r\n   171\t      }\r\n   172\t    } catch (error) {\r\n   173\t      const err = error as Error;\r\n   174\t      console.error(`Failed to read command ${filePath}:`, err.message);\r\n   175\t    }\r\n   176\t\r\n   177\t    return null;\r\n   178\t  }\r\n...\n\nPath: .claude\\commands\\workflow\\tools\\task-generate-agent.md\n...\n   633\t\r\n   634\t## CONTEXT METADATA\r\n   635\tSession ID: {session-id}\r\n   636\tModules: ${modules.map(m => m.name + '(' + m.prefix + ')').join(', ')}\r\n   637\tModule Count: ${modules.length}\r\n   638\t\r\n   639\t## INTEGRATION STEPS\r\n   640\t1. Collect all .task/IMPL-*.json, group by module prefix\r\n   641\t2. Resolve CROSS:: dependencies → actual task IDs, update task JSONs\r\n   642\t3. Generate IMPL_PLAN.md (multi-module format per agent specification)\r\n   643\t4. Generate TODO_LIST.md (hierarchical format per agent specification)\r\n   644\t\r\n   645\t## CROSS-MODULE DEPENDENCY RESOLUTION\r\n   646\t- Pattern: CROSS::{module}::{pattern} → IMPL-{module}* matching title/context\r\n   647\t- Example: CROSS::B::api-endpoint → IMPL-B1 (if B1 title contains \"api-endpoint\")\r\n   648\t- Log unresolved as warnings\r\n...\n\nPath: .claude\\commands\\workflow\\tdd-verify.md\n...\n    35\t\r\n    36\t## Core Responsibilities\r\n    37\t- Verify TDD task chain structure (TEST → IMPL → REFACTOR)\r\n    38\t- Analyze test coverage metrics\r\n    39\t- Validate TDD cycle execution quality\r\n    40\t- Generate compliance report with quality gate recommendation\r\n    41\t\r\n    42\t## Execution Process\r\n    43\t\r\n    44\t```\r\n    45\tInput Parsing:\r\n    46\t   └─ Decision (session argument):\r\n    47\t      ├─ --session provided → Use provided session\r\n    48\t      └─ No session → Auto-detect active session\r\n    49\t\r\n    50\tPhase 1: Session Discovery & Validation\r\n    51\t   ├─ Detect or validate session directory\r\n    52\t   ├─ Check required artifacts exist (.task/*.json, .summaries/*)\r\n    53\t   └─ ERROR if invalid or incomplete\r\n    54\t\r\n    55\tPhase 2: Task Chain Structure Validation\r\n    56\t   ├─ Load all task JSONs from .task/\r\n    57\t   ├─ Validate TDD structure: TEST-N.M → IMPL-N.M → REFACTOR-N.M\r\n    58\t   ├─ Verify dependencies (depends_on)\r\n    59\t   ├─ Validate meta fields (tdd_phase, agent)\r\n    60\t   └─ Extract chain validation data\r\n    61\t\r\n    62\tPhase 3: Coverage & Cycle Analysis\r\n    63\t   ├─ Call: /workflow:tools:tdd-coverage-analysis\r\n    64\t   ├─ Parse: test-results.json, coverage-report.json, tdd-cycle-report.md\r\n    65\t   └─ Extract coverage metrics and TDD cycle verification\r\n    66\t\r\n    67\tPhase 4: Compliance Report Generation\r\n    68\t   ├─ Aggregate findings from Phases 1-3\r\n    69\t   ├─ Calculate compliance score (0-100)\r\n    70\t   ├─ Determine quality gate recommendation\r\n    71\t   ├─ Generate TDD_COMPLIANCE_REPORT.md\r\n    72\t   └─ Display summary to user\r\n    73\t```\r\n...\n   137\t\r\n   138\t# Extract meta fields\r\n   139\tmeta_tdd=$(jq -r '.id + \":\" + (.meta.tdd_phase // \"missing\")' *.json 2>/dev/null)\r\n   140\tmeta_agent=$(jq -r '.id + \":\" + (.meta.agent // \"missing\")' *.json 2>/dev/null)\r\n   141\t\r\n   142\t# Output as JSON\r\n   143\tjq -n --arg ids \"$task_ids\" \\\\\r\n   144\t       --arg impl \"$impl_deps\" \\\\\r\n   145\t       --arg refactor \"$refactor_deps\" \\\\\r\n   146\t       --arg tdd \"$meta_tdd\" \\\\\r\n   147\t       --arg agent \"$meta_agent\" \\\\\r\n   148\t       '{ids: $ids, impl_deps: $impl, refactor_deps: $refactor, tdd: $tdd, agent: $agent}'\r\n   149\t\"\"\")\r\n   150\t```\r\n   151\t\r\n   152\t**Step 2.2: Validate TDD Chain Structure**\r\n   153\t```\r\n   154\tParse validation_data JSON and validate:\r\n...\n   302\t\r\n   303\t### Chain Validation Algorithm\r\n   304\t```\r\n   305\t1. Load all task JSONs from .workflow/active/{sessionId}/.task/\r\n   306\t2. Extract task IDs and group by feature number\r\n   307\t3. For each feature:\r\n   308\t   - Check TEST-N.M exists\r\n   309\t   - Check IMPL-N.M exists\r\n   310\t   - Check REFACTOR-N.M exists (optional but recommended)\r\n   311\t   - Verify IMPL-N.M depends_on TEST-N.M\r\n   312\t   - Verify REFACTOR-N.M depends_on IMPL-N.M\r\n   313\t   - Verify meta.tdd_phase values\r\n   314\t   - Verify meta.agent assignments\r\n   315\t4. Calculate chain completeness score\r\n   316\t5. Report incomplete or invalid chains\r\n   317\t```\r\n   318\t\r\n   319\t### Quality Gate Criteria\r\n...\n   359\t\r\n   360\t### Analysis Errors\r\n   361\t| Error | Cause | Resolution |\r\n   362\t|-------|-------|------------|\r\n   363\t| Coverage tool missing | No test framework | Configure testing first |\r\n   364\t| Tests fail to run | Code errors | Fix errors before verify |\r\n   365\t| Sub-command fails | tdd-coverage-analysis error | Check sub-command logs |\r\n   366\t\r\n   367\t## Integration & Usage\r\n   368\t\r\n   369\t### Command Chain\r\n   370\t- **Called After**: `/workflow:execute` (when TDD tasks completed)\r\n   371\t- **Calls**: `/workflow:tools:tdd-coverage-analysis`\r\n   372\t- **Related**: `/workflow:tdd-plan`, `/workflow:status`\r\n   373\t\r\n   374\t### Basic Usage\r\n   375\t```bash\r\n   376\t# Auto-detect active session\r\n   377\t/workflow:tdd-verify\r\n   378\t\r\n   379\t# Specify session\r\n   380\t/workflow:tdd-verify --session WFS-auth\r\n   381\t```\r\n...\n\nPath: ccw\\src\\core\\routes\\commands-routes.ts\n...\n   435\t\r\n   436\t  const results: CommandOperationResult[] = [];\r\n   437\t\r\n   438\t  for (const cmd of targetCommands) {\r\n   439\t    const result = await toggleCommand(cmd.name, location, projectPath, initialPath);\r\n   440\t    results.push(result);\r\n   441\t  }\r\n   442\t\r\n   443\t  const successCount = results.filter(r => r.success).length;\r\n   444\t  const failCount = results.filter(r => !r.success).length;\r\n   445\t\r\n   446\t  return {\r\n   447\t    success: failCount === 0,\r\n   448\t    results,\r\n   449\t    message: `${enable ? 'Enabled' : 'Disabled'} ${successCount} commands${failCount > 0 ? `, ${failCount} failed` : ''}`\r\n   450\t  };\r\n   451\t}\r\n   452\t\r\n   453\t// ========== Route Handler ==========\r\n   454\t\r\n   455\t/**\r\n   456\t * Handle Commands routes\r\n   457\t * @returns true if route was handled, false otherwise\r\n   458\t */\r\n   459\texport async function handleCommandsRoutes(ctx: RouteContext): Promise<boolean> {\r\n   460\t  const { pathname, url, req, res, initialPath, handlePostRequest } = ctx;\r\n...\n\nPath: ccw\\src\\core\\routes\\rules-routes.ts#chunk1of2\n...\n   688\t\r\n   689\t    // Execute CLI tool (Claude) with at least 10 minutes timeout\r\n   690\t    const startTime = Date.now();\r\n   691\t    const result = await executeCliTool({\r\n   692\t      tool: 'claude',\r\n   693\t      prompt,\r\n   694\t      mode,\r\n   695\t      cd: workingDir,\r\n   696\t      timeout: 600000, // 10 minutes\r\n   697\t      category: 'internal',\r\n   698\t      id: executionId,\r\n   699\t      rulesEnv\r\n   700\t    }, onOutput);\r\n   701\t\r\n   702\t    // Broadcast CLI_EXECUTION_COMPLETED event\r\n   703\t    if (broadcastToClients) {\r\n   704\t      broadcastToClients({\r\n   705\t        type: 'CLI_EXECUTION_COMPLETED',\r\n   706\t        payload: {\r\n   707\t          executionId,\r\n   708\t          success: result.success,\r\n   709\t          status: result.execution?.status || (result.success ? 'success' : 'error'),\r\n   710\t          duration_ms: Date.now() - startTime\r\n   711\t        }\r\n   712\t      });\r\n   713\t    }\r\n   714\t\r\n   715\t    if (!result.success) {\r\n   716\t      return {\r\n   717\t        error: `CLI execution failed: ${result.stderr || 'Unknown error'}`,\r\n   718\t        stderr: result.stderr\r\n   719\t      };\r\n   720\t    }\r\n...\n\nPath: ccw\\src\\core\\routes\\cli-routes.ts#chunk1of2\n...\n   703\t\r\n   704\t      // Broadcast execution started\r\n   705\t      broadcastToClients({\r\n   706\t        type: 'CLI_EXECUTION_STARTED',\r\n   707\t        payload: {\r\n   708\t          executionId,\r\n   709\t          tool,\r\n   710\t          mode: mode || 'analysis',\r\n   711\t          parentExecutionId,\r\n   712\t          timestamp: new Date().toISOString()\r\n   713\t        }\r\n   714\t      });\r\n   715\t\r\n   716\t      try {\r\n   717\t        const result = await executeCliTool({\r\n   718\t          tool,\r\n   719\t          prompt: finalPrompt,\r\n   720\t          mode: mode || 'analysis',\r\n   721\t          format: format || 'plain',\r\n   722\t          model,\r\n   723\t          cd: dir || initialPath,\r\n   724\t          includeDirs,\r\n   725\t          timeout: timeout || 0, // 0 = no internal timeout, controlled by external caller\r\n   726\t          category: category || 'user',\r\n   727\t          parentExecutionId,\r\n   728\t          stream: true\r\n   729\t        }, (unit) => {\r\n   730\t          // CliOutputUnit handler: use SmartContentFormatter for intelligent formatting (never returns null)\r\n   731\t          const content = SmartContentFormatter.format(unit.content, unit.type);\r\n...\n\nPath: .claude\\commands\\workflow\\tools\\context-gather.md\n     1\t---\r\n     2\tname: gather\r\n     3\tdescription: Intelligently collect project context using context-search-agent based on task description, packages into standardized JSON\r\n     4\targument-hint: \"--session WFS-session-id \\\"task description\\\"\"\r\n     5\texamples:\r\n     6\t  - /workflow:tools:context-gather --session WFS-user-auth \"Implement user authentication system\"\r\n     7\t  - /workflow:tools:context-gather --session WFS-payment \"Refactor payment module API\"\r\n     8\t  - /workflow:tools:context-gather --session WFS-bugfix \"Fix login validation error\"\r\n     9\tallowed-tools: Task(*), Read(*), Glob(*)\r\n    10\t---\r\n    11\t\r\n    12\t# Context Gather Command (/workflow:tools:context-gather)\r\n    13\t\r\n    14\t## Overview\r\n...\n\nPath: ccw\\src\\core\\routes\\loop-v2-routes.ts#chunk1of2\n...\n   352\t\r\n   353\t      // Trigger ccw-loop skill execution (non-blocking)\r\n   354\t      // The skill will check status before each action and exit gracefully on pause/stop\r\n   355\t      executeCliTool({\r\n   356\t        tool: 'claude',\r\n   357\t        prompt: `/ccw-loop --loop-id ${loopId} --auto`,\r\n   358\t        mode: 'write',\r\n   359\t        workingDir: workflowDir\r\n   360\t      }).catch((error) => {\r\n   361\t        // Log error but don't fail the start request\r\n   362\t        console.error(`Failed to trigger ccw-loop skill for ${loopId}:`, error);\r\n   363\t        // Update loop status to failed\r\n   364\t        readLoopStorage(loopId).then(async (failedLoop) => {\r\n   365\t          if (failedLoop) {\r\n   366\t            failedLoop.status = LoopStatus.FAILED;\r\n   367\t            failedLoop.failure_reason = `Skill execution failed: ${error.message}`;\r\n   368\t            failedLoop.completed_at = new Date().toISOString();\r\n   369\t            await writeLoopStorage(failedLoop);\r\n   370\t            broadcastStateUpdate(loopId, LoopStatus.FAILED);\r\n   371\t          }\r\n   372\t        });\r\n   373\t      });\r\n...\n\n",
+      "type": "text"
+    }
+  ]
+}
+
+thinking
+**Searching for TS code**
+
+I need to locate TypeScript code that supports command invocation for workflow tools. There might be a generic command executor that only loads documents. But it seems this command could be executed through a CLI agent like Bash. The requirement specifies needing TypeScript anchors in ccw/src/** for each pointer row. I’ll search for TS code related to workflow session processing and report writing. It might be easiest to use existing route handlers or tool modules for “workflow” commands. Let’s inspect the ccw command architecture and look for the "workflow:tools:" string. I'll use a smart_search query.
+tool ccw-tools.smart_search({"action":"search","mode":"fuzzy","path":"C:/Project/Claude-Code-Workflow","query":"workflow:tools:","limit":20})
+2026-02-05T10:21:15.859266Z ERROR rmcp::transport::async_rw: Error reading from stream: serde error expected value at line 1 column 2
+ccw-tools.smart_search({"action":"search","mode":"fuzzy","path":"C:/Project/Claude-Code-Workflow","query":"workflow:tools:","limit":20}) failed in 3.02s:
+tool ccw-tools.smart_search({"action":"search","mode":"fuzzy","path":"C:/Project/Claude-Code-Workflow","query":"workflow:tools:","limit":20})
+ccw-tools.smart_search({"action":"search","mode":"fuzzy","path":"C:/Project/Claude-Code-Workflow","query":"workflow:tools:","limit":20}) failed in 0ms:
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "workflow:tools:" ccw/src .claude/commands | Select-Object -First 50' in C:\Project\Claude-Code-Workflow succeeded in 355ms:
+.claude/commands\workflow\ui-design\design-sync.md:401:**Phase 3: Intelligent Analysis** (`/workflow:tools:concept-enhanced`)
+.claude/commands\workflow\ui-design\design-sync.md:404:**Phase 4: Task Generation** (`/workflow:tools:task-generate`)
+.claude/commands\workflow\plan.md:32:- When a sub-command is executed (e.g., `/workflow:tools:context-gather`), its internal tasks are attached to the orchestrator's TodoWrite
+.claude/commands\workflow\plan.md:65:   └─ /workflow:tools:context-gather --session sessionId "structured-description"
+.claude/commands\workflow\plan.md:71:      ├─ conflict_risk ≥ medium → Execute /workflow:tools:conflict-resolution
+.claude/commands\workflow\plan.md:77:   └─ /workflow:tools:task-generate-agent --session sessionId
+.claude/commands\workflow\plan.md:172:Skill(skill="workflow:tools:context-gather", args="--session [sessionId] \"[structured-task-description]\"")
+.claude/commands\workflow\plan.md:258:Skill(skill="workflow:tools:conflict-resolution", args="--session [sessionId] --context [contextPath]")
+.claude/commands\workflow\plan.md:394:Skill(skill="workflow:tools:task-generate-agent", args="--session [sessionId]")
+.claude/commands\workflow\plan.md:655:- **Build Phase 4 command**: `/workflow:tools:task-generate-agent --session [sessionId]`
+.claude/commands\workflow\plan.md:685:/workflow:tools:context-gather --session WFS-123 "GOAL: Build authentication\nSCOPE: JWT, login, registration\nCONTEXT: REST API"
+.claude/commands\workflow\plan.md:696:- `/workflow:tools:context-gather` - Phase 2: Gather project context and analyze codebase
+.claude/commands\workflow\plan.md:697:- `/workflow:tools:conflict-resolution` - Phase 3: Detect and resolve conflicts (auto-triggered if conflict_risk ≥ medium)
+.claude/commands\workflow\plan.md:699:- `/workflow:tools:task-generate-agent` - Phase 4: Generate task JSON files with agent-driven approach
+.claude/commands\workflow\test-fix-gen.md:66:**Detailed specifications**: See `/workflow:tools:test-task-generate` for complete L0-L3 requirements and quality thresholds.
+.claude/commands\workflow\test-fix-gen.md:82:   ├─ MODE=session → /workflow:tools:test-context-gather --session testSessionId
+.claude/commands\workflow\test-fix-gen.md:83:   └─ MODE=prompt  → /workflow:tools:context-gather --session testSessionId "description"
+.claude/commands\workflow\test-fix-gen.md:87:   └─ /workflow:tools:test-concept-enhanced --session testSessionId --context contextPath
+.claude/commands\workflow\test-fix-gen.md:91:   └─ /workflow:tools:test-task-generate --session testSessionId
+.claude/commands\workflow\test-fix-gen.md:144:Skill(skill="workflow:tools:test-context-gather", args="--session [testSessionId]")
+
+thinking
+**Searching for TS code**
+
+I’ve discovered that the `rg` result only shows documentation and not TypeScript code. It means the TypeScript code doesn’t have the slash command strings I’m looking for. Now, I need to find the TS code for workflow tasks by searching with different patterns like “tdd” or “coverage.” I’ll use `rg` in the `ccw/src` directory with those keywords to see what I can uncover. Let’s see if that works!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "tdd" ccw/src | Select-Object -First 80' in C:\Project\Claude-Code-Workflow succeeded in 347ms:
+ccw/src\core\session-scanner.ts:170:  if (name.includes('-tdd-')) {
+ccw/src\core\session-scanner.ts:171:    return 'tdd';
+ccw/src\types\session.ts:2:export type SessionType = 'workflow' | 'review' | 'tdd' | 'test' | 'docs' | 'lite-plan' | 'lite-fix';
+ccw/src\templates\dashboard-js\help-i18n.js:41:    'help.diagrams.tdd': 'TDD测试驱动',
+ccw/src\templates\dashboard-js\help-i18n.js:98:    'help.workflows.tdd.start': '开始',
+ccw/src\templates\dashboard-js\help-i18n.js:99:    'help.workflows.tdd.red': 'Red: 编写失败测试',
+ccw/src\templates\dashboard-js\help-i18n.js:100:    'help.workflows.tdd.green': 'Green: 实现代码',
+ccw/src\templates\dashboard-js\help-i18n.js:101:    'help.workflows.tdd.refactor': 'Refactor: 重构优化',
+ccw/src\templates\dashboard-js\help-i18n.js:102:    'help.workflows.tdd.complete': '完成',
+ccw/src\templates\dashboard-js\help-i18n.js:162:    'help.diagrams.tdd': 'TDD Development',
+ccw/src\templates\dashboard-js\help-i18n.js:219:    'help.workflows.tdd.start': 'Start',
+ccw/src\templates\dashboard-js\help-i18n.js:220:    'help.workflows.tdd.red': 'Red: Write Failing Test',
+ccw/src\templates\dashboard-js\help-i18n.js:221:    'help.workflows.tdd.green': 'Green: Implement Code',
+ccw/src\templates\dashboard-js\help-i18n.js:222:    'help.workflows.tdd.refactor': 'Refactor: Optimize',
+ccw/src\templates\dashboard-js\help-i18n.js:223:    'help.workflows.tdd.complete': 'Complete',
+ccw/src\templates\dashboard-js\views\help.js:406:          <button class="workflow-diagram-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-workflow="tdd">
+ccw/src\templates\dashboard-js\views\help.js:407:            ${ht('help.diagrams.tdd')}
+ccw/src\templates\dashboard-js\views\help.js:768:    'tdd': {
+ccw/src\templates\dashboard-js\views\help.js:770:        { data: { id: 'start', label: ht('help.workflows.tdd.start') } },
+ccw/src\templates\dashboard-js\views\help.js:771:        { data: { id: 'tdd-plan', label: '/workflow:tdd-plan' } },
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "'"\\.workflow/active\" ccw/src | Select-Object -First 50" in C:\Project\Claude-Code-Workflow succeeded in 349ms:
+ccw/src\tools\session-manager.ts:23:const ACTIVE_BASE = '.workflow/active';
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw ccw/src/tools/session-manager.ts' in C:\Project\Claude-Code-Workflow succeeded in 305ms:
+/**
+ * Session Manager Tool - Workflow session lifecycle management
+ * Operations: init, list, read, write, update, archive, mkdir, delete, stats
+ * Content routing via content_type + path_params
+ */
+
+import { z } from 'zod';
+import type { ToolSchema, ToolResult } from '../types/tool.js';
+import {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  readdirSync,
+  mkdirSync,
+  renameSync,
+  rmSync,
+  statSync,
+} from 'fs';
+import { resolve, join, dirname } from 'path';
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -TotalCount 120 .claude/commands/workflow/tools/test-context-gather.md' in C:\Project\Claude-Code-Workflow succeeded in 323ms:
+---
+name: test-context-gather
+description: Collect test coverage context using test-context-search-agent and package into standardized test-context JSON
+argument-hint: "--session WFS-test-session-id"
+examples:
+  - /workflow:tools:test-context-gather --session WFS-test-auth
+  - /workflow:tools:test-context-gather --session WFS-test-payment
+allowed-tools: Task(*), Read(*), Glob(*)
+---
+
+# Test Context Gather Command (/workflow:tools:test-context-gather)
+
+## Overview
+
+Orchestrator command that invokes `test-context-search-agent` to gather comprehensive test coverage context for test generation workflows. Generates standardized `test-context-package.json` with coverage analysis, framework detection, and source implementation context.
+
+
+
+## Core Philosophy
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "function findEvidenceTables" -n .codex/skills/slash-command-outliner/scripts/verify-evidence.js; rg -n "Pointer" .codex/skills/slash-command-outliner/scripts/verify-evidence.js | Select-Object -First 20' in C:\Project\Claude-Code-Workflow succeeded in 362ms:
+166:export function findEvidenceTables(lines) {
+209:    errors.push('Pointer is missing or placeholder (TBD/template).');
+214:    errors.push('Pointer must be one-per-row (no commas/newlines in pointer cell).');
+328:    console.error('ERROR: no evidence tables found. Expected a markdown table with columns: Pointer | Status | Evidence | Verify | ...');
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+(Get-Content .codex/skills/slash-command-outliner/scripts/verify-evidence.js)[150..250] -join "`n"' in C:\Project\Claude-Code-Workflow succeeded in 318ms:
+  const parts = raw.split('|');
+  // Support both forms:
+  // - with trailing pipe: "| a | b |"
+  // - without trailing pipe: "| a | b"
+  const sliceEnd = raw.endsWith('|') ? -1 : undefined;
+  const cells = parts
+    .slice(1, sliceEnd)
+    .map((c) => String(c).trim());
+  return cells;
+}
+
+export function isSeparatorRow(cells) {
+  return cells.every((c) => /^:?-{3,}:?$/.test(c));
+}
+
+export function findEvidenceTables(lines) {
+  const tables = [];
+  for (let i = 0; i < lines.length; i++) {
+    const cells = splitTableRow(lines[i]);
+    if (!cells) continue;
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Test-Path ccw/src/core/routes/commands-routes.ts; rg -n "handleCommandsRoutes" ccw/src/core/routes/commands-routes.ts | Select-Object -First 20' in C:\Project\Claude-Code-Workflow succeeded in 343ms:
+True
+459:export async function handleCommandsRoutes(ctx: RouteContext): Promise<boolean> {
+
+
+
+thinking
+**Clarifying specification process**
+
+In Phase 02, I realize user confirmation may be necessary, even though the user didn't explicitly request that interaction. I think I should preselect the top candidate but mention that it can be overridden. My goal is to avoid copying large document content into the spec; instead, I’ll summarize it in my own words. The outlines should be detailed enough but still serve as a skeleton, guiding the implementation of the new command document without replicating everything.
+thinking
+**Organizing documentation process**
+
+I think we should steer clear of copying entire documents into the outline, even if it's not technically forbidden. They want concise information, so I need to keep the outline brief. However, since the command document already exists, our generated outline might feel redundant. Still, that's part of the requirement. I also need to create a minimal fix plan, references.json, and spec.json in the specified output directory. For new files, I’ll use write_file, but apply_patch for routine edits. I'll ensure both files include evidence tables while running the necessary verification script from the repo root.
+thinking
+**Compiling evidence and references**
+
+They want to ensure that the evidence tables pass validation by running `node verify-evidence.js` for both files. Before generating outlines, I need to gather at least three reference patterns. I’ll review three similar command documents for that. For TypeScript evidence, I might need to scan for modules related to session management or file operations and find three code patterns for the session_manager tool. I'll check the document related to code validation for suitable patterns and also look for tests and coverage reports in the relevant directories.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "coverage-report'"\\.json\" .claude/commands | Select-Object -First 50" in C:\Project\Claude-Code-Workflow succeeded in 344ms:
+.claude/commands\workflow\tdd-verify.md:64:   ├─ Parse: test-results.json, coverage-report.json, tdd-cycle-report.md
+.claude/commands\workflow\tdd-verify.md:194:IF NOT EXISTS(process_dir/coverage-report.json):
+.claude/commands\workflow\tdd-verify.md:195:    WARNING: "coverage-report.json not found. Coverage metrics incomplete."
+.claude/commands\workflow\tdd-verify.md:198:    metrics = Read(process_dir/coverage-report.json)
+.claude/commands\workflow\tdd-verify.md:340:    ├── coverage-report.json      # From tdd-coverage-analysis
+.claude/commands\workflow\tools\tdd-coverage-analysis.md:77:jq '.coverage' .workflow/active/{session_id}/.process/test-results.json > .workflow/active/{session_id}/.process/coverage-report.json
+.claude/commands\workflow\tools\tdd-coverage-analysis.md:184:    ├── coverage-report.json      # Parsed coverage data
+
+thinking
+**Incorporating task verification**
+
+I'm looking at how orchestrator tdd-verify is being used, and I think we need to incorporate it. I should gather evidence related to TypeScript, especially checking how .workflow/active/.process is managed. The session_manager has PATH_ROUTES for the task summary, which will be useful. I also wonder if there are other documents in `ccw/src/tools/`, like those for the command manager. Searching for `.claude/commands/` in TypeScript could provide additional insights.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "'"\\.claude/commands\" ccw/src | Select-Object -First 80" in C:\Project\Claude-Code-Workflow succeeded in 345ms:
+ccw/src\tools\command-registry.ts:6: * 2. Read from global ~/.claude/commands/workflow directory
+ccw/src\tools\command-registry.ts:45:   * Auto-detect ~/.claude/commands/workflow directory
+ccw/src\tools\command-registry.ts:126:      console.error('ERROR: ~/.claude/commands/workflow directory not found');
+ccw/src\tools\command-registry.test.ts:79:    it('should auto-detect relative .claude/commands/workflow directory', () => {
+ccw/src\tools\command-registry.test.ts:81:        return path === '.claude/commands/workflow';
+ccw/src\tools\command-registry.test.ts:86:      expect((registry as any).commandDir).toBe('.claude/commands/workflow');
+ccw/src\tools\command-registry.test.ts:87:      expect(mockExistsSync).toHaveBeenCalledWith('.claude/commands/workflow');
+ccw/src\tools\command-registry.test.ts:90:    it('should auto-detect home directory ~/.claude/commands/workflow', () => {
+ccw/src\templates\dashboard-js\views\commands-manager.js:2:// Manages Claude Code commands (.claude/commands/)
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw ccw/src/tools/command-registry.ts' in C:\Project\Claude-Code-Workflow succeeded in 306ms:
+/**
+ * Command Registry Tool
+ *
+ * Features:
+ * 1. Scan and parse YAML headers from command files
+ * 2. Read from global ~/.claude/commands/workflow directory
+ * 3. Support on-demand extraction (not full scan)
+ * 4. Cache parsed metadata for performance
+ */
+
+import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
+
+export interface CommandMetadata {
+  name: string;
+  command: string;
+  description: string;
+  argumentHint: string;
+  allowedTools: string[];
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "commands/workflow/tools" ccw/src | Select-Object -First 50' in C:\Project\Claude-Code-Workflow exited 1 in 342ms:
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "'"\\.claude/commands\" ccw/src/core/routes/commands-routes.ts | Select-Object -First 50" in C:\Project\Claude-Code-Workflow exited 1 in 343ms:
+
+
+thinking
+I'm considering that commands and routes may function differently depending on the context. To really understand how they operate, I should inspect the relevant file closely. I'll start by opening the top section to get a clearer picture of what’s going on. It feels essential to grasp these details, so I can effectively navigate and work with the commands and routes that I'm dealing with. Let's see what I find!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+(Get-Content ccw/src/core/routes/commands-routes.ts)[1..120] -join "`n"' in C:\Project\Claude-Code-Workflow succeeded in 312ms:
+ * Commands Routes Module
+ * Handles all Commands-related API endpoints
+ *
+ * API Endpoints:
+ * - GET /api/commands - List all commands with groups
+ * - POST /api/commands/:name/toggle - Enable/disable single command
+ * - POST /api/commands/group/:groupName/toggle - Batch toggle commands by group
+ */
+import { existsSync, readdirSync, readFileSync, mkdirSync, renameSync } from 'fs';
+import { join, relative, dirname, basename } from 'path';
+import { homedir } from 'os';
+import { validatePath as validateAllowedPath } from '../../utils/path-validator.js';
+import type { RouteContext } from './types.js';
+
+// ========== Types ==========
+
+type CommandLocation = 'project' | 'user';
+
+interface CommandMetadata {
+  name: string;
+
+
+
+
+
+thinking
+**Planning file creation**
+
+I’m thinking we should create one patch to add files for all six components, which seems like a more efficient approach. First, I need to craft the content for each one. The paths will be `outputRoot = .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs`. Once I define that, I’ll proceed to create the spec.json file and others within that structure. This sounds like a solid plan!
+thinking
+**Crafting a spec.json**
+
+I’m working on creating the content for the spec.json file. The structure includes a command section where I define the workflow and tools, like “tdd-coverage-analysis,” specifying allowed tools like Read, Write, and Bash. Then comes the intent, focusing on generating coverage and compliance reports for a workflow session. 
+
+I’ll outline the artifacts for reading and writing, constraints to maintain efficiency, and acceptance criteria to ensure all necessary components are present. Keeping this minimal will help streamline things!
+thinking
+**Creating references.json and outline**
+
+I’m drafting the content for references.json, which will contain candidates and their details, like slash paths, associated files, and scores based on their relevance. My goal here is to ensure it's coherent.
+
+For generated-slash-outline.md, I’ll be filling it out based on the template. It should include the frontmatter with the name "tdd-coverage-analysis," description, argument hints, and allowed tools like Read and Bash. I'm questioning whether to add the group and category — I think including “workflow” for the group and possibly “tools” for the category is a good idea, but I'll keep it minimal. I’ll decide to leave examples out of the frontmatter since they aren’t necessary for quality gates.
+thinking
+**Drafting TDD Coverage Analysis Command**
+
+I’m thinking about structuring a title for the TDD Coverage Analysis Command, possibly as “# TDD Coverage Analysis (Tools).” In the Overview section, I’ll state the goal: to analyze test coverage and verify execution while producing reports in `.workflow/active/<session>/.process/`. 
+
+For the command, I’ll use `/workflow:tools:tdd-coverage-analysis`. The inputs will require the session ID flag, but I’m unsure if I should include `--test-cmd` since it's not explicitly needed. 
+
+I'll specify the outputs and artifacts, noting three files written and others read from specific project configurations. For implementation pointers, I intend to highlight the command documentation path and likely code locations, including evidence about these aspects. This should ensure clarity and coverage!
+thinking
+**Finalizing implementation details**
+
+I’m planning to use the "Output Files" heading for the documentation, as it aligns with the existing structure. I found that the `Output Files` section is already there, so that works!
+
+Next, I'll be defining the evidence pointers. It seems like we should include documentation paths for command details and session management tools. I’ll consider omitting the command-registry due to potential confusion and stick to relevant tools like `session-manager` and `commands-routes`. 
+
+For the execution process, I’ll list out the steps, ensuring they align with the required phases. Error handling will also be incorporated, producing a concise bullet list of potential issues with user action suggestions. Finally, I’ll create a fix plan to address any gaps while ensuring to keep everything as concise as possible since the requirement suggests that approach. Let's proceed with generating the patch with the necessary files!
+file update
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md
+# Fix Plan: workflow:tools:tdd-coverage-analysis
+
+## Scope: Command Doc (`.claude/commands/workflow/tools/tdd-coverage-analysis.md`)
+
+1. Document `test-results.json` normalization when the framework cannot emit JSON (store wrapper with framework + command + stdout/stderr).
+2. Document partial-success behavior and required minimum outputs (always write `tdd-cycle-report.md`, even if coverage or summaries are missing).
+
+## Scope: Validation (Outliner Outputs)
+
+1. Keep evidence tables up-to-date and re-run:
+   - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md`
+   - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md`
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md
+---
+name: tdd-coverage-analysis
+description: Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification
+argument-hint: "--session WFS-session-id"
+allowed-tools: Read(*), Write(*), Bash(*)
+group: workflow
+---
+
+# TDD Coverage Analysis Command
+
+## Overview
+
+- Goal: Generate session-scoped test coverage metrics and verify Red-Green-Refactor compliance across TDD task chains.
+- Command: `/workflow:tools:tdd-coverage-analysis`
+
+## Usage
+
+```bash
+/workflow:tools:tdd-coverage-analysis --session WFS-session-id
+```
+
+## Inputs
+
+- Required inputs:
+  - `--session <WFS-session-id>`: workflow session to analyze (under `.workflow/active/<session_id>/`)
+- Optional inputs:
+  - None (framework detection is automatic; fallback behavior is described below)
+
+## Outputs / Artifacts
+
+- Writes:
+  - `.workflow/active/{session_id}/.process/test-results.json`
+  - `.workflow/active/{session_id}/.process/coverage-report.json`
+  - `.workflow/active/{session_id}/.process/tdd-cycle-report.md`
+- Reads:
+  - `.workflow/active/{session_id}/.task/TEST-*.json` (to discover test focus paths / test intent)
+  - `.workflow/active/{session_id}/.summaries/*-summary.md` (to validate Red/Green/Refactor chain behavior)
+  - project test config files (e.g. `package.json`, `pytest.ini`, `Cargo.toml`, `go.mod`)
+
+## Implementation Pointers
+
+- Command doc (oracle): `.claude/commands/workflow/tools/tdd-coverage-analysis.md`
+- Likely code locations (repo capabilities used by this command):
+  - `ccw/src/tools/session-manager.ts` (session-scoped file routing: `.process/`, `.task/`, `.summaries/`)
+  - `ccw/src/core/routes/commands-routes.ts` (command discovery/management for `.claude/commands/**`)
+
+### Evidence (Existing vs Planned)
+
+You MUST label each pointer as `Existing` (verifiable in repo now) or `Planned` (will be created/modified).
+
+Rules:
+- `Existing` MUST include evidence from BOTH:
+  - a command doc source: `.claude/commands/**.md` (section heading is sufficient)
+  - a TypeScript source: `ccw/src/**` (function name / subcommand case / a ripgrep-able string)
+- If you cannot verify, downgrade to `Planned` and add a concrete `Verify` step (e.g. `Test-Path <path>`, `rg "<pattern>" <path>`).
+
+| Pointer | Status | Evidence (docs + TS) | Verify | Why |
+|---|---|---|---|---|
+| `.claude/commands/workflow/tools/tdd-coverage-analysis.md` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Overview` ; ts: `ccw/src/tools/session-manager.ts` / `.workflow/active` | `Test-Path .claude/commands/workflow/tools/tdd-coverage-analysis.md` | Authoritative command behavior and artifact contract |
+| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Output Files` ; ts: `ccw/src/tools/session-manager.ts` / `PATH_ROUTES` | `Test-Path ccw/src/tools/session-manager.ts` | Defines session file routing for `.process/`, `.task/`, `.summaries/` used by analysis |
+| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Integration & Usage` ; ts: `ccw/src/core/routes/commands-routes.ts` / `handleCommandsRoutes` | `Test-Path ccw/src/core/routes/commands-routes.ts` | CCW command corpus management (enables/disables and lists command docs) |
+
+## Execution Process
+
+1. Parse `--session` and validate the session folder exists: `.workflow/active/{session_id}/`.
+2. Ensure `.workflow/active/{session_id}/.process/` exists (create if missing).
+3. Extract test focus paths (best-effort):
+   - Read `.workflow/active/{session_id}/.task/TEST-*.json`.
+   - If `jq` is available, extract `.context.focus_paths[]` into a working set of paths; otherwise, proceed without narrowing scope.
+4. Detect test framework (best-effort heuristics):
+   - Node.js: `package.json` contains `jest|mocha|vitest` or a `test` script.
+   - Python: `pytest.ini` or `setup.py` present.
+   - Rust: `Cargo.toml` present.
+   - Go: `go.mod` present.
+5. Run the test command with coverage and capture machine-readable output:
+   - Write raw output into `.workflow/active/{session_id}/.process/test-results.json` (format depends on framework; if JSON is not available, store a JSON wrapper with stdout/stderr + detected framework).
+6. Parse coverage metrics into `.workflow/active/{session_id}/.process/coverage-report.json`:
+   - Prefer extracting line/branch/function coverage; when unavailable, record `unknown` with a reason.
+7. Verify TDD cycle execution from summaries:
+   - Enumerate chains `TEST-* -> IMPL-* -> REFACTOR-*` using `.workflow/active/{session_id}/.summaries/*-summary.md`.
+   - For each chain, classify:
+     - Red: evidence tests were created and initially failed.
+     - Green: evidence implementation made tests pass.
+     - Refactor: evidence refactor occurred while staying green (optional but scored).
+8. Generate `.workflow/active/{session_id}/.process/tdd-cycle-report.md`:
+   - Coverage metrics summary
+   - Per-chain verification (PASS/WARN/FAIL) + short rationale
+   - Compliance score (0-100) and gaps/recommendations
+
+## Error Handling
+
+- Missing/invalid `--session`:
+  - Explain required format and point to `.workflow/active/<session_id>/`.
+- Session missing expected directories:
+  - If `.task/` missing: warn that TEST tasks cannot be discovered; continue with coverage-only analysis.
+  - If `.summaries/` missing: warn that TDD cycle verification cannot run; continue with coverage-only analysis.
+- Test framework not detected:
+  - Fail with a clear message listing what was checked and how to override via project setup.
+- Test command fails:
+  - Record failure details (stderr/stdout) into `test-results.json` wrapper and mark coverage as unavailable; still emit `tdd-cycle-report.md` with actionable next steps.
+- Coverage data missing/unparseable:
+  - Emit `coverage-report.json` with `unknown` values + reason; do not crash the command.
+
+## Examples
+
+```bash
+/workflow:tools:tdd-coverage-analysis --session WFS-auth
+```
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md
+# Gap Report: workflow:tools:tdd-coverage-analysis
+
+## Reference
+
+- Selected reference: /workflow:tools:code-validation-gate (`.claude/commands/workflow/tools/code-validation-gate.md`)
+
+## P0 Gaps (Must Fix)
+
+- None identified against CCW P0 gates (frontmatter + core sections + artifact references + evidence discipline).
+
+## P1 Gaps (Should Fix)
+
+- Add an explicit note about how `test-results.json` is normalized when the underlying framework cannot emit JSON (store wrapper with stdout/stderr + metadata).
+- Clarify the “continue on partial data” contract (coverage-only vs cycle-only vs full report) to reduce brittle failures.
+
+## P2 Gaps (Optional)
+
+- Add lightweight heuristics for mapping TEST tasks to specific test commands (e.g., prefer `npm test` when `package.json` exists even if no known framework keyword is found).
+- Add a brief “cross-platform” note: prefer PowerShell-friendly equivalents when presenting verify commands (the command itself can stay Bash-based).
+
+## Implementation Pointers (Evidence)
+
+You MUST provide an evidence table for all key implementation pointers mentioned in the outlines.
+
+Rules (P0):
+- Every pointer MUST be labeled `Existing` or `Planned`.
+- `Existing` MUST be verifiable (path exists). Include a concrete `Verify` command for each existing pointer.
+- Do NOT describe `Planned` pointers as “validated/exists”.
+- Evidence MUST reference BOTH sources somewhere in this section:
+  - command docs: `.claude/commands/**.md` (section heading is enough)
+  - TypeScript implementation: `ccw/src/**` (function name / subcommand case / ripgrep-able string)
+
+| Pointer | Status | Evidence | Verify | Notes |
+|---|---|---|---|---|
+| `.claude/commands/workflow/tools/tdd-coverage-analysis.md` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Overview` ; ts: `ccw/src/tools/session-manager.ts` / `.workflow/active` | `Test-Path .claude/commands/workflow/tools/tdd-coverage-analysis.md` | Canonical behavior + artifact contract for this tool command |
+| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Output Files` ; ts: `ccw/src/tools/session-manager.ts` / `ACTIVE_BASE` | `Test-Path ccw/src/tools/session-manager.ts` | Defines session storage roots and routing for `.process/` artifacts |
+| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/tools/code-validation-gate.md` / `Overview` ; ts: `ccw/src/core/routes/commands-routes.ts` / `getCommandsDir` | `Test-Path ccw/src/core/routes/commands-routes.ts` | Command corpus discovery/management for `.claude/commands/**` |
+
+## Implementation Hints (Tooling/Server)
+
+- Session storage conventions (`.workflow/active/<id>/.process/`) are standardized in `ccw/src/tools/session-manager.ts`; keep artifacts aligned to avoid breaking downstream commands (e.g., `/workflow:tdd-verify`).
+- Command docs are managed by the Commands routes; avoid assuming only flat `.claude/commands/workflow/*.md` layouts.
+
+## Proposed Fix Plan (Minimal)
+
+1. In the command doc, clarify the normalization strategy for `test-results.json` when native JSON output is unavailable (P1).
+2. In the command doc, document partial-success behavior (coverage-only vs cycle-only) and ensure the report always emits actionable next steps (P1).
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json
+{
+  "candidates": [
+    {
+      "slash": "/workflow:tools:code-validation-gate",
+      "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
+      "score": 92,
+      "why": "Same workflow/tools family; Bash-driven analysis + gating; strong error handling patterns; writes artifacts under .workflow/active/{session}/."
+    },
+    {
+      "slash": "/workflow:tdd-verify",
+      "file_path": ".claude/commands/workflow/tdd-verify.md",
+      "score": 90,
+      "why": "Direct orchestrator that calls /workflow:tools:tdd-coverage-analysis and consumes its artifacts; defines expected output contract."
+    },
+    {
+      "slash": "/workflow:tools:test-context-gather",
+      "file_path": ".claude/commands/workflow/tools/test-context-gather.md",
+      "score": 78,
+      "why": "Produces standardized .workflow/active/{session}/.process artifacts and includes detection-first flow; tool surface differs (Task/Glob)."
+    },
+    {
+      "slash": "/workflow:tools:test-concept-enhanced",
+      "file_path": ".claude/commands/workflow/tools/test-concept-enhanced.md",
+      "score": 70,
+      "why": "Test/coverage-related analysis workflows and structured reporting; uses external LLM tooling patterns not needed here."
+    },
+    {
+      "slash": "/workflow:tools:context-gather",
+      "file_path": ".claude/commands/workflow/tools/context-gather.md",
+      "score": 62,
+      "why": "Shows session-scoped artifact conventions under .workflow/active and tool orchestration patterns; tool surface differs (Task/Glob)."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:tools:code-validation-gate",
+    "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
+    "why": "Closest match for a Bash-only workflow tool command that runs checks, emits structured artifacts, and documents clear failure modes."
+  }
+}
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json
+{
+  "command": {
+    "group": "workflow",
+    "subgroup": "tools",
+    "name": "tdd-coverage-analysis",
+    "description": "Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification",
+    "argument_hint": "--session WFS-session-id",
+    "allowed_tools": ["Read(*)", "Write(*)", "Bash(*)"]
+  },
+  "intent": {
+    "type": "analyze",
+    "interaction": "single-shot",
+    "primary_user_value": "Run the project's test suite with coverage and verify Red-Green-Refactor task chains for a workflow session, producing a concise compliance report."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/{session_id}/.task/TEST-*.json",
+      ".workflow/active/{session_id}/.summaries/TEST-*-summary.md",
+      ".workflow/active/{session_id}/.summaries/IMPL-*-summary.md",
+      ".workflow/active/{session_id}/.summaries/REFACTOR-*-summary.md",
+      "package.json",
+      "pytest.ini",
+      "setup.py",
+      "Cargo.toml",
+      "go.mod"
+    ],
+    "writes": [
+      ".workflow/active/{session_id}/.process/test-results.json",
+      ".workflow/active/{session_id}/.process/coverage-report.json",
+      ".workflow/active/{session_id}/.process/tdd-cycle-report.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Must not edit source code or workflow task inputs",
+      "Must not delete or overwrite existing session artifacts without explicit user intent"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes: name, description, allowed-tools",
+      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
+      "Implementation pointers labeled Existing vs Planned with dual-source evidence (docs + TS) and concrete Verify commands",
+      "Evidence tables pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js"
+    ]
+  }
+}
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md
+# Agent Outline: workflow:tools:tdd-coverage-analysis
+
+## Purpose
+
+Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
+
+## Execution Model
+
+- Default: single-shot analysis (no interactive rounds)
+- Primary operations:
+  - run tests with coverage (Bash)
+  - read session artifacts (Read)
+  - write standardized reports (Write)
+
+## State & Artifacts
+
+- Session scope: `.workflow/active/{session_id}/`
+- Required outputs:
+  - `.workflow/active/{session_id}/.process/test-results.json`
+  - `.workflow/active/{session_id}/.process/coverage-report.json`
+  - `.workflow/active/{session_id}/.process/tdd-cycle-report.md`
+
+## Tooling
+
+- Allowed tools: Read(*), Write(*), Bash(*)
+- Non-negotiables:
+  - no unrelated changes
+  - do not claim implementation pointers are Existing unless verifiable in-repo
+
+## Validation Strategy
+
+- P0 doc gates:
+  - frontmatter: `name`, `description`, `allowed-tools`
+  - required sections: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling
+  - no broken artifact references (paths are either created by the command or documented as pre-existing)
+- Evidence gates:
+  - add/update evidence tables in generated outlines/gap report and verify with:
+    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md`
+    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md`
+
+apply_patch(auto_approved=true) exited 0 in 116ms:
+Success. Updated the following files:
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..628a684156ec02168b876de0e911b2b5b59337a4
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md
+@@ -0,0 +1,13 @@
++# Fix Plan: workflow:tools:tdd-coverage-analysis
++
++## Scope: Command Doc (`.claude/commands/workflow/tools/tdd-coverage-analysis.md`)
++
++1. Document `test-results.json` normalization when the framework cannot emit JSON (store wrapper with framework + command + stdout/stderr).
++2. Document partial-success behavior and required minimum outputs (always write `tdd-cycle-report.md`, even if coverage or summaries are missing).
++
++## Scope: Validation (Outliner Outputs)
++
++1. Keep evidence tables up-to-date and re-run:
++   - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md`
++   - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..ad0578fd6294037980a71c9264509a5a5afc0092
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md
+@@ -0,0 +1,48 @@
++# Gap Report: workflow:tools:tdd-coverage-analysis
++
++## Reference
++
++- Selected reference: /workflow:tools:code-validation-gate (`.claude/commands/workflow/tools/code-validation-gate.md`)
++
++## P0 Gaps (Must Fix)
++
++- None identified against CCW P0 gates (frontmatter + core sections + artifact references + evidence discipline).
++
++## P1 Gaps (Should Fix)
++
++- Add an explicit note about how `test-results.json` is normalized when the underlying framework cannot emit JSON (store wrapper with stdout/stderr + metadata).
++- Clarify the “continue on partial data” contract (coverage-only vs cycle-only vs full report) to reduce brittle failures.
++
++## P2 Gaps (Optional)
++
++- Add lightweight heuristics for mapping TEST tasks to specific test commands (e.g., prefer `npm test` when `package.json` exists even if no known framework keyword is found).
++- Add a brief “cross-platform” note: prefer PowerShell-friendly equivalents when presenting verify commands (the command itself can stay Bash-based).
++
++## Implementation Pointers (Evidence)
++
++You MUST provide an evidence table for all key implementation pointers mentioned in the outlines.
++
++Rules (P0):
++- Every pointer MUST be labeled `Existing` or `Planned`.
++- `Existing` MUST be verifiable (path exists). Include a concrete `Verify` command for each existing pointer.
++- Do NOT describe `Planned` pointers as “validated/exists”.
++- Evidence MUST reference BOTH sources somewhere in this section:
++  - command docs: `.claude/commands/**.md` (section heading is enough)
++  - TypeScript implementation: `ccw/src/**` (function name / subcommand case / ripgrep-able string)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/workflow/tools/tdd-coverage-analysis.md` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Overview` ; ts: `ccw/src/tools/session-manager.ts` / `.workflow/active` | `Test-Path .claude/commands/workflow/tools/tdd-coverage-analysis.md` | Canonical behavior + artifact contract for this tool command |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Output Files` ; ts: `ccw/src/tools/session-manager.ts` / `ACTIVE_BASE` | `Test-Path ccw/src/tools/session-manager.ts` | Defines session storage roots and routing for `.process/` artifacts |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/tools/code-validation-gate.md` / `Overview` ; ts: `ccw/src/core/routes/commands-routes.ts` / `getCommandsDir` | `Test-Path ccw/src/core/routes/commands-routes.ts` | Command corpus discovery/management for `.claude/commands/**` |
++
++## Implementation Hints (Tooling/Server)
++
++- Session storage conventions (`.workflow/active/<id>/.process/`) are standardized in `ccw/src/tools/session-manager.ts`; keep artifacts aligned to avoid breaking downstream commands (e.g., `/workflow:tdd-verify`).
++- Command docs are managed by the Commands routes; avoid assuming only flat `.claude/commands/workflow/*.md` layouts.
++
++## Proposed Fix Plan (Minimal)
++
++1. In the command doc, clarify the normalization strategy for `test-results.json` when native JSON output is unavailable (P1).
++2. In the command doc, document partial-success behavior (coverage-only vs cycle-only) and ensure the report always emits actionable next steps (P1).
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..32cdf72c95019924cacab517c400be987e191e1f
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,40 @@
++# Agent Outline: workflow:tools:tdd-coverage-analysis
++
++## Purpose
++
++Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
++
++## Execution Model
++
++- Default: single-shot analysis (no interactive rounds)
++- Primary operations:
++  - run tests with coverage (Bash)
++  - read session artifacts (Read)
++  - write standardized reports (Write)
++
++## State & Artifacts
++
++- Session scope: `.workflow/active/{session_id}/`
++- Required outputs:
++  - `.workflow/active/{session_id}/.process/test-results.json`
++  - `.workflow/active/{session_id}/.process/coverage-report.json`
++  - `.workflow/active/{session_id}/.process/tdd-cycle-report.md`
++
++## Tooling
++
++- Allowed tools: Read(*), Write(*), Bash(*)
++- Non-negotiables:
++  - no unrelated changes
++  - do not claim implementation pointers are Existing unless verifiable in-repo
++
++## Validation Strategy
++
++- P0 doc gates:
++  - frontmatter: `name`, `description`, `allowed-tools`
++  - required sections: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling
++  - no broken artifact references (paths are either created by the command or documented as pre-existing)
++- Evidence gates:
++  - add/update evidence tables in generated outlines/gap report and verify with:
++    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md`
++    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..99a22e3687c1a2221982ceee3f1b1e8188393d47
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,109 @@
++---
++name: tdd-coverage-analysis
++description: Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification
++argument-hint: "--session WFS-session-id"
++allowed-tools: Read(*), Write(*), Bash(*)
++group: workflow
++---
++
++# TDD Coverage Analysis Command
++
++## Overview
++
++- Goal: Generate session-scoped test coverage metrics and verify Red-Green-Refactor compliance across TDD task chains.
++- Command: `/workflow:tools:tdd-coverage-analysis`
++
++## Usage
++
++```bash
++/workflow:tools:tdd-coverage-analysis --session WFS-session-id
++```
++
++## Inputs
++
++- Required inputs:
++  - `--session <WFS-session-id>`: workflow session to analyze (under `.workflow/active/<session_id>/`)
++- Optional inputs:
++  - None (framework detection is automatic; fallback behavior is described below)
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/active/{session_id}/.process/test-results.json`
++  - `.workflow/active/{session_id}/.process/coverage-report.json`
++  - `.workflow/active/{session_id}/.process/tdd-cycle-report.md`
++- Reads:
++  - `.workflow/active/{session_id}/.task/TEST-*.json` (to discover test focus paths / test intent)
++  - `.workflow/active/{session_id}/.summaries/*-summary.md` (to validate Red/Green/Refactor chain behavior)
++  - project test config files (e.g. `package.json`, `pytest.ini`, `Cargo.toml`, `go.mod`)
++
++## Implementation Pointers
++
++- Command doc (oracle): `.claude/commands/workflow/tools/tdd-coverage-analysis.md`
++- Likely code locations (repo capabilities used by this command):
++  - `ccw/src/tools/session-manager.ts` (session-scoped file routing: `.process/`, `.task/`, `.summaries/`)
++  - `ccw/src/core/routes/commands-routes.ts` (command discovery/management for `.claude/commands/**`)
++
++### Evidence (Existing vs Planned)
++
++You MUST label each pointer as `Existing` (verifiable in repo now) or `Planned` (will be created/modified).
++
++Rules:
++- `Existing` MUST include evidence from BOTH:
++  - a command doc source: `.claude/commands/**.md` (section heading is sufficient)
++  - a TypeScript source: `ccw/src/**` (function name / subcommand case / a ripgrep-able string)
++- If you cannot verify, downgrade to `Planned` and add a concrete `Verify` step (e.g. `Test-Path <path>`, `rg "<pattern>" <path>`).
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/workflow/tools/tdd-coverage-analysis.md` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Overview` ; ts: `ccw/src/tools/session-manager.ts` / `.workflow/active` | `Test-Path .claude/commands/workflow/tools/tdd-coverage-analysis.md` | Authoritative command behavior and artifact contract |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Output Files` ; ts: `ccw/src/tools/session-manager.ts` / `PATH_ROUTES` | `Test-Path ccw/src/tools/session-manager.ts` | Defines session file routing for `.process/`, `.task/`, `.summaries/` used by analysis |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Integration & Usage` ; ts: `ccw/src/core/routes/commands-routes.ts` / `handleCommandsRoutes` | `Test-Path ccw/src/core/routes/commands-routes.ts` | CCW command corpus management (enables/disables and lists command docs) |
++
++## Execution Process
++
++1. Parse `--session` and validate the session folder exists: `.workflow/active/{session_id}/`.
++2. Ensure `.workflow/active/{session_id}/.process/` exists (create if missing).
++3. Extract test focus paths (best-effort):
++   - Read `.workflow/active/{session_id}/.task/TEST-*.json`.
++   - If `jq` is available, extract `.context.focus_paths[]` into a working set of paths; otherwise, proceed without narrowing scope.
++4. Detect test framework (best-effort heuristics):
++   - Node.js: `package.json` contains `jest|mocha|vitest` or a `test` script.
++   - Python: `pytest.ini` or `setup.py` present.
++   - Rust: `Cargo.toml` present.
++   - Go: `go.mod` present.
++5. Run the test command with coverage and capture machine-readable output:
++   - Write raw output into `.workflow/active/{session_id}/.process/test-results.json` (format depends on framework; if JSON is not available, store a JSON wrapper with stdout/stderr + detected framework).
++6. Parse coverage metrics into `.workflow/active/{session_id}/.process/coverage-report.json`:
++   - Prefer extracting line/branch/function coverage; when unavailable, record `unknown` with a reason.
++7. Verify TDD cycle execution from summaries:
++   - Enumerate chains `TEST-* -> IMPL-* -> REFACTOR-*` using `.workflow/active/{session_id}/.summaries/*-summary.md`.
++   - For each chain, classify:
++     - Red: evidence tests were created and initially failed.
++     - Green: evidence implementation made tests pass.
++     - Refactor: evidence refactor occurred while staying green (optional but scored).
++8. Generate `.workflow/active/{session_id}/.process/tdd-cycle-report.md`:
++   - Coverage metrics summary
++   - Per-chain verification (PASS/WARN/FAIL) + short rationale
++   - Compliance score (0-100) and gaps/recommendations
++
++## Error Handling
++
++- Missing/invalid `--session`:
++  - Explain required format and point to `.workflow/active/<session_id>/`.
++- Session missing expected directories:
++  - If `.task/` missing: warn that TEST tasks cannot be discovered; continue with coverage-only analysis.
++  - If `.summaries/` missing: warn that TDD cycle verification cannot run; continue with coverage-only analysis.
++- Test framework not detected:
++  - Fail with a clear message listing what was checked and how to override via project setup.
++- Test command fails:
++  - Record failure details (stderr/stdout) into `test-results.json` wrapper and mark coverage as unavailable; still emit `tdd-cycle-report.md` with actionable next steps.
++- Coverage data missing/unparseable:
++  - Emit `coverage-report.json` with `unknown` values + reason; do not crash the command.
++
++## Examples
++
++```bash
++/workflow:tools:tdd-coverage-analysis --session WFS-auth
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..67d41e8d6860ef5e4069dc733af5e1daaf7173e0
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json
+@@ -0,0 +1,40 @@
++{
++  "candidates": [
++    {
++      "slash": "/workflow:tools:code-validation-gate",
++      "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
++      "score": 92,
++      "why": "Same workflow/tools family; Bash-driven analysis + gating; strong error handling patterns; writes artifacts under .workflow/active/{session}/."
++    },
++    {
++      "slash": "/workflow:tdd-verify",
++      "file_path": ".claude/commands/workflow/tdd-verify.md",
++      "score": 90,
++      "why": "Direct orchestrator that calls /workflow:tools:tdd-coverage-analysis and consumes its artifacts; defines expected output contract."
++    },
++    {
++      "slash": "/workflow:tools:test-context-gather",
++      "file_path": ".claude/commands/workflow/tools/test-context-gather.md",
++      "score": 78,
++      "why": "Produces standardized .workflow/active/{session}/.process artifacts and includes detection-first flow; tool surface differs (Task/Glob)."
++    },
++    {
++      "slash": "/workflow:tools:test-concept-enhanced",
++      "file_path": ".claude/commands/workflow/tools/test-concept-enhanced.md",
++      "score": 70,
++      "why": "Test/coverage-related analysis workflows and structured reporting; uses external LLM tooling patterns not needed here."
++    },
++    {
++      "slash": "/workflow:tools:context-gather",
++      "file_path": ".claude/commands/workflow/tools/context-gather.md",
++      "score": 62,
++      "why": "Shows session-scoped artifact conventions under .workflow/active and tool orchestration patterns; tool surface differs (Task/Glob)."
++    }
++  ],
++  "selected": {
++    "slash": "/workflow:tools:code-validation-gate",
++    "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
++    "why": "Closest match for a Bash-only workflow tool command that runs checks, emits structured artifacts, and documents clear failure modes."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..656dac600c30f2b9c0a3d86f76ca0d996c8794c1
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json
+@@ -0,0 +1,50 @@
++{
++  "command": {
++    "group": "workflow",
++    "subgroup": "tools",
++    "name": "tdd-coverage-analysis",
++    "description": "Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification",
++    "argument_hint": "--session WFS-session-id",
++    "allowed_tools": ["Read(*)", "Write(*)", "Bash(*)"]
++  },
++  "intent": {
++    "type": "analyze",
++    "interaction": "single-shot",
++    "primary_user_value": "Run the project's test suite with coverage and verify Red-Green-Refactor task chains for a workflow session, producing a concise compliance report."
++  },
++  "artifacts": {
++    "reads": [
++      ".workflow/active/{session_id}/.task/TEST-*.json",
++      ".workflow/active/{session_id}/.summaries/TEST-*-summary.md",
++      ".workflow/active/{session_id}/.summaries/IMPL-*-summary.md",
++      ".workflow/active/{session_id}/.summaries/REFACTOR-*-summary.md",
++      "package.json",
++      "pytest.ini",
++      "setup.py",
++      "Cargo.toml",
++      "go.mod"
++    ],
++    "writes": [
++      ".workflow/active/{session_id}/.process/test-results.json",
++      ".workflow/active/{session_id}/.process/coverage-report.json",
++      ".workflow/active/{session_id}/.process/tdd-cycle-report.md"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 1,
++    "time_budget_seconds": 0,
++    "must_not": [
++      "Must not edit source code or workflow task inputs",
++      "Must not delete or overwrite existing session artifacts without explicit user intent"
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "Frontmatter includes: name, description, allowed-tools",
++      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
++      "Implementation pointers labeled Existing vs Planned with dual-source evidence (docs + TS) and concrete Verify commands",
++      "Evidence tables pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js"
++    ]
++  }
++}
++
+
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..628a684156ec02168b876de0e911b2b5b59337a4
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md
+@@ -0,0 +1,13 @@
++# Fix Plan: workflow:tools:tdd-coverage-analysis
++
++## Scope: Command Doc (`.claude/commands/workflow/tools/tdd-coverage-analysis.md`)
++
++1. Document `test-results.json` normalization when the framework cannot emit JSON (store wrapper with framework + command + stdout/stderr).
++2. Document partial-success behavior and required minimum outputs (always write `tdd-cycle-report.md`, even if coverage or summaries are missing).
++
++## Scope: Validation (Outliner Outputs)
++
++1. Keep evidence tables up-to-date and re-run:
++   - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md`
++   - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..ad0578fd6294037980a71c9264509a5a5afc0092
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md
+@@ -0,0 +1,48 @@
++# Gap Report: workflow:tools:tdd-coverage-analysis
++
++## Reference
++
++- Selected reference: /workflow:tools:code-validation-gate (`.claude/commands/workflow/tools/code-validation-gate.md`)
++
++## P0 Gaps (Must Fix)
++
++- None identified against CCW P0 gates (frontmatter + core sections + artifact references + evidence discipline).
++
++## P1 Gaps (Should Fix)
++
++- Add an explicit note about how `test-results.json` is normalized when the underlying framework cannot emit JSON (store wrapper with stdout/stderr + metadata).
++- Clarify the “continue on partial data” contract (coverage-only vs cycle-only vs full report) to reduce brittle failures.
++
++## P2 Gaps (Optional)
++
++- Add lightweight heuristics for mapping TEST tasks to specific test commands (e.g., prefer `npm test` when `package.json` exists even if no known framework keyword is found).
++- Add a brief “cross-platform” note: prefer PowerShell-friendly equivalents when presenting verify commands (the command itself can stay Bash-based).
++
++## Implementation Pointers (Evidence)
++
++You MUST provide an evidence table for all key implementation pointers mentioned in the outlines.
++
++Rules (P0):
++- Every pointer MUST be labeled `Existing` or `Planned`.
++- `Existing` MUST be verifiable (path exists). Include a concrete `Verify` command for each existing pointer.
++- Do NOT describe `Planned` pointers as “validated/exists”.
++- Evidence MUST reference BOTH sources somewhere in this section:
++  - command docs: `.claude/commands/**.md` (section heading is enough)
++  - TypeScript implementation: `ccw/src/**` (function name / subcommand case / ripgrep-able string)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/workflow/tools/tdd-coverage-analysis.md` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Overview` ; ts: `ccw/src/tools/session-manager.ts` / `.workflow/active` | `Test-Path .claude/commands/workflow/tools/tdd-coverage-analysis.md` | Canonical behavior + artifact contract for this tool command |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Output Files` ; ts: `ccw/src/tools/session-manager.ts` / `ACTIVE_BASE` | `Test-Path ccw/src/tools/session-manager.ts` | Defines session storage roots and routing for `.process/` artifacts |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/tools/code-validation-gate.md` / `Overview` ; ts: `ccw/src/core/routes/commands-routes.ts` / `getCommandsDir` | `Test-Path ccw/src/core/routes/commands-routes.ts` | Command corpus discovery/management for `.claude/commands/**` |
++
++## Implementation Hints (Tooling/Server)
++
++- Session storage conventions (`.workflow/active/<id>/.process/`) are standardized in `ccw/src/tools/session-manager.ts`; keep artifacts aligned to avoid breaking downstream commands (e.g., `/workflow:tdd-verify`).
++- Command docs are managed by the Commands routes; avoid assuming only flat `.claude/commands/workflow/*.md` layouts.
++
++## Proposed Fix Plan (Minimal)
++
++1. In the command doc, clarify the normalization strategy for `test-results.json` when native JSON output is unavailable (P1).
++2. In the command doc, document partial-success behavior (coverage-only vs cycle-only) and ensure the report always emits actionable next steps (P1).
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..32cdf72c95019924cacab517c400be987e191e1f
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,40 @@
++# Agent Outline: workflow:tools:tdd-coverage-analysis
++
++## Purpose
++
++Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
++
++## Execution Model
++
++- Default: single-shot analysis (no interactive rounds)
++- Primary operations:
++  - run tests with coverage (Bash)
++  - read session artifacts (Read)
++  - write standardized reports (Write)
++
++## State & Artifacts
++
++- Session scope: `.workflow/active/{session_id}/`
++- Required outputs:
++  - `.workflow/active/{session_id}/.process/test-results.json`
++  - `.workflow/active/{session_id}/.process/coverage-report.json`
++  - `.workflow/active/{session_id}/.process/tdd-cycle-report.md`
++
++## Tooling
++
++- Allowed tools: Read(*), Write(*), Bash(*)
++- Non-negotiables:
++  - no unrelated changes
++  - do not claim implementation pointers are Existing unless verifiable in-repo
++
++## Validation Strategy
++
++- P0 doc gates:
++  - frontmatter: `name`, `description`, `allowed-tools`
++  - required sections: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling
++  - no broken artifact references (paths are either created by the command or documented as pre-existing)
++- Evidence gates:
++  - add/update evidence tables in generated outlines/gap report and verify with:
++    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md`
++    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..99a22e3687c1a2221982ceee3f1b1e8188393d47
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,109 @@
++---
++name: tdd-coverage-analysis
++description: Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification
++argument-hint: "--session WFS-session-id"
++allowed-tools: Read(*), Write(*), Bash(*)
++group: workflow
++---
++
++# TDD Coverage Analysis Command
++
++## Overview
++
++- Goal: Generate session-scoped test coverage metrics and verify Red-Green-Refactor compliance across TDD task chains.
++- Command: `/workflow:tools:tdd-coverage-analysis`
++
++## Usage
++
++```bash
++/workflow:tools:tdd-coverage-analysis --session WFS-session-id
++```
++
++## Inputs
++
++- Required inputs:
++  - `--session <WFS-session-id>`: workflow session to analyze (under `.workflow/active/<session_id>/`)
++- Optional inputs:
++  - None (framework detection is automatic; fallback behavior is described below)
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/active/{session_id}/.process/test-results.json`
++  - `.workflow/active/{session_id}/.process/coverage-report.json`
++  - `.workflow/active/{session_id}/.process/tdd-cycle-report.md`
++- Reads:
++  - `.workflow/active/{session_id}/.task/TEST-*.json` (to discover test focus paths / test intent)
++  - `.workflow/active/{session_id}/.summaries/*-summary.md` (to validate Red/Green/Refactor chain behavior)
++  - project test config files (e.g. `package.json`, `pytest.ini`, `Cargo.toml`, `go.mod`)
++
++## Implementation Pointers
++
++- Command doc (oracle): `.claude/commands/workflow/tools/tdd-coverage-analysis.md`
++- Likely code locations (repo capabilities used by this command):
++  - `ccw/src/tools/session-manager.ts` (session-scoped file routing: `.process/`, `.task/`, `.summaries/`)
++  - `ccw/src/core/routes/commands-routes.ts` (command discovery/management for `.claude/commands/**`)
++
++### Evidence (Existing vs Planned)
++
++You MUST label each pointer as `Existing` (verifiable in repo now) or `Planned` (will be created/modified).
++
++Rules:
++- `Existing` MUST include evidence from BOTH:
++  - a command doc source: `.claude/commands/**.md` (section heading is sufficient)
++  - a TypeScript source: `ccw/src/**` (function name / subcommand case / a ripgrep-able string)
++- If you cannot verify, downgrade to `Planned` and add a concrete `Verify` step (e.g. `Test-Path <path>`, `rg "<pattern>" <path>`).
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/workflow/tools/tdd-coverage-analysis.md` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Overview` ; ts: `ccw/src/tools/session-manager.ts` / `.workflow/active` | `Test-Path .claude/commands/workflow/tools/tdd-coverage-analysis.md` | Authoritative command behavior and artifact contract |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Output Files` ; ts: `ccw/src/tools/session-manager.ts` / `PATH_ROUTES` | `Test-Path ccw/src/tools/session-manager.ts` | Defines session file routing for `.process/`, `.task/`, `.summaries/` used by analysis |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Integration & Usage` ; ts: `ccw/src/core/routes/commands-routes.ts` / `handleCommandsRoutes` | `Test-Path ccw/src/core/routes/commands-routes.ts` | CCW command corpus management (enables/disables and lists command docs) |
++
++## Execution Process
++
++1. Parse `--session` and validate the session folder exists: `.workflow/active/{session_id}/`.
++2. Ensure `.workflow/active/{session_id}/.process/` exists (create if missing).
++3. Extract test focus paths (best-effort):
++   - Read `.workflow/active/{session_id}/.task/TEST-*.json`.
++   - If `jq` is available, extract `.context.focus_paths[]` into a working set of paths; otherwise, proceed without narrowing scope.
++4. Detect test framework (best-effort heuristics):
++   - Node.js: `package.json` contains `jest|mocha|vitest` or a `test` script.
++   - Python: `pytest.ini` or `setup.py` present.
++   - Rust: `Cargo.toml` present.
++   - Go: `go.mod` present.
++5. Run the test command with coverage and capture machine-readable output:
++   - Write raw output into `.workflow/active/{session_id}/.process/test-results.json` (format depends on framework; if JSON is not available, store a JSON wrapper with stdout/stderr + detected framework).
++6. Parse coverage metrics into `.workflow/active/{session_id}/.process/coverage-report.json`:
++   - Prefer extracting line/branch/function coverage; when unavailable, record `unknown` with a reason.
++7. Verify TDD cycle execution from summaries:
++   - Enumerate chains `TEST-* -> IMPL-* -> REFACTOR-*` using `.workflow/active/{session_id}/.summaries/*-summary.md`.
++   - For each chain, classify:
++     - Red: evidence tests were created and initially failed.
++     - Green: evidence implementation made tests pass.
++     - Refactor: evidence refactor occurred while staying green (optional but scored).
++8. Generate `.workflow/active/{session_id}/.process/tdd-cycle-report.md`:
++   - Coverage metrics summary
++   - Per-chain verification (PASS/WARN/FAIL) + short rationale
++   - Compliance score (0-100) and gaps/recommendations
++
++## Error Handling
++
++- Missing/invalid `--session`:
++  - Explain required format and point to `.workflow/active/<session_id>/`.
++- Session missing expected directories:
++  - If `.task/` missing: warn that TEST tasks cannot be discovered; continue with coverage-only analysis.
++  - If `.summaries/` missing: warn that TDD cycle verification cannot run; continue with coverage-only analysis.
++- Test framework not detected:
++  - Fail with a clear message listing what was checked and how to override via project setup.
++- Test command fails:
++  - Record failure details (stderr/stdout) into `test-results.json` wrapper and mark coverage as unavailable; still emit `tdd-cycle-report.md` with actionable next steps.
++- Coverage data missing/unparseable:
++  - Emit `coverage-report.json` with `unknown` values + reason; do not crash the command.
++
++## Examples
++
++```bash
++/workflow:tools:tdd-coverage-analysis --session WFS-auth
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..67d41e8d6860ef5e4069dc733af5e1daaf7173e0
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json
+@@ -0,0 +1,40 @@
++{
++  "candidates": [
++    {
++      "slash": "/workflow:tools:code-validation-gate",
++      "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
++      "score": 92,
++      "why": "Same workflow/tools family; Bash-driven analysis + gating; strong error handling patterns; writes artifacts under .workflow/active/{session}/."
++    },
++    {
++      "slash": "/workflow:tdd-verify",
++      "file_path": ".claude/commands/workflow/tdd-verify.md",
++      "score": 90,
++      "why": "Direct orchestrator that calls /workflow:tools:tdd-coverage-analysis and consumes its artifacts; defines expected output contract."
++    },
++    {
++      "slash": "/workflow:tools:test-context-gather",
++      "file_path": ".claude/commands/workflow/tools/test-context-gather.md",
++      "score": 78,
++      "why": "Produces standardized .workflow/active/{session}/.process artifacts and includes detection-first flow; tool surface differs (Task/Glob)."
++    },
++    {
++      "slash": "/workflow:tools:test-concept-enhanced",
++      "file_path": ".claude/commands/workflow/tools/test-concept-enhanced.md",
++      "score": 70,
++      "why": "Test/coverage-related analysis workflows and structured reporting; uses external LLM tooling patterns not needed here."
++    },
++    {
++      "slash": "/workflow:tools:context-gather",
++      "file_path": ".claude/commands/workflow/tools/context-gather.md",
++      "score": 62,
++      "why": "Shows session-scoped artifact conventions under .workflow/active and tool orchestration patterns; tool surface differs (Task/Glob)."
++    }
++  ],
++  "selected": {
++    "slash": "/workflow:tools:code-validation-gate",
++    "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
++    "why": "Closest match for a Bash-only workflow tool command that runs checks, emits structured artifacts, and documents clear failure modes."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..656dac600c30f2b9c0a3d86f76ca0d996c8794c1
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json
+@@ -0,0 +1,50 @@
++{
++  "command": {
++    "group": "workflow",
++    "subgroup": "tools",
++    "name": "tdd-coverage-analysis",
++    "description": "Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification",
++    "argument_hint": "--session WFS-session-id",
++    "allowed_tools": ["Read(*)", "Write(*)", "Bash(*)"]
++  },
++  "intent": {
++    "type": "analyze",
++    "interaction": "single-shot",
++    "primary_user_value": "Run the project's test suite with coverage and verify Red-Green-Refactor task chains for a workflow session, producing a concise compliance report."
++  },
++  "artifacts": {
++    "reads": [
++      ".workflow/active/{session_id}/.task/TEST-*.json",
++      ".workflow/active/{session_id}/.summaries/TEST-*-summary.md",
++      ".workflow/active/{session_id}/.summaries/IMPL-*-summary.md",
++      ".workflow/active/{session_id}/.summaries/REFACTOR-*-summary.md",
++      "package.json",
++      "pytest.ini",
++      "setup.py",
++      "Cargo.toml",
++      "go.mod"
++    ],
++    "writes": [
++      ".workflow/active/{session_id}/.process/test-results.json",
++      ".workflow/active/{session_id}/.process/coverage-report.json",
++      ".workflow/active/{session_id}/.process/tdd-cycle-report.md"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 1,
++    "time_budget_seconds": 0,
++    "must_not": [
++      "Must not edit source code or workflow task inputs",
++      "Must not delete or overwrite existing session artifacts without explicit user intent"
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "Frontmatter includes: name, description, allowed-tools",
++      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
++      "Implementation pointers labeled Existing vs Planned with dual-source evidence (docs + TS) and concrete Verify commands",
++      "Evidence tables pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js"
++    ]
++  }
++}
++
+
+
+thinking
+**Running verification scripts**
+
+I need to run a verification script on the gap report and the generated outline using node. So, I'll just go ahead and execute that. The requirement also states that the evidence tables must pass. To make sure everything goes smoothly, I'll run two commands. This means I should prepare to use the shell_command to run node. Let's get this going!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md' in C:\Project\Claude-Code-Workflow succeeded in 334ms:
+OK: evidence verification passed
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..628a684156ec02168b876de0e911b2b5b59337a4
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md
+@@ -0,0 +1,13 @@
++# Fix Plan: workflow:tools:tdd-coverage-analysis
++
++## Scope: Command Doc (`.claude/commands/workflow/tools/tdd-coverage-analysis.md`)
++
++1. Document `test-results.json` normalization when the framework cannot emit JSON (store wrapper with framework + command + stdout/stderr).
++2. Document partial-success behavior and required minimum outputs (always write `tdd-cycle-report.md`, even if coverage or summaries are missing).
++
++## Scope: Validation (Outliner Outputs)
++
++1. Keep evidence tables up-to-date and re-run:
++   - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md`
++   - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..ad0578fd6294037980a71c9264509a5a5afc0092
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md
+@@ -0,0 +1,48 @@
++# Gap Report: workflow:tools:tdd-coverage-analysis
++
++## Reference
++
++- Selected reference: /workflow:tools:code-validation-gate (`.claude/commands/workflow/tools/code-validation-gate.md`)
++
++## P0 Gaps (Must Fix)
++
++- None identified against CCW P0 gates (frontmatter + core sections + artifact references + evidence discipline).
++
++## P1 Gaps (Should Fix)
++
++- Add an explicit note about how `test-results.json` is normalized when the underlying framework cannot emit JSON (store wrapper with stdout/stderr + metadata).
++- Clarify the “continue on partial data” contract (coverage-only vs cycle-only vs full report) to reduce brittle failures.
++
++## P2 Gaps (Optional)
++
++- Add lightweight heuristics for mapping TEST tasks to specific test commands (e.g., prefer `npm test` when `package.json` exists even if no known framework keyword is found).
++- Add a brief “cross-platform” note: prefer PowerShell-friendly equivalents when presenting verify commands (the command itself can stay Bash-based).
++
++## Implementation Pointers (Evidence)
++
++You MUST provide an evidence table for all key implementation pointers mentioned in the outlines.
++
++Rules (P0):
++- Every pointer MUST be labeled `Existing` or `Planned`.
++- `Existing` MUST be verifiable (path exists). Include a concrete `Verify` command for each existing pointer.
++- Do NOT describe `Planned` pointers as “validated/exists”.
++- Evidence MUST reference BOTH sources somewhere in this section:
++  - command docs: `.claude/commands/**.md` (section heading is enough)
++  - TypeScript implementation: `ccw/src/**` (function name / subcommand case / ripgrep-able string)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/workflow/tools/tdd-coverage-analysis.md` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Overview` ; ts: `ccw/src/tools/session-manager.ts` / `.workflow/active` | `Test-Path .claude/commands/workflow/tools/tdd-coverage-analysis.md` | Canonical behavior + artifact contract for this tool command |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Output Files` ; ts: `ccw/src/tools/session-manager.ts` / `ACTIVE_BASE` | `Test-Path ccw/src/tools/session-manager.ts` | Defines session storage roots and routing for `.process/` artifacts |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/tools/code-validation-gate.md` / `Overview` ; ts: `ccw/src/core/routes/commands-routes.ts` / `getCommandsDir` | `Test-Path ccw/src/core/routes/commands-routes.ts` | Command corpus discovery/management for `.claude/commands/**` |
++
++## Implementation Hints (Tooling/Server)
++
++- Session storage conventions (`.workflow/active/<id>/.process/`) are standardized in `ccw/src/tools/session-manager.ts`; keep artifacts aligned to avoid breaking downstream commands (e.g., `/workflow:tdd-verify`).
++- Command docs are managed by the Commands routes; avoid assuming only flat `.claude/commands/workflow/*.md` layouts.
++
++## Proposed Fix Plan (Minimal)
++
++1. In the command doc, clarify the normalization strategy for `test-results.json` when native JSON output is unavailable (P1).
++2. In the command doc, document partial-success behavior (coverage-only vs cycle-only) and ensure the report always emits actionable next steps (P1).
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..32cdf72c95019924cacab517c400be987e191e1f
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,40 @@
++# Agent Outline: workflow:tools:tdd-coverage-analysis
++
++## Purpose
++
++Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
++
++## Execution Model
++
++- Default: single-shot analysis (no interactive rounds)
++- Primary operations:
++  - run tests with coverage (Bash)
++  - read session artifacts (Read)
++  - write standardized reports (Write)
++
++## State & Artifacts
++
++- Session scope: `.workflow/active/{session_id}/`
++- Required outputs:
++  - `.workflow/active/{session_id}/.process/test-results.json`
++  - `.workflow/active/{session_id}/.process/coverage-report.json`
++  - `.workflow/active/{session_id}/.process/tdd-cycle-report.md`
++
++## Tooling
++
++- Allowed tools: Read(*), Write(*), Bash(*)
++- Non-negotiables:
++  - no unrelated changes
++  - do not claim implementation pointers are Existing unless verifiable in-repo
++
++## Validation Strategy
++
++- P0 doc gates:
++  - frontmatter: `name`, `description`, `allowed-tools`
++  - required sections: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling
++  - no broken artifact references (paths are either created by the command or documented as pre-existing)
++- Evidence gates:
++  - add/update evidence tables in generated outlines/gap report and verify with:
++    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md`
++    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..99a22e3687c1a2221982ceee3f1b1e8188393d47
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,109 @@
++---
++name: tdd-coverage-analysis
++description: Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification
++argument-hint: "--session WFS-session-id"
++allowed-tools: Read(*), Write(*), Bash(*)
++group: workflow
++---
++
++# TDD Coverage Analysis Command
++
++## Overview
++
++- Goal: Generate session-scoped test coverage metrics and verify Red-Green-Refactor compliance across TDD task chains.
++- Command: `/workflow:tools:tdd-coverage-analysis`
++
++## Usage
++
++```bash
++/workflow:tools:tdd-coverage-analysis --session WFS-session-id
++```
++
++## Inputs
++
++- Required inputs:
++  - `--session <WFS-session-id>`: workflow session to analyze (under `.workflow/active/<session_id>/`)
++- Optional inputs:
++  - None (framework detection is automatic; fallback behavior is described below)
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/active/{session_id}/.process/test-results.json`
++  - `.workflow/active/{session_id}/.process/coverage-report.json`
++  - `.workflow/active/{session_id}/.process/tdd-cycle-report.md`
++- Reads:
++  - `.workflow/active/{session_id}/.task/TEST-*.json` (to discover test focus paths / test intent)
++  - `.workflow/active/{session_id}/.summaries/*-summary.md` (to validate Red/Green/Refactor chain behavior)
++  - project test config files (e.g. `package.json`, `pytest.ini`, `Cargo.toml`, `go.mod`)
++
++## Implementation Pointers
++
++- Command doc (oracle): `.claude/commands/workflow/tools/tdd-coverage-analysis.md`
++- Likely code locations (repo capabilities used by this command):
++  - `ccw/src/tools/session-manager.ts` (session-scoped file routing: `.process/`, `.task/`, `.summaries/`)
++  - `ccw/src/core/routes/commands-routes.ts` (command discovery/management for `.claude/commands/**`)
++
++### Evidence (Existing vs Planned)
++
++You MUST label each pointer as `Existing` (verifiable in repo now) or `Planned` (will be created/modified).
++
++Rules:
++- `Existing` MUST include evidence from BOTH:
++  - a command doc source: `.claude/commands/**.md` (section heading is sufficient)
++  - a TypeScript source: `ccw/src/**` (function name / subcommand case / a ripgrep-able string)
++- If you cannot verify, downgrade to `Planned` and add a concrete `Verify` step (e.g. `Test-Path <path>`, `rg "<pattern>" <path>`).
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/workflow/tools/tdd-coverage-analysis.md` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Overview` ; ts: `ccw/src/tools/session-manager.ts` / `.workflow/active` | `Test-Path .claude/commands/workflow/tools/tdd-coverage-analysis.md` | Authoritative command behavior and artifact contract |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Output Files` ; ts: `ccw/src/tools/session-manager.ts` / `PATH_ROUTES` | `Test-Path ccw/src/tools/session-manager.ts` | Defines session file routing for `.process/`, `.task/`, `.summaries/` used by analysis |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Integration & Usage` ; ts: `ccw/src/core/routes/commands-routes.ts` / `handleCommandsRoutes` | `Test-Path ccw/src/core/routes/commands-routes.ts` | CCW command corpus management (enables/disables and lists command docs) |
++
++## Execution Process
++
++1. Parse `--session` and validate the session folder exists: `.workflow/active/{session_id}/`.
++2. Ensure `.workflow/active/{session_id}/.process/` exists (create if missing).
++3. Extract test focus paths (best-effort):
++   - Read `.workflow/active/{session_id}/.task/TEST-*.json`.
++   - If `jq` is available, extract `.context.focus_paths[]` into a working set of paths; otherwise, proceed without narrowing scope.
++4. Detect test framework (best-effort heuristics):
++   - Node.js: `package.json` contains `jest|mocha|vitest` or a `test` script.
++   - Python: `pytest.ini` or `setup.py` present.
++   - Rust: `Cargo.toml` present.
++   - Go: `go.mod` present.
++5. Run the test command with coverage and capture machine-readable output:
++   - Write raw output into `.workflow/active/{session_id}/.process/test-results.json` (format depends on framework; if JSON is not available, store a JSON wrapper with stdout/stderr + detected framework).
++6. Parse coverage metrics into `.workflow/active/{session_id}/.process/coverage-report.json`:
++   - Prefer extracting line/branch/function coverage; when unavailable, record `unknown` with a reason.
++7. Verify TDD cycle execution from summaries:
++   - Enumerate chains `TEST-* -> IMPL-* -> REFACTOR-*` using `.workflow/active/{session_id}/.summaries/*-summary.md`.
++   - For each chain, classify:
++     - Red: evidence tests were created and initially failed.
++     - Green: evidence implementation made tests pass.
++     - Refactor: evidence refactor occurred while staying green (optional but scored).
++8. Generate `.workflow/active/{session_id}/.process/tdd-cycle-report.md`:
++   - Coverage metrics summary
++   - Per-chain verification (PASS/WARN/FAIL) + short rationale
++   - Compliance score (0-100) and gaps/recommendations
++
++## Error Handling
++
++- Missing/invalid `--session`:
++  - Explain required format and point to `.workflow/active/<session_id>/`.
++- Session missing expected directories:
++  - If `.task/` missing: warn that TEST tasks cannot be discovered; continue with coverage-only analysis.
++  - If `.summaries/` missing: warn that TDD cycle verification cannot run; continue with coverage-only analysis.
++- Test framework not detected:
++  - Fail with a clear message listing what was checked and how to override via project setup.
++- Test command fails:
++  - Record failure details (stderr/stdout) into `test-results.json` wrapper and mark coverage as unavailable; still emit `tdd-cycle-report.md` with actionable next steps.
++- Coverage data missing/unparseable:
++  - Emit `coverage-report.json` with `unknown` values + reason; do not crash the command.
++
++## Examples
++
++```bash
++/workflow:tools:tdd-coverage-analysis --session WFS-auth
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..67d41e8d6860ef5e4069dc733af5e1daaf7173e0
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json
+@@ -0,0 +1,40 @@
++{
++  "candidates": [
++    {
++      "slash": "/workflow:tools:code-validation-gate",
++      "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
++      "score": 92,
++      "why": "Same workflow/tools family; Bash-driven analysis + gating; strong error handling patterns; writes artifacts under .workflow/active/{session}/."
++    },
++    {
++      "slash": "/workflow:tdd-verify",
++      "file_path": ".claude/commands/workflow/tdd-verify.md",
++      "score": 90,
++      "why": "Direct orchestrator that calls /workflow:tools:tdd-coverage-analysis and consumes its artifacts; defines expected output contract."
++    },
++    {
++      "slash": "/workflow:tools:test-context-gather",
++      "file_path": ".claude/commands/workflow/tools/test-context-gather.md",
++      "score": 78,
++      "why": "Produces standardized .workflow/active/{session}/.process artifacts and includes detection-first flow; tool surface differs (Task/Glob)."
++    },
++    {
++      "slash": "/workflow:tools:test-concept-enhanced",
++      "file_path": ".claude/commands/workflow/tools/test-concept-enhanced.md",
++      "score": 70,
++      "why": "Test/coverage-related analysis workflows and structured reporting; uses external LLM tooling patterns not needed here."
++    },
++    {
++      "slash": "/workflow:tools:context-gather",
++      "file_path": ".claude/commands/workflow/tools/context-gather.md",
++      "score": 62,
++      "why": "Shows session-scoped artifact conventions under .workflow/active and tool orchestration patterns; tool surface differs (Task/Glob)."
++    }
++  ],
++  "selected": {
++    "slash": "/workflow:tools:code-validation-gate",
++    "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
++    "why": "Closest match for a Bash-only workflow tool command that runs checks, emits structured artifacts, and documents clear failure modes."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..656dac600c30f2b9c0a3d86f76ca0d996c8794c1
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json
+@@ -0,0 +1,50 @@
++{
++  "command": {
++    "group": "workflow",
++    "subgroup": "tools",
++    "name": "tdd-coverage-analysis",
++    "description": "Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification",
++    "argument_hint": "--session WFS-session-id",
++    "allowed_tools": ["Read(*)", "Write(*)", "Bash(*)"]
++  },
++  "intent": {
++    "type": "analyze",
++    "interaction": "single-shot",
++    "primary_user_value": "Run the project's test suite with coverage and verify Red-Green-Refactor task chains for a workflow session, producing a concise compliance report."
++  },
++  "artifacts": {
++    "reads": [
++      ".workflow/active/{session_id}/.task/TEST-*.json",
++      ".workflow/active/{session_id}/.summaries/TEST-*-summary.md",
++      ".workflow/active/{session_id}/.summaries/IMPL-*-summary.md",
++      ".workflow/active/{session_id}/.summaries/REFACTOR-*-summary.md",
++      "package.json",
++      "pytest.ini",
++      "setup.py",
++      "Cargo.toml",
++      "go.mod"
++    ],
++    "writes": [
++      ".workflow/active/{session_id}/.process/test-results.json",
++      ".workflow/active/{session_id}/.process/coverage-report.json",
++      ".workflow/active/{session_id}/.process/tdd-cycle-report.md"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 1,
++    "time_budget_seconds": 0,
++    "must_not": [
++      "Must not edit source code or workflow task inputs",
++      "Must not delete or overwrite existing session artifacts without explicit user intent"
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "Frontmatter includes: name, description, allowed-tools",
++      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
++      "Implementation pointers labeled Existing vs Planned with dual-source evidence (docs + TS) and concrete Verify commands",
++      "Evidence tables pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js"
++    ]
++  }
++}
++
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md' in C:\Project\Claude-Code-Workflow succeeded in 330ms:
+OK: evidence verification passed
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..628a684156ec02168b876de0e911b2b5b59337a4
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md
+@@ -0,0 +1,13 @@
++# Fix Plan: workflow:tools:tdd-coverage-analysis
++
++## Scope: Command Doc (`.claude/commands/workflow/tools/tdd-coverage-analysis.md`)
++
++1. Document `test-results.json` normalization when the framework cannot emit JSON (store wrapper with framework + command + stdout/stderr).
++2. Document partial-success behavior and required minimum outputs (always write `tdd-cycle-report.md`, even if coverage or summaries are missing).
++
++## Scope: Validation (Outliner Outputs)
++
++1. Keep evidence tables up-to-date and re-run:
++   - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md`
++   - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..ad0578fd6294037980a71c9264509a5a5afc0092
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md
+@@ -0,0 +1,48 @@
++# Gap Report: workflow:tools:tdd-coverage-analysis
++
++## Reference
++
++- Selected reference: /workflow:tools:code-validation-gate (`.claude/commands/workflow/tools/code-validation-gate.md`)
++
++## P0 Gaps (Must Fix)
++
++- None identified against CCW P0 gates (frontmatter + core sections + artifact references + evidence discipline).
++
++## P1 Gaps (Should Fix)
++
++- Add an explicit note about how `test-results.json` is normalized when the underlying framework cannot emit JSON (store wrapper with stdout/stderr + metadata).
++- Clarify the “continue on partial data” contract (coverage-only vs cycle-only vs full report) to reduce brittle failures.
++
++## P2 Gaps (Optional)
++
++- Add lightweight heuristics for mapping TEST tasks to specific test commands (e.g., prefer `npm test` when `package.json` exists even if no known framework keyword is found).
++- Add a brief “cross-platform” note: prefer PowerShell-friendly equivalents when presenting verify commands (the command itself can stay Bash-based).
++
++## Implementation Pointers (Evidence)
++
++You MUST provide an evidence table for all key implementation pointers mentioned in the outlines.
++
++Rules (P0):
++- Every pointer MUST be labeled `Existing` or `Planned`.
++- `Existing` MUST be verifiable (path exists). Include a concrete `Verify` command for each existing pointer.
++- Do NOT describe `Planned` pointers as “validated/exists”.
++- Evidence MUST reference BOTH sources somewhere in this section:
++  - command docs: `.claude/commands/**.md` (section heading is enough)
++  - TypeScript implementation: `ccw/src/**` (function name / subcommand case / ripgrep-able string)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/workflow/tools/tdd-coverage-analysis.md` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Overview` ; ts: `ccw/src/tools/session-manager.ts` / `.workflow/active` | `Test-Path .claude/commands/workflow/tools/tdd-coverage-analysis.md` | Canonical behavior + artifact contract for this tool command |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Output Files` ; ts: `ccw/src/tools/session-manager.ts` / `ACTIVE_BASE` | `Test-Path ccw/src/tools/session-manager.ts` | Defines session storage roots and routing for `.process/` artifacts |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/tools/code-validation-gate.md` / `Overview` ; ts: `ccw/src/core/routes/commands-routes.ts` / `getCommandsDir` | `Test-Path ccw/src/core/routes/commands-routes.ts` | Command corpus discovery/management for `.claude/commands/**` |
++
++## Implementation Hints (Tooling/Server)
++
++- Session storage conventions (`.workflow/active/<id>/.process/`) are standardized in `ccw/src/tools/session-manager.ts`; keep artifacts aligned to avoid breaking downstream commands (e.g., `/workflow:tdd-verify`).
++- Command docs are managed by the Commands routes; avoid assuming only flat `.claude/commands/workflow/*.md` layouts.
++
++## Proposed Fix Plan (Minimal)
++
++1. In the command doc, clarify the normalization strategy for `test-results.json` when native JSON output is unavailable (P1).
++2. In the command doc, document partial-success behavior (coverage-only vs cycle-only) and ensure the report always emits actionable next steps (P1).
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..32cdf72c95019924cacab517c400be987e191e1f
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,40 @@
++# Agent Outline: workflow:tools:tdd-coverage-analysis
++
++## Purpose
++
++Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
++
++## Execution Model
++
++- Default: single-shot analysis (no interactive rounds)
++- Primary operations:
++  - run tests with coverage (Bash)
++  - read session artifacts (Read)
++  - write standardized reports (Write)
++
++## State & Artifacts
++
++- Session scope: `.workflow/active/{session_id}/`
++- Required outputs:
++  - `.workflow/active/{session_id}/.process/test-results.json`
++  - `.workflow/active/{session_id}/.process/coverage-report.json`
++  - `.workflow/active/{session_id}/.process/tdd-cycle-report.md`
++
++## Tooling
++
++- Allowed tools: Read(*), Write(*), Bash(*)
++- Non-negotiables:
++  - no unrelated changes
++  - do not claim implementation pointers are Existing unless verifiable in-repo
++
++## Validation Strategy
++
++- P0 doc gates:
++  - frontmatter: `name`, `description`, `allowed-tools`
++  - required sections: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling
++  - no broken artifact references (paths are either created by the command or documented as pre-existing)
++- Evidence gates:
++  - add/update evidence tables in generated outlines/gap report and verify with:
++    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md`
++    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..99a22e3687c1a2221982ceee3f1b1e8188393d47
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,109 @@
++---
++name: tdd-coverage-analysis
++description: Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification
++argument-hint: "--session WFS-session-id"
++allowed-tools: Read(*), Write(*), Bash(*)
++group: workflow
++---
++
++# TDD Coverage Analysis Command
++
++## Overview
++
++- Goal: Generate session-scoped test coverage metrics and verify Red-Green-Refactor compliance across TDD task chains.
++- Command: `/workflow:tools:tdd-coverage-analysis`
++
++## Usage
++
++```bash
++/workflow:tools:tdd-coverage-analysis --session WFS-session-id
++```
++
++## Inputs
++
++- Required inputs:
++  - `--session <WFS-session-id>`: workflow session to analyze (under `.workflow/active/<session_id>/`)
++- Optional inputs:
++  - None (framework detection is automatic; fallback behavior is described below)
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/active/{session_id}/.process/test-results.json`
++  - `.workflow/active/{session_id}/.process/coverage-report.json`
++  - `.workflow/active/{session_id}/.process/tdd-cycle-report.md`
++- Reads:
++  - `.workflow/active/{session_id}/.task/TEST-*.json` (to discover test focus paths / test intent)
++  - `.workflow/active/{session_id}/.summaries/*-summary.md` (to validate Red/Green/Refactor chain behavior)
++  - project test config files (e.g. `package.json`, `pytest.ini`, `Cargo.toml`, `go.mod`)
++
++## Implementation Pointers
++
++- Command doc (oracle): `.claude/commands/workflow/tools/tdd-coverage-analysis.md`
++- Likely code locations (repo capabilities used by this command):
++  - `ccw/src/tools/session-manager.ts` (session-scoped file routing: `.process/`, `.task/`, `.summaries/`)
++  - `ccw/src/core/routes/commands-routes.ts` (command discovery/management for `.claude/commands/**`)
++
++### Evidence (Existing vs Planned)
++
++You MUST label each pointer as `Existing` (verifiable in repo now) or `Planned` (will be created/modified).
++
++Rules:
++- `Existing` MUST include evidence from BOTH:
++  - a command doc source: `.claude/commands/**.md` (section heading is sufficient)
++  - a TypeScript source: `ccw/src/**` (function name / subcommand case / a ripgrep-able string)
++- If you cannot verify, downgrade to `Planned` and add a concrete `Verify` step (e.g. `Test-Path <path>`, `rg "<pattern>" <path>`).
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/workflow/tools/tdd-coverage-analysis.md` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Overview` ; ts: `ccw/src/tools/session-manager.ts` / `.workflow/active` | `Test-Path .claude/commands/workflow/tools/tdd-coverage-analysis.md` | Authoritative command behavior and artifact contract |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Output Files` ; ts: `ccw/src/tools/session-manager.ts` / `PATH_ROUTES` | `Test-Path ccw/src/tools/session-manager.ts` | Defines session file routing for `.process/`, `.task/`, `.summaries/` used by analysis |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Integration & Usage` ; ts: `ccw/src/core/routes/commands-routes.ts` / `handleCommandsRoutes` | `Test-Path ccw/src/core/routes/commands-routes.ts` | CCW command corpus management (enables/disables and lists command docs) |
++
++## Execution Process
++
++1. Parse `--session` and validate the session folder exists: `.workflow/active/{session_id}/`.
++2. Ensure `.workflow/active/{session_id}/.process/` exists (create if missing).
++3. Extract test focus paths (best-effort):
++   - Read `.workflow/active/{session_id}/.task/TEST-*.json`.
++   - If `jq` is available, extract `.context.focus_paths[]` into a working set of paths; otherwise, proceed without narrowing scope.
++4. Detect test framework (best-effort heuristics):
++   - Node.js: `package.json` contains `jest|mocha|vitest` or a `test` script.
++   - Python: `pytest.ini` or `setup.py` present.
++   - Rust: `Cargo.toml` present.
++   - Go: `go.mod` present.
++5. Run the test command with coverage and capture machine-readable output:
++   - Write raw output into `.workflow/active/{session_id}/.process/test-results.json` (format depends on framework; if JSON is not available, store a JSON wrapper with stdout/stderr + detected framework).
++6. Parse coverage metrics into `.workflow/active/{session_id}/.process/coverage-report.json`:
++   - Prefer extracting line/branch/function coverage; when unavailable, record `unknown` with a reason.
++7. Verify TDD cycle execution from summaries:
++   - Enumerate chains `TEST-* -> IMPL-* -> REFACTOR-*` using `.workflow/active/{session_id}/.summaries/*-summary.md`.
++   - For each chain, classify:
++     - Red: evidence tests were created and initially failed.
++     - Green: evidence implementation made tests pass.
++     - Refactor: evidence refactor occurred while staying green (optional but scored).
++8. Generate `.workflow/active/{session_id}/.process/tdd-cycle-report.md`:
++   - Coverage metrics summary
++   - Per-chain verification (PASS/WARN/FAIL) + short rationale
++   - Compliance score (0-100) and gaps/recommendations
++
++## Error Handling
++
++- Missing/invalid `--session`:
++  - Explain required format and point to `.workflow/active/<session_id>/`.
++- Session missing expected directories:
++  - If `.task/` missing: warn that TEST tasks cannot be discovered; continue with coverage-only analysis.
++  - If `.summaries/` missing: warn that TDD cycle verification cannot run; continue with coverage-only analysis.
++- Test framework not detected:
++  - Fail with a clear message listing what was checked and how to override via project setup.
++- Test command fails:
++  - Record failure details (stderr/stdout) into `test-results.json` wrapper and mark coverage as unavailable; still emit `tdd-cycle-report.md` with actionable next steps.
++- Coverage data missing/unparseable:
++  - Emit `coverage-report.json` with `unknown` values + reason; do not crash the command.
++
++## Examples
++
++```bash
++/workflow:tools:tdd-coverage-analysis --session WFS-auth
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..67d41e8d6860ef5e4069dc733af5e1daaf7173e0
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json
+@@ -0,0 +1,40 @@
++{
++  "candidates": [
++    {
++      "slash": "/workflow:tools:code-validation-gate",
++      "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
++      "score": 92,
++      "why": "Same workflow/tools family; Bash-driven analysis + gating; strong error handling patterns; writes artifacts under .workflow/active/{session}/."
++    },
++    {
++      "slash": "/workflow:tdd-verify",
++      "file_path": ".claude/commands/workflow/tdd-verify.md",
++      "score": 90,
++      "why": "Direct orchestrator that calls /workflow:tools:tdd-coverage-analysis and consumes its artifacts; defines expected output contract."
++    },
++    {
++      "slash": "/workflow:tools:test-context-gather",
++      "file_path": ".claude/commands/workflow/tools/test-context-gather.md",
++      "score": 78,
++      "why": "Produces standardized .workflow/active/{session}/.process artifacts and includes detection-first flow; tool surface differs (Task/Glob)."
++    },
++    {
++      "slash": "/workflow:tools:test-concept-enhanced",
++      "file_path": ".claude/commands/workflow/tools/test-concept-enhanced.md",
++      "score": 70,
++      "why": "Test/coverage-related analysis workflows and structured reporting; uses external LLM tooling patterns not needed here."
++    },
++    {
++      "slash": "/workflow:tools:context-gather",
++      "file_path": ".claude/commands/workflow/tools/context-gather.md",
++      "score": 62,
++      "why": "Shows session-scoped artifact conventions under .workflow/active and tool orchestration patterns; tool surface differs (Task/Glob)."
++    }
++  ],
++  "selected": {
++    "slash": "/workflow:tools:code-validation-gate",
++    "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
++    "why": "Closest match for a Bash-only workflow tool command that runs checks, emits structured artifacts, and documents clear failure modes."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..656dac600c30f2b9c0a3d86f76ca0d996c8794c1
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json
+@@ -0,0 +1,50 @@
++{
++  "command": {
++    "group": "workflow",
++    "subgroup": "tools",
++    "name": "tdd-coverage-analysis",
++    "description": "Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification",
++    "argument_hint": "--session WFS-session-id",
++    "allowed_tools": ["Read(*)", "Write(*)", "Bash(*)"]
++  },
++  "intent": {
++    "type": "analyze",
++    "interaction": "single-shot",
++    "primary_user_value": "Run the project's test suite with coverage and verify Red-Green-Refactor task chains for a workflow session, producing a concise compliance report."
++  },
++  "artifacts": {
++    "reads": [
++      ".workflow/active/{session_id}/.task/TEST-*.json",
++      ".workflow/active/{session_id}/.summaries/TEST-*-summary.md",
++      ".workflow/active/{session_id}/.summaries/IMPL-*-summary.md",
++      ".workflow/active/{session_id}/.summaries/REFACTOR-*-summary.md",
++      "package.json",
++      "pytest.ini",
++      "setup.py",
++      "Cargo.toml",
++      "go.mod"
++    ],
++    "writes": [
++      ".workflow/active/{session_id}/.process/test-results.json",
++      ".workflow/active/{session_id}/.process/coverage-report.json",
++      ".workflow/active/{session_id}/.process/tdd-cycle-report.md"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 1,
++    "time_budget_seconds": 0,
++    "must_not": [
++      "Must not edit source code or workflow task inputs",
++      "Must not delete or overwrite existing session artifacts without explicit user intent"
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "Frontmatter includes: name, description, allowed-tools",
++      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
++      "Implementation pointers labeled Existing vs Planned with dual-source evidence (docs + TS) and concrete Verify commands",
++      "Evidence tables pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js"
++    ]
++  }
++}
++
+
+
+
+thinking
+**Ensuring file accuracy**
+
+I need to make sure that the files are concise and don’t include any placeholders in the evidence rows. We should also avoid labeling pointers as “Existing” unless they are verifiable. It seems like the verification checks don’t confirm the path for documents. I’ll need to ensure the output directory path is correct and consider including `references.json` for relevant commands. Lastly, I’ll mention the skills used, files written, and confirm that evidence verification has passed before delivering the response.
+thinking
+**Finalizing requirements**
+
+I want to make sure we’re not adding any additional tasks. The requirement document specified that the allowed tools are Read(*), Write(*), and Bash(*). It's good to note that we included these allowed tools in the front matter of the template. Everything seems to be in order, so I think we can consider it finalized. This should keep things clear and concise going forward. Let's wrap it up!
+codex
+Wrote CMD-063 outliner outputs under:
+`.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/`
+
+- `spec.json`
+- `references.json`
+- `generated-slash-outline.md`
+- `generated-agent-outline.md`
+- `gap-report.md`
+- `fix-plan.md`
+
+Ran evidence gates (both passed):
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md`
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md`
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..628a684156ec02168b876de0e911b2b5b59337a4
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/fix-plan.md
+@@ -0,0 +1,13 @@
++# Fix Plan: workflow:tools:tdd-coverage-analysis
++
++## Scope: Command Doc (`.claude/commands/workflow/tools/tdd-coverage-analysis.md`)
++
++1. Document `test-results.json` normalization when the framework cannot emit JSON (store wrapper with framework + command + stdout/stderr).
++2. Document partial-success behavior and required minimum outputs (always write `tdd-cycle-report.md`, even if coverage or summaries are missing).
++
++## Scope: Validation (Outliner Outputs)
++
++1. Keep evidence tables up-to-date and re-run:
++   - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md`
++   - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..ad0578fd6294037980a71c9264509a5a5afc0092
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md
+@@ -0,0 +1,48 @@
++# Gap Report: workflow:tools:tdd-coverage-analysis
++
++## Reference
++
++- Selected reference: /workflow:tools:code-validation-gate (`.claude/commands/workflow/tools/code-validation-gate.md`)
++
++## P0 Gaps (Must Fix)
++
++- None identified against CCW P0 gates (frontmatter + core sections + artifact references + evidence discipline).
++
++## P1 Gaps (Should Fix)
++
++- Add an explicit note about how `test-results.json` is normalized when the underlying framework cannot emit JSON (store wrapper with stdout/stderr + metadata).
++- Clarify the “continue on partial data” contract (coverage-only vs cycle-only vs full report) to reduce brittle failures.
++
++## P2 Gaps (Optional)
++
++- Add lightweight heuristics for mapping TEST tasks to specific test commands (e.g., prefer `npm test` when `package.json` exists even if no known framework keyword is found).
++- Add a brief “cross-platform” note: prefer PowerShell-friendly equivalents when presenting verify commands (the command itself can stay Bash-based).
++
++## Implementation Pointers (Evidence)
++
++You MUST provide an evidence table for all key implementation pointers mentioned in the outlines.
++
++Rules (P0):
++- Every pointer MUST be labeled `Existing` or `Planned`.
++- `Existing` MUST be verifiable (path exists). Include a concrete `Verify` command for each existing pointer.
++- Do NOT describe `Planned` pointers as “validated/exists”.
++- Evidence MUST reference BOTH sources somewhere in this section:
++  - command docs: `.claude/commands/**.md` (section heading is enough)
++  - TypeScript implementation: `ccw/src/**` (function name / subcommand case / ripgrep-able string)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/workflow/tools/tdd-coverage-analysis.md` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Overview` ; ts: `ccw/src/tools/session-manager.ts` / `.workflow/active` | `Test-Path .claude/commands/workflow/tools/tdd-coverage-analysis.md` | Canonical behavior + artifact contract for this tool command |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Output Files` ; ts: `ccw/src/tools/session-manager.ts` / `ACTIVE_BASE` | `Test-Path ccw/src/tools/session-manager.ts` | Defines session storage roots and routing for `.process/` artifacts |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/tools/code-validation-gate.md` / `Overview` ; ts: `ccw/src/core/routes/commands-routes.ts` / `getCommandsDir` | `Test-Path ccw/src/core/routes/commands-routes.ts` | Command corpus discovery/management for `.claude/commands/**` |
++
++## Implementation Hints (Tooling/Server)
++
++- Session storage conventions (`.workflow/active/<id>/.process/`) are standardized in `ccw/src/tools/session-manager.ts`; keep artifacts aligned to avoid breaking downstream commands (e.g., `/workflow:tdd-verify`).
++- Command docs are managed by the Commands routes; avoid assuming only flat `.claude/commands/workflow/*.md` layouts.
++
++## Proposed Fix Plan (Minimal)
++
++1. In the command doc, clarify the normalization strategy for `test-results.json` when native JSON output is unavailable (P1).
++2. In the command doc, document partial-success behavior (coverage-only vs cycle-only) and ensure the report always emits actionable next steps (P1).
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..32cdf72c95019924cacab517c400be987e191e1f
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,40 @@
++# Agent Outline: workflow:tools:tdd-coverage-analysis
++
++## Purpose
++
++Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
++
++## Execution Model
++
++- Default: single-shot analysis (no interactive rounds)
++- Primary operations:
++  - run tests with coverage (Bash)
++  - read session artifacts (Read)
++  - write standardized reports (Write)
++
++## State & Artifacts
++
++- Session scope: `.workflow/active/{session_id}/`
++- Required outputs:
++  - `.workflow/active/{session_id}/.process/test-results.json`
++  - `.workflow/active/{session_id}/.process/coverage-report.json`
++  - `.workflow/active/{session_id}/.process/tdd-cycle-report.md`
++
++## Tooling
++
++- Allowed tools: Read(*), Write(*), Bash(*)
++- Non-negotiables:
++  - no unrelated changes
++  - do not claim implementation pointers are Existing unless verifiable in-repo
++
++## Validation Strategy
++
++- P0 doc gates:
++  - frontmatter: `name`, `description`, `allowed-tools`
++  - required sections: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling
++  - no broken artifact references (paths are either created by the command or documented as pre-existing)
++- Evidence gates:
++  - add/update evidence tables in generated outlines/gap report and verify with:
++    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md`
++    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/gap-report.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..99a22e3687c1a2221982ceee3f1b1e8188393d47
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,109 @@
++---
++name: tdd-coverage-analysis
++description: Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification
++argument-hint: "--session WFS-session-id"
++allowed-tools: Read(*), Write(*), Bash(*)
++group: workflow
++---
++
++# TDD Coverage Analysis Command
++
++## Overview
++
++- Goal: Generate session-scoped test coverage metrics and verify Red-Green-Refactor compliance across TDD task chains.
++- Command: `/workflow:tools:tdd-coverage-analysis`
++
++## Usage
++
++```bash
++/workflow:tools:tdd-coverage-analysis --session WFS-session-id
++```
++
++## Inputs
++
++- Required inputs:
++  - `--session <WFS-session-id>`: workflow session to analyze (under `.workflow/active/<session_id>/`)
++- Optional inputs:
++  - None (framework detection is automatic; fallback behavior is described below)
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/active/{session_id}/.process/test-results.json`
++  - `.workflow/active/{session_id}/.process/coverage-report.json`
++  - `.workflow/active/{session_id}/.process/tdd-cycle-report.md`
++- Reads:
++  - `.workflow/active/{session_id}/.task/TEST-*.json` (to discover test focus paths / test intent)
++  - `.workflow/active/{session_id}/.summaries/*-summary.md` (to validate Red/Green/Refactor chain behavior)
++  - project test config files (e.g. `package.json`, `pytest.ini`, `Cargo.toml`, `go.mod`)
++
++## Implementation Pointers
++
++- Command doc (oracle): `.claude/commands/workflow/tools/tdd-coverage-analysis.md`
++- Likely code locations (repo capabilities used by this command):
++  - `ccw/src/tools/session-manager.ts` (session-scoped file routing: `.process/`, `.task/`, `.summaries/`)
++  - `ccw/src/core/routes/commands-routes.ts` (command discovery/management for `.claude/commands/**`)
++
++### Evidence (Existing vs Planned)
++
++You MUST label each pointer as `Existing` (verifiable in repo now) or `Planned` (will be created/modified).
++
++Rules:
++- `Existing` MUST include evidence from BOTH:
++  - a command doc source: `.claude/commands/**.md` (section heading is sufficient)
++  - a TypeScript source: `ccw/src/**` (function name / subcommand case / a ripgrep-able string)
++- If you cannot verify, downgrade to `Planned` and add a concrete `Verify` step (e.g. `Test-Path <path>`, `rg "<pattern>" <path>`).
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/workflow/tools/tdd-coverage-analysis.md` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Overview` ; ts: `ccw/src/tools/session-manager.ts` / `.workflow/active` | `Test-Path .claude/commands/workflow/tools/tdd-coverage-analysis.md` | Authoritative command behavior and artifact contract |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Output Files` ; ts: `ccw/src/tools/session-manager.ts` / `PATH_ROUTES` | `Test-Path ccw/src/tools/session-manager.ts` | Defines session file routing for `.process/`, `.task/`, `.summaries/` used by analysis |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/tools/tdd-coverage-analysis.md` / `Integration & Usage` ; ts: `ccw/src/core/routes/commands-routes.ts` / `handleCommandsRoutes` | `Test-Path ccw/src/core/routes/commands-routes.ts` | CCW command corpus management (enables/disables and lists command docs) |
++
++## Execution Process
++
++1. Parse `--session` and validate the session folder exists: `.workflow/active/{session_id}/`.
++2. Ensure `.workflow/active/{session_id}/.process/` exists (create if missing).
++3. Extract test focus paths (best-effort):
++   - Read `.workflow/active/{session_id}/.task/TEST-*.json`.
++   - If `jq` is available, extract `.context.focus_paths[]` into a working set of paths; otherwise, proceed without narrowing scope.
++4. Detect test framework (best-effort heuristics):
++   - Node.js: `package.json` contains `jest|mocha|vitest` or a `test` script.
++   - Python: `pytest.ini` or `setup.py` present.
++   - Rust: `Cargo.toml` present.
++   - Go: `go.mod` present.
++5. Run the test command with coverage and capture machine-readable output:
++   - Write raw output into `.workflow/active/{session_id}/.process/test-results.json` (format depends on framework; if JSON is not available, store a JSON wrapper with stdout/stderr + detected framework).
++6. Parse coverage metrics into `.workflow/active/{session_id}/.process/coverage-report.json`:
++   - Prefer extracting line/branch/function coverage; when unavailable, record `unknown` with a reason.
++7. Verify TDD cycle execution from summaries:
++   - Enumerate chains `TEST-* -> IMPL-* -> REFACTOR-*` using `.workflow/active/{session_id}/.summaries/*-summary.md`.
++   - For each chain, classify:
++     - Red: evidence tests were created and initially failed.
++     - Green: evidence implementation made tests pass.
++     - Refactor: evidence refactor occurred while staying green (optional but scored).
++8. Generate `.workflow/active/{session_id}/.process/tdd-cycle-report.md`:
++   - Coverage metrics summary
++   - Per-chain verification (PASS/WARN/FAIL) + short rationale
++   - Compliance score (0-100) and gaps/recommendations
++
++## Error Handling
++
++- Missing/invalid `--session`:
++  - Explain required format and point to `.workflow/active/<session_id>/`.
++- Session missing expected directories:
++  - If `.task/` missing: warn that TEST tasks cannot be discovered; continue with coverage-only analysis.
++  - If `.summaries/` missing: warn that TDD cycle verification cannot run; continue with coverage-only analysis.
++- Test framework not detected:
++  - Fail with a clear message listing what was checked and how to override via project setup.
++- Test command fails:
++  - Record failure details (stderr/stdout) into `test-results.json` wrapper and mark coverage as unavailable; still emit `tdd-cycle-report.md` with actionable next steps.
++- Coverage data missing/unparseable:
++  - Emit `coverage-report.json` with `unknown` values + reason; do not crash the command.
++
++## Examples
++
++```bash
++/workflow:tools:tdd-coverage-analysis --session WFS-auth
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..67d41e8d6860ef5e4069dc733af5e1daaf7173e0
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/references.json
+@@ -0,0 +1,40 @@
++{
++  "candidates": [
++    {
++      "slash": "/workflow:tools:code-validation-gate",
++      "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
++      "score": 92,
++      "why": "Same workflow/tools family; Bash-driven analysis + gating; strong error handling patterns; writes artifacts under .workflow/active/{session}/."
++    },
++    {
++      "slash": "/workflow:tdd-verify",
++      "file_path": ".claude/commands/workflow/tdd-verify.md",
++      "score": 90,
++      "why": "Direct orchestrator that calls /workflow:tools:tdd-coverage-analysis and consumes its artifacts; defines expected output contract."
++    },
++    {
++      "slash": "/workflow:tools:test-context-gather",
++      "file_path": ".claude/commands/workflow/tools/test-context-gather.md",
++      "score": 78,
++      "why": "Produces standardized .workflow/active/{session}/.process artifacts and includes detection-first flow; tool surface differs (Task/Glob)."
++    },
++    {
++      "slash": "/workflow:tools:test-concept-enhanced",
++      "file_path": ".claude/commands/workflow/tools/test-concept-enhanced.md",
++      "score": 70,
++      "why": "Test/coverage-related analysis workflows and structured reporting; uses external LLM tooling patterns not needed here."
++    },
++    {
++      "slash": "/workflow:tools:context-gather",
++      "file_path": ".claude/commands/workflow/tools/context-gather.md",
++      "score": 62,
++      "why": "Shows session-scoped artifact conventions under .workflow/active and tool orchestration patterns; tool surface differs (Task/Glob)."
++    }
++  ],
++  "selected": {
++    "slash": "/workflow:tools:code-validation-gate",
++    "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
++    "why": "Closest match for a Bash-only workflow tool command that runs checks, emits structured artifacts, and documents clear failure modes."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..656dac600c30f2b9c0a3d86f76ca0d996c8794c1
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-063/specs/outputs/spec.json
+@@ -0,0 +1,50 @@
++{
++  "command": {
++    "group": "workflow",
++    "subgroup": "tools",
++    "name": "tdd-coverage-analysis",
++    "description": "Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification",
++    "argument_hint": "--session WFS-session-id",
++    "allowed_tools": ["Read(*)", "Write(*)", "Bash(*)"]
++  },
++  "intent": {
++    "type": "analyze",
++    "interaction": "single-shot",
++    "primary_user_value": "Run the project's test suite with coverage and verify Red-Green-Refactor task chains for a workflow session, producing a concise compliance report."
++  },
++  "artifacts": {
++    "reads": [
++      ".workflow/active/{session_id}/.task/TEST-*.json",
++      ".workflow/active/{session_id}/.summaries/TEST-*-summary.md",
++      ".workflow/active/{session_id}/.summaries/IMPL-*-summary.md",
++      ".workflow/active/{session_id}/.summaries/REFACTOR-*-summary.md",
++      "package.json",
++      "pytest.ini",
++      "setup.py",
++      "Cargo.toml",
++      "go.mod"
++    ],
++    "writes": [
++      ".workflow/active/{session_id}/.process/test-results.json",
++      ".workflow/active/{session_id}/.process/coverage-report.json",
++      ".workflow/active/{session_id}/.process/tdd-cycle-report.md"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 1,
++    "time_budget_seconds": 0,
++    "must_not": [
++      "Must not edit source code or workflow task inputs",
++      "Must not delete or overwrite existing session artifacts without explicit user intent"
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "Frontmatter includes: name, description, allowed-tools",
++      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
++      "Implementation pointers labeled Existing vs Planned with dual-source evidence (docs + TS) and concrete Verify commands",
++      "Evidence tables pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js"
++    ]
++  }
++}
++
+
+tokens used
+141,974

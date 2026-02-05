@@ -1,0 +1,57 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "debug-with-file",
+    "description": "Interactive hypothesis-driven debugging with documented exploration, understanding evolution, and Gemini-assisted correction",
+    "argument_hint": "[-y|--yes] \"bug description or error message\"",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Grep(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)"
+    ]
+  },
+  "intent": {
+    "type": "analyze",
+    "interaction": "iterative",
+    "primary_user_value": "Debug a concrete bug with evidence (instrumented logs) while preserving a durable understanding timeline and corrected hypotheses"
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/.debug/DBG-<bugSlug>-<YYYY-MM-DD>/understanding.md",
+      ".workflow/.debug/DBG-<bugSlug>-<YYYY-MM-DD>/debug.log",
+      ".workflow/.debug/DBG-<bugSlug>-<YYYY-MM-DD>/hypotheses.json",
+      "<project source files>"
+    ],
+    "writes": [
+      ".workflow/.debug/DBG-<bugSlug>-<YYYY-MM-DD>/understanding.md",
+      ".workflow/.debug/DBG-<bugSlug>-<YYYY-MM-DD>/debug.log",
+      ".workflow/.debug/DBG-<bugSlug>-<YYYY-MM-DD>/hypotheses.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 12,
+    "time_budget_seconds": 5400,
+    "must_not": [
+      "no destructive ops without explicit user request",
+      "do not expose secrets/sensitive info in debug logs",
+      "do not perform security testing or behavior-changing instrumentation",
+      "remove temporary debug instrumentation after resolution"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name/description/allowed-tools/group)",
+      "allowed-tools matches intended workflow (interactive + file artifacts)",
+      "core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
+      "evidence tables pass verify-evidence.js (dual-source docs+ts)",
+      "no false Existing claims for runtime artifacts under .workflow/.debug"
+    ]
+  }
+}
+

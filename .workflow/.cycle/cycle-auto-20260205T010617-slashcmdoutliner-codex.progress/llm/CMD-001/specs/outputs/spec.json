@@ -1,0 +1,49 @@
+{
+  "command": {
+    "group": null,
+    "name": "ccw-coordinator",
+    "description": "Command orchestration tool - analyze requirements, recommend chain, execute sequentially with state persistence",
+    "argument_hint": "[task description]",
+    "allowed_tools": [
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Write(*)",
+      "Bash(*)",
+      "Glob(*)",
+      "Grep(*)"
+    ]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "iterative",
+    "primary_user_value": "Turn a task description into a confirmed CCW command chain and execute it sequentially while persisting state."
+  },
+  "artifacts": {
+    "reads": [
+      ".claude/commands/**/*.md",
+      ".workflow/.ccw-coordinator/**/state.json"
+    ],
+    "writes": [
+      ".workflow/.ccw-coordinator/<session_id>/state.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 12,
+    "time_budget_seconds": 900,
+    "must_not": [
+      "run commands in parallel; execute one-by-one",
+      "poll TaskOutput for background tasks; rely on hooks/explicit completion signals",
+      "perform destructive operations without explicit user request"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter has name/description/allowed-tools",
+      "allowed-tools matches requirement",
+      "core sections present (Overview, Usage, Execution Process, Outputs / Artifacts, Error Handling)",
+      "evidence tables pass node .codex/skills/slash-command-outliner/scripts/verify-evidence.js"
+    ]
+  }
+}
+

@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "cycle_id": "cycle-auto-20260205T010617-slashcmdoutliner-codex",
+  "command_id": "CMD-013",
+  "scoring": {
+    "weights": {
+      "same_group": 0.4,
+      "similar_intent_execute": 0.25,
+      "uses_ask_user_question": 0.15,
+      "uses_bash": 0.1,
+      "uses_todowrite": 0.1
+    },
+    "notes": "Score is a weighted sum of matched criteria based on command frontmatter allowed-tools and doc intent."
+  },
+  "candidates": [
+    {
+      "slash": "/issue:execute",
+      "file_path": ".claude/commands/issue/execute.md",
+      "score": 1,
+      "why": [
+        "same group (issue)",
+        "execute intent",
+        "AskUserQuestion + Bash + TodoWrite present"
+      ]
+    },
+    {
+      "slash": "/issue:queue",
+      "file_path": ".claude/commands/issue/queue.md",
+      "score": 0.75,
+      "why": [
+        "same group (issue)",
+        "queue-focused workflow + orchestration patterns",
+        "AskUserQuestion present"
+      ]
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 0.5,
+      "why": [
+        "execute intent",
+        "orchestrates multi-step execution + validation"
+      ]
+    },
+    {
+      "slash": "/workflow:test-cycle-execute",
+      "file_path": ".claude/commands/workflow/test-cycle-execute.md",
+      "score": 0.5,
+      "why": [
+        "execute-loop style with batch/iteration",
+        "emphasizes non-regression and validation"
+      ]
+    },
+    {
+      "slash": "/issue:plan",
+      "file_path": ".claude/commands/issue/plan.md",
+      "score": 0.4,
+      "why": [
+        "same group (issue)",
+        "shares issue domain state + artifacts"
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/issue:execute",
+    "file_path": ".claude/commands/issue/execute.md",
+    "why": "Oracle command doc exists in-repo and exactly matches CMD-013 identity/tools; use it as the primary reference for structure and contracts."
+  }
+}
+

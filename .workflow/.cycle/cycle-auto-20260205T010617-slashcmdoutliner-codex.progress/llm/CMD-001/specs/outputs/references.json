@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/codex-coordinator",
+      "file_path": ".claude/commands/codex-coordinator.md",
+      "score": 0.95,
+      "why": "Closest top-level coordinator analogue: analyze -> recommend chain -> confirm -> sequential execution + state persistence."
+    },
+    {
+      "slash": "/ccw",
+      "file_path": ".claude/commands/ccw.md",
+      "score": 0.85,
+      "why": "Main workflow orchestrator; defines minimum execution units and chain execution model used by coordinators."
+    },
+    {
+      "slash": "/ccw-plan",
+      "file_path": ".claude/commands/ccw-plan.md",
+      "score": 0.75,
+      "why": "Coordinator-style command with staged workflow and strategy selection (planning unit)."
+    },
+    {
+      "slash": "/ccw-debug",
+      "file_path": ".claude/commands/ccw-debug.md",
+      "score": 0.65,
+      "why": "Similar multi-step coordinator pattern with explicit validation and tool-gated execution."
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 0.55,
+      "why": "Representative chain element; provides argument patterns and artifact expectations for planning steps."
+    }
+  ],
+  "selected": {
+    "slash": "/codex-coordinator",
+    "file_path": ".claude/commands/codex-coordinator.md",
+    "why": "Strongest match on interaction model, orchestration responsibilities, and state persistence."
+  }
+}
+

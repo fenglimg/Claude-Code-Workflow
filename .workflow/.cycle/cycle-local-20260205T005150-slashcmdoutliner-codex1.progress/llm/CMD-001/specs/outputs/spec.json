@@ -1,0 +1,49 @@
+{
+  "command": {
+    "group": "",
+    "name": "ccw-coordinator",
+    "description": "Command orchestration tool - analyze requirements, recommend chain, execute sequentially with state persistence",
+    "argument_hint": "[task description]",
+    "allowed_tools": [
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Write(*)",
+      "Bash(*)",
+      "Glob(*)",
+      "Grep(*)"
+    ]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "iterative",
+    "primary_user_value": "Analyze a task, recommend an ordered CCW command chain, then execute it sequentially with persisted state and resume support."
+  },
+  "artifacts": {
+    "reads": [
+      ".claude/commands/**/*.md",
+      ".workflow/.ccw-coordinator/{session_id}/state.json"
+    ],
+    "writes": [
+      ".workflow/.ccw-coordinator/{session_id}/state.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 0,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "do not claim pointers are Existing unless verifiable in repo",
+      "do not leak full oracle command doc content into the spec",
+      "no destructive operations without explicit user request"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name, description, allowed-tools)",
+      "allowed-tools correct for described workflow",
+      "core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
+      "evidence tables pass verify-evidence.js"
+    ]
+  }
+}
+

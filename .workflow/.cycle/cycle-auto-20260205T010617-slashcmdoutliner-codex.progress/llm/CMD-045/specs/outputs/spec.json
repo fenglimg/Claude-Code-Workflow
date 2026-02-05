@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-02-05T06:15:37.266Z",
+  "source": {
+    "type": "requirements_doc",
+    "path": ".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-045.requirements.md",
+    "oracle_command_doc": ".claude/commands/workflow/review-cycle-fix.md"
+  },
+  "command": {
+    "group": "workflow",
+    "name": "review-cycle-fix",
+    "description": "Automated fixing of code review findings with AI-powered planning and coordinated execution. Uses intelligent grouping, multi-stage timeline coordination, and test-driven verification.",
+    "argument_hint": "<export-file|review-dir> [--resume] [--max-iterations=N] [--batch-size=N]",
+    "usage_args": "<export-file|review-dir> [--resume] [--max-iterations=N] [--batch-size=N]",
+    "allowed_tools": [
+      "Skill(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Bash(*)",
+      "Task(*)",
+      "Edit(*)",
+      "Write(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "loop",
+    "primary_user_value": "Fix an exported set of review findings by batching related items, planning in parallel, executing fixes with conservative test verification, and tracking progress with resumable state."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/*/.review/fix-export-*.json",
+      ".workflow/active/*/.review/",
+      ".workflow/active/*/.review/active-fix-session.json",
+      ".workflow/active/*/.review/fixes/*/fix-plan.json",
+      ".workflow/active/*/.review/fixes/*/fix-progress-*.json"
+    ],
+    "writes": [
+      ".workflow/active/*/.review/active-fix-session.json",
+      ".workflow/active/*/.review/fixes/*/",
+      ".workflow/active/*/.review/fixes/*/partial-plan-*.json",
+      ".workflow/active/*/.review/fixes/*/fix-plan.json",
+      ".workflow/active/*/.review/fixes/*/fix-progress-*.json",
+      ".workflow/active/*/.review/fixes/*/logs/*"
+    ]
+  },
+  "constraints": {
+    "defaults": {
+      "max_iterations_per_finding": 3,
+      "batch_size": 5,
+      "max_parallel_planning_agents": 10
+    },
+    "must_not": [
+      "Do not claim pointers are Existing unless verifiable in-repo.",
+      "Do not expose secrets or user-specific paths in outputs.",
+      "Do not keep fixes that fail tests (rollback and retry up to max-iterations)."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Command doc frontmatter: name + description + allowed-tools (+ argument-hint recommended).",
+      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling.",
+      "Supports three entry modes: export-file, review-dir auto-discovery, and --resume.",
+      "Implements Phase 1.5 batching + Phase 2 parallel planning + Phase 3 stage-based execution.",
+      "Produces fix session artifacts: partial plans, aggregated fix-plan, per-group progress, logs.",
+      "Evidence table rows are labeled Existing|Planned and pass verify-evidence.js (dual-source docs + TS anchors)."
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/review-cycle-fix.md",
+    "code_pointers": [
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/core/services/flow-executor.ts",
+      ".claude/agents/cli-planning-agent.md",
+      ".claude/agents/cli-execution-agent.md"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      { "level": 1, "text": "Workflow Review-Cycle-Fix Command" },
+      { "level": 2, "text": "Quick Start" },
+      { "level": 2, "text": "What & Why" },
+      { "level": 3, "text": "Core Concept" },
+      { "level": 3, "text": "Value Proposition" },
+      { "level": 3, "text": "Orchestrator Boundary (CRITICAL)" },
+      { "level": 3, "text": "Execution Flow" },
+      { "level": 3, "text": "Agent Roles" },
+      { "level": 2, "text": "Enhanced Features" },
+      { "level": 2, "text": "Core Responsibilities" },
+      { "level": 3, "text": "Orchestrator" },
+      { "level": 3, "text": "Output File Structure" },
+      { "level": 3, "text": "Agent Invocation Template" },
+      { "level": 2, "text": "Input Data" },
+      { "level": 2, "text": "Output Requirements" },
+      { "level": 2, "text": "Analysis Requirements" },
+      { "level": 2, "text": "Output Files" },
+      { "level": 2, "text": "Quality Checklist" },
+      { "level": 2, "text": "Execution Flow" },
+      { "level": 3, "text": "Main Execution Loop" },
+      { "level": 2, "text": "Critical Requirements" },
+      { "level": 2, "text": "Test Patterns" },
+      { "level": 2, "text": "Related Commands" }
+    ]
+  }
+}
+

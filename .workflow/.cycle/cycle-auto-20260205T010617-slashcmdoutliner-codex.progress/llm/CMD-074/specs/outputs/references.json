@@ -1,0 +1,39 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:ui-design:animation-extract",
+      "file_path": ".claude/commands/workflow/ui-design/animation-extract.md",
+      "score": 92,
+      "why": "Closest interaction/tool surface: UI-design extraction family; supports refine + interactive; uses Task(ui-design-agent) + Bash/AskUserQuestion similar to layout-extract."
+    },
+    {
+      "slash": "/workflow:ui-design:style-extract",
+      "file_path": ".claude/commands/workflow/ui-design/style-extract.md",
+      "score": 88,
+      "why": "Same explore/refine + variants + interactive selection pattern; differs mainly by not using Task(ui-design-agent)."
+    },
+    {
+      "slash": "/workflow:ui-design:generate",
+      "file_path": ".claude/commands/workflow/ui-design/generate.md",
+      "score": 74,
+      "why": "Shares base_path + design-id/session conventions and writes UI artifacts; complements layout-extract as a downstream consumer of layout templates."
+    },
+    {
+      "slash": "/workflow:ui-design:import-from-code",
+      "file_path": ".claude/commands/workflow/ui-design/import-from-code.md",
+      "score": 66,
+      "why": "Uses parallel agent analysis and writes intermediates; helpful for patterns around .intermediates/ organization and validation steps."
+    },
+    {
+      "slash": "/workflow:ui-design:explore-auto",
+      "file_path": ".claude/commands/workflow/ui-design/explore-auto.md",
+      "score": 62,
+      "why": "Orchestrator that composes ui-design subcommands (including layout-extract); useful for conventions around chaining, session folders, and progress reporting."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:ui-design:animation-extract",
+    "file_path": ".claude/commands/workflow/ui-design/animation-extract.md",
+    "reason": "Most similar allowed-tools and execution structure for an extraction command that delegates deep analysis to Task(ui-design-agent), with optional interactive selection and refinement mode."
+  }
+}

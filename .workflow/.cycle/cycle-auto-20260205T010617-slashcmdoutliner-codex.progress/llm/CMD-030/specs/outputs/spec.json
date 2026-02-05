@@ -1,0 +1,53 @@
+{
+  "command": {
+    "group": "workflow:brainstorm",
+    "name": "role-analysis",
+    "description": "Unified role-specific analysis generation with interactive context gathering and incremental updates",
+    "argument_hint": "[role-name] [--session session-id] [--update] [--include-questions] [--skip-questions]",
+    "allowed_tools": [
+      "Task(conceptual-planning-agent)",
+      "AskUserQuestion(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Glob(*)"
+    ]
+  },
+  "intent": {
+    "type": "brainstorm",
+    "interaction": "iterative",
+    "primary_user_value": "Generate or update a single role's analysis file under an active brainstorming session, optionally asking role/framework-aware clarification questions and merging incremental updates."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/{session-id}/.brainstorming/guidance-specification.md",
+      ".workflow/active/{session-id}/.process/context-package.json",
+      ".workflow/active/{session-id}/.process/test-context-package.json",
+      ".workflow/active/{session-id}/.brainstorming/{role-name}/analysis*.md (update mode)"
+    ],
+    "writes": [
+      ".workflow/active/{session-id}/.brainstorming/{role-name}/analysis*.md",
+      ".workflow/active/{session-id}/.brainstorming/{role-name}/error.log (on failure)"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 3,
+    "time_budget_seconds": 1200,
+    "must_not": [
+      "Do not claim implementation pointers are Existing unless verifiable in-repo",
+      "Do not omit dual-source evidence (docs + TS) for evidence table rows",
+      "Avoid destructive filesystem operations unless explicitly requested by the user"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter complete (name/description/allowed-tools/argument-hint/group)",
+      "allowed-tools matches required workflow behavior",
+      "core sections present (Overview/Usage/Execution Process/Outputs/Error Handling)",
+      "artifact references are not broken (either existing or explicitly runtime/planned)",
+      "evidence tables pass verify-evidence.js"
+    ]
+  }
+}
+

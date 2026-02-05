@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 1.0,
+      "why": "Exact target command (oracle) for required behavior, flags, and section structure."
+    },
+    {
+      "slash": "/workflow:unified-execute-with-file",
+      "file_path": ".claude/commands/workflow/unified-execute-with-file.md",
+      "score": 0.92,
+      "why": "Similar execution engine: auto/interactive modes, multi-agent coordination, progress tracking, and optional commit behavior."
+    },
+    {
+      "slash": "/workflow:lite-execute",
+      "file_path": ".claude/commands/workflow/lite-execute.md",
+      "score": 0.85,
+      "why": "Execution orchestration with TodoWrite + Task, dependency grouping, and --yes defaults."
+    },
+    {
+      "slash": "/workflow:test-cycle-execute",
+      "file_path": ".claude/commands/workflow/test-cycle-execute.md",
+      "score": 0.8,
+      "why": "Resumable, iterative execution loop with session awareness and Task orchestration."
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 0.75,
+      "why": "Shares session discovery/selection patterns and hands off execution to /workflow:execute."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:execute",
+    "file_path": ".claude/commands/workflow/execute.md",
+    "why": "Use the target command doc as the oracle reference for section coverage and runtime semantics."
+  }
+}
+

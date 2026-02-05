@@ -1,0 +1,57 @@
+{
+  "candidates": [
+    {
+      "slash": "/memory:tips",
+      "file_path": ".claude/commands/memory/tips.md",
+      "score": 1.0,
+      "why": [
+        "Exact command match (same group/name)",
+        "Same tool surface: mcp__ccw-tools__core_memory + Read",
+        "Defines structured output + import into core_memory"
+      ]
+    },
+    {
+      "slash": "/memory:compact",
+      "file_path": ".claude/commands/memory/compact.md",
+      "score": 0.86,
+      "why": [
+        "Same group (memory) and same persistence target (core_memory)",
+        "Similar structured-output-first pattern",
+        "Emphasizes capture + later retrieval"
+      ]
+    },
+    {
+      "slash": "/memory:update-related",
+      "file_path": ".claude/commands/memory/update-related.md",
+      "score": 0.74,
+      "why": [
+        "Same group and uses core_memory for updates",
+        "Has workflow for adding metadata/tags/context to improve retrieval"
+      ]
+    },
+    {
+      "slash": "/memory:load",
+      "file_path": ".claude/commands/memory/load.md",
+      "score": 0.68,
+      "why": [
+        "Same group; focuses on retrieval/rehydration of memory",
+        "Useful for aligning search/retrieval guidance"
+      ]
+    },
+    {
+      "slash": "/memory:update-full",
+      "file_path": ".claude/commands/memory/update-full.md",
+      "score": 0.61,
+      "why": [
+        "Same group; illustrates a more complete memory update lifecycle",
+        "Good reference for quality checklist + error handling patterns"
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/memory:tips",
+    "file_path": ".claude/commands/memory/tips.md",
+    "reason": "Exact match reference; use as oracle for headings/sections without copying full contents"
+  }
+}
+

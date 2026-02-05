@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/lite-plan.md",
+  "created_at": "2026-02-05T01:06:17.000Z",
+  "command": {
+    "group": "workflow",
+    "name": "lite-plan",
+    "description": "Lightweight interactive planning workflow with in-memory planning, code exploration, and execution execute to lite-execute after user confirmation",
+    "argument_hint": "[-y|--yes] [-e|--explore] \"task description\"|file.md",
+    "usage_args": "[-y|--yes] [-e|--explore] \"task description\"|file.md",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "Skill(*)",
+      "AskUserQuestion(*)"
+    ]
+  },
+  "intent": {
+    "type": "plan",
+    "interaction": "iterative",
+    "primary_user_value": "Produce a lightweight, interactive implementation plan with optional multi-angle code exploration, then hand off an execution context to /workflow:lite-execute after user confirmation."
+  },
+  "artifacts": {
+    "reads": [
+      ".claude/commands/workflow/lite-plan.md",
+      "~/.claude/workflows/cli-templates/schemas/plan-json-schema.json"
+    ],
+    "writes": [
+      ".workflow/.lite-plan/{session-id}/exploration-{angle}.json",
+      ".workflow/.lite-plan/{session-id}/explorations-manifest.json",
+      ".workflow/.lite-plan/{session-id}/planning-context.md",
+      ".workflow/.lite-plan/{session-id}/plan.json",
+      ".workflow/.lite-plan/{session-id}/execution-context.json"
+    ]
+  },
+  "constraints": {
+    "must_not": [
+      "Execute code during planning phases (Phase 1-3).",
+      "Claim outputs/paths exist unless they are verifiable in-repo (label pointers Existing vs Planned with evidence).",
+      "Leak large user-provided file contents into the plan when size is high; switch to exploration agent workflow."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter valid: name/description/allowed-tools present",
+      "allowed-tools matches described behavior (TodoWrite/Task/Skill/AskUserQuestion only)",
+      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
+      "Implementation pointers evidence-based (Existing vs Planned; dual-source docs+TS; concrete Verify for Existing)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/lite-plan.md",
+    "code_pointers": [
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/commands/session-path-resolver.ts",
+      "ccw/src/core/lite-scanner.ts",
+      "ccw/src/core/services/flow-executor.ts"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      { "level": 1, "text": "Workflow Lite-Plan Command (/workflow:lite-plan)" },
+      { "level": 2, "text": "Overview" },
+      { "level": 2, "text": "Usage" },
+      { "level": 1, "text": "Flags" },
+      { "level": 1, "text": "Arguments" },
+      { "level": 1, "text": "Examples" },
+      { "level": 2, "text": "Output Artifacts" },
+      { "level": 2, "text": "Auto Mode Defaults" },
+      { "level": 2, "text": "Execution Process" },
+      { "level": 2, "text": "Implementation" },
+      { "level": 3, "text": "Phase 1: Intelligent Multi-Angle Exploration" },
+      { "level": 2, "text": "Exploration Plan" },
+      { "level": 2, "text": "Task Objective" },
+      { "level": 2, "text": "Output Location" },
+      { "level": 2, "text": "Assigned Context" },
+      { "level": 2, "text": "MANDATORY FIRST STEPS (Execute by Agent)" },
+      { "level": 2, "text": "Exploration Strategy (${angle} focus)" },
+      { "level": 2, "text": "Expected Output" },
+      { "level": 2, "text": "Success Criteria" },
+      { "level": 2, "text": "Execution" },
+      { "level": 2, "text": "Exploration Complete" },
+      { "level": 3, "text": "Phase 2: Clarification (Optional, Multi-Round)" },
+      { "level": 3, "text": "Phase 3: Planning" },
+      { "level": 2, "text": "Output Schema Reference" },
+      { "level": 2, "text": "Project Context (MANDATORY - Read Both Files)" },
+      { "level": 2, "text": "Task Description" },
+      { "level": 2, "text": "Multi-Angle Exploration Context" },
+      { "level": 2, "text": "User Clarifications" },
+      { "level": 2, "text": "Complexity Level" },
+      { "level": 2, "text": "Requirements" },
+      { "level": 2, "text": "Task Grouping Rules" },
+      { "level": 3, "text": "Phase 4: Task Confirmation & Execution Selection" },
+      { "level": 2, "text": "Implementation Plan" },
+      { "level": 3, "text": "Phase 5: Execute to Execution" },
+      { "level": 2, "text": "Session Folder Structure" },
+      { "level": 2, "text": "Error Handling" }
+    ]
+  }
+}
+

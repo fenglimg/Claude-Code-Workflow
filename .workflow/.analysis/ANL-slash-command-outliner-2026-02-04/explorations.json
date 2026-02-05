@@ -1,0 +1,46 @@
+{
+  "session_id": "ANL-slash-command-outliner-2026-02-04",
+  "timestamp": "2026-02-04T22:11:13+08:00",
+  "topic": "讨论 slash-command-outliner 具体在做什么，当前还有没有优化的空间呢？",
+  "dimensions": ["implementation", "architecture", "performance"],
+  "sources": [
+    {
+      "type": "codebase",
+      "summary": "Reviewed slash-command-outliner skill docs, specs, templates, and deterministic Node scripts (scan/derive/generate/gap/regress)"
+    },
+    {
+      "type": "examples",
+      "summary": "Reviewed skill-generated example outputs for /learn:profile (slash outline + gap report + execution summary) to understand LLM output characteristics and quality risks"
+    }
+  ],
+  "key_findings": [
+    "Skill 提供 5 阶段 workflow（spec → references → outlines → gap-report → regression）",
+    "提供确定性脚本用于 corpus 扫描、spec 推导、outline 生成、gap-report、全量回归快照门禁",
+    "implementation-hints 通过命令文档文本 + tooling-manifest.files 做启发式打分，输出 code pointers",
+    "regress-all 对每个命令会重复调用 findImplementationHints，并且每次全量读取 tooling 文件，存在明显性能优化空间",
+    "templates/*.md 与 pipeline.js 的手工拼接生成存在潜在漂移风险",
+    "示例输出（/learn:profile）的高质量 gap-report/outline 是 LLM 产物，deterministic 脚本更多用于回归与格式门禁；因此对话场景的质量优化应侧重“模板/门禁证据化”而非 skeleton 生成",
+    "示例 gap-report/outline 将多处 planned 路径（当前仓库并不存在）描述为“已验证/有效”，存在可验证性不足与幻觉风险（例如 .claude/commands/learn/profile.md、ccw/src/commands/learn/profile.ts、ccw/schemas/learn/profile-schema.json 均不存在）"
+  ],
+  "discussion_points": [
+    "使用场景优先级：生成提纲质量 vs 回归速度/稳定性",
+    "是否需要补齐 quality-gates 中未被确定性校验覆盖的项（例如 artifacts 引用）",
+    "implementation hints 的目标偏好：更准（少误报）还是更全（多候选）",
+    "gap-report 如何强制区分 existing vs planned，并对关键断言提供 evidence（避免幻觉）"
+  ],
+  "open_questions": [
+    "你目前如何触发/使用 slash-command-outliner（对话 skill vs 主要跑脚本）？",
+    "tooling-manifest.json 的生成流程在哪里（哪个命令/脚本负责）？",
+    "你希望 Evidence 的最低可验证标准是什么：仅路径存在性（exists）就够，还是还要包含“在哪个文件/函数/段落体现该模式”的更细粒度引用？",
+    "你希望先改模板/phase/spec 文档（影响对话产物），还是同步增加确定性校验脚本（影响自动门禁）？"
+  ],
+  "relevant_files": [
+    ".claude/skills/slash-command-outliner/scripts/lib/implementation-hints.js",
+    ".claude/skills/slash-command-outliner/scripts/regress-all.js",
+    ".claude/skills/slash-command-outliner/scripts/lib/pipeline.js",
+    ".claude/skills/slash-command-outliner/specs/quality-gates.md",
+    ".claude/skills/slash-command-outliner/templates/*.md",
+    ".claude/skills/slash-command-outliner/output/learn-profile-slash-outline.md",
+    ".claude/skills/slash-command-outliner/output/learn-profile-gap-report.md"
+  ]
+}

@@ -1,0 +1,135 @@
+ERROR: evidence verification failed (26 issue(s))
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:55
+  pointer: .claude/commands/ccw-coordinator.md
+  status: Existing
+  - Evidence must include ts: <file> / <function|case|pattern>.
+  - TS evidence must be under ccw/src/** (got: N/A (doc only))
+  - TS evidence file not found: N/A (doc only)
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:57
+  pointer: CommandRegistry.getAllCommandsSummary()
+  status: Existing
+  - Docs evidence heading not found: .claude/commands/ccw-coordinator.md / const allCommands = registry.getAllCommandsSummary()
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:58
+  pointer: CommandRegistry.getAllCommandsByCategory()
+  status: Existing
+  - Docs evidence heading not found: .claude/commands/ccw-coordinator.md / const byCategory = registry.getAllCommandsByCategory()
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:59
+  pointer: CommandRegistry.getCommand()
+  status: Existing
+  - Docs evidence heading not found: .claude/commands/ccw-coordinator.md / const cmd = registry.getCommand('lite-plan')
+  - TS evidence anchor not found (literal match): ccw/src/tools/command-registry.ts / public getCommand(name: string)
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:60
+  pointer: ccw/src/commands/hook.ts
+  status: Existing
+  - TS evidence anchor not found (literal match): ccw/src/commands/hook.ts / hook handling infrastructure
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:61
+  pointer: Main coordinator module
+  status: Planned
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:62
+  pointer: analyzeRequirements()
+  status: Planned
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:63
+  pointer: detectTaskType()
+  status: Planned
+  - Docs evidence heading not found: .claude/commands/ccw-coordinator.md / function detectTaskType(text)
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:64
+  pointer: determineComplexity()
+  status: Planned
+  - Docs evidence heading not found: .claude/commands/ccw-coordinator.md / function determineComplexity(text)
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:65
+  pointer: recommendCommandChain()
+  status: Planned
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:66
+  pointer: determinePortFlow()
+  status: Planned
+  - Docs evidence heading not found: .claude/commands/ccw-coordinator.md / function determinePortFlow(taskType, constraints)
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:67
+  pointer: getUserConfirmation()
+  status: Planned
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:68
+  pointer: executeCommandChain()
+  status: Planned
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:69
+  pointer: formatCommand()
+  status: Planned
+  - Docs evidence heading not found: .claude/commands/ccw-coordinator.md / function formatCommand(cmd, previousResults, analysis)
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:70
+  pointer: handleCliCompletion()
+  status: Planned
+  - Docs evidence heading not found: .claude/commands/ccw-coordinator.md / async function handleCliCompletion(sessionId, taskId, output)
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:71
+  pointer: parseOutput()
+  status: Planned
+  - Docs evidence heading not found: .claude/commands/ccw-coordinator.md / function parseOutput(output)
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/gap-report.md:72
+  pointer: State file schema
+  status: Planned
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/generated-slash-outline.md:51
+  pointer: .claude/commands/ccw-coordinator.md
+  status: Existing
+  - Evidence must include ts: <file> / <function|case|pattern>.
+  - TS evidence must be under ccw/src/** (got: N/A (doc only))
+  - TS evidence file not found: N/A (doc only)
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/generated-slash-outline.md:56
+  pointer: Hook callback infrastructure
+  status: Existing
+  - TS evidence anchor not found (literal match): ccw/src/commands/hook.ts / hook handling logic
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/generated-slash-outline.md:57
+  pointer: Main coordinator entry point
+  status: Planned
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/generated-slash-outline.md:58
+  pointer: analyzeRequirements()` function
+  status: Planned
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/generated-slash-outline.md:59
+  pointer: recommendCommandChain()` function
+  status: Planned
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/generated-slash-outline.md:60
+  pointer: executeCommandChain()` function
+  status: Planned
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/generated-slash-outline.md:61
+  pointer: formatCommand()` function
+  status: Planned
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/generated-slash-outline.md:62
+  pointer: handleCliCompletion()` callback
+  status: Planned
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD
+- .workflow/.cycle/cycle-local-20260205T002022-slashcmdoutliner-llm.progress/llm/CMD-001/specs/outputs/generated-slash-outline.md:63
+  pointer: State file structure
+  status: Planned
+  - TS evidence must be under ccw/src/** (got: TBD)
+  - TS evidence file not found: TBD

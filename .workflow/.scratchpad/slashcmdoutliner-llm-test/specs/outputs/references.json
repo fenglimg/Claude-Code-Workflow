@@ -1,0 +1,39 @@
+{
+  "candidates": [
+    {
+      "slash": "issue:new",
+      "file_path": ".claude/commands/issue/new.md",
+      "score": 10,
+      "why": "Exact match - same command identity, same allowed-tools, same iterative workflow with AskUserQuestion, writes to .workflow/issue/*, uses ccw issue create CLI"
+    },
+    {
+      "slash": "issue:from-brainstorm",
+      "file_path": ".claude/commands/issue/from-brainstorm.md",
+      "score": 7,
+      "why": "Same group (issue), creates issues with structured fields, uses AskUserQuestion for selection, writes to .workflow/issues/, uses ccw issue create"
+    },
+    {
+      "slash": "issue:plan",
+      "file_path": ".claude/commands/issue/plan.md",
+      "score": 6,
+      "why": "Same group (issue), uses AskUserQuestion, batch processing pattern, auto mode with --yes flag"
+    },
+    {
+      "slash": "issue:queue",
+      "file_path": ".claude/commands/issue/queue.md",
+      "score": 5,
+      "why": "Same group (issue), uses Bash for ccw CLI calls, reads/writes .workflow/issues/, structured workflow"
+    },
+    {
+      "slash": "workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 4,
+      "why": "Similar AskUserQuestion pattern for next actions, iterative workflow, structured output"
+    }
+  ],
+  "selected": {
+    "slash": "issue:new",
+    "file_path": ".claude/commands/issue/new.md",
+    "reason": "Perfect match - this IS the command being documented. Provides complete reference for structure, patterns, and implementation details."
+  }
+}

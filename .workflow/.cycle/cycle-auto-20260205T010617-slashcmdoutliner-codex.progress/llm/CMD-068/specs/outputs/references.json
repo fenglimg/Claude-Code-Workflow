@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:ui-design:codify-style",
+      "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
+      "score": 1.0,
+      "why": "Exact oracle for the orchestrator: 4-phase flow, Skill delegation, temp workspace, reference_style output."
+    },
+    {
+      "slash": "/workflow:ui-design:import-from-code",
+      "file_path": ".claude/commands/workflow/ui-design/import-from-code.md",
+      "score": 0.86,
+      "why": "Phase 1 dependency; establishes file discovery + parallel agents + extraction outputs used by codify-style."
+    },
+    {
+      "slash": "/workflow:ui-design:reference-page-generator",
+      "file_path": ".claude/commands/workflow/ui-design/reference-page-generator.md",
+      "score": 0.82,
+      "why": "Phase 2 dependency; generates versioned package + preview structure under reference_style."
+    },
+    {
+      "slash": "/workflow:ui-design:explore-auto",
+      "file_path": ".claude/commands/workflow/ui-design/explore-auto.md",
+      "score": 0.74,
+      "why": "Similar orchestrator mechanics (Skill attaches tasks + auto-continue + TodoWrite patterns) with a longer phase pipeline."
+    },
+    {
+      "slash": "/workflow:lite-plan",
+      "file_path": ".claude/commands/workflow/lite-plan.md",
+      "score": 0.6,
+      "why": "Reference for CCW command doc conventions: frontmatter, core sections, TodoWrite lifecycle, and orchestrator-style control flow."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:ui-design:codify-style",
+    "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
+    "reason": "Oracle command doc for CMD-068; use for gap-check and wording alignment without leaking full content."
+  }
+}
+

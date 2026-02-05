@@ -1,0 +1,60 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:session:solidify",
+      "file_path": ".claude/commands/workflow/session/solidify.md",
+      "score": 0.92,
+      "why": [
+        "Same artifact: updates .workflow/project-guidelines.json",
+        "Stepwise implementation + interactive mode patterns",
+        "Covers prerequisites + error handling around guidelines file"
+      ]
+    },
+    {
+      "slash": "/workflow:init",
+      "file_path": ".claude/commands/workflow/init.md",
+      "score": 0.88,
+      "why": [
+        "Same workflow family and prerequisites (.workflow/project-tech.json)",
+        "Establishes when to call /workflow:init-guidelines",
+        "Shows project initialization and scaffold behavior"
+      ]
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 0.74,
+      "why": [
+        "Consumes project-tech + project-guidelines as planning constraints",
+        "Documents workflow corpus conventions (sections, error handling)",
+        "Useful for integration expectations after guidelines are written"
+      ]
+    },
+    {
+      "slash": "/issue:execute",
+      "file_path": ".claude/commands/issue/execute.md",
+      "score": 0.62,
+      "why": [
+        "Clear AskUserQuestion selection patterns",
+        "Shows interactive prompts with options and branching",
+        "Compact example structure for command usage"
+      ]
+    },
+    {
+      "slash": "/cli:cli-init",
+      "file_path": ".claude/commands/cli/cli-init.md",
+      "score": 0.55,
+      "why": [
+        "Writes config artifacts and handles overwrite/backup flows",
+        "Demonstrates argument parsing and file generation patterns",
+        "Good reference for safe writes and idempotency"
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:session:solidify",
+    "file_path": ".claude/commands/workflow/session/solidify.md",
+    "why": "Closest match on the target artifact (.workflow/project-guidelines.json) and provides stepwise update + interactive patterns to mirror in init-guidelines."
+  }
+}
+

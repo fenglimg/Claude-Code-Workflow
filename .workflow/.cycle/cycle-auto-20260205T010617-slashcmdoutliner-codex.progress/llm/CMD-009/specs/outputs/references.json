@@ -1,0 +1,53 @@
+{
+  "command_id": "CMD-009",
+  "command": {
+    "name": "flow-create",
+    "slash": "/flow-create"
+  },
+  "oracle": {
+    "command_doc": ".claude/commands/flow-create.md",
+    "notes": "Oracle for gaps only; do not copy full contents into spec."
+  },
+  "selected_reference": {
+    "label": "ccw-plan",
+    "file_path": ".claude/commands/ccw-plan.md",
+    "why": "Has CCW-aligned YAML frontmatter + coordinator-style structure useful as a formatting and tool-permission reference."
+  },
+  "evidence_sources": [
+    {
+      "type": "docs",
+      "file": ".claude/commands/flow-create.md",
+      "heading": "Flow Template Generator",
+      "why": "Source-of-truth for flow-create intent and phase headings (non-leaky: headings only)."
+    },
+    {
+      "type": "docs",
+      "file": "ccw/docs-site/docs/commands/general/flow-create.mdx",
+      "heading": "/flow-create",
+      "why": "Public docs confirm invocation is /flow-create and provide concise user-facing feature framing."
+    },
+    {
+      "type": "ts",
+      "file": "ccw/src/core/routes/commands-routes.ts",
+      "anchor": "function parseCommandFrontmatter(content: string): CommandMetadata",
+      "why": "Shows how CCW reads YAML frontmatter from .claude/commands/*.md and why flow-create needs frontmatter to render correctly in UI/API."
+    },
+    {
+      "type": "ts",
+      "file": "ccw/src/templates/dashboard-js/views/commands-manager.js",
+      "anchor": "async function renderCommandsManager() {",
+      "why": "UI uses /api/commands and groups; highlights where command metadata surfaces to users."
+    }
+  ],
+  "similar_commands": [
+    {
+      "file_path": ".claude/commands/ccw.md",
+      "why": "Another command doc with complete frontmatter + core sections; useful for consistent heading/section formatting."
+    },
+    {
+      "file_path": ".claude/commands/ccw-test.md",
+      "why": "Shows allowed-tools conventions (tool names + (*) suffix) and concise error-handling section patterns."
+    }
+  ]
+}
+

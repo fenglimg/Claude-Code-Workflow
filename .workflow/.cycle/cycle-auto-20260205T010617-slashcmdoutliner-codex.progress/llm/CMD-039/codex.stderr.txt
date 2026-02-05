@@ -1,0 +1,951 @@
+Reading prompt from stdin...
+OpenAI Codex v0.93.0 (research preview)
+--------
+workdir: C:\Project\Claude-Code-Workflow
+model: gpt-5.2
+provider: codex
+approval: never
+sandbox: danger-full-access
+reasoning effort: high
+reasoning summaries: auto
+session id: 019c2c2e-85df-7fc0-a368-6c96e0693a4d
+--------
+user
+Use the repo skill: slash-command-outliner (path: .codex/skills/slash-command-outliner).
+
+Cycle: cycle-auto-20260205T010617-slashcmdoutliner-codex
+Command: CMD-039
+
+Input requirement doc (non-leaky): `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-039.requirements.md`
+
+Write the following output files (create directories as needed) under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs`:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/fix-plan.md`
+
+Hard rules (P0):
+- Follow templates: .codex/skills/slash-command-outliner/templates/*
+- Follow gates: .codex/skills/slash-command-outliner/specs/quality-gates.md
+- Evidence tables MUST pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js
+- Never label a pointer as Existing unless it is verifiable in the repo now.
+- For ANY pointer row, provide dual-source evidence:
+  - docs: .claude/commands/**.md / <real heading text>
+  - ts: ccw/src/** / <literal anchor string present in file>
+- Avoid placeholders like TBD/N/A in evidence rows; if unsure, mark as Planned and add Verify steps.
+
+Keep the written files concise; do not write extra files unless necessary.
+
+deprecated: `[features].web_search_request` is deprecated. Use `web_search` instead.
+  Set `web_search` to `"live"`, `"cached"`, or `"disabled"` in config.toml.
+mcp: ccw-tools starting
+mcp: ace-tool starting
+mcp: exa starting
+mcp: ccw-tools ready
+mcp: ace-tool ready
+mcp: exa ready
+mcp startup: ready: ccw-tools, ace-tool, exa
+
+thinking
+**Exploring PowerShell commands**
+
+I need to use PowerShell commands directly since the `shell_command` tool is designed to run them on Windows. I'll gather context by reading the requirement documentation, SKILL.md, and verify-evidence scripts. I’m considering using parallel execution, possibly with `multi_tool_use.parallel`, but maybe it's easier to run separate commands and keep things manageable. First, I'll list the templates and open the SKILL document. That sounds like a good starting point!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+'== SKILL =='
+Get-Content -Raw .codex/skills/slash-command-outliner/SKILL.md
+
+'== QUALITY GATES =='
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/quality-gates.md
+
+'== TEMPLATES (list) =='
+Get-ChildItem -Recurse -File .codex/skills/slash-command-outliner/templates | Select-Object FullName | Format-Table -HideTableHeaders
+
+'== VERIFY SCRIPT =='
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/verify-evidence.js
+" in C:\Project\Claude-Code-Workflow succeeded in 335ms:
+== SKILL ==
+---
+name: slash-command-outliner
+description: Codex version of slash-command-outliner. Generate CCW-aligned slash command development outlines from a requirement/spec doc, validated via corpus-wide iteration and non-regression. Triggers on "slash command outliner", "slash 命令大纲", "slash 命令生成器", "命令大纲".
+allowed-tools: Read, Write, AskUserQuestion, Task, Bash, TodoWrite, mcp__ace-tool__search_context
+---
+
+# Slash Command Outliner (Codex)
+
+Input a **slash command requirement/spec document**. Output a **CCW-aligned, end-to-end development outline** (Slash MD outline + Agent MD outline) plus a **gap-report** that compares against reference implementations and CCW server/tooling corpus. Improve quality by iterating across **all** existing commands with **non-regression snapshots**.
+
+This skill is designed to be **precise** (no fluff) and **stable** (non-regression gate).
+
+## Canonical Workflow (Phases)
+
+1) `phases/01-collect-spec.md`  
+2) `phases/02-retrieve-and-rank-references.md`  
+3) `phases/03-generate-outlines.md`  
+4) `phases/04-gap-report-and-iterate.md`  
+5) `phases/05-regression-and-closure.md`
+
+thinking
+**Reviewing evidence table requirements**
+
+I'm looking at the verify script, which expects evidence tables that include specific columns: Pointer, Status, Evidence, and Verify. The Evidence cell needs to have a file or heading along with a timestamp link. It’s also important that there are no placeholders, and the Pointer cell mustn't contain any commas or newlines. I’ll need to include at least one evidence table in our outputs, possibly in the gap report or outlines, and check the templates for reference.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+'== TEMPLATE: slash-command-outline =='
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/slash-command-outline.md
+
+'== TEMPLATE: agent-outline =='
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/agent-outline.md
+
+'== TEMPLATE: gap-report =='
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/gap-report.md
+" in C:\Project\Claude-Code-Workflow succeeded in 317ms:
+== TEMPLATE: slash-command-outline ==
+---
+name: {{command.name}}
+description: {{command.description}}
+argument-hint: "{{command.argument_hint}}"
+allowed-tools: {{command.allowed_tools_csv}}
+group: {{command.group}}
+---
+
+# {{command.title}}
+
+## Overview
+
+- Goal: {{intent.primary_user_value}}
+- Command: `/{{command.group}}:{{command.name}}`
+
+## Usage
+
+```bash
+/{{command.group}}:{{command.name}} {{command.usage_args}}
+
+thinking
+**Examining template guidelines**
+
+I should avoid using placeholder evidence rows like "TBD." Instead, when I'm unsure, marking them as "planned" and adding verification steps sounds better. I’ll need to populate my work with actual pointers and evidence. Following different phases might be a good structure to consider. I wonder if reading through the phase documentation is necessary; it might not be, but it could still be helpful. I’ll look into the phases and their procedures for structured reference retrieval.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+Get-ChildItem -Recurse -File .codex/skills/slash-command-outliner/phases | Sort-Object FullName | Select-Object FullName | Format-Table -HideTableHeaders
+
+'== PHASE 01 =='
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/01-collect-spec.md
+
+'== PHASE 02 =='
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/02-retrieve-and-rank-references.md
+
+'== PHASE 03 =='
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/03-generate-outlines.md
+
+'== PHASE 04 =='
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/04-gap-report-and-iterate.md
+
+'== PHASE 05 =='
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/05-regression-and-closure.md
+" in C:\Project\Claude-Code-Workflow succeeded in 338ms:
+
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\phases\01-collect-spec.md
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\phases\02-retrieve-and-rank-references.md
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\phases\03-generate-outlines.md
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\phases\04-gap-report-and-iterate.md
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\phases\05-regression-and-closure.md
+
+== PHASE 01 ==
+# Phase 01: Collect Spec (No Leakage)
+
+## Goal
+
+Turn a human requirement/rules document into a **minimal, structured spec** that is sufficient to generate:
+
+- Slash command outline (CCW command MD skeleton)
+- Agent outline (execution + tools + state)
+
+Do **not** copy/paste existing implementation docs as input; treat them as oracle only during gap analysis.
+
+## Required Inputs (ask if missing)
+
+thinking
+**Clarifying project guidelines**
+
+I’m considering how to handle skill phases, and while it's okay to have TBD elsewhere, I need to avoid placeholders in evidence rows. Instead, I can mark what’s planned and include verification steps. I also need to produce spec.json and references.json, along with outlines and a gap/fix plan. Additionally, I should run the verify-evidence script on generated outlines to ensure they pass and gather the requirement document to review.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+Get-Content -Raw .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-039.requirements.md
+" in C:\Project\Claude-Code-Workflow succeeded in 328ms:
+# Requirement (non-leaky): /workflow:lite-fix
+
+## Source
+
+- Command doc (oracle, do not paste full contents into spec): `.claude/commands/workflow/lite-fix.md`
+
+## Command Identity
+
+- group: workflow
+- name: lite-fix
+- description: Lightweight bug diagnosis and fix workflow with intelligent severity assessment and optional hotfix mode for production incidents
+- argument-hint: [-y|--yes] [--hotfix] \"bug description or issue reference\"
+- allowed-tools: TodoWrite(*), Task(*), Skill(*), AskUserQuestion(*)
+
+## Structure Hints (Headings Only)
+
+- Workflow Lite-Fix Command (/workflow:lite-fix)
+  - Overview
+  - Usage
+- Flags
+tool ccw-tools.smart_search({"action":"find_files","path":"C:/Project/Claude-Code-Workflow","pattern":".claude/commands/workflow/*.md","limit":50})
+ccw-tools.smart_search({"action":"find_files","path":"C:/Project/Claude-Code-Workflow","pattern":".claude/commands/workflow/*.md","limit":50}) success in 94ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"success\": true,\n  \"results\": [],\n  \"metadata\": {\n    \"pattern\": \".claude/commands/workflow/*.md\",\n    \"backend\": \"ripgrep\",\n    \"count\": 0,\n    \"pagination\": {\n      \"offset\": 0,\n      \"limit\": 50,\n      \"total\": 0,\n      \"has_more\": false\n    }\n  }\n}",
+      "type": "text"
+    }
+  ]
+}
+
+thinking
+**Investigating file paths**
+
+I’m wondering if the lack of results is due to the use of backslashes in the file path. The tool likely uses glob patterns, and the pattern I have — `.claude/commands/workflow/*.md` — should work. Perhaps the repository has a different structure. To clarify, I should check the `.claude/commands/` directory. I’ll use the smart_search to find any files following the pattern `.claude/commands/**`. Let's explore this further!
+tool ccw-tools.smart_search({"action":"find_files","path":"C:/Project/Claude-Code-Workflow","pattern":".claude/commands/**/*.md","limit":20})
+ccw-tools.smart_search({"action":"find_files","path":"C:/Project/Claude-Code-Workflow","pattern":".claude/commands/**/*.md","limit":20}) success in 76ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"success\": true,\n  \"results\": [],\n  \"metadata\": {\n    \"pattern\": \".claude/commands/**/*.md\",\n    \"backend\": \"ripgrep\",\n    \"count\": 0,\n    \"pagination\": {\n      \"offset\": 0,\n      \"limit\": 20,\n      \"total\": 0,\n      \"has_more\": false\n    }\n  }\n}",
+      "type": "text"
+    }
+  ]
+}
+
+thinking
+**Revising tool path settings**
+
+I’m not getting any results, so I’m thinking that the tool’s path should probably be relative instead of absolute. It might expect backslashes too. It uses ripgrep with the `--files` option, but I wonder if the pattern matching for `find_files` doesn’t account for dot directories since includeHidden is false by default. Since `.claude` is a hidden directory, maybe the tool is ignoring it. I should set `includeHidden` to true. Let’s try that.
+tool ccw-tools.smart_search({"action":"find_files","path":"C:/Project/Claude-Code-Workflow","pattern":".claude/commands/**/*.md","includeHidden":true,"limit":50})
+ccw-tools.smart_search({"action":"find_files","path":"C:/Project/Claude-Code-Workflow","pattern":".claude/commands/**/*.md","includeHidden":true,"limit":50}) success in 84ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"success\": true,\n  \"results\": [\n    {\n      \"path\": \".claude/commands/workflow/unified-execute-with-file.md\",\n      \"type\": \"file\",\n      \"name\": \"unified-execute-with-file.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/ui-design/style-extract.md\",\n      \"type\": \"file\",\n      \"name\": \"style-extract.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/ui-design/reference-page-generator.md\",\n      \"type\": \"file\",\n      \"name\": \"reference-page-generator.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/ui-design/layout-extract.md\",\n      \"type\": \"file\",\n      \"name\": \"layout-extract.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/ui-design/import-from-code.md\",\n      \"type\": \"file\",\n      \"name\": \"import-from-code.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/ui-design/imitate-auto.md\",\n      \"type\": \"file\",\n      \"name\": \"imitate-auto.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/ui-design/generate.md\",\n      \"type\": \"file\",\n      \"name\": \"generate.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/ui-design/explore-auto.md\",\n      \"type\": \"file\",\n      \"name\": \"explore-auto.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/ui-design/design-sync.md\",\n      \"type\": \"file\",\n      \"name\": \"design-sync.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/ui-design/codify-style.md\",\n      \"type\": \"file\",\n      \"name\": \"codify-style.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/ui-design/animation-extract.md\",\n      \"type\": \"file\",\n      \"name\": \"animation-extract.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/tools/test-task-generate.md\",\n      \"type\": \"file\",\n      \"name\": \"test-task-generate.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/tools/test-context-gather.md\",\n      \"type\": \"file\",\n      \"name\": \"test-context-gather.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/tools/test-concept-enhanced.md\",\n      \"type\": \"file\",\n      \"name\": \"test-concept-enhanced.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/tools/tdd-coverage-analysis.md\",\n      \"type\": \"file\",\n      \"name\": \"tdd-coverage-analysis.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/tools/task-generate-tdd.md\",\n      \"type\": \"file\",\n      \"name\": \"task-generate-tdd.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/tools/task-generate-agent.md\",\n      \"type\": \"file\",\n      \"name\": \"task-generate-agent.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/tools/context-gather.md\",\n      \"type\": \"file\",\n      \"name\": \"context-gather.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/tools/conflict-resolution.md\",\n      \"type\": \"file\",\n      \"name\": \"conflict-resolution.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/tools/code-validation-gate.md\",\n      \"type\": \"file\",\n      \"name\": \"code-validation-gate.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/test-fix-gen.md\",\n      \"type\": \"file\",\n      \"name\": \"test-fix-gen.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/test-cycle-execute.md\",\n      \"type\": \"file\",\n      \"name\": \"test-cycle-execute.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/tdd-verify.md\",\n      \"type\": \"file\",\n      \"name\": \"tdd-verify.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/tdd-plan.md\",\n      \"type\": \"file\",\n      \"name\": \"tdd-plan.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/session/start.md\",\n      \"type\": \"file\",\n      \"name\": \"start.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/session/solidify.md\",\n      \"type\": \"file\",\n      \"name\": \"solidify.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/session/resume.md\",\n      \"type\": \"file\",\n      \"name\": \"resume.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/session/list.md\",\n      \"type\": \"file\",\n      \"name\": \"list.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/session/complete.md\",\n      \"type\": \"file\",\n      \"name\": \"complete.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/review.md\",\n      \"type\": \"file\",\n      \"name\": \"review.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/review-session-cycle.md\",\n      \"type\": \"file\",\n      \"name\": \"review-session-cycle.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/review-module-cycle.md\",\n      \"type\": \"file\",\n      \"name\": \"review-module-cycle.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/review-cycle-fix.md\",\n      \"type\": \"file\",\n      \"name\": \"review-cycle-fix.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/replan.md\",\n      \"type\": \"file\",\n      \"name\": \"replan.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/plan.md\",\n      \"type\": \"file\",\n      \"name\": \"plan.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/plan-verify.md\",\n      \"type\": \"file\",\n      \"name\": \"plan-verify.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/multi-cli-plan.md\",\n      \"type\": \"file\",\n      \"name\": \"multi-cli-plan.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/lite-plan.md\",\n      \"type\": \"file\",\n      \"name\": \"lite-plan.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/lite-fix.md\",\n      \"type\": \"file\",\n      \"name\": \"lite-fix.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/lite-execute.md\",\n      \"type\": \"file\",\n      \"name\": \"lite-execute.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/init.md\",\n      \"type\": \"file\",\n      \"name\": \"init.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/init-guidelines.md\",\n      \"type\": \"file\",\n      \"name\": \"init-guidelines.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/execute.md\",\n      \"type\": \"file\",\n      \"name\": \"execute.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/debug-with-file.md\",\n      \"type\": \"file\",\n      \"name\": \"debug-with-file.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/collaborative-plan-with-file.md\",\n      \"type\": \"file\",\n      \"name\": \"collaborative-plan-with-file.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/clean.md\",\n      \"type\": \"file\",\n      \"name\": \"clean.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/brainstorm-with-file.md\",\n      \"type\": \"file\",\n      \"name\": \"brainstorm-with-file.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/brainstorm/synthesis.md\",\n      \"type\": \"file\",\n      \"name\": \"synthesis.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/brainstorm/role-analysis.md\",\n      \"type\": \"file\",\n      \"name\": \"role-analysis.md\",\n      \"extension\": \"md\"\n    },\n    {\n      \"path\": \".claude/commands/workflow/brainstorm/auto-parallel.md\",\n      \"type\": \"file\",\n      \"name\": \"auto-parallel.md\",\n      \"extension\": \"md\"\n    }\n  ],\n  \"metadata\": {\n    \"pattern\": \".claude/commands/**/*.md\",\n    \"backend\": \"ripgrep\",\n    \"count\": 50,\n    \"pagination\": {\n      \"offset\": 0,\n      \"limit\": 50,\n      \"total\": 77,\n      \"has_more\": true\n    }\n  }\n}",
+      "type": "text"
+    }
+  ]
+}
+
+thinking
+**Searching for code references**
+
+I need to gather a references.json file that lists candidates based on their scores and select one. Then it’s time for Phase 02, where I want to use ACE’s search_context to discover similar commands and related code. I should focus my search_context on terms like "lite-fix" and "workflow command lite fix." This approach seems practical for finding what I need!
+tool ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Find where slash commands under group workflow are implemented/registered in ccw/src, and any code paths that would handle a command named lite-fix or similar (lite-execute, lite-plan). Keywords: workflow:lite, slash command registry, command router, allowed-tools, .claude/commands/workflow"})
+ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Find where slash commands under group workflow are implemented/registered in ccw/src, and any code paths that would handle a command named lite-fix or similar (lite-execute, lite-plan). Keywords: workflow:lite, slash command registry, command router, allowed-tools, .claude/commands/workflow"}) success in 7.18s:
+{
+  "content": [
+    {
+      "text": "The following code sections were retrieved:\nPath: GETTING_STARTED_CN.md\n...\n   162\t\r\n   163\t# 该命令将：\r\n   164\t# 1. 检查需求覆盖率（所有需求都有任务）\r\n   165\t# 2. 验证任务依赖关系（无循环或损坏的依赖）\r\n   166\t# 3. 确保综合对齐（任务符合架构决策）\r\n   167\t# 4. 评估任务规范质量\r\n   168\t# 5. 生成详细的验证报告和修复待办事项\r\n   169\t```\r\n   170\t\r\n   171\t**验证报告包括**：\r\n   172\t- 需求覆盖率分析\r\n   173\t- 依赖关系图验证\r\n   174\t- 综合对齐检查\r\n   175\t- 任务规范质量评估\r\n   176\t- 优先级修复建议\r\n   177\t\r\n   178\t**使用时机**：\r\n   179\t- 在 `/workflow:plan` 生成 IMPL_PLAN.md 和任务文件后\r\n   180\t- 在开始 `/workflow:execute` 之前\r\n   181\t- 处理具有许多依赖关系的复杂项目时\r\n   182\t- 当您想确保高质量的任务规范时\r\n   183\t\r\n   184\t**优势**：\r\n   185\t- 在执行前捕获规划错误\r\n   186\t- 确保完整的需求覆盖\r\n   187\t- 验证架构一致性\r\n   188\t- 识别资源冲突和技能差距\r\n   189\t- 提供可执行的修复计划，集成 TodoWrite\r\n   190\t\r\n   191\t### 场景 6：Bug 修复\r\n   192\t\r\n   193\t快速 Bug 分析和修复工作流：\r\n   194\t\r\n   195\t```bash\r\n   196\t# 轻量级 Bug 修复工作流，带智能诊断\r\n   197\t/workflow:lite-fix \"密码错误时仍显示成功消息\"\r\n   198\t\r\n   199\t# Claude 会分析严重程度，诊断根因，并实现修复\r\n   200\t```\r\n   201\t\r\n   202\t---\r\n   203\t\r\n   204\t## 🔧 轻量级命令\r\n   205\t\r\n   206\t除了完整的工作流模式，CCW 还提供轻量级命令，适合快速分析和日常任务。\r\n   207\t\r\n   208\t### 快速任务工作流命令\r\n   209\t\r\n   210\t使用工作流命令进行集成规划和 Bug 修复：\r\n   211\t\r\n   212\t```bash\r\n   213\t# 轻量级规划工作流\r\n   214\t/workflow:lite-plan \"设计一个可扩展的微服务架构\"\r\n   215\t\r\n   216\t# 带智能诊断的 Bug 修复工作流\r\n   217\t/workflow:lite-fix \"分析内存泄漏问题的可能原因\"\r\n   218\t\r\n   219\t# 初始化 CLI 工具配置\r\n   220\t/cli:cli-init\r\n   221\t```\r\n...\n\nPath: ccw\\src\\core\\routes\\commands-routes.ts\n...\n   186\t\r\n   187\t/**\r\n   188\t * Get group for a command (from config or inferred from path)\r\n   189\t */\r\n   190\tfunction getCommandGroup(commandName: string, relativePath: string, location: CommandLocation, projectPath: string): string {\r\n   191\t  // First check custom assignments\r\n   192\t  const config = loadGroupsConfig(location, projectPath);\r\n   193\t  if (config.assignments[commandName]) {\r\n   194\t    return config.assignments[commandName];\r\n   195\t  }\r\n   196\t\r\n   197\t  // Fallback to path-based inference - use full directory path as group\r\n   198\t  const parts = relativePath.split(/[/\\\\]/);\r\n   199\t  if (parts.length > 1) {\r\n   200\t    // Use full directory path (excluding filename) as group\r\n   201\t    // e.g., 'workflow/review/code-review.md' -> 'workflow/review'\r\n   202\t    return parts.slice(0, -1).join('/');\r\n   203\t  }\r\n   204\t\r\n   205\t  return 'other';\r\n   206\t}\r\n...\n   287\t\r\n   288\t  const groupSet = new Set<string>();\r\n   289\t\r\n   290\t  try {\r\n   291\t    // Scan project commands (includes both .md and .md.disabled)\r\n   292\t    const projectDir = getCommandsDir('project', projectPath);\r\n   293\t    result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath);\r\n   294\t\r\n   295\t    // Scan user commands (includes both .md and .md.disabled)\r\n   296\t    const userDir = getCommandsDir('user', projectPath);\r\n   297\t    result.userCommands = scanCommandsRecursive(userDir, userDir, 'user', projectPath);\r\n   298\t\r\n   299\t    // Collect all groups\r\n   300\t    for (const cmd of [...result.projectCommands, ...result.userCommands]) {\r\n   301\t      groupSet.add(cmd.group);\r\n   302\t    }\r\n   303\t\r\n   304\t    result.groups = Array.from(groupSet).sort();\r\n   305\t  } catch (error) {\r\n   306\t    console.error('[Commands] Error reading commands config:', error);\r\n   307\t  }\r\n   308\t\r\n   309\t  return result;\r\n   310\t}\r\n...\n   435\t\r\n   436\t  const results: CommandOperationResult[] = [];\r\n   437\t\r\n   438\t  for (const cmd of targetCommands) {\r\n   439\t    const result = await toggleCommand(cmd.name, location, projectPath, initialPath);\r\n   440\t    results.push(result);\r\n   441\t  }\r\n   442\t\r\n   443\t  const successCount = results.filter(r => r.success).length;\r\n   444\t  const failCount = results.filter(r => !r.success).length;\r\n   445\t\r\n   446\t  return {\r\n   447\t    success: failCount === 0,\r\n   448\t    results,\r\n   449\t    message: `${enable ? 'Enabled' : 'Disabled'} ${successCount} commands${failCount > 0 ? `, ${failCount} failed` : ''}`\r\n   450\t  };\r\n   451\t}\r\n   452\t\r\n   453\t// ========== Route Handler ==========\r\n   454\t\r\n   455\t/**\r\n   456\t * Handle Commands routes\r\n   457\t * @returns true if route was handled, false otherwise\r\n   458\t */\r\n   459\texport async function handleCommandsRoutes(ctx: RouteContext): Promise<boolean> {\r\n   460\t  const { pathname, url, req, res, initialPath, handlePostRequest } = ctx;\r\n...\n\nPath: .claude\\commands\\workflow\\lite-fix.md#chunk1of2\n     1\t---\r\n     2\tname: lite-fix\r\n     3\tdescription: Lightweight bug diagnosis and fix workflow with intelligent severity assessment and optional hotfix mode for production incidents\r\n     4\targument-hint: \"[-y|--yes] [--hotfix] \\\"bug description or issue reference\\\"\"\r\n     5\tallowed-tools: TodoWrite(*), Task(*), Skill(*), AskUserQuestion(*)\r\n     6\t---\r\n     7\t\r\n     8\t# Workflow Lite-Fix Command (/workflow:lite-fix)\r\n     9\t\r\n    10\t## Overview\r\n    11\t\r\n    12\tIntelligent lightweight bug fixing command with dynamic workflow adaptation based on severity assessment. Focuses on diagnosis phases (root cause analysis, impact assessment, fix planning, confirmation) and delegates execution to `/workflow:lite-execute`.\r\n...\n    84\t\r\n    85\tPhase 2: Clarification (optional, multi-round)\r\n    86\t   |- Aggregate clarification_needs from all diagnosis angles\r\n    87\t   |- Deduplicate similar questions\r\n    88\t   +- Decision:\r\n    89\t      |- Has clarifications -> AskUserQuestion (max 4 questions per round, multiple rounds allowed)\r\n    90\t      +- No clarifications -> Skip to Phase 3\r\n    91\t\r\n    92\tPhase 3: Fix Planning (NO CODE EXECUTION - planning only)\r\n    93\t   +- Decision (based on Phase 1 severity):\r\n    94\t      |- Low/Medium -> Load schema: cat ~/.claude/workflows/cli-templates/schemas/fix-plan-json-schema.json -> Direct Claude planning (following schema) -> fix-plan.json -> MUST proceed to Phase 4\r\n    95\t      +- High/Critical -> cli-lite-planning-agent -> fix-plan.json -> MUST proceed to Phase 4\r\n...\n   221\t\r\n   222\t## MANDATORY FIRST STEPS (Execute by Agent)\r\n   223\t**You (cli-explore-agent) MUST execute these steps in order:**\r\n   224\t1. Run: ccw tool exec get_modules_by_depth '{}' (project structure)\r\n   225\t2. Run: rg -l \"{error_keyword_from_bug}\" --type ts (locate relevant files)\r\n   226\t3. Execute: cat ~/.claude/workflows/cli-templates/schemas/diagnosis-json-schema.json (get output schema reference)\r\n   227\t4. Read: .workflow/project-tech.json (technology stack and architecture context)\r\n   228\t5. Read: .workflow/project-guidelines.json (user-defined constraints and conventions)\r\n   229\t\r\n   230\t## Diagnosis Strategy (${angle} focus)\r\n   231\t\r\n   232\t**Step 1: Error Tracing** (Bash)\r\n   233\t- rg for error messages, stack traces, log patterns\r\n   234\t- git log --since='2 weeks ago' for recent changes\r\n   235\t- Trace execution path in affected modules\r\n...\n   608\t\r\n   609\t## Execution\r\n   610\t1. Read ALL diagnosis files for comprehensive context\r\n   611\t2. Execute CLI planning using Gemini (Qwen fallback) with --rule planning-fix-strategy template\r\n   612\t3. Synthesize findings from multiple diagnosis angles\r\n   613\t4. Generate fix-plan with:\r\n   614\t   - For High/Critical: REQUIRED new fields (rationale, verification, risks, code_skeleton, data_flow, design_decisions)\r\n   615\t   - Each task MUST have rationale (why this fix), verification (how to verify success), and risks (potential issues)\r\n   616\t5. Parse output and structure fix-plan\r\n   617\t6. **Write**: \\`${sessionFolder}/planning-context.md\\` (evidence paths + understanding)\r\n   618\t7. **Write**: \\`${sessionFolder}/fix-plan.json\\`\r\n   619\t8. Return brief completion summary\r\n...\n\nPath: .claude\\commands\\workflow\\multi-cli-plan.md\n...\n    19\t\r\n    20\t# With options\r\n    21\t/workflow:multi-cli-plan \"Add dark mode support\" --max-rounds=3\r\n    22\t/workflow:multi-cli-plan \"Refactor payment module\" --tools=gemini,codex,claude\r\n    23\t/workflow:multi-cli-plan \"Fix memory leak\" --mode=serial\r\n    24\t```\r\n    25\t\r\n    26\t**Context Source**: ACE semantic search + Multi-CLI analysis\r\n    27\t**Output Directory**: `.workflow/.multi-cli-plan/{session-id}/`\r\n    28\t**Default Max Rounds**: 3 (convergence may complete earlier)\r\n    29\t**CLI Tools**: @cli-discuss-agent (analysis), @cli-lite-planning-agent (plan generation)\r\n    30\t**Execution**: Auto-hands off to `/workflow:lite-execute --in-memory` after plan approval\r\n    31\t\r\n    32\t## What & Why\r\n    33\t\r\n    34\t### Core Concept\r\n...\n\nPath: ccw\\src\\tools\\command-registry.ts\n...\n    29\t\r\n    30\texport class CommandRegistry {\r\n    31\t  private commandDir: string | null;\r\n    32\t  private cache: Map<string, CommandMetadata>;\r\n    33\t\r\n    34\t  constructor(commandDir?: string) {\r\n    35\t    this.cache = new Map();\r\n    36\t\r\n    37\t    if (commandDir) {\r\n    38\t      this.commandDir = commandDir;\r\n    39\t    } else {\r\n    40\t      this.commandDir = this.findCommandDir();\r\n    41\t    }\r\n    42\t  }\r\n    43\t\r\n    44\t  /**\r\n    45\t   * Auto-detect ~/.claude/commands/workflow directory\r\n    46\t   */\r\n    47\t  private findCommandDir(): string | null {\r\n    48\t    // Try relative to current working directory\r\n    49\t    const relativePath = join('.claude', 'commands', 'workflow');\r\n    50\t    if (existsSync(relativePath)) {\r\n    51\t      return relativePath;\r\n    52\t    }\r\n    53\t\r\n    54\t    // Try user home directory\r\n    55\t    const homeDir = homedir();\r\n    56\t    const homeCommandDir = join(homeDir, '.claude', 'commands', 'workflow');\r\n    57\t    if (existsSync(homeCommandDir)) {\r\n    58\t      return homeCommandDir;\r\n    59\t    }\r\n    60\t\r\n    61\t    return null;\r\n    62\t  }\r\n...\n   118\t\r\n   119\t  /**\r\n   120\t   * Get single command metadata\r\n   121\t   * @param commandName Command name (e.g., \"lite-plan\" or \"/workflow:lite-plan\")\r\n   122\t   * @returns Command metadata or null\r\n   123\t   */\r\n   124\t  public getCommand(commandName: string): CommandMetadata | null {\r\n   125\t    if (!this.commandDir) {\r\n   126\t      console.error('ERROR: ~/.claude/commands/workflow directory not found');\r\n   127\t      return null;\r\n   128\t    }\r\n   129\t\r\n   130\t    // Normalize command name\r\n   131\t    const normalized = commandName.startsWith('/workflow:')\r\n   132\t      ? commandName.substring('/workflow:'.length)\r\n   133\t      : commandName;\r\n   134\t\r\n   135\t    // Check cache\r\n   136\t    const cached = this.cache.get(normalized);\r\n   137\t    if (cached) {\r\n   138\t      return cached;\r\n   139\t    }\r\n   140\t\r\n   141\t    // Read command file\r\n   142\t    const filePath = join(this.commandDir, `${normalized}.md`);\r\n   143\t    if (!existsSync(filePath)) {\r\n   144\t      return null;\r\n   145\t    }\r\n   146\t\r\n   147\t    try {\r\n   148\t      const content = readFileSync(filePath, 'utf-8');\r\n   149\t      const header = this.parseYamlHeader(content);\r\n   150\t\r\n   151\t      if (header && header.name) {\r\n   152\t        const toolsStr = header['allowed-tools'] || '';\r\n   153\t        const allowedTools = toolsStr\r\n   154\t          .split(',')\r\n   155\t          .map((t: string) => t.trim())\r\n   156\t          .filter((t: string) => t);\r\n   157\t\r\n   158\t        const result: CommandMetadata = {\r\n   159\t          name: header.name,\r\n   160\t          command: `/workflow:${header.name}`,\r\n   161\t          description: header.description || '',\r\n   162\t          argumentHint: header['argument-hint'] || '',\r\n   163\t          allowedTools: allowedTools,\r\n   164\t          filePath: filePath,\r\n   165\t          group: header.group || undefined\r\n   166\t        };\r\n   167\t\r\n   168\t        // Cache result\r\n   169\t        this.cache.set(normalized, result);\r\n   170\t        return result;\r\n   171\t      }\r\n   172\t    } catch (error) {\r\n   173\t      const err = error as Error;\r\n   174\t      console.error(`Failed to read command ${filePath}:`, err.message);\r\n   175\t    }\r\n   176\t\r\n   177\t    return null;\r\n   178\t  }\r\n...\n   208\t\r\n   209\t    try {\r\n   210\t      const files = readdirSync(this.commandDir);\r\n   211\t\r\n   212\t      for (const file of files) {\r\n   213\t        // Skip _disabled directory\r\n   214\t        if (file === '_disabled') continue;\r\n   215\t\r\n   216\t        if (!file.endsWith('.md')) continue;\r\n   217\t\r\n   218\t        const filePath = join(this.commandDir, file);\r\n   219\t        const stat = statSync(filePath);\r\n   220\t\r\n   221\t        if (stat.isDirectory()) continue;\r\n   222\t\r\n   223\t        try {\r\n   224\t          const content = readFileSync(filePath, 'utf-8');\r\n   225\t          const header = this.parseYamlHeader(content);\r\n   226\t\r\n   227\t          if (header && header.name) {\r\n   228\t            const commandName = `/workflow:${header.name}`;\r\n   229\t            result.set(commandName, {\r\n   230\t              name: header.name,\r\n   231\t              description: header.description || ''\r\n   232\t            });\r\n   233\t          }\r\n   234\t        } catch (error) {\r\n   235\t          // Skip files that fail to read\r\n   236\t          continue;\r\n   237\t        }\r\n   238\t      }\r\n   239\t    } catch (error) {\r\n   240\t      // Return empty map if directory read fails\r\n   241\t      return result;\r\n   242\t    }\r\n   243\t\r\n   244\t    return result;\r\n   245\t  }\r\n...\n\nPath: .claude\\skills\\ccw-help\\scripts\\analyze_commands.py\n...\n   179\t        \"workflow:lite-plan\": {\n   180\t            \"calls_internally\": [\"workflow:lite-execute\"],\n   181\t            \"next_steps\": [\"workflow:lite-execute\", \"workflow:status\"],\n   182\t            \"alternatives\": [\"workflow:plan\"],\n   183\t            \"prerequisites\": []\n   184\t        },\n   185\t        \"workflow:lite-fix\": {\n   186\t            \"next_steps\": [\"workflow:lite-execute\", \"workflow:status\"],\n   187\t            \"alternatives\": [\"workflow:lite-plan\"],\n   188\t            \"related\": [\"workflow:test-cycle-execute\"]\n   189\t        },\n   190\t        \"workflow:lite-execute\": {\n   191\t            \"prerequisites\": [\"workflow:lite-plan\", \"workflow:lite-fix\"],\n   192\t            \"related\": [\"workflow:execute\", \"workflow:status\"]\n   193\t        },\n   194\t        \"workflow:review-session-cycle\": {\n   195\t            \"prerequisites\": [\"workflow:execute\"],\n   196\t            \"next_steps\": [\"workflow:review-fix\"],\n   197\t            \"related\": [\"workflow:review-module-cycle\"]\n   198\t        },\n...\n\nPath: .claude\\commands\\workflow\\execute.md\n...\n    63\t\r\n    64\t## Core Responsibilities\r\n    65\t- **Session Discovery**: Identify and select active workflow sessions\r\n    66\t- **Execution Strategy Parsing**: Extract execution model from IMPL_PLAN.md\r\n    67\t- **TodoWrite Progress Tracking**: Maintain real-time execution status throughout entire workflow\r\n    68\t- **Agent Orchestration**: Coordinate specialized agents with complete context\r\n    69\t- **Status Synchronization**: Update task JSON files and workflow state\r\n    70\t- **Autonomous Completion**: Continue execution until all tasks complete or reach blocking state\r\n    71\t- **Session User-Choice Completion**: Ask user to choose review or complete when all tasks finished\r\n...\n   284\t\r\n   285\t**Execution Process per Task**:\r\n   286\t1. **Identify Next Task**: From TodoWrite, get the next `in_progress` task ID\r\n   287\t2. **Load Task JSON on Demand**: Read `.task/{task-id}.json` for current task ONLY\r\n   288\t3. **Validate Task Structure**: Ensure all 5 required fields exist (id, title, status, meta, context, flow_control)\r\n   289\t4. **Launch Agent**: Invoke specialized agent with complete context including flow control steps\r\n   290\t5. **Monitor Progress**: Track agent execution and handle errors without user interruption\r\n   291\t6. **Collect Results**: Gather implementation results and outputs\r\n   292\t7. **[with-commit] Auto-Commit**: If `--with-commit` flag enabled, commit changes based on summary\r\n   293\t   - Read summary from `.summaries/{task-id}-summary.md`\r\n...\n   505\t\r\n   506\t**Key Markers**:\r\n   507\t- `Implement` keyword: Triggers tech stack detection and guidelines loading\r\n   508\t- `[FLOW_CONTROL]`: Triggers flow_control.pre_analysis execution\r\n   509\t\r\n   510\t**Why Path-Based**: Agent (code-developer.md) autonomously:\r\n   511\t- Reads and parses task JSON (requirements, acceptance, flow_control, execution_config)\r\n   512\t- Executes pre_analysis steps (Phase 1: context gathering)\r\n   513\t- Checks execution_config.method (Phase 2: determine mode)\r\n   514\t- CLI mode: Builds handoff prompt and executes via ccw cli with resume strategy\r\n   515\t- Agent mode: Directly implements using modification_points and logic_flow\r\n   516\t- Generates structured summary with integration points\r\n   517\t\r\n   518\tEmbedding task content in prompt creates duplication and conflicts with agent's parsing logic.\r\n...\n\nPath: .claude\\commands\\workflow\\lite-execute.md\n     1\t---\r\n     2\tname: lite-execute\r\n     3\tdescription: Execute tasks based on in-memory plan, prompt description, or file content\r\n     4\targument-hint: \"[-y|--yes] [--in-memory] [\\\"task description\\\"|file-path]\"\r\n     5\tallowed-tools: TodoWrite(*), Task(*), Bash(*)\r\n     6\t---\r\n     7\t\r\n     8\t# Workflow Lite-Execute Command (/workflow:lite-execute)\r\n     9\t\r\n    10\t## Overview\r\n    11\t\r\n    12\tFlexible task execution command supporting three input modes: in-memory plan (from lite-plan), direct prompt description, or file content. Handles execution orchestration, progress tracking, and optional code review.\r\n    13\t\r\n    14\t**Core capabilities:**\r\n    15\t- Multi-mode input (in-memory plan, prompt description, or file path)\r\n    16\t- Execution orchestration (Agent or Codex) with full context\r\n    17\t- Live progress tracking via TodoWrite at execution call level\r\n    18\t- Optional code review with selected tool (Gemini, Agent, or custom)\r\n    19\t- Context continuity across multiple executions\r\n    20\t- Intelligent format detection (Enhanced Task JSON vs plain text)\r\n    21\t\r\n    22\t## Usage\r\n    23\t\r\n    24\t### Command Syntax\r\n    25\t```bash\r\n    26\t/workflow:lite-execute [FLAGS] <INPUT>\r\n    27\t\r\n    28\t# Flags\r\n    29\t--in-memory                Use plan from memory (called by lite-plan)\r\n    30\t\r\n    31\t# Arguments\r\n    32\t<input>                    Task description string, or path to file (required)\r\n    33\t```\r\n    34\t\r\n    35\t## Input Modes\r\n    36\t\r\n    37\t### Mode 1: In-Memory Plan\r\n...\n   459\t\r\n   460\t// Build command with fixed ID (and optional resume for continuation)\r\n   461\tconst cli_command = previousCliId\r\n   462\t  ? `ccw cli -p \"${buildExecutionPrompt(batch)}\" --tool codex --mode write --id ${fixedExecutionId} --resume ${previousCliId}`\r\n   463\t  : `ccw cli -p \"${buildExecutionPrompt(batch)}\" --tool codex --mode write --id ${fixedExecutionId}`\r\n   464\t\r\n   465\t// Execute in background, stop output and wait for task hook callback\r\n   466\tBash(\r\n   467\t  command=cli_command,\r\n   468\t  run_in_background=true\r\n   469\t)\r\n...\n   670\t\r\n   671\t```javascript\r\n   672\t{\r\n   673\t  planObject: {\r\n   674\t    summary: string,\r\n   675\t    approach: string,\r\n   676\t    tasks: [...],\r\n   677\t    estimated_time: string,\r\n   678\t    recommended_execution: string,\r\n   679\t    complexity: string\r\n   680\t  },\r\n   681\t  explorationsContext: {...} | null,       // Multi-angle explorations\r\n   682\t  explorationAngles: string[],             // List of exploration angles\r\n   683\t  explorationManifest: {...} | null,       // Exploration manifest\r\n   684\t  clarificationContext: {...} | null,\r\n   685\t  executionMethod: \"Agent\" | \"Codex\" | \"Auto\",  // 全局默认\r\n   686\t  codeReviewTool: \"Skip\" | \"Gemini Review\" | \"Agent Review\" | string,\r\n   687\t  originalUserInput: string,\r\n   688\t\r\n   689\t  // 任务级 executor 分配（优先于 executionMethod）\r\n   690\t  executorAssignments: {\r\n   691\t    [taskId]: { executor: \"gemini\" | \"codex\" | \"agent\", reason: string }\r\n   692\t  },\r\n...\n\nPath: ccw\\src\\commands\\workflow.ts\n...\n   322\t\r\n   323\t/**\r\n   324\t * Main workflow command handler\r\n   325\t */\r\n   326\texport async function workflowCommand(\r\n   327\t  subcommand?: string,\r\n   328\t  args?: string[],\r\n   329\t  options: WorkflowOptions = {}\r\n   330\t): Promise<void> {\r\n   331\t  switch (subcommand) {\r\n   332\t    case 'install':\r\n   333\t      await installWorkflows(options);\r\n   334\t      break;\r\n   335\t    case 'list':\r\n   336\t    case 'ls':\r\n   337\t      await listWorkflows();\r\n   338\t      break;\r\n   339\t    case 'sync':\r\n   340\t    case 'update':\r\n   341\t      await syncWorkflows(options);\r\n   342\t      break;\r\n   343\t    case 'help':\r\n   344\t    default:\r\n   345\t      showWorkflowHelp();\r\n   346\t      break;\r\n   347\t  }\r\n   348\t}\r\n...\n\n",
+      "type": "text"
+    }
+  ]
+}
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/spec-input.md
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/corpus-scope.md
+" in C:\Project\Claude-Code-Workflow succeeded in 315ms:
+# Spec Input (Schema + Rules)
+
+The spec is the only “source input” for outline generation. It must be **minimal** and **non-leaky**.
+
+## Minimal JSON Schema (informal)
+
+```json
+{
+  "command": {
+    "group": "workflow|issue|learn|cli|other",
+    "name": "kebab-case",
+    "description": "one sentence",
+    "argument_hint": "[--flag] \"args\"",
+    "allowed_tools": ["Read(*)", "Write(*)"]
+  },
+  "intent": {
+    "type": "analyze|plan|execute|brainstorm|manage|utility",
+    "interaction": "single-shot|iterative|loop",
+    "primary_user_value": "what this command accomplishes"
+  },
+
+
+thinking
+**Creating output specifications**
+
+I'm determining that the spec.json should follow a specific schema, and I also need to create references.json for phase 02. The outlines must adhere to templates that include frontmatter and details. I'm focusing on generating two markdown files: `generated-slash-outline.md` and `generated-agent-outline.md`, which need concise sections like Overview, Usage, and Error Handling. I'll ensure both contain evidence tables that pass a verification script, while spec.json and references.json will go in the outputs folder.
+thinking
+**Ensuring table format and verification**
+
+I'm checking the columns that need to match names like 'pointer', 'status', 'evidence', and 'verify'. Our evidence table uses 'Evidence (docs + TS)', which should fulfill requirements. For the gap report, I’ll ensure the table includes columns for `Pointer | Status | Evidence | Verify | Notes`. I need to verify that the evidence cell format follows the expected structure. To finalize the verification, I'll look into the parseEvidenceCell function in the verify script and search for the necessary sections.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+"'$txt = Get-Content -Raw .codex/skills/slash-command-outliner/scripts/verify-evidence.js
+$start = $txt.IndexOf('"'function parseEvidenceCell')
+"'$end = $txt.IndexOf('"'function findHeading')
+"'$txt.Substring($start, $end - $start)
+' in C:\Project\Claude-Code-Workflow exited 1 in 430ms:
+[31;1mParentContainsErrorRecordException: [0m
+[31;1m[36;1mLine |[0m
+[31;1m[36;1m[36;1m  11 | [0m [36;1m$txt.Substring($start, $end - $start)[0m
+[31;1m[36;1m[36;1m[0m[36;1m[0m[36;1m     | [31;1m ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[31;1m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m     | [31;1mException calling "Substring" with "2" argument(s): "length ('-331') must be a non-negative value. (Parameter 'length')[0m
+[31;1m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m[31;1mActual value was -331."[0m
+
+thinking
+**Debugging error handling**
+
+I think there might be an indices error because it seems like `findHeading` is getting called before `parseEvidenceCell`. To tackle this, I'll use `Select-String` to locate the relevant sections instead. I’ll display a few lines around `parseEvidenceCell` with the pattern and output the line numbers in shell. This approach should help clarify where the issue is happening. Let's get to it!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+"'$path = '"'.codex/skills/slash-command-outliner/scripts/verify-evidence.js'
+"'$matches = Select-String -Path $path -Pattern '"'function parseEvidenceCell','function findHeading' -AllMatches
+"'$matches | ForEach-Object { "${($_.LineNumber)}: $($_.Line.Trim())" }
+
+'"'--- parseEvidenceCell excerpt ---'
+"'$start = ($matches | Where-Object Line -like '"'*parseEvidenceCell*' | Select-Object -First 1).LineNumber - 2
+"'$end = ($matches | Where-Object Line -like '"'*findHeading*' | Select-Object -First 1).LineNumber + 40
+Get-Content "'$path | Select-Object -Skip ($start-1) -First ($end-$start+1)
+' in C:\Project\Claude-Code-Workflow succeeded in 353ms:
+: export function findHeading(markdown, headingText) {
+: export function parseEvidenceCell(evidenceCell) {
+--- parseEvidenceCell excerpt ---
+}
+
+export function parseEvidenceCell(evidenceCell) {
+  const text = String(evidenceCell || '');
+  const lower = text.toLowerCase();
+
+  function takePart(key) {
+    const idx = lower.indexOf(`${key}:`);
+    if (idx === -1) return null;
+    const after = text.slice(idx + key.length + 1);
+    // stop at next key or line break / semicolon
+    const stop = after.search(/(?:\bdocs:|\bts:|;|\r?\n)/i);
+    const part = (stop === -1 ? after : after.slice(0, stop)).trim();
+    return part.length ? part : null;
+  }
+
+  function parsePart(part) {
+
+thinking
+**Considering output specifications**
+
+I need to ensure that output files remain minimal and don't reveal full documents but include necessary artifact paths. If I'm not sure about something, I should still mark it as an assumption. The user requested to avoid placeholders like TBD in evidence rows, so I’ll work on including "artifacts" in the spec.json file with output paths. I'll explore the oracle documentation for sections about output and consider using Powershell to search for specific headings like "Output Location."
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+"'$doc = '"'.claude/commands/workflow/lite-fix.md'
+'== HEADINGS (lite-fix) =='
+Get-Content "'$doc | Where-Object { $_ -match '"'"'^#{1,6} '"' }
+
+'== Snippets: Output Location / Schema / Session Folder =='
+"'$patterns = @('"'Output Location','Output Schema','Session Folder','Output Artifacts','Assigned Context','Project Context','Bug Description','Severity Level','Error Handling')
+foreach ("'$p in $patterns) {
+  "--- ${p} ---"
+  $m = Select-String -Path $doc -Pattern $p -SimpleMatch | Select-Object -First 1
+  if ($m) {
+    $start = [Math]::Max(0, $m.LineNumber - 5)
+    Get-Content $doc | Select-Object -Skip $start -First 40
+  } else {
+    '"'(not found)'
+  }
+}
+" in C:\Project\Claude-Code-Workflow succeeded in 415ms:
+== HEADINGS (lite-fix) ==
+# Workflow Lite-Fix Command (/workflow:lite-fix)
+## Overview
+## Usage
+# Flags
+# Arguments
+# Examples
+## Output Artifacts
+## Auto Mode Defaults
+## Execution Process
+## Implementation
+### Phase 1: Intelligent Multi-Angle Diagnosis
+## Diagnosis Plan
+## Task Objective
+## Output Location
+## Assigned Context
+## MANDATORY FIRST STEPS (Execute by Agent)
+## Diagnosis Strategy (${angle} focus)
+## Expected Output
+## Success Criteria
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+"'$docs = @(
+  '"'.claude/commands/workflow/lite-plan.md',
+  '.claude/commands/workflow/lite-execute.md',
+  '.claude/commands/workflow/test-fix-gen.md',
+  '.claude/commands/workflow/debug-with-file.md'
+)
+foreach ("'$d in $docs) {
+  "== $d =="
+  Get-Content $d | Select-Object -First 25
+  '"'...'
+  Get-Content "'$d | Where-Object { $_ -match '"'"'^#{1,3} '"' } | Select-Object -First 40
+  \"\"
+}
+" in C:\Project\Claude-Code-Workflow succeeded in 383ms:
+== .claude/commands/workflow/lite-plan.md ==
+---
+name: lite-plan
+description: Lightweight interactive planning workflow with in-memory planning, code exploration, and execution execute to lite-execute after user confirmation
+argument-hint: "[-y|--yes] [-e|--explore] \"task description\"|file.md"
+allowed-tools: TodoWrite(*), Task(*), Skill(*), AskUserQuestion(*)
+---
+
+# Workflow Lite-Plan Command (/workflow:lite-plan)
+
+## Overview
+
+Intelligent lightweight planning command with dynamic workflow adaptation based on task complexity. Focuses on planning phases (exploration, clarification, planning, confirmation) and delegates execution to `/workflow:lite-execute`.
+
+**Core capabilities:**
+- Intelligent task analysis with automatic exploration detection
+- Dynamic code exploration (cli-explore-agent) when codebase understanding needed
+- Interactive clarification after exploration to gather missing information
+- Adaptive planning: Low complexity → Direct Claude; Medium/High → cli-lite-planning-agent
+- Two-step confirmation: plan display → multi-dimensional input collection
+
+thinking
+**Verifying parsing function**
+
+I see that the current method only checks placeholders and perhaps the looksLikePath function. It seems that looksLikePath is focusing on identifying slashes and dots, so I should check the verification script for more details about this function. I'll need to dive into the relevant excerpt to confirm how looksLikePath operates and ensure everything is functioning correctly. Let's see what that shows!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+"'$path = '"'.codex/skills/slash-command-outliner/scripts/verify-evidence.js'
+"'$matches = Select-String -Path $path -Pattern '"'function looksLikePath' -AllMatches
+"'$line = $matches.LineNumber
+"looksLikePath at line $line"
+Get-Content $path | Select-Object -Skip ($line-1) -First 40
+' in C:\Project\Claude-Code-Workflow succeeded in 338ms:
+looksLikePath at line 48
+export function looksLikePath(s) {
+  const v = String(s || '').trim();
+  if (!v) return false;
+  // Avoid treating slash-commands as file paths (e.g. "/issue:new").
+  if (/^\/[a-z0-9_-]+:[a-z0-9_-]+$/i.test(v)) return false;
+
+  // Prefer repo-relative pointers (what we can safely verify).
+  if (
+    v.startsWith('.claude/') ||
+    v.startsWith('ccw/') ||
+    v.startsWith('.workflow/') ||
+    v.startsWith('./') ||
+    v.startsWith('../')
+  ) {
+    return true;
+  }
+
+  // file-ish token, e.g. foo.ts / bar.md
+  return /\.[A-Za-z0-9]{1,6}$/.test(v);
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+"'$path = '"'.codex/skills/slash-command-outliner/scripts/verify-evidence.js'
+"'$match = Select-String -Path $path -Pattern '"'export function findHeading' | Select-Object -First 1
+"'$line = $match.LineNumber
+"findHeading at line $line"
+Get-Content $path | Select-Object -Skip ($line-1) -First 60
+' in C:\Project\Claude-Code-Workflow succeeded in 345ms:
+findHeading at line 109
+export function findHeading(markdown, headingText) {
+  const target = String(headingText || '').trim().replace(/^#+\s*/, '');
+  if (!target) return false;
+  const headings = extractHeadings(markdown);
+  const t = target.toLowerCase();
+  return headings.some((h) => h.toLowerCase() === t || h.toLowerCase().includes(t));
+}
+
+export function parseEvidenceCell(evidenceCell) {
+  const text = String(evidenceCell || '');
+  const lower = text.toLowerCase();
+
+  function takePart(key) {
+    const idx = lower.indexOf(`${key}:`);
+    if (idx === -1) return null;
+    const after = text.slice(idx + key.length + 1);
+    // stop at next key or line break / semicolon
+    const stop = after.search(/(?:\bdocs:|\bts:|;|\r?\n)/i);
+    const part = (stop === -1 ? after : after.slice(0, stop)).trim();
+
+
+thinking
+**Organizing evidence pointers**
+
+I think the focus should be on repo pointers within the evidence table, avoiding references to the home path. In the outline, I might note external schema references, but not include them as pointers in the table. The "Implementation Pointers" section needs to highlight code locations within the repo. For each pointer row, we must include dual-source evidence, and I want to keep the pointer rows to about 4-6. I'll ensure the evidence rows don’t have any commas or newlines — sounds manageable!
+thinking
+**Verifying TS references**
+
+I need to ensure everything appears exactly as it should. I'll check by searching for the relevant TS for workflow commands. One option could be `ccw/src/commands/workflow.ts`, anchoring on the `export async function workflowCommand(` line, since it's a command group. There may also be TS code to scan in `.claude/commands/workflow/*`. I'll open the file to pinpoint the exact lines. This should help in confirming everything aligns correctly!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+'== TS: commands-routes anchors =='
+"'$ts1='"'ccw/src/core/routes/commands-routes.ts'
+Select-String -Path "'$ts1 -Pattern '"'scanCommandsRecursive\\(projectDir','getCommandsDir\\(','\\[Commands\\] Error reading commands config:' -List | ForEach-Object { "'$_.Path }
+Select-String -Path $ts1 -Pattern '"'scanCommandsRecursive\\(projectDir','getCommandsDir\\(','\\[Commands\\] Error reading commands config:' | Select-Object -First 5 | ForEach-Object { \""'${($_.LineNumber)}: $($_.Line.Trim())" }
+
+'"'== TS: workflow command anchors =='
+"'$ts2='"'ccw/src/commands/workflow.ts'
+Select-String -Path "'$ts2 -Pattern '"'export async function workflowCommand','case ''help'':','showWorkflowHelp\\(' | Select-Object -First 10 | ForEach-Object { \""'${($_.LineNumber)}: $($_.Line.Trim())" }
+' in C:\Project\Claude-Code-Workflow succeeded in 338ms:
+== TS: commands-routes anchors ==
+C:\Project\Claude-Code-Workflow\ccw\src\core\routes\commands-routes.ts
+: function getCommandsDir(location: CommandLocation, projectPath: string): string {
+: const projectDir = getCommandsDir('project', projectPath);
+: result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath);
+: const userDir = getCommandsDir('user', projectPath);
+: console.error('[Commands] Error reading commands config:', error);
+== TS: workflow command anchors ==
+: function showWorkflowHelp(): void {
+: export async function workflowCommand(
+: case 'help':
+: showWorkflowHelp();
+
+
+
+
+
+
+thinking
+**Clarifying script usage and parameters**
+
+I'm verifying that the script applies only to Markdown files, not JSON. I think it makes sense to set a maximum of three possible rounds for clarification since the requirements mention this as optional. Regarding the time budget, I wonder if it should be set to 1800 seconds as a safety net, even though the requirement document doesn’t specify. Acceptance criteria should focus on adherence to the constraints, and I’ll include details in the generated outline.
+thinking
+**Examining group field in documentation**
+
+I see that the lite-fix document doesn’t include a group field in the frontmatter, yet the template does. The quality gates require `name`, `description`, and `allowed-tools`, but group might be optional since it’s not mentioned. Still, the template has it, so I think including group could be fine, even if it deviates from existing documentation patterns. However, since it’s just an outline and not a command doc, I feel comfortable following the template's structure and including it.
+thinking
+**Structuring the execution process**
+
+In the Execution Process section, I'll outline the phases, like parsing flags and bug descriptions, severity assessment, multi-angle diagnosis, optional clarification, and fix planning before confirming and executing with lite-execute. I think it's important to keep this concise for clarity. 
+
+For error handling, I’ll list typical errors as mentioned in the document while keeping it brief. I need to make sure the evidence table is fully populated without placeholders and includes verify command strings for each pointer to confirm their existence. Lastly, I’ll also create the `generated-agent-outline.md` using the template.
+thinking
+**Reviewing allowed tools and gap reporting**
+
+I see that the allowed-tools don't include Read/Bash despite the documentation mentioning reading files. In the gap report, I plan to compare our generated outline with the reference lite-plan and the corpus scope to identify any gaps. For instance, I should ensure we address the `--hotfix` flag and severity assessment since the reference doesn’t include severity. I also need to highlight the output artifact schema and the structure specifics in the session folder. Lastly, the implementation pointers evidence table will contain key pointers with verify commands for existing pathways.
+thinking
+**Setting up commands and evidence table**
+
+I’m considering commands like `/workflow:init`, but I’ll need to reference TS file pointers and ensure my documentation evidence is clear, especially regarding commands being scanned. For instance, I can use `.claude/commands/workflow/lite-fix.md` under the `Implementation` heading as evidence. I think it’s straightforward to include both the documentation and TS files as evidence rows while avoiding placeholders. I also need to create the spec.json file, specifying allowed tools, interaction types, and the necessary reads/writes. Finally, I’ll craft the generated-slash-outline and gap report while keeping everything concise.
+thinking
+**Clarifying command documentation and evidence**
+
+I need to clarify that the slash command documentation doesn't include a Read tool, but maybe reading files is implied in the CCW. To keep everything consistent, I’ll phrase it to say, “within delegated Task workers, read `.workflow/...`” instead of saying to use the Read tool. For the gap report, I’ll include an evidence table with six rows and focus on ensuring consistency in output schema paths and session structures. I will perform verification steps to ensure everything matches without placeholders like "TBD" while crafting the necessary files and setting the correct references.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+Select-String -Path ccw/src/core/routes/commands-routes.ts -Pattern 'export async function handleCommandsRoutes' | Select-Object -First 1 | ForEach-Object { \""'${($_.LineNumber)}: $($_.Line.Trim())" }
+' in C:\Project\Claude-Code-Workflow succeeded in 327ms:
+: export async function handleCommandsRoutes(ctx: RouteContext): Promise<boolean> {
+
+thinking
+**Preparing output files**
+
+I'm getting ready to write output files using the `write_file` function. I'll need to craft the content carefully to ensure accuracy. To avoid any mistakes, it's important for me to compute the output directory variable and use a direct path. The first thing I'll tackle is writing the `spec.json` file. It's all about being organized and methodical to achieve this correctly!
+tool ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/spec.json","content":"{\n  \"command\": {\n    \"group\": \"workflow\",\n    \"name\": \"lite-fix\",\n    \"description\": \"Lightweight bug diagnosis and fix workflow with intelligent severity assessment and optional hotfix mode for production incidents\",\n    \"argument_hint\": \"[-y|--yes] [--hotfix] \\\"bug description or issue reference\\\"\",\n    \"allowed_tools\": [\n      \"TodoWrite(*)\",\n      \"Task(*)\",\n      \"Skill(*)\",\n      \"AskUserQuestion(*)\"\n    ]\n  },\n  \"intent\": {\n    \"type\": \"execute\",\n    \"interaction\": \"iterative\",\n    \"primary_user_value\": \"Quickly assess bug severity, run targeted multi-angle diagnosis, produce a fix plan, and optionally hand off execution to /workflow:lite-execute.\"\n  },\n  \"artifacts\": {\n    \"reads\": [\n      \".workflow/project-tech.json\",\n      \".workflow/project-guidelines.json\"\n    ],\n    \"writes\": [\n      \".workflow/lite-fix/<session>/diagnosis-*.json\",\n      \".workflow/lite-fix/<session>/diagnoses-manifest.json\",\n      \".workflow/lite-fix/<session>/planning-context.md\",\n      \".workflow/lite-fix/<session>/fix-plan.json\"\n    ]\n  },\n  \"constraints\": {\n    \"max_rounds\": 3,\n    \"time_budget_seconds\": 0,\n    \"must_not\": [\n      \"Do not claim implementation pointers are Existing unless verifiable in the repo now.\",\n      \"Avoid destructive actions without explicit user request; prefer minimal, reversible fixes unless --hotfix requires otherwise.\"\n    ]\n  },\n  \"acceptance\": {\n    \"p0\": [\n      \"Frontmatter fields present and allowed-tools match requirement\",\n      \"Supports -y/--yes auto mode and --hotfix mode\",\n      \"Produces a structured fix plan and session artifacts under .workflow/lite-fix/<session>/\",\n      \"Delegates execution to /workflow:lite-execute with the collected context\"\n    ]\n  }\n}\n"})
+ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/spec.json","content":"{\n  \"command\": {\n    \"group\": \"workflow\",\n    \"name\": \"lite-fix\",\n    \"description\": \"Lightweight bug diagnosis and fix workflow with intelligent severity assessment and optional hotfix mode for production incidents\",\n    \"argument_hint\": \"[-y|--yes] [--hotfix] \\\"bug description or issue reference\\\"\",\n    \"allowed_tools\": [\n      \"TodoWrite(*)\",\n      \"Task(*)\",\n      \"Skill(*)\",\n      \"AskUserQuestion(*)\"\n    ]\n  },\n  \"intent\": {\n    \"type\": \"execute\",\n    \"interaction\": \"iterative\",\n    \"primary_user_value\": \"Quickly assess bug severity, run targeted multi-angle diagnosis, produce a fix plan, and optionally hand off execution to /workflow:lite-execute.\"\n  },\n  \"artifacts\": {\n    \"reads\": [\n      \".workflow/project-tech.json\",\n      \".workflow/project-guidelines.json\"\n    ],\n    \"writes\": [\n      \".workflow/lite-fix/<session>/diagnosis-*.json\",\n      \".workflow/lite-fix/<session>/diagnoses-manifest.json\",\n      \".workflow/lite-fix/<session>/planning-context.md\",\n      \".workflow/lite-fix/<session>/fix-plan.json\"\n    ]\n  },\n  \"constraints\": {\n    \"max_rounds\": 3,\n    \"time_budget_seconds\": 0,\n    \"must_not\": [\n      \"Do not claim implementation pointers are Existing unless verifiable in the repo now.\",\n      \"Avoid destructive actions without explicit user request; prefer minimal, reversible fixes unless --hotfix requires otherwise.\"\n    ]\n  },\n  \"acceptance\": {\n    \"p0\": [\n      \"Frontmatter fields present and allowed-tools match requirement\",\n      \"Supports -y/--yes auto mode and --hotfix mode\",\n      \"Produces a structured fix plan and session artifacts under .workflow/lite-fix/<session>/\",\n      \"Delegates execution to /workflow:lite-execute with the collected context\"\n    ]\n  }\n}\n"}) success in 11ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"path\": \"C:\\\\Project\\\\Claude-Code-Workflow\\\\.workflow\\\\.cycle\\\\cycle-auto-20260205T010617-slashcmdoutliner-codex.progress\\\\llm\\\\CMD-039\\\\specs\\\\outputs\\\\spec.json\",\n  \"bytes\": 1715,\n  \"message\": \"Created (1715B) - verified\"\n}",
+      "type": "text"
+    }
+  ]
+}
+
+thinking
+**Crafting candidate list**
+
+I'm working on the references.json file and creating a list of candidates with scores based on the file paths from the corpus. I think I'll include five candidates: lite-plan, lite-execute, debug-with-file, test-fix-gen, and plan. However, I need to ensure they are grouped correctly. I'll compute scores out of 10, including some decimals, and provide reasoning for each score. Let’s write the references.json accordingly.
+tool ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/references.json","content":"{\n  \"candidates\": [\n    {\n      \"slash\": \"/workflow:lite-plan\",\n      \"file_path\": \".claude/commands/workflow/lite-plan.md\",\n      \"score\": 10,\n      \"why\": \"Same lite-family structure (multi-angle agent, optional clarification, plan + confirmation, handoff to lite-execute) and same allowed-tools surface.\"\n    },\n    {\n      \"slash\": \"/workflow:lite-execute\",\n      \"file_path\": \".claude/commands/workflow/lite-execute.md\",\n      \"score\": 8,\n      \"why\": \"Directly relevant as the execution handoff target; useful for context packaging and execution confirmation patterns (but different allowed-tools, includes Bash).\"\n    },\n    {\n      \"slash\": \"/workflow:debug-with-file\",\n      \"file_path\": \".claude/commands/workflow/debug-with-file.md\",\n      \"score\": 6,\n      \"why\": \"Bug-focused workflow with iterative debugging and session artifacts; heavier tool surface than lite-fix.\"\n    },\n    {\n      \"slash\": \"/workflow:test-fix-gen\",\n      \"file_path\": \".claude/commands/workflow/test-fix-gen.md\",\n      \"score\": 5,\n      \"why\": \"Fix-oriented orchestrator that produces artifacts and coordinates multiple phases; less aligned with lite workflow and different tools.\"\n    },\n    {\n      \"slash\": \"/workflow:plan\",\n      \"file_path\": \".claude/commands/workflow/plan.md\",\n      \"score\": 4,\n      \"why\": \"Planning conventions and section structure reference; not a lightweight, severity-driven bug fix flow.\"\n    }\n  ],\n  \"selected\": {\n    \"slash\": \"/workflow:lite-plan\",\n    \"file_path\": \".claude/commands/workflow/lite-plan.md\",\n    \"reason\": \"Closest match in interaction model and command structure; easiest to adapt without introducing new patterns.\"\n  }\n}\n"})
+ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/references.json","content":"{\n  \"candidates\": [\n    {\n      \"slash\": \"/workflow:lite-plan\",\n      \"file_path\": \".claude/commands/workflow/lite-plan.md\",\n      \"score\": 10,\n      \"why\": \"Same lite-family structure (multi-angle agent, optional clarification, plan + confirmation, handoff to lite-execute) and same allowed-tools surface.\"\n    },\n    {\n      \"slash\": \"/workflow:lite-execute\",\n      \"file_path\": \".claude/commands/workflow/lite-execute.md\",\n      \"score\": 8,\n      \"why\": \"Directly relevant as the execution handoff target; useful for context packaging and execution confirmation patterns (but different allowed-tools, includes Bash).\"\n    },\n    {\n      \"slash\": \"/workflow:debug-with-file\",\n      \"file_path\": \".claude/commands/workflow/debug-with-file.md\",\n      \"score\": 6,\n      \"why\": \"Bug-focused workflow with iterative debugging and session artifacts; heavier tool surface than lite-fix.\"\n    },\n    {\n      \"slash\": \"/workflow:test-fix-gen\",\n      \"file_path\": \".claude/commands/workflow/test-fix-gen.md\",\n      \"score\": 5,\n      \"why\": \"Fix-oriented orchestrator that produces artifacts and coordinates multiple phases; less aligned with lite workflow and different tools.\"\n    },\n    {\n      \"slash\": \"/workflow:plan\",\n      \"file_path\": \".claude/commands/workflow/plan.md\",\n      \"score\": 4,\n      \"why\": \"Planning conventions and section structure reference; not a lightweight, severity-driven bug fix flow.\"\n    }\n  ],\n  \"selected\": {\n    \"slash\": \"/workflow:lite-plan\",\n    \"file_path\": \".claude/commands/workflow/lite-plan.md\",\n    \"reason\": \"Closest match in interaction model and command structure; easiest to adapt without introducing new patterns.\"\n  }\n}\n"}) success in 11ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"path\": \"C:\\\\Project\\\\Claude-Code-Workflow\\\\.workflow\\\\.cycle\\\\cycle-auto-20260205T010617-slashcmdoutliner-codex.progress\\\\llm\\\\CMD-039\\\\specs\\\\outputs\\\\references.json\",\n  \"bytes\": 1661,\n  \"message\": \"Created (1661B) - verified\"\n}",
+      "type": "text"
+    }
+  ]
+}
+
+thinking
+**Planning execution phases**
+
+I need to outline the execution process in five concise phases, following the structural hints provided. I'll number them for clarity. As for error handling, I'll create a small table to list common errors alongside their resolutions. It would be helpful to provide 2-3 lines of examples to illustrate these points. Finally, I'll make sure to write the file so everything is neatly compiled together. Alright, let’s get started on that!
+tool ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/generated-slash-outline.md","content":"---\nname: lite-fix\ndescription: Lightweight bug diagnosis and fix workflow with intelligent severity assessment and optional hotfix mode for production incidents\nargument-hint: \"[-y|--yes] [--hotfix] \\\"bug description or issue reference\\\"\"\nallowed-tools: TodoWrite(*), Task(*), Skill(*), AskUserQuestion(*)\ngroup: workflow\n---\n\n# Workflow Lite-Fix Command (/workflow:lite-fix)\n\n## Overview\n\n- Goal: Diagnose a bug quickly (with severity assessment), produce a minimal fix plan, then optionally hand off execution to `/workflow:lite-execute`.\n- Command: `/workflow:lite-fix`\n\n## Usage\n\n```bash\n/workflow:lite-fix [-y|--yes] [--hotfix] \"bug description or issue reference\"\n```\n\n## Inputs\n\n- Required inputs:\n  - Bug description string or issue reference (optionally a file reference, per command doc).\n- Optional inputs:\n  - `-y, --yes`: auto mode (skip confirmations)\n  - `--hotfix`: production hotfix mode (optimize for speed/minimal scope)\n\n## Outputs / Artifacts\n\n- Writes:\n  - `.workflow/lite-fix/<session>/diagnosis-*.json`\n  - `.workflow/lite-fix/<session>/diagnoses-manifest.json`\n  - `.workflow/lite-fix/<session>/planning-context.md`\n  - `.workflow/lite-fix/<session>/fix-plan.json`\n- Reads:\n  - `.workflow/project-tech.json`\n  - `.workflow/project-guidelines.json`\n\n## Implementation Pointers\n\n- Command doc: `.claude/commands/workflow/lite-fix.md`\n- Likely code locations:\n  - `.claude/commands/workflow/lite-plan.md` (closest structural reference)\n  - `.claude/commands/workflow/lite-execute.md` (execution handoff contract)\n  - `ccw/src/core/routes/commands-routes.ts` (command corpus scan / grouping)\n  - `ccw/src/commands/workflow.ts` (workflow command handler)\n\n### Evidence (Existing vs Planned)\n\n| Pointer | Status | Evidence (docs + TS) | Verify | Why |\n|---|---|---|---|---|\n| `.claude/commands/workflow/lite-fix.md` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Workflow Lite-Fix Command (/workflow:lite-fix) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath) | `Test-Path .claude/commands/workflow/lite-fix.md` | canonical command definition (oracle) |\n| `/workflow:lite-fix` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Usage ; ts: `ccw/src/commands/workflow.ts` / export async function workflowCommand( | `Test-Path .claude/commands/workflow/lite-fix.md` | command entrypoint + invocation contract |\n| `/workflow:lite-plan` | Existing | docs: `.claude/commands/workflow/lite-plan.md` / Workflow Lite-Plan Command (/workflow:lite-plan) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath) | `Test-Path .claude/commands/workflow/lite-plan.md` | closest reference for phase structure + confirmations |\n| `/workflow:lite-execute` | Existing | docs: `.claude/commands/workflow/lite-execute.md` / Workflow Lite-Execute Command (/workflow:lite-execute) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath) | `Test-Path .claude/commands/workflow/lite-execute.md` | execution handoff target |\n| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Implementation ; ts: `ccw/src/core/routes/commands-routes.ts` / export async function handleCommandsRoutes(ctx: RouteContext): Promise<boolean> | `Test-Path ccw/src/core/routes/commands-routes.ts` | repo-backed command discovery / grouping |\n| `ccw/src/commands/workflow.ts` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Implementation ; ts: `ccw/src/commands/workflow.ts` / export async function workflowCommand( | `Test-Path ccw/src/commands/workflow.ts` | workflow CLI command entrypoint |\n\n## Execution Process\n\n1. Parse flags + bug description; normalize auto mode (`-y/--yes`) and hotfix mode (`--hotfix`).\n2. Assess severity (impact, blast radius, urgency) and choose diagnosis strategy (standard vs hotfix-shortened).\n3. Phase 1: Multi-angle diagnosis (delegate to specialized Task workers); write per-angle `diagnosis-*.json` and `diagnoses-manifest.json`.\n4. Phase 2 (optional): Multi-round clarification with the user (AskUserQuestion) to fill gaps.\n5. Phase 3: Fix planning; produce `fix-plan.json` and supporting `planning-context.md`.\n6. Phase 4: Confirmation & execution selection (auto mode skips prompts); package the final context for execution.\n7. Phase 5: Delegate execution to `/workflow:lite-execute` with the chosen execution method.\n\n## Error Handling\n\n| Error | Resolution |\n|---|---|\n| Diagnosis worker fails | Continue with bug description only; record the failure in planning context |\n| Planning step fails | Fallback to a smaller fix plan with explicit unknowns + verify steps |\n| Clarification times out | Proceed using available diagnosis outputs |\n| Scope too large for lite-fix | Suggest escalation to `/workflow:plan` (bugfix mode) |\n\n## Examples\n\n```bash\n/workflow:lite-fix \"Login shows success even when password is wrong\"\n/workflow:lite-fix --yes \"Production DB connection failures after deploy\"\n/workflow:lite-fix -y --hotfix \"API 500s on checkout endpoint\"\n```\n"})
+ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/generated-slash-outline.md","content":"---\nname: lite-fix\ndescription: Lightweight bug diagnosis and fix workflow with intelligent severity assessment and optional hotfix mode for production incidents\nargument-hint: \"[-y|--yes] [--hotfix] \\\"bug description or issue reference\\\"\"\nallowed-tools: TodoWrite(*), Task(*), Skill(*), AskUserQuestion(*)\ngroup: workflow\n---\n\n# Workflow Lite-Fix Command (/workflow:lite-fix)\n\n## Overview\n\n- Goal: Diagnose a bug quickly (with severity assessment), produce a minimal fix plan, then optionally hand off execution to `/workflow:lite-execute`.\n- Command: `/workflow:lite-fix`\n\n## Usage\n\n```bash\n/workflow:lite-fix [-y|--yes] [--hotfix] \"bug description or issue reference\"\n```\n\n## Inputs\n\n- Required inputs:\n  - Bug description string or issue reference (optionally a file reference, per command doc).\n- Optional inputs:\n  - `-y, --yes`: auto mode (skip confirmations)\n  - `--hotfix`: production hotfix mode (optimize for speed/minimal scope)\n\n## Outputs / Artifacts\n\n- Writes:\n  - `.workflow/lite-fix/<session>/diagnosis-*.json`\n  - `.workflow/lite-fix/<session>/diagnoses-manifest.json`\n  - `.workflow/lite-fix/<session>/planning-context.md`\n  - `.workflow/lite-fix/<session>/fix-plan.json`\n- Reads:\n  - `.workflow/project-tech.json`\n  - `.workflow/project-guidelines.json`\n\n## Implementation Pointers\n\n- Command doc: `.claude/commands/workflow/lite-fix.md`\n- Likely code locations:\n  - `.claude/commands/workflow/lite-plan.md` (closest structural reference)\n  - `.claude/commands/workflow/lite-execute.md` (execution handoff contract)\n  - `ccw/src/core/routes/commands-routes.ts` (command corpus scan / grouping)\n  - `ccw/src/commands/workflow.ts` (workflow command handler)\n\n### Evidence (Existing vs Planned)\n\n| Pointer | Status | Evidence (docs + TS) | Verify | Why |\n|---|---|---|---|---|\n| `.claude/commands/workflow/lite-fix.md` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Workflow Lite-Fix Command (/workflow:lite-fix) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath) | `Test-Path .claude/commands/workflow/lite-fix.md` | canonical command definition (oracle) |\n| `/workflow:lite-fix` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Usage ; ts: `ccw/src/commands/workflow.ts` / export async function workflowCommand( | `Test-Path .claude/commands/workflow/lite-fix.md` | command entrypoint + invocation contract |\n| `/workflow:lite-plan` | Existing | docs: `.claude/commands/workflow/lite-plan.md` / Workflow Lite-Plan Command (/workflow:lite-plan) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath) | `Test-Path .claude/commands/workflow/lite-plan.md` | closest reference for phase structure + confirmations |\n| `/workflow:lite-execute` | Existing | docs: `.claude/commands/workflow/lite-execute.md` / Workflow Lite-Execute Command (/workflow:lite-execute) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath) | `Test-Path .claude/commands/workflow/lite-execute.md` | execution handoff target |\n| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Implementation ; ts: `ccw/src/core/routes/commands-routes.ts` / export async function handleCommandsRoutes(ctx: RouteContext): Promise<boolean> | `Test-Path ccw/src/core/routes/commands-routes.ts` | repo-backed command discovery / grouping |\n| `ccw/src/commands/workflow.ts` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Implementation ; ts: `ccw/src/commands/workflow.ts` / export async function workflowCommand( | `Test-Path ccw/src/commands/workflow.ts` | workflow CLI command entrypoint |\n\n## Execution Process\n\n1. Parse flags + bug description; normalize auto mode (`-y/--yes`) and hotfix mode (`--hotfix`).\n2. Assess severity (impact, blast radius, urgency) and choose diagnosis strategy (standard vs hotfix-shortened).\n3. Phase 1: Multi-angle diagnosis (delegate to specialized Task workers); write per-angle `diagnosis-*.json` and `diagnoses-manifest.json`.\n4. Phase 2 (optional): Multi-round clarification with the user (AskUserQuestion) to fill gaps.\n5. Phase 3: Fix planning; produce `fix-plan.json` and supporting `planning-context.md`.\n6. Phase 4: Confirmation & execution selection (auto mode skips prompts); package the final context for execution.\n7. Phase 5: Delegate execution to `/workflow:lite-execute` with the chosen execution method.\n\n## Error Handling\n\n| Error | Resolution |\n|---|---|\n| Diagnosis worker fails | Continue with bug description only; record the failure in planning context |\n| Planning step fails | Fallback to a smaller fix plan with explicit unknowns + verify steps |\n| Clarification times out | Proceed using available diagnosis outputs |\n| Scope too large for lite-fix | Suggest escalation to `/workflow:plan` (bugfix mode) |\n\n## Examples\n\n```bash\n/workflow:lite-fix \"Login shows success even when password is wrong\"\n/workflow:lite-fix --yes \"Production DB connection failures after deploy\"\n/workflow:lite-fix -y --hotfix \"API 500s on checkout endpoint\"\n```\n"}) success in 19ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"path\": \"C:\\\\Project\\\\Claude-Code-Workflow\\\\.workflow\\\\.cycle\\\\cycle-auto-20260205T010617-slashcmdoutliner-codex.progress\\\\llm\\\\CMD-039\\\\specs\\\\outputs\\\\generated-slash-outline.md\",\n  \"bytes\": 5233,\n  \"message\": \"Created (5233B) - verified\"\n}",
+      "type": "text"
+    }
+  ]
+}
+
+thinking
+**Verifying evidence column**
+
+I need to check that the script is using regex to find the column titled "Evidence" correctly, making sure the search is case-insensitive. It seems like the setup is likely okay since the header includes the word "evidence" in parentheses. Now, I’ll proceed to generate the agent outline in the markdown file, ensuring to fill it out according to the template while replacing the necessary variables. I’ll keep the entries concise!
+tool ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/generated-agent-outline.md","content":"# Agent Outline: workflow:lite-fix\n\n## Purpose\n\nImplement and/or evolve the slash command `/workflow:lite-fix` according to CCW conventions with minimal regressions.\n\n## Execution Model\n\n- Incremental, testable edits\n- Prefer reusing the existing lite-family patterns (`/workflow:lite-plan`, `/workflow:lite-execute`) over introducing new abstractions\n\n## State & Artifacts\n\n- Session folder: `.workflow/lite-fix/<session>/`\n- Required outputs:\n  - `diagnosis-*.json` + `diagnoses-manifest.json`\n  - `planning-context.md`\n  - `fix-plan.json`\n\n## Tooling\n\n- Allowed tools: TodoWrite(*), Task(*), Skill(*), AskUserQuestion(*)\n- Non-negotiables:\n  - no unrelated changes\n  - keep pointers evidence-based (Existing vs Planned)\n\n## Validation Strategy\n\n- P0 gates: frontmatter + allowed-tools + core sections + artifact references\n- Deterministic gate: evidence tables must pass `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js`\n- Regression: do not regress previously completed commands (if snapshots are used)\n"})
+ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/generated-agent-outline.md","content":"# Agent Outline: workflow:lite-fix\n\n## Purpose\n\nImplement and/or evolve the slash command `/workflow:lite-fix` according to CCW conventions with minimal regressions.\n\n## Execution Model\n\n- Incremental, testable edits\n- Prefer reusing the existing lite-family patterns (`/workflow:lite-plan`, `/workflow:lite-execute`) over introducing new abstractions\n\n## State & Artifacts\n\n- Session folder: `.workflow/lite-fix/<session>/`\n- Required outputs:\n  - `diagnosis-*.json` + `diagnoses-manifest.json`\n  - `planning-context.md`\n  - `fix-plan.json`\n\n## Tooling\n\n- Allowed tools: TodoWrite(*), Task(*), Skill(*), AskUserQuestion(*)\n- Non-negotiables:\n  - no unrelated changes\n  - keep pointers evidence-based (Existing vs Planned)\n\n## Validation Strategy\n\n- P0 gates: frontmatter + allowed-tools + core sections + artifact references\n- Deterministic gate: evidence tables must pass `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js`\n- Regression: do not regress previously completed commands (if snapshots are used)\n"}) success in 12ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"path\": \"C:\\\\Project\\\\Claude-Code-Workflow\\\\.workflow\\\\.cycle\\\\cycle-auto-20260205T010617-slashcmdoutliner-codex.progress\\\\llm\\\\CMD-039\\\\specs\\\\outputs\\\\generated-agent-outline.md\",\n  \"bytes\": 1028,\n  \"message\": \"Created (1028B) - verified\"\n}",
+      "type": "text"
+    }
+  ]
+}
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+'project-tech.json exists?'
+Test-Path .workflow/project-tech.json
+'project-guidelines.json exists?'
+Test-Path .workflow/project-guidelines.json
+" in C:\Project\Claude-Code-Workflow succeeded in 319ms:
+project-tech.json exists?
+False
+project-guidelines.json exists?
+False
+tool ccw-tools.smart_search({"query":"project-tech.json","path":"C:/Project/Claude-Code-Workflow","includeHidden":true,"limit":20})
+2026-02-05T05:10:35.243001Z ERROR rmcp::transport::async_rw: Error reading from stream: serde error expected value at line 1 column 2
+ccw-tools.smart_search({"query":"project-tech.json","path":"C:/Project/Claude-Code-Workflow","includeHidden":true,"limit":20}) failed in 3.01s:
+
+thinking
+Hmm, it seems like there was a hiccup with the smart search tool for transport, which closed unexpectedly. I think retrying it is a good idea—sometimes these things happen, right? Technology isn’t perfect, and minor errors can sneak in, but that's okay! I'm just going to give it another go and see if it works this time. I'll keep my fingers crossed for a smoother experience!
+tool ccw-tools.smart_search({"query":"project-tech.json","path":"C:/Project/Claude-Code-Workflow","includeHidden":true,"limit":20})
+ccw-tools.smart_search({"query":"project-tech.json","path":"C:/Project/Claude-Code-Workflow","includeHidden":true,"limit":20}) failed in 0ms:
+
+thinking
+**Looking for project files**
+
+It seems the smart_search tool isn't functioning correctly, so I'll need to fall back to using the shell command `rg`. While the instructions suggest using MCP, it's not working at the moment. I’ll go ahead and use `rg` to search for the "project-tech.json" file in the repository. I hope this approach works out smoothly! Let's see what I can find in which make sense for the user.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+rg -n \"project-tech\\.json\" -S .
+" in C:\Project\Claude-Code-Workflow succeeded in 351ms:
+.\ccw\docs-site\docs\commands\issue\issue-plan.md:146:   - `.workflow/project-tech.json` (technology stack)
+.\ccw\docs-site\build\docs\commands\issue\issue-plan.html:63:<li class=""><code>.workflow/project-tech.json</code> (technology stack)</li>
+.\ccw\src\tools\session-manager.ts:923:  const projectTechFile = join(root, WORKFLOW_BASE, 'project-tech.json');
+.\ccw\docs-site\build\assets\js\a6c3df16.7cfa0c0a.js:1:"use strict";(globalThis.webpackChunkccw_docs=globalThis.webpackChunkccw_docs||[]).push([[991],{1184(e,s,n){n.d(s,{R:()=>t,x:()=>a});var i=n(3696);const r={},l=i.createContext(r);function t(e){const s=i.useContext(l);return i.useMemo(function(){return"function"==typeof e?e(s):{...s,...e}},[s,e])}function a(e){let s;return s=e.disableParentContext?"function"==typeof e.components?e.components(r):e.components||r:t(e.components),i.createElement(l.Provider,{value:s},e.children)}},8715(e,s,n){n.r(s),n.d(s,{assets:()=>c,contentTitle:()=>a,default:()=>u,frontMatter:()=>t,metadata:()=>i,toc:()=>d});const i=JSON.parse('{"id":"commands/issue/issue-plan","title":"issue:plan","description":"Plan issue solutions with exploration and task breakdown","source":"@site/docs/commands/issue/issue-plan.md","sourceDirName":"commands/issue","slug":"/commands/issue/issue-plan","permalink":"/docs/docs/commands/issue/issue-plan","draft":false,"unlisted":false,"editUrl":"https://github.com/ccw/docs/tree/main/docs/commands/issue/issue-plan.md","tags":[],"version":"current","sidebarPosition":3,"frontMatter":{"title":"issue:plan","sidebar_label":"issue:plan","sidebar_position":3,"description":"Plan issue solutions with exploration and task breakdown"},"sidebar":"docs","previous":{"title":"issue:discover","permalink":"/docs/docs/commands/issue/issue-discover"},"next":{"title":"issue:queue","permalink":"/docs/docs/commands/issue/issue-queue"}}');var r=n(2540),l=n(1184);const t={title:"issue:plan",sidebar_label:"issue:plan",sidebar_position:3,description:"Plan issue solutions with exploration and task breakdown"},a="issue",c={},d=[{value:"Description",id:"description",level:2},{value:"Key Features",id:"key-features",level:3},{value:"Usage",id:"usage",level:2},{value:"Arguments",id:"arguments",level:3},{value:"Examples",id:"examples",level:2},{value:"Plan All Pending Issues",id:"plan-all-pending-issues",level:3},{value:"Plan with Failure Retry",id:"plan-with-failure-retry",level:3},{value:"Multiple Solutions Selection",id:"multiple-solutions-selection",level:3},{value:"Issue Lifecycle Flow",id:"issue-lifecycle-flow",level:2},{value:"Planning Workflow",id:"planning-workflow",level:2},{value:"Phase 1: Issue Loading",id:"phase-1-issue-loading",level:3},{value:"Phase 2: Agent Exploration (Parallel)",id:"phase-2-agent-exploration-parallel",level:3},{value:"Phase 3: Solution Selection",id:"phase-3-solution-selection",level:3},{value:"Phase 4: Summary",id:"phase-4-summary",level:3},{value:"Failure-Aware Planning",id:"failure-aware-planning",level:2},{value:"Feedback Schema",id:"feedback-schema",level:3},{value:"Failure Analysis Rules",id:"failure-analysis-rules",level:3},{value:"CLI Endpoints",id:"cli-endpoints",level:2},{value:"Issue Operations",id:"issue-operations",level:3},{value:"Solution Schema",id:"solution-schema",level:3},{value:"Related Commands",id:"related-commands",level:2},{value:"Best Practices",id:"best-practices",level:2},{value:"Troubleshooting",id:"troubleshooting",level:2}];function o(e){const s={a:"a",code:"code",h1:"h1",h2:"h2",h3:"h3",header:"header",li:"li",mermaid:"mermaid",ol:"ol",p:"p",pre:"pre",strong:"strong",table:"table",tbody:"tbody",td:"td",th:"th",thead:"thead",tr:"tr",ul:"ul",...(0,l.R)(),...e.components};return(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(s.header,{children:(0,r.jsxs)(s.h1,{id:"issue",children:["issue",":plan"]})}),"\n",(0,r.jsx)(s.p,{children:"Batch plan issue resolution using intelligent agent-driven exploration and planning with failure-aware retry logic."}),"\n",(0,r.jsx)(s.h2,{id:"description",children:"Description"}),"\n",(0,r.jsxs)(s.p,{children:["The ",(0,r.jsx)(s.code,{children:"issue:plan"})," command uses the issue-plan-agent to combine exploration and planning into a single closed-loop workflow. It generates executable solutions with task breakdowns, handles previous failure analysis, and supports batch processing of up to 3 issues per agent."]}),"\n",(0,r.jsx)(s.h3,{id:"key-features",children:"Key Features"}),"\n",(0,r.jsxs)(s.ul,{children:["\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Explore + Plan"}),": Combined workflow for faster planning"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Failure-aware"}),": Analyzes previous failures to avoid repeats"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Batch processing"}),": Groups semantically similar issues"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Auto-binding"}),": Single solutions automatically bound"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Conflict detection"}),": Identifies cross-issue file conflicts"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"GitHub integration"}),": Adds GitHub comment tasks when applicable"]}),"\n"]}),"\n",(0,r.jsx)(s.h2,{id:"usage",children:"Usage"}),"\n",(0,r.jsx)(s.pre,{children:(0,r.jsx)(s.code,{className:"language-bash",children:"# Plan all pending issues (default)\r\n/issue:plan\r\n\r\n# Plan specific issues\r\n/issue:plan GH-123,GH-124,GH-125\r\n\r\n# Plan single issue\r\n/issue:plan ISS-20251229-001\r\n\r\n# Explicit all-pending\r\n/issue:plan --all-pending\r\n\r\n# Custom batch size\r\n/issue:plan --batch-size 5\n"})}),"\n",(0,r.jsx)(s.h3,{id:"arguments",children:"Arguments"}),"\n",(0,r.jsxs)(s.table,{children:[(0,r.jsx)(s.thead,{children:(0,r.jsxs)(s.tr,{children:[(0,r.jsx)(s.th,{children:"Argument"}),(0,r.jsx)(s.th,{children:"Required"}),(0,r.jsx)(s.th,{children:"Description"})]})}),(0,r.jsxs)(s.tbody,{children:[(0,r.jsxs)(s.tr,{children:[(0,r.jsx)(s.td,{children:(0,r.jsx)(s.code,{children:"issue-ids"})}),(0,r.jsx)(s.td,{children:"No"}),(0,r.jsx)(s.td,{children:"Comma-separated issue IDs (default: all pending)"})]}),(0,r.jsxs)(s.tr,{children:[(0,r.jsx)(s.td,{children:(0,r.jsx)(s.code,{children:"--all-pending"})}),(0,r.jsx)(s.td,{children:"No"}),(0,r.jsx)(s.td,{children:"Explicit flag for all pending issues"})]}),(0,r.jsxs)(s.tr,{children:[(0,r.jsx)(s.td,{children:(0,r.jsx)(s.code,{children:"--batch-size <n>"})}),(0,r.jsx)(s.td,{children:"No"}),(0,r.jsx)(s.td,{children:"Max issues per batch (default: 3)"})]}),(0,r.jsxs)(s.tr,{children:[(0,r.jsx)(s.td,{children:(0,r.jsx)(s.code,{children:"-y, --yes"})}),(0,r.jsx)(s.td,{children:"No"}),(0,r.jsx)(s.td,{children:"Auto-bind without confirmation"})]})]})]}),"\n",(0,r.jsx)(s.h2,{id:"examples",children:"Examples"}),"\n",(0,r.jsx)(s.h3,{id:"plan-all-pending-issues",children:"Plan All Pending Issues"}),"\n",(0,r.jsx)(s.pre,{children:(0,r.jsx)(s.code,{className:"language-bash",children:"/issue:plan\r\n# Output:\r\n# Found 5 pending issues\r\n# Processing 5 issues in 2 batch(es)\r\n# [Batch 1/2] Planning GH-123, GH-124, GH-125...\r\n# \u2713 GH-123: SOL-GH-123-a7x9 (3 tasks)\r\n# \u2713 GH-124: SOL-GH-124-b3m2 (4 tasks)\r\n# \u2713 GH-125: SOL-GH-125-c8k1 (2 tasks)\n"})}),"\n",(0,r.jsx)(s.h3,{id:"plan-with-failure-retry",children:"Plan with Failure Retry"}),"\n",(0,r.jsx)(s.pre,{children:(0,r.jsx)(s.code,{className:"language-bash",children:"/issue:plan ISS-20251229-001\r\n# Agent analyzes previous failure from issue.feedback\r\n# Avoids same approach that failed before\r\n# Creates alternative solution with verification steps\n"})}),"\n",(0,r.jsx)(s.h3,{id:"multiple-solutions-selection",children:"Multiple Solutions Selection"}),"\n",(0,r.jsx)(s.pre,{children:(0,r.jsx)(s.code,{className:"language-bash",children:"/issue:plan GH-999\r\n# Agent generates 2 alternative solutions\r\n# Interactive prompt:\r\n#   Issue GH-999: which solution to bind?\r\n#   [1] SOL-GH-999-a1b2 (4 tasks) - Refactor approach\r\n#   [2] SOL-GH-999-c3d4 (6 tasks) - Rewrite approach\n"})}),"\n",(0,r.jsx)(s.h2,{id:"issue-lifecycle-flow",children:"Issue Lifecycle Flow"}),"\n",(0,r.jsx)(s.mermaid,{value:"graph TB\r\n    A[Issues to Plan] --\x3e B[Load Issue Metadata]\r\n    B --\x3e C[Intelligent Grouping]\r\n    C --\x3e D[Launch Agents Parallel]\r\n    D --\x3e E1[Agent Batch 1]\r\n    D --\x3e E2[Agent Batch 2]\r\n    E1{Analyze\r\nFailures?}\r\n    E2{Analyze\r\nFailures?}\r\n    E1 --\x3e|Yes| F1[Extract Failure Patterns]\r\n    E1 --\x3e|No| G1[Explore Codebase]\r\n    E2 --\x3e|Yes| F2[Extract Failure Patterns]\r\n    E2 --\x3e|No| G2[Explore Codebase]\r\n    F1 --\x3e G1\r\n    F2 --\x3e G2\r\n    G1 --\x3e H1[Generate Solution]\r\n    G2 --\x3e H2[Generate Solution]\r\n    H1 --\x3e I{Single\r\nSolution?}\r\n    H2 --\x3e I\r\n    I --\x3e|Yes| J[Auto-Bind]\r\n    I --\x3e|No| K[User Selection]\r\n    K --\x3e L[Bind Selected]\r\n    J --\x3e M[Status: Planned]\r\n    L --\x3e M"}),"\n",(0,r.jsx)(s.h2,{id:"planning-workflow",children:"Planning Workflow"}),"\n",(0,r.jsx)(s.h3,{id:"phase-1-issue-loading",children:"Phase 1: Issue Loading"}),"\n",(0,r.jsx)(s.pre,{children:(0,r.jsx)(s.code,{className:"language-bash",children:"# Brief metadata only (to avoid context overflow)\r\nccw issue list --status pending,registered --json\n"})}),"\n",(0,r.jsxs)(s.p,{children:[(0,r.jsx)(s.strong,{children:"Returns"}),": Array of ",(0,r.jsx)(s.code,{children:"{id, title, tags}"})]}),"\n",(0,r.jsx)(s.h3,{id:"phase-2-agent-exploration-parallel",children:"Phase 2: Agent Exploration (Parallel)"}),"\n",(0,r.jsx)(s.p,{children:"Each agent performs:"}),"\n",(0,r.jsxs)(s.ol,{children:["\n",(0,r.jsxs)(s.li,{children:["\n",(0,r.jsx)(s.p,{children:(0,r.jsx)(s.strong,{children:"Fetch full issue details"})}),"\n",(0,r.jsx)(s.pre,{children:(0,r.jsx)(s.code,{className:"language-bash",children:"ccw issue status <id> --json\n"})}),"\n"]}),"\n",(0,r.jsxs)(s.li,{children:["\n",(0,r.jsxs)(s.p,{children:[(0,r.jsx)(s.strong,{children:"Analyze failure history"})," (if exists)"]}),"\n",(0,r.jsxs)(s.ul,{children:["\n",(0,r.jsxs)(s.li,{children:["Extract ",(0,r.jsx)(s.code,{children:"issue.feedback"})," where ",(0,r.jsx)(s.code,{children:"type='failure'"}),", ",(0,r.jsx)(s.code,{children:"stage='execute'"})]}),"\n",(0,r.jsx)(s.li,{children:"Parse error_type, message, task_id, solution_id"}),"\n",(0,r.jsx)(s.li,{children:"Identify repeated patterns and root causes"}),"\n",(0,r.jsx)(s.li,{children:"Design alternative approach"}),"\n"]}),"\n"]}),"\n",(0,r.jsxs)(s.li,{children:["\n",(0,r.jsx)(s.p,{children:(0,r.jsx)(s.strong,{children:"Load project context"})}),"\n",(0,r.jsxs)(s.ul,{children:["\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.code,{children:".workflow/project-tech.json"})," (technology stack)"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.code,{children:".workflow/project-guidelines.json"})," (constraints)"]}),"\n"]}),"\n"]}),"\n",(0,r.jsxs)(s.li,{children:["\n",(0,r.jsxs)(s.p,{children:[(0,r.jsx)(s.strong,{children:"Explore codebase"})," (ACE semantic search)"]}),"\n"]}),"\n",(0,r.jsxs)(s.li,{children:["\n",(0,r.jsxs)(s.p,{children:[(0,r.jsx)(s.strong,{children:"Generate solution"})," (following solution-schema.json)"]}),"\n",(0,r.jsxs)(s.ul,{children:["\n",(0,r.jsx)(s.li,{children:"Tasks with quantified acceptance criteria"}),"\n",(0,r.jsx)(s.li,{children:"Verification steps to prevent same failure"}),"\n",(0,r.jsx)(s.li,{children:"Reference to previous failures in approach"}),"\n"]}),"\n"]}),"\n",(0,r.jsxs)(s.li,{children:["\n",(0,r.jsx)(s.p,{children:(0,r.jsx)(s.strong,{children:"Write and bind"})}),"\n",(0,r.jsxs)(s.ul,{children:["\n",(0,r.jsxs)(s.li,{children:["Write to ",(0,r.jsx)(s.code,{children:"solutions/{issue-id}.jsonl"})]}),"\n",(0,r.jsxs)(s.li,{children:["Execute ",(0,r.jsx)(s.code,{children:"ccw issue bind <issue-id> <solution-id>"})," if single solution"]}),"\n"]}),"\n"]}),"\n"]}),"\n",(0,r.jsx)(s.h3,{id:"phase-3-solution-selection",children:"Phase 3: Solution Selection"}),"\n",(0,r.jsx)(s.p,{children:"Multiple solutions \u2192 User selects via AskUserQuestion"}),"\n",(0,r.jsx)(s.h3,{id:"phase-4-summary",children:"Phase 4: Summary"}),"\n",(0,r.jsx)(s.pre,{children:(0,r.jsx)(s.code,{className:"language-bash",children:"## Done: 5 issues \u2192 5 planned\r\n\r\nBound Solutions:\r\n- GH-123: SOL-GH-123-a7x9 (3 tasks)\r\n- GH-124: SOL-GH-124-b3m2 (4 tasks)\r\n- ISS-20251229-001: SOL-ISS-20251229-001-c8k1 (2 tasks)\r\n\r\nNext: /issue:queue\n"})}),"\n",(0,r.jsx)(s.h2,{id:"failure-aware-planning",children:"Failure-Aware Planning"}),"\n",(0,r.jsx)(s.h3,{id:"feedback-schema",children:"Feedback Schema"}),"\n",(0,r.jsx)(s.pre,{children:(0,r.jsx)(s.code,{className:"language-typescript",children:"interface FailureFeedback {\r\n  type: 'failure';\r\n  stage: 'execute';\r\n  content: {\r\n    task_id: string;\r\n    solution_id: string;\r\n    error_type: 'test_failure' | 'compilation' | 'timeout' | 'runtime_error';\r\n    message: string;\r\n    timestamp: string;\r\n  };\r\n  created_at: string;\r\n}\n"})}),"\n",(0,r.jsx)(s.h3,{id:"failure-analysis-rules",children:"Failure Analysis Rules"}),"\n",(0,r.jsxs)(s.ol,{children:["\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Extract patterns"}),": Repeated errors indicate systemic issues"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Identify root cause"}),": Test failure vs. compilation vs. timeout"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Design alternative"}),": Change approach, not just implementation"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Add prevention"}),": Explicit verification steps for same error"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Document lessons"}),": Reference failures in solution.approach"]}),"\n"]}),"\n",(0,r.jsx)(s.h2,{id:"cli-endpoints",children:"CLI Endpoints"}),"\n",(0,r.jsx)(s.h3,{id:"issue-operations",children:"Issue Operations"}),"\n",(0,r.jsx)(s.pre,{children:(0,r.jsx)(s.code,{className:"language-bash",children:"# List pending issues (brief)\r\nccw issue list --status pending --brief\r\n\r\n# Get full issue details (agent use)\r\nccw issue status <id> --json\r\n\r\n# Bind solution to issue\r\nccw issue bind <issue-id> <solution-id>\r\n\r\n# List with bound solutions\r\nccw issue solutions --status planned --brief\n"})}),"\n",(0,r.jsx)(s.h3,{id:"solution-schema",children:"Solution Schema"}),"\n",(0,r.jsx)(s.pre,{children:(0,r.jsx)(s.code,{className:"language-typescript",children:"interface Solution {\r\n  id: string;                    // SOL-{issue-id}-{4-char-uid}\r\n  description: string;\r\n  approach: string;\r\n  tasks: Task[];\r\n  exploration_context: {\r\n    relevant_files: string[];\r\n    dependencies: string[];\r\n    patterns: string[];\r\n  };\r\n  failure_analysis?: {\r\n    previous_failures: string[];\r\n    alternative_approach: string;\r\n    prevention_steps: string[];\r\n  };\r\n  is_bound: boolean;\r\n  created_at: string;\r\n  bound_at?: string;\r\n}\r\n\r\ninterface Task {\r\n  id: string;                    // T1, T2, T3...\r\n  title: string;\r\n  scope: string;\r\n  action: string;\r\n  implementation: string[];\r\n  acceptance: {\r\n    criteria: string[];\r\n    verification: string[];\r\n  };\r\n  test?: {\r\n    unit?: string[];\r\n    integration?: string[];\r\n    commands?: string[];\r\n  };\r\n}\n"})}),"\n",(0,r.jsx)(s.h2,{id:"related-commands",children:"Related Commands"}),"\n",(0,r.jsxs)(s.ul,{children:["\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:(0,r.jsxs)(s.a,{href:"/docs/docs/commands/issue/issue-new",children:["issue",":new"]})})," - Create issues before planning"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:(0,r.jsxs)(s.a,{href:"/docs/docs/commands/issue/issue-queue",children:["issue",":queue"]})})," - Form execution queue from planned issues"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:(0,r.jsxs)(s.a,{href:"/docs/docs/commands/issue/issue-execute",children:["issue",":execute"]})})," - Execute planned solutions"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:(0,r.jsxs)(s.a,{href:"/docs/docs/commands/issue/issue-from-brainstorm",children:["issue",":from-brainstorm"]})})," - Convert brainstorm to planned issue"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:(0,r.jsxs)(s.a,{href:"/docs/docs/commands/issue/issue-convert-to-plan",children:["issue",":convert-to-plan"]})})," - Convert existing plans to issues"]}),"\n"]}),"\n",(0,r.jsx)(s.h2,{id:"best-practices",children:"Best Practices"}),"\n",(0,r.jsxs)(s.ol,{children:["\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Plan in batches"}),": Default 3 issues per batch for optimal performance"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Review failures"}),": Check issue feedback before replanning"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Verify conflicts"}),": Agent reports file conflicts across issues"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"GitHub issues"}),": Agent adds final task to comment on GitHub issue"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Acceptance criteria"}),": Ensure tasks have quantified success metrics"]}),"\n",(0,r.jsxs)(s.li,{children:[(0,r.jsx)(s.strong,{children:"Test coverage"}),": Each task should include verification steps"]}),"\n"]}),"\n",(0,r.jsx)(s.h2,{id:"troubleshooting",children:"Troubleshooting"}),"\n",(0,r.jsxs)(s.table,{children:[(0,r.jsx)(s.thead,{children:(0,r.jsxs)(s.tr,{children:[(0,r.jsx)(s.th,{children:"Error"}),(0,r.jsx)(s.th,{children:"Cause"}),(0,r.jsx)(s.th,{children:"Resolution"})]})}),(0,r.jsxs)(s.tbody,{children:[(0,r.jsxs)(s.tr,{children:[(0,r.jsx)(s.td,{children:"No pending issues"}),(0,r.jsx)(s.td,{children:"All issues already planned"}),(0,r.jsx)(s.td,{children:"Create new issues or use --all-pending flag"})]}),(0,r.jsxs)(s.tr,{children:[(0,r.jsx)(s.td,{children:"Agent timeout"}),(0,r.jsx)(s.td,{children:"Large codebase exploration"}),(0,r.jsx)(s.td,{children:"Reduce batch size or limit scope"})]}),(0,r.jsxs)(s.tr,{children:[(0,r.jsx)(s.td,{children:"No solutions generated"}),(0,r.jsx)(s.td,{children:"Insufficient context"}),(0,r.jsx)(s.td,{children:"Provide more detailed issue description"})]}),(0,r.jsxs)(s.tr,{children:[(0,r.jsx)(s.td,{children:"Solution conflicts"}),(0,r.jsx)(s.td,{children:"Multiple issues touch same files"}),(0,r.jsx)(s.td,{children:"Agent reports conflicts, resolve manually"})]}),(0,r.jsxs)(s.tr,{children:[(0,r.jsx)(s.td,{children:"Bind failure"}),(0,r.jsx)(s.td,{children:"Solution file write error"}),(0,r.jsx)(s.td,{children:"Check permissions, retry"})]})]})]})]})}function u(e={}){const{wrapper:s}={...(0,l.R)(),...e.components};return s?(0,r.jsx)(s,{...e,children:(0,r.jsx)(o,{...e})}):o(e)}}}]);
+.\ccw\src\core\data-aggregator.ts:207:    join(workflowDir, 'project-tech.json'),
+.\ccw\src\core\data-aggregator.ts:281:  // Load project overview from project-tech.json
+.\ccw\src\core\data-aggregator.ts:567: * Load project overview from project-tech.json and project-guidelines.json
+.\ccw\src\core\data-aggregator.ts:572:  const techFile = join(workflowDir, 'project-tech.json');
+.\ccw\src\core\data-aggregator.ts:586:    // Parse tech data from project-tech.json structure
+
+thinking
+**Finding JSON references**
+
+I see we have TypeScript references to `project-tech.json` in `ccw/src/tools/session-manager.ts` and `core/data-aggregator.ts`. I can use those as evidence for the `.workflow/project-tech.json` pointer. Earlier, we used the `commands-routes` anchor, which doesn’t mention `tech.json`, but that's okay since the evidence for that pointer should relate back to the TypeScript anchor connected to `project-tech`. It might also be useful to check on `project-guidelines.json`. Time to search for that!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+rg -n \"project-guidelines\\.json\" -S ccw/src
+" in C:\Project\Claude-Code-Workflow succeeded in 331ms:
+ccw/src\core\data-aggregator.ts:208:    join(workflowDir, 'project-guidelines.json'),
+ccw/src\core\data-aggregator.ts:567: * Load project overview from project-tech.json and project-guidelines.json
+ccw/src\core\data-aggregator.ts:573:  const guidelinesFile = join(workflowDir, 'project-guidelines.json');
+ccw/src\core\data-aggregator.ts:645:        console.error(`Failed to parse project-guidelines.json:`, (guidelinesErr as Error).message);
+ccw/src\core\routes\ccw-routes.ts:53:    const guidelinesFile = join(resolvedPath, '.workflow', 'project-guidelines.json');
+ccw/src\core\routes\ccw-routes.ts:78:      const guidelinesFile = join(resolvedPath, '.workflow', 'project-guidelines.json');
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+"'$ts='"'ccw/src/core/data-aggregator.ts'
+'== anchors in data-aggregator.ts =='
+Select-String -Path "'$ts -Pattern "join'"\\(workflowDir, 'project-tech\\.json'\\)\",\"join\\(workflowDir, 'project-guidelines\\.json'\\)\",\"Failed to parse project-guidelines\\.json\" | Select-Object -First 10 | ForEach-Object { \""'${($_.LineNumber)}: $($_.Line.Trim())" }
+' in C:\Project\Claude-Code-Workflow succeeded in 320ms:
+== anchors in data-aggregator.ts ==
+: join(workflowDir, 'project-tech.json'),
+: join(workflowDir, 'project-guidelines.json'),
+: const techFile = join(workflowDir, 'project-tech.json');
+: const guidelinesFile = join(workflowDir, 'project-guidelines.json');
+: console.error(`Failed to parse project-guidelines.json:`, (guidelinesErr as Error).message);
+
+thinking
+**Checking project setup**
+
+I'm confirming the creation path for `.workflow/project-tech.json` and `.workflow/project-guidelines.json`. If they're missing, I’ll need to update the lite-fix document to instruct running `/workflow:init` or provide a fallback. I also want to ensure the handoff to lite-execute is explicit while using a stable artifacts path. Since I'm generating an outline, I’m wondering if the fix plan is for implementing a new command. Okay, now it’s time to write the gap-report.md.
+tool ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/gap-report.md","content":"# Gap Report: workflow:lite-fix\n\n## Reference\n\n- Selected reference: /workflow:lite-plan (`.claude/commands/workflow/lite-plan.md`)\n\n## P0 Gaps (Must Fix)\n\n- None identified for the outline skeleton (frontmatter, required sections, and evidence tables).\n\n## P1 Gaps (Should Fix)\n\n- Make the severity-level mapping explicit (severity -> diagnosis depth -> planning strategy -> confirmation requirements).\n- Make the `/workflow:lite-execute` handoff contract explicit (what exact context bundle is passed, and which artifacts are authoritative).\n- Document a fallback when `.workflow/project-tech.json` / `.workflow/project-guidelines.json` are missing (e.g., prompt user to run `/workflow:init` or proceed with reduced context).\n\n## P2 Gaps (Optional)\n\n- Add one worked example for file input and one for issue-reference input.\n- Add a short troubleshooting section for common failures (e.g., diagnosis worker errors, clarification timeouts).\n\n## Implementation Pointers (Evidence)\n\n| Pointer | Status | Evidence | Verify | Notes |\n|---|---|---|---|---|\n| `.claude/commands/workflow/lite-fix.md` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Workflow Lite-Fix Command (/workflow:lite-fix) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath) | `Test-Path .claude/commands/workflow/lite-fix.md` | canonical command definition |\n| `/workflow:lite-fix` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Usage ; ts: `ccw/src/commands/workflow.ts` / export async function workflowCommand( | `Test-Path .claude/commands/workflow/lite-fix.md` | invocation contract + group routing |\n| `/workflow:lite-plan` | Existing | docs: `.claude/commands/workflow/lite-plan.md` / Workflow Lite-Plan Command (/workflow:lite-plan) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath) | `Test-Path .claude/commands/workflow/lite-plan.md` | closest structural reference |\n| `/workflow:lite-execute` | Existing | docs: `.claude/commands/workflow/lite-execute.md` / Workflow Lite-Execute Command (/workflow:lite-execute) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath) | `Test-Path .claude/commands/workflow/lite-execute.md` | execution handoff target |\n| `.workflow/project-tech.json` | Planned | docs: `.claude/commands/workflow/lite-fix.md` / Project Context (MANDATORY - Read Both Files) ; ts: `ccw/src/core/data-aggregator.ts` / const techFile = join(workflowDir, 'project-tech.json') | `Test-Path .workflow/project-tech.json` | optional project context input (may be created by other workflow commands) |\n| `.workflow/project-guidelines.json` | Planned | docs: `.claude/commands/workflow/lite-fix.md` / Project Context (MANDATORY - Read Both Files) ; ts: `ccw/src/core/data-aggregator.ts` / const guidelinesFile = join(workflowDir, 'project-guidelines.json') | `Test-Path .workflow/project-guidelines.json` | optional project constraints input (may be created by other workflow commands) |\n| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Implementation ; ts: `ccw/src/core/routes/commands-routes.ts` / export async function handleCommandsRoutes(ctx: RouteContext): Promise<boolean> | `Test-Path ccw/src/core/routes/commands-routes.ts` | repo-backed command discovery / grouping |\n| `ccw/src/commands/workflow.ts` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Implementation ; ts: `ccw/src/commands/workflow.ts` / export async function workflowCommand( | `Test-Path ccw/src/commands/workflow.ts` | workflow CLI command entrypoint |\n\n## Implementation Hints (Tooling/Server)\n\n- `ccw/src/core/routes/commands-routes.ts` is the repo-backed scanner for command docs under `.claude/commands/**`, so keep the command doc path stable and group-consistent.\n- `ccw/src/core/data-aggregator.ts` has first-class support for `.workflow/project-tech.json` and `.workflow/project-guidelines.json`; if lite-fix relies on them, document creation/fallback behavior.\n\n## Proposed Fix Plan (Minimal)\n\n- Add/verify an explicit severity mapping section and hotfix-shortening rules.\n- Add/verify a single “handoff bundle” definition for `/workflow:lite-execute` (artifacts + clarifications + chosen strategy).\n- Add/verify a missing-context fallback path when `.workflow/project-*.json` files do not exist.\n"})
+ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/gap-report.md","content":"# Gap Report: workflow:lite-fix\n\n## Reference\n\n- Selected reference: /workflow:lite-plan (`.claude/commands/workflow/lite-plan.md`)\n\n## P0 Gaps (Must Fix)\n\n- None identified for the outline skeleton (frontmatter, required sections, and evidence tables).\n\n## P1 Gaps (Should Fix)\n\n- Make the severity-level mapping explicit (severity -> diagnosis depth -> planning strategy -> confirmation requirements).\n- Make the `/workflow:lite-execute` handoff contract explicit (what exact context bundle is passed, and which artifacts are authoritative).\n- Document a fallback when `.workflow/project-tech.json` / `.workflow/project-guidelines.json` are missing (e.g., prompt user to run `/workflow:init` or proceed with reduced context).\n\n## P2 Gaps (Optional)\n\n- Add one worked example for file input and one for issue-reference input.\n- Add a short troubleshooting section for common failures (e.g., diagnosis worker errors, clarification timeouts).\n\n## Implementation Pointers (Evidence)\n\n| Pointer | Status | Evidence | Verify | Notes |\n|---|---|---|---|---|\n| `.claude/commands/workflow/lite-fix.md` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Workflow Lite-Fix Command (/workflow:lite-fix) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath) | `Test-Path .claude/commands/workflow/lite-fix.md` | canonical command definition |\n| `/workflow:lite-fix` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Usage ; ts: `ccw/src/commands/workflow.ts` / export async function workflowCommand( | `Test-Path .claude/commands/workflow/lite-fix.md` | invocation contract + group routing |\n| `/workflow:lite-plan` | Existing | docs: `.claude/commands/workflow/lite-plan.md` / Workflow Lite-Plan Command (/workflow:lite-plan) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath) | `Test-Path .claude/commands/workflow/lite-plan.md` | closest structural reference |\n| `/workflow:lite-execute` | Existing | docs: `.claude/commands/workflow/lite-execute.md` / Workflow Lite-Execute Command (/workflow:lite-execute) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath) | `Test-Path .claude/commands/workflow/lite-execute.md` | execution handoff target |\n| `.workflow/project-tech.json` | Planned | docs: `.claude/commands/workflow/lite-fix.md` / Project Context (MANDATORY - Read Both Files) ; ts: `ccw/src/core/data-aggregator.ts` / const techFile = join(workflowDir, 'project-tech.json') | `Test-Path .workflow/project-tech.json` | optional project context input (may be created by other workflow commands) |\n| `.workflow/project-guidelines.json` | Planned | docs: `.claude/commands/workflow/lite-fix.md` / Project Context (MANDATORY - Read Both Files) ; ts: `ccw/src/core/data-aggregator.ts` / const guidelinesFile = join(workflowDir, 'project-guidelines.json') | `Test-Path .workflow/project-guidelines.json` | optional project constraints input (may be created by other workflow commands) |\n| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Implementation ; ts: `ccw/src/core/routes/commands-routes.ts` / export async function handleCommandsRoutes(ctx: RouteContext): Promise<boolean> | `Test-Path ccw/src/core/routes/commands-routes.ts` | repo-backed command discovery / grouping |\n| `ccw/src/commands/workflow.ts` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Implementation ; ts: `ccw/src/commands/workflow.ts` / export async function workflowCommand( | `Test-Path ccw/src/commands/workflow.ts` | workflow CLI command entrypoint |\n\n## Implementation Hints (Tooling/Server)\n\n- `ccw/src/core/routes/commands-routes.ts` is the repo-backed scanner for command docs under `.claude/commands/**`, so keep the command doc path stable and group-consistent.\n- `ccw/src/core/data-aggregator.ts` has first-class support for `.workflow/project-tech.json` and `.workflow/project-guidelines.json`; if lite-fix relies on them, document creation/fallback behavior.\n\n## Proposed Fix Plan (Minimal)\n\n- Add/verify an explicit severity mapping section and hotfix-shortening rules.\n- Add/verify a single “handoff bundle” definition for `/workflow:lite-execute` (artifacts + clarifications + chosen strategy).\n- Add/verify a missing-context fallback path when `.workflow/project-*.json` files do not exist.\n"}) failed in 0ms:
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+"'$outDir = '"'.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs'
+New-Item -ItemType Directory -Force -Path "'$outDir | Out-Null
+
+$gap = @'"'
+# Gap Report: workflow:lite-fix
+
+## Reference
+
+- Selected reference: /workflow:lite-plan ("'`.claude/commands/workflow/lite-plan.md`)
+
+## P0 Gaps (Must Fix)
+
+- None identified for the outline skeleton (frontmatter, required sections, and evidence tables).
+
+## P1 Gaps (Should Fix)
+
+- Make the severity-level mapping explicit (severity -> diagnosis depth -> planning strategy -> confirmation requirements).
+- Make the `/workflow:lite-execute` handoff contract explicit (what exact context bundle is passed, and which artifacts are authoritative).
+- Document a fallback when `.workflow/project-tech.json` / `.workflow/project-guidelines.json` are missing (e.g., prompt user to run `/workflow:init` or proceed with reduced context).
+
+## P2 Gaps (Optional)
+
+- Add one worked example for file input and one for issue-reference input.
+- Add a short troubleshooting section for common failures (e.g., diagnosis worker errors, clarification timeouts).
+
+## Implementation Pointers (Evidence)
+
+| Pointer | Status | Evidence | Verify | Notes |
+|---|---|---|---|---|
+| `.claude/commands/workflow/lite-fix.md` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Workflow Lite-Fix Command (/workflow:lite-fix) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, '"'project', projectPath) | "'`Test-Path .claude/commands/workflow/lite-fix.md` | canonical command definition |
+| `/workflow:lite-fix` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Usage ; ts: `ccw/src/commands/workflow.ts` / export async function workflowCommand( | `Test-Path .claude/commands/workflow/lite-fix.md` | invocation contract + group routing |
+| `/workflow:lite-plan` | Existing | docs: `.claude/commands/workflow/lite-plan.md` / Workflow Lite-Plan Command (/workflow:lite-plan) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, '"'project', projectPath) | "'`Test-Path .claude/commands/workflow/lite-plan.md` | closest structural reference |
+| `/workflow:lite-execute` | Existing | docs: `.claude/commands/workflow/lite-execute.md` / Workflow Lite-Execute Command (/workflow:lite-execute) ; ts: `ccw/src/core/routes/commands-routes.ts` / result.projectCommands = scanCommandsRecursive(projectDir, projectDir, '"'project', projectPath) | "'`Test-Path .claude/commands/workflow/lite-execute.md` | execution handoff target |
+| `.workflow/project-tech.json` | Planned | docs: `.claude/commands/workflow/lite-fix.md` / Project Context (MANDATORY - Read Both Files) ; ts: `ccw/src/core/data-aggregator.ts` / const techFile = join(workflowDir, '"'project-tech.json') | "'`Test-Path .workflow/project-tech.json` | optional project context input (may be created by other workflow commands) |
+| `.workflow/project-guidelines.json` | Planned | docs: `.claude/commands/workflow/lite-fix.md` / Project Context (MANDATORY - Read Both Files) ; ts: `ccw/src/core/data-aggregator.ts` / const guidelinesFile = join(workflowDir, '"'project-guidelines.json') | "'`Test-Path .workflow/project-guidelines.json` | optional project constraints input (may be created by other workflow commands) |
+| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Implementation ; ts: `ccw/src/core/routes/commands-routes.ts` / export async function handleCommandsRoutes(ctx: RouteContext): Promise<boolean> | `Test-Path ccw/src/core/routes/commands-routes.ts` | repo-backed command discovery / grouping |
+| `ccw/src/commands/workflow.ts` | Existing | docs: `.claude/commands/workflow/lite-fix.md` / Implementation ; ts: `ccw/src/commands/workflow.ts` / export async function workflowCommand( | `Test-Path ccw/src/commands/workflow.ts` | workflow CLI command entrypoint |
+
+## Implementation Hints (Tooling/Server)
+
+- `ccw/src/core/routes/commands-routes.ts` is the repo-backed scanner for command docs under `.claude/commands/**`, so keep the command doc path stable and group-consistent.
+- `ccw/src/core/data-aggregator.ts` has first-class support for `.workflow/project-tech.json` and `.workflow/project-guidelines.json`; if lite-fix relies on them, document creation/fallback behavior.
+
+## Proposed Fix Plan (Minimal)
+
+- Add/verify an explicit severity mapping section and hotfix-shortening rules.
+- Add/verify a single “handoff bundle” definition for `/workflow:lite-execute` (artifacts + clarifications + chosen strategy).
+- Add/verify a missing-context fallback path when `.workflow/project-*.json` files do not exist.
+'"'@
+
+"'$gapPath = Join-Path $outDir '"'gap-report.md'
+[IO.File]::WriteAllText("'$gapPath, $gap, [Text.UTF8Encoding]::new($false))
+
+"Wrote: $gapPath"
+' in C:\Project\Claude-Code-Workflow succeeded in 326ms:
+Wrote: .workflow\.cycle\cycle-auto-20260205T010617-slashcmdoutliner-codex.progress\llm\CMD-039\specs\outputs\gap-report.md
+
+thinking
+**Planning the fix**
+
+I’m getting ready to fix the plan document. My idea is to create a minimal plan that includes verification steps and scopes, using a list format for clarity. I’ll make sure to include sections that cover checks, like verifying that the headings exist, and outline tasks for syncing the document. Also, I’ll add tasks for verifying the implementation. It sounds straightforward, so let's proceed with writing it out!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+"'$outDir = '"'.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs'
+New-Item -ItemType Directory -Force -Path "'$outDir | Out-Null
+
+$fix = @'"'
+# Fix Plan: workflow:lite-fix
+
+## Scope
+
+Tighten the "'`/workflow:lite-fix` command doc and outline so the workflow is unambiguous (severity -> diagnosis -> plan -> handoff), while keeping the lite-family patterns consistent.
+
+## P0 (Must)
+
+1. Evidence + pointer hygiene
+   - Ensure every evidence-row pointer remains verifiable and dual-sourced.
+   - Verify:
+     - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/generated-slash-outline.md`
+     - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/gap-report.md`
+
+2. Severity mapping + hotfix behavior
+   - Add/verify a single, explicit mapping:
+     - severity level -> (diagnosis depth, clarification rounds, planning strategy, confirmation requirements)
+     - `--hotfix` overrides (minimal diagnosis, smallest safe change set, stronger rollback guidance).
+
+3. Handoff bundle contract to `/workflow:lite-execute`
+   - Define the canonical artifacts passed to execution (manifest + fix plan + clarifications + any selected strategy flags), and which file is the “source of truth”.
+
+## P1 (Should)
+
+4. Missing project context fallback
+   - If `.workflow/project-tech.json` and/or `.workflow/project-guidelines.json` are missing, document the fallback:
+     - prompt user to run `/workflow:init` (preferred), OR proceed with reduced context and record the limitation.
+   - Verify (repo existence is optional):
+     - `Test-Path .workflow/project-tech.json`
+     - `Test-Path .workflow/project-guidelines.json`
+
+## P2 (Optional)
+
+5. Add two concrete examples
+   - file input example
+   - issue-reference input example
+
+6. Troubleshooting quick table
+   - diagnosis worker failure, planning fallback, clarification timeout, escalation criteria
+'"'@
+
+"'$fixPath = Join-Path $outDir '"'fix-plan.md'
+[IO.File]::WriteAllText("'$fixPath, $fix, [Text.UTF8Encoding]::new($false))
+
+"Wrote: $fixPath"
+' in C:\Project\Claude-Code-Workflow succeeded in 336ms:
+Wrote: .workflow\.cycle\cycle-auto-20260205T010617-slashcmdoutliner-codex.progress\llm\CMD-039\specs\outputs\fix-plan.md
+
+
+thinking
+**Verifying documentation compliance**
+
+I need to make sure that both gap-report.md and generated-slash-outline.md pass the verification for evidence. This means checking that the evidence tables are present and parsing correctly. I also need to confirm that specific headings exist, like `## Usage`, and that `Project Context (MANDATORY - Read Both Files)` is included. If we supply headings like `Usage` or `Implementation`, they should match what’s in the extracted headings. For the lite-fix document, those headings are present too. Lastly, TS evidence anchors must exist as exact substrings.
+thinking
+**Checking project commands and evidence**
+
+I need to ensure that certain lines of code exist in the project files. First, `result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath)` likely exists. Then, `export async function workflowCommand(` and `export async function handleCommandsRoutes(ctx: RouteContext): Promise<boolean>` both should be there too. I also need to check that the tech file and guidelines file strings are correct, particularly that they're formatted properly in evidence cells. Lastly, I'll run the verification script for both generated-slash-outline and gap-report files.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/generated-slash-outline.md
+node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/gap-report.md
+" in C:\Project\Claude-Code-Workflow succeeded in 377ms:
+OK: evidence verification passed
+OK: evidence verification passed
+
+thinking
+**Ensuring output files**
+
+I need to make sure that all the required output files are present. Since the MCP write_file tool crashed, I managed to write the gap-report and fix-plan using the shell. Now I need to confirm if files like spec.json and references.json are actually there. I think the best next step is to list the contents of the output directory to check for everything I need.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$ErrorActionPreference='"'Stop'
+
+Get-ChildItem -Force .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs | Select-Object Name, Length | Format-Table -AutoSize
+" in C:\Project\Claude-Code-Workflow succeeded in 329ms:
+
+[32;1mName                      [0m[32;1m Length[0m
+[32;1m----                      [0m [32;1m------[0m
+fix-plan.md                  1955
+gap-report.md                4543
+generated-agent-outline.md   1028
+generated-slash-outline.md   5233
+references.json              1661
+spec.json                    1715
+
+codex
+Used skill `slash-command-outliner` and generated CMD-039 outputs from `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-039.requirements.md`.
+
+Wrote:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/fix-plan.md`
+
+Quality gate:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=...generated-slash-outline.md` ✅
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=...gap-report.md` ✅
+tokens used
+126,663

@@ -1,0 +1,46 @@
+{
+  "command": {
+    "group": "issue",
+    "name": "new",
+    "description": "Create structured issue from GitHub URL or text description",
+    "argument_hint": "[-y|--yes] <github-url | text-description> [--priority 1-5]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Bash(*)",
+      "Read(*)",
+      "AskUserQuestion(*)",
+      "mcp__ace-tool__search_context(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "iterative",
+    "primary_user_value": "Create a local structured issue record (and optionally publish/bind it to GitHub) from either a GitHub issue reference or a free-text problem description."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/issues/issues.jsonl"
+    ],
+    "writes": [
+      ".workflow/issues/issues.jsonl"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 2,
+    "time_budget_seconds": 600,
+    "must_not": [
+      "Do not ask clarification questions when -y/--yes is provided (auto mode).",
+      "Do not claim repository pointers exist unless they are verifiable in the repo at generation time.",
+      "Do not create or modify unrelated files; only the issue storage files via ccw CLI and any explicitly requested outputs."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter valid (name/description/allowed-tools, argument-hint if applicable)",
+      "Allowed-tools matches intended behavior",
+      "Core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
+      "All implementation pointers labeled Existing vs Planned with dual-source evidence (docs + TS) and concrete verify commands"
+    ]
+  }
+}
+

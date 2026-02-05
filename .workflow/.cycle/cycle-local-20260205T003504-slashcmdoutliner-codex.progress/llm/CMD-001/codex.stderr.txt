@@ -1,0 +1,938 @@
+Reading prompt from stdin...
+OpenAI Codex v0.93.0 (research preview)
+--------
+workdir: C:\Project\Claude-Code-Workflow
+model: gpt-5.2
+provider: codex
+approval: never
+sandbox: danger-full-access
+reasoning effort: high
+reasoning summaries: auto
+session id: 019c2983-1256-7093-bcb8-eddc844c9902
+--------
+user
+Use the repo skill: slash-command-outliner (path: .codex/skills/slash-command-outliner).
+
+Cycle: cycle-local-20260205T003504-slashcmdoutliner-codex
+Command: CMD-001
+
+Input requirement doc (non-leaky): `.workflow/.cycle/cycle-local-20260205T003504-slashcmdoutliner-codex.progress/requirements/CMD-001.requirements.md`
+
+Write the following output files (create directories as needed) under `.workflow/.cycle/cycle-local-20260205T003504-slashcmdoutliner-codex.progress/llm/CMD-001/specs/outputs`:
+- `.workflow/.cycle/cycle-local-20260205T003504-slashcmdoutliner-codex.progress/llm/CMD-001/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-local-20260205T003504-slashcmdoutliner-codex.progress/llm/CMD-001/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-local-20260205T003504-slashcmdoutliner-codex.progress/llm/CMD-001/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-local-20260205T003504-slashcmdoutliner-codex.progress/llm/CMD-001/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-local-20260205T003504-slashcmdoutliner-codex.progress/llm/CMD-001/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-local-20260205T003504-slashcmdoutliner-codex.progress/llm/CMD-001/specs/outputs/fix-plan.md`
+
+Hard rules (P0):
+- Follow templates: .codex/skills/slash-command-outliner/templates/*
+- Follow gates: .codex/skills/slash-command-outliner/specs/quality-gates.md
+- Evidence tables MUST pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js
+- Never label a pointer as Existing unless it is verifiable in the repo now.
+- For ANY pointer row, provide dual-source evidence:
+  - docs: .claude/commands/**.md / <real heading text>
+  - ts: ccw/src/** / <literal anchor string present in file>
+- Avoid placeholders like TBD/N/A in evidence rows; if unsure, mark as Planned and add Verify steps.
+
+Keep the written files concise; do not write extra files unless necessary.
+
+deprecated: `[features].web_search_request` is deprecated. Use `web_search` instead.
+  Set `web_search` to `"live"`, `"cached"`, or `"disabled"` in config.toml.
+mcp: ace-tool starting
+mcp: ccw-tools starting
+mcp: exa starting
+mcp: ccw-tools ready
+mcp: ace-tool ready
+mcp: exa ready
+mcp startup: ready: ccw-tools, ace-tool, exa
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-ChildItem -Force' in C:\Project\Claude-Code-Workflow succeeded in 452ms:
+
+    Directory: C:\Project\Claude-Code-Workflow
+
+[32;1mMode   [0m[32;1m              LastWriteTime[0m [32;1;3m        Length[0m[32;1m Name[0m
+[32;1m----   [0m [32;1m             -------------[0m [32;1m        ------[0m [32;1m----[0m
+d----           2026/1/23    21:35                [44;1m.ace-tool[0m
+d----           2026/1/23    22:39                [44;1m.ccf[0m
+d----           2026/1/24     1:10                [44;1m.ccw[0m
+d----            2026/2/4    23:35                [44;1m.claude[0m
+d----           2026/1/29    21:16                [44;1m.codex[0m
+d----           2026/1/23    21:26                [44;1m.gemini[0m
+d--h-            2026/2/5     0:22                [44;1m.git[0m
+d----           2026/1/23    21:26                [44;1m.github[0m
+d----           2026/1/23    21:26                [44;1m.qwen[0m
+d----           2026/1/24    15:51                [44;1m.vscode[0m
+d----            2026/2/4    23:35                [44;1m.workflow[0m
+d----           2026/1/25    21:54                [44;1marchive[0m
+d----           2026/1/29    21:16                [44;1massets[0m
+d----            2026/2/4    23:35                [44;1mccw[0m
+d----           2026/1/23    21:26                [44;1mccw-litellm[0m
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/SKILL.md' in C:\Project\Claude-Code-Workflow succeeded in 376ms:
+---
+name: slash-command-outliner
+description: Codex version of slash-command-outliner. Generate CCW-aligned slash command development outlines from a requirement/spec doc, validated via corpus-wide iteration and non-regression. Triggers on "slash command outliner", "slash 命令大纲", "slash 命令生成器", "命令大纲".
+allowed-tools: Read, Write, AskUserQuestion, Task, Bash, TodoWrite, mcp__ace-tool__search_context
+---
+
+# Slash Command Outliner (Codex)
+
+Input a **slash command requirement/spec document**. Output a **CCW-aligned, end-to-end development outline** (Slash MD outline + Agent MD outline) plus a **gap-report** that compares against reference implementations and CCW server/tooling corpus. Improve quality by iterating across **all** existing commands with **non-regression snapshots**.
+
+This skill is designed to be **precise** (no fluff) and **stable** (non-regression gate).
+
+## Canonical Workflow (Phases)
+
+1) `phases/01-collect-spec.md`  
+2) `phases/02-retrieve-and-rank-references.md`  
+3) `phases/03-generate-outlines.md`  
+4) `phases/04-gap-report-and-iterate.md`  
+5) `phases/05-regression-and-closure.md`
+
+
+thinking
+**Reviewing documentation**
+
+I'm thinking about the skill documentation that mentions phases. It seems we need to focus on templates and quality gates, so I'll make sure to open those. Following the templates exactly is crucial, and I want to ensure I understand the quality gates as well. It's a good step to read through those details carefully to ensure everything is clear. Getting this right will help maintain the quality of our work!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/quality-gates.md' in C:\Project\Claude-Code-Workflow succeeded in 383ms:
+# Quality Gates (Non-regression First)
+
+## P0 Gates (Must Pass)
+
+P0 failure means “not CCW-aligned” and blocks completion.
+
+1) **Frontmatter completeness**
+   - `name`, `description`, `allowed-tools` must exist
+   - `argument-hint` optional but recommended for non-trivial commands
+2) **Allowed-tools correctness**
+   - no tools outside the supported CCW set for the intended workflow
+   - no missing tools required by the described behavior
+3) **Core sections present**
+   - at least: `Overview`, `Usage`, `Execution Process`, `Output/Artifacts`, `Error Handling`
+4) **No broken artifact references**
+   - referenced paths must be either created by the command or explicitly documented as pre-existing
+
+5) **Implementation pointers must be evidence-based (Existing vs Planned)**
+   - Every implementation pointer (file/module/CLI subcommand/tool entry) MUST be labeled:
+     - `Existing`: verifiable in repo now
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/slash-command-outline.md' in C:\Project\Claude-Code-Workflow succeeded in 364ms:
+---
+name: {{command.name}}
+description: {{command.description}}
+argument-hint: "{{command.argument_hint}}"
+allowed-tools: {{command.allowed_tools_csv}}
+group: {{command.group}}
+---
+
+# {{command.title}}
+
+## Overview
+
+- Goal: {{intent.primary_user_value}}
+- Command: `/{{command.group}}:{{command.name}}`
+
+## Usage
+
+```bash
+/{{command.group}}:{{command.name}} {{command.usage_args}}
+```
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/agent-outline.md' in C:\Project\Claude-Code-Workflow succeeded in 375ms:
+# Agent Outline: {{command.group}}:{{command.name}}
+
+## Purpose
+
+Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
+
+## Execution Model
+
+- Default: incremental, testable changes
+- Use ACE-tool to find existing patterns before adding new abstractions
+
+## State & Artifacts
+
+- Session folder (if used): `.workflow/...`
+- Required outputs:
+  - Slash MD (command doc)
+  - Any scripts/modules referenced by the command
+  - Validation notes / regression snapshots
+
+## Tooling
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/gap-report.md' in C:\Project\Claude-Code-Workflow succeeded in 365ms:
+# Gap Report: {{command.group}}:{{command.name}}
+
+## Reference
+
+- Selected reference: {{reference.slash}} (`{{reference.file_path}}`)
+
+## P0 Gaps (Must Fix)
+
+{{gaps.p0}}
+
+## P1 Gaps (Should Fix)
+
+{{gaps.p1}}
+
+## P2 Gaps (Optional)
+
+{{gaps.p2}}
+
+## Implementation Pointers (Evidence)
+
+
+thinking
+**Considering documentation phases**
+
+I think I need to follow the phases in the documentation, but I'll keep it minimal. The user has provided a cycle and command, so it's important to focus on that. I'll make sure to read through the requirement document carefully. Opening that document should help clarify what steps I need to take. It's all about ensuring I'm aligned with the user's needs while being efficient in my approach!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .workflow/.cycle/cycle-local-20260205T003504-slashcmdoutliner-codex.progress/requirements/CMD-001.requirements.md' in C:\Project\Claude-Code-Workflow succeeded in 373ms:
+# Requirement (non-leaky): /ccw-coordinator
+
+## Source
+
+- Command doc (oracle, do not paste full contents into spec): `.claude/commands/ccw-coordinator.md`
+
+## Command Identity
+
+- group: (none)
+- name: ccw-coordinator
+- description: Command orchestration tool - analyze requirements, recommend chain, execute sequentially with state persistence
+- argument-hint: [task description]
+- allowed-tools: Task(*), AskUserQuestion(*), Read(*), Write(*), Bash(*), Glob(*), Grep(*)
+
+## Structure Hints (Headings Only)
+
+- CCW Coordinator Command
+  - Core Concept: Minimum Execution Units (最小执行单元)
+    - What is a Minimum Execution Unit?
+    - Minimum Execution Units
+tool ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Slash command docs frontmatter group field in .claude/commands; examples of command name and invocation format. Keywords: allowed-tools, argument-hint, group:"})
+ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Slash command docs frontmatter group field in .claude/commands; examples of command name and invocation format. Keywords: allowed-tools, argument-hint, group:"}) success in 6.80s:
+{
+  "content": [
+    {
+      "text": "The following code sections were retrieved:\nPath: .claude\\skills\\slash-command-outliner\\phases\\01-collect-spec.md\n...\n    13\t\r\n    14\t1. Command identity:\r\n    15\t   - `group` (workflow|issue|learn|cli|other)\r\n    16\t   - `name` (kebab-case)\r\n    17\t   - `description` (one sentence)\r\n    18\t   - `argument-hint` (optional)\r\n    19\t2. Allowed tools:\r\n    20\t   - exact list for frontmatter `allowed-tools`\r\n    21\t3. Intended workflow type:\r\n    22\t   - `single-shot` (one pass) vs `iterative` (multi-round) vs `execute-loop`\r\n    23\t4. Required artifacts:\r\n    24\t   - which files should be created/updated (paths)\r\n    25\t5. Hard constraints:\r\n    26\t   - limits (max rounds, max options, timeouts, safety constraints)\r\n    27\t\r\n    28\t## Output (write to file)\r\n    29\t\r\n    30\tWrite a single file:\r\n    31\t\r\n    32\t- `specs/outputs/spec.json` (or in cycle mode: `{cycle}/specs/{command}.spec.json`)\r\n    33\t\r\n    34\tSchema guidance: see `../specs/spec-input.md`.\r\n...\n\nPath: .claude\\skills\\slash-command-outliner\\templates\\slash-command-outline.md\n     1\t---\r\n     2\tname: {{command.name}}\r\n     3\tdescription: {{command.description}}\r\n     4\targument-hint: \"{{command.argument_hint}}\"\r\n     5\tallowed-tools: {{command.allowed_tools_csv}}\r\n     6\tgroup: {{command.group}}\r\n     7\t---\r\n     8\t\r\n     9\t# {{command.title}}\r\n    10\t\r\n    11\t## Overview\r\n    12\t\r\n    13\t- Goal: {{intent.primary_user_value}}\r\n    14\t- Command: `/{{command.group}}:{{command.name}}`\r\n    15\t\r\n    16\t## Usage\r\n    17\t\r\n    18\t```bash\r\n    19\t/{{command.group}}:{{command.name}} {{command.usage_args}}\r\n    20\t```\r\n    21\t\r\n    22\t## Inputs\r\n    23\t\r\n    24\t- Required inputs:\r\n    25\t  - {{inputs.required}}\r\n    26\t- Optional inputs:\r\n    27\t  - {{inputs.optional}}\r\n    28\t\r\n    29\t## Outputs / Artifacts\r\n    30\t\r\n    31\t- Writes:\r\n    32\t  - {{artifacts.writes}}\r\n    33\t- Reads:\r\n    34\t  - {{artifacts.reads}}\r\n    35\t\r\n    36\t## Implementation Pointers\r\n    37\t\r\n    38\t- Command doc: {{implementation.command_doc}}\r\n    39\t- Likely code locations:\r\n    40\t  - {{implementation.code_pointers}}\r\n...\n    51\t\r\n    52\t| Pointer | Status | Evidence (docs + TS) | Verify | Why |\r\n    53\t|---|---|---|---|---|\r\n    54\t| `{{implementation.command_doc}}` | Planned | docs: `TBD` / `TBD` ; ts: `TBD` / `TBD` | `Test-Path {{implementation.command_doc}}` | command doc to be created/updated |\r\n    55\t\r\n    56\tNotes:\r\n    57\t- Expand `{{implementation.code_pointers}}` into **one row per pointer** (do not keep it as a single aggregated cell).\r\n    58\t- For TS evidence, prefer anchors like `function <name>` / `case '<subcommand>'` / a stable string literal that can be found via `rg`.\r\n    59\t\r\n    60\t## Execution Process\r\n    61\t\r\n    62\t{{execution.process_outline}}\r\n    63\t\r\n    64\t## Error Handling\r\n    65\t\r\n    66\t{{error_handling.checklist}}\r\n    67\t\r\n    68\t## Examples\r\n    69\t\r\n    70\t{{examples}}\r\n...\n\nPath: .claude\\skills\\slash-command-outliner\\specs\\spec-input.md\n...\n     6\t\r\n     7\t```json\r\n     8\t{\r\n     9\t  \"command\": {\r\n    10\t    \"group\": \"workflow|issue|learn|cli|other\",\r\n    11\t    \"name\": \"kebab-case\",\r\n    12\t    \"description\": \"one sentence\",\r\n    13\t    \"argument_hint\": \"[--flag] \\\"args\\\"\",\r\n    14\t    \"allowed_tools\": [\"Read(*)\", \"Write(*)\"]\r\n    15\t  },\r\n    16\t  \"intent\": {\r\n    17\t    \"type\": \"analyze|plan|execute|brainstorm|manage|utility\",\r\n    18\t    \"interaction\": \"single-shot|iterative|loop\",\r\n    19\t    \"primary_user_value\": \"what this command accomplishes\"\r\n    20\t  },\r\n    21\t  \"artifacts\": {\r\n    22\t    \"reads\": [\"path/1\", \"path/2\"],\r\n    23\t    \"writes\": [\"path/3\", \"path/4\"]\r\n    24\t  },\r\n    25\t  \"constraints\": {\r\n    26\t    \"max_rounds\": 0,\r\n    27\t    \"time_budget_seconds\": 0,\r\n    28\t    \"must_not\": [\"no network\", \"no destructive ops without explicit user request\"]\r\n    29\t  },\r\n    30\t  \"acceptance\": {\r\n    31\t    \"p0\": [\"frontmatter valid\", \"allowed-tools correct\", \"core sections present\"]\r\n    32\t  }\r\n    33\t}\r\n...\n\nPath: .codex\\skills\\slash-command-outliner\\phases\\01-collect-spec.md\n...\n    13\t\r\n    14\t1. Command identity:\r\n    15\t   - `group` (workflow|issue|learn|cli|other)\r\n    16\t   - `name` (kebab-case)\r\n    17\t   - `description` (one sentence)\r\n    18\t   - `argument-hint` (optional)\r\n    19\t2. Allowed tools:\r\n    20\t   - exact list for frontmatter `allowed-tools`\r\n    21\t3. Intended workflow type:\r\n    22\t   - `single-shot` (one pass) vs `iterative` (multi-round) vs `execute-loop`\r\n    23\t4. Required artifacts:\r\n    24\t   - which files should be created/updated (paths)\r\n    25\t5. Hard constraints:\r\n    26\t   - limits (max rounds, max options, timeouts, safety constraints)\r\n    27\t\r\n    28\t## Output (write to file)\r\n    29\t\r\n    30\tWrite a single file:\r\n    31\t\r\n    32\t- `specs/outputs/spec.json` (or in cycle mode: `{cycle}/specs/{command}.spec.json`)\r\n    33\t\r\n    34\tSchema guidance: see `../specs/spec-input.md`.\r\n...\n\nPath: .claude\\commands\\flow-create.md\n...\n   509\t    { \"cmd\": \"/workflow:test-cycle-execute\", \"unit\": \"test-validation\", \"execution\": { \"type\": \"slash-command\", \"mode\": \"async\" }, \"contextHint\": \"Execute test cycle\" }\r\n   510\t  ]\r\n   511\t}\r\n   512\t```\r\n   513\t\r\n   514\t### Ultra-Lightweight (Level 1)\r\n   515\t```json\r\n   516\t{\r\n   517\t  \"name\": \"lite-lite-lite\",\r\n   518\t  \"description\": \"Ultra-lightweight multi-tool execution\",\r\n   519\t  \"level\": 1,\r\n   520\t  \"steps\": [\r\n   521\t    { \"cmd\": \"/workflow:lite-lite-lite\", \"args\": \"\\\"{{goal}}\\\"\", \"unit\": \"standalone\", \"execution\": { \"type\": \"slash-command\", \"mode\": \"mainprocess\" }, \"contextHint\": \"Direct execution with minimal overhead\" }\r\n   522\t  ]\r\n   523\t}\r\n   524\t```\r\n   525\t\r\n   526\t---\r\n   527\t\r\n   528\t## Command Port Reference\r\n   529\t\r\n   530\tEach command has input/output ports for pipeline composition:\r\n...\n   620\t```\r\n   621\t\r\n   622\t---\r\n   623\t\r\n   624\t## Output Format\r\n   625\t\r\n   626\t```json\r\n   627\t{\r\n   628\t  \"name\": \"template-name\",\r\n   629\t  \"description\": \"Template description\",\r\n   630\t  \"level\": 2,\r\n   631\t  \"steps\": [\r\n   632\t    {\r\n   633\t      \"cmd\": \"/workflow:command\",\r\n   634\t      \"args\": \"\\\"{{goal}}\\\"\",\r\n   635\t      \"unit\": \"unit-name\",\r\n   636\t      \"execution\": {\r\n   637\t        \"type\": \"slash-command\",\r\n   638\t        \"mode\": \"mainprocess\"\r\n   639\t      },\r\n   640\t      \"contextHint\": \"Description of what this step does\"\r\n   641\t    }\r\n   642\t  ]\r\n   643\t}\r\n   644\t```\r\n   645\t\r\n   646\t---\r\n   647\t\r\n   648\t## Examples\r\n   649\t\r\n   650\t**Create a quick bugfix template**:\r\n   651\t```\r\n   652\t/meta-skill:flow-create hotfix-simple\r\n   653\t\r\n   654\t→ Purpose: Bug Fix\r\n   655\t→ Level: 2 (Lightweight)\r\n   656\t→ Steps: Use Suggested\r\n   657\t→ Output: ~/.claude/skills/flow-coordinator/templates/hotfix-simple.json\r\n   658\t```\r\n   659\t\r\n   660\t**Create a custom multi-stage workflow**:\r\n   661\t```\r\n   662\t/meta-skill:flow-create complex-feature --output ~/.claude/skills/my-project/templates/\r\n...\n\nPath: .claude\\skills\\slash-command-outliner\\scripts\\lib\\pipeline.js\n...\n    61\t\r\n    62\tfunction renderFrontmatter(cmd) {\r\n    63\t  const lines = ['---'];\r\n    64\t  lines.push(`name: ${cmd.name}`);\r\n    65\t  if (cmd.description) lines.push(`description: ${cmd.description}`);\r\n    66\t  if (cmd.argument_hint) lines.push(`argument-hint: \\\"${cmd.argument_hint.replaceAll('\\\"', '\\\\\\\\\\\"')}\\\"`);\r\n    67\t  if (cmd.allowed_tools?.length) lines.push(`allowed-tools: ${csv(cmd.allowed_tools)}`);\r\n    68\t  if (cmd.group) lines.push(`group: ${cmd.group}`);\r\n    69\t  lines.push('---');\r\n    70\t  return lines.join('\\n');\r\n    71\t}\r\n    72\t\r\n    73\tfunction slash(cmd) {\r\n    74\t  return cmd.group ? `/${cmd.group}:${cmd.name}` : `/${cmd.name}`;\r\n    75\t}\r\n...\n\nPath: ccw\\src\\core\\routes\\commands-routes.ts\n...\n    19\t\r\n    20\tinterface CommandMetadata {\r\n    21\t  name: string;\r\n    22\t  description: string;\r\n    23\t  group: string;\r\n    24\t  argumentHint?: string;\r\n    25\t  allowedTools?: string[];\r\n    26\t}\r\n    27\t\r\n    28\tinterface CommandInfo {\r\n    29\t  name: string;\r\n    30\t  description: string;\r\n    31\t  group: string;\r\n    32\t  enabled: boolean;\r\n    33\t  location: CommandLocation;\r\n    34\t  path: string;\r\n    35\t  relativePath: string;  // Path relative to commands root (e.g., 'workflow/plan.md')\r\n    36\t  argumentHint?: string;\r\n    37\t  allowedTools?: string[];\r\n    38\t}\r\n    39\t\r\n    40\tinterface CommandsConfig {\r\n    41\t  projectCommands: CommandInfo[];\r\n    42\t  userCommands: CommandInfo[];\r\n    43\t  groups: string[];\r\n    44\t}\r\n    45\t\r\n    46\tinterface CommandOperationResult {\r\n    47\t  success: boolean;\r\n    48\t  message: string;\r\n    49\t  commandName?: string;\r\n    50\t  location?: CommandLocation;\r\n    51\t  status?: number;\r\n    52\t}\r\n    53\t\r\n    54\tinterface GroupDefinition {\r\n    55\t  name: string;\r\n    56\t  icon?: string;\r\n    57\t  color?: string;\r\n    58\t}\r\n...\n\nPath: .codex\\skills\\slash-command-outliner\\specs\\spec-input.md\n...\n     6\t\r\n     7\t```json\r\n     8\t{\r\n     9\t  \"command\": {\r\n    10\t    \"group\": \"workflow|issue|learn|cli|other\",\r\n    11\t    \"name\": \"kebab-case\",\r\n    12\t    \"description\": \"one sentence\",\r\n    13\t    \"argument_hint\": \"[--flag] \\\"args\\\"\",\r\n    14\t    \"allowed_tools\": [\"Read(*)\", \"Write(*)\"]\r\n    15\t  },\r\n    16\t  \"intent\": {\r\n    17\t    \"type\": \"analyze|plan|execute|brainstorm|manage|utility\",\r\n    18\t    \"interaction\": \"single-shot|iterative|loop\",\r\n    19\t    \"primary_user_value\": \"what this command accomplishes\"\r\n    20\t  },\r\n    21\t  \"artifacts\": {\r\n    22\t    \"reads\": [\"path/1\", \"path/2\"],\r\n    23\t    \"writes\": [\"path/3\", \"path/4\"]\r\n    24\t  },\r\n    25\t  \"constraints\": {\r\n    26\t    \"max_rounds\": 0,\r\n    27\t    \"time_budget_seconds\": 0,\r\n    28\t    \"must_not\": [\"no network\", \"no destructive ops without explicit user request\"]\r\n    29\t  },\r\n    30\t  \"acceptance\": {\r\n    31\t    \"p0\": [\"frontmatter valid\", \"allowed-tools correct\", \"core sections present\"]\r\n    32\t  }\r\n    33\t}\r\n...\n\nPath: .claude\\skills\\ccw-help\\SKILL.md\n...\n    80\t\r\n    81\t### Mode 6: Issue Reporting\r\n    82\t\r\n    83\t**Triggers**: \"ccw-issue\", \"报告 bug\"\r\n    84\t\r\n    85\t**Process**:\r\n    86\t1. Use AskUserQuestion to gather context\r\n    87\t2. Generate structured issue template\r\n    88\t\r\n    89\t## Data Source\r\n    90\t\r\n    91\tSingle source of truth: **[command.json](command.json)**\r\n    92\t\r\n    93\t| Field | Purpose |\r\n    94\t|-------|---------|\r\n    95\t| `commands[]` | Flat command list with metadata |\r\n    96\t| `commands[].flow` | Relationships (next_steps, prerequisites) |\r\n    97\t| `commands[].essential` | Essential flag for onboarding |\r\n    98\t| `agents[]` | Agent directory |\r\n    99\t| `essential_commands[]` | Core commands list |\r\n   100\t\r\n   101\t### Source Path Format\r\n   102\t\r\n   103\t`source` 字段是相对路径（从 `skills/ccw-help/` 目录）：\r\n   104\t\r\n   105\t```json\r\n   106\t{\r\n   107\t  \"name\": \"lite-plan\",\r\n   108\t  \"source\": \"../../../commands/workflow/lite-plan.md\"\r\n   109\t}\r\n...\n\nPath: .codex\\skills\\slash-command-outliner\\templates\\slash-command-outline.md\n     1\t---\r\n     2\tname: {{command.name}}\r\n     3\tdescription: {{command.description}}\r\n     4\targument-hint: \"{{command.argument_hint}}\"\r\n     5\tallowed-tools: {{command.allowed_tools_csv}}\r\n     6\tgroup: {{command.group}}\r\n     7\t---\r\n     8\t\r\n     9\t# {{command.title}}\r\n    10\t\r\n    11\t## Overview\r\n    12\t\r\n    13\t- Goal: {{intent.primary_user_value}}\r\n    14\t- Command: `/{{command.group}}:{{command.name}}`\r\n    15\t\r\n    16\t## Usage\r\n    17\t\r\n    18\t```bash\r\n    19\t/{{command.group}}:{{command.name}} {{command.usage_args}}\r\n    20\t```\r\n    21\t\r\n    22\t## Inputs\r\n    23\t\r\n    24\t- Required inputs:\r\n    25\t  - {{inputs.required}}\r\n    26\t- Optional inputs:\r\n    27\t  - {{inputs.optional}}\r\n    28\t\r\n    29\t## Outputs / Artifacts\r\n    30\t\r\n    31\t- Writes:\r\n    32\t  - {{artifacts.writes}}\r\n    33\t- Reads:\r\n    34\t  - {{artifacts.reads}}\r\n    35\t\r\n    36\t## Implementation Pointers\r\n    37\t\r\n    38\t- Command doc: {{implementation.command_doc}}\r\n    39\t- Likely code locations:\r\n    40\t  - {{implementation.code_pointers}}\r\n...\n\nPath: .codex\\skills\\slash-command-outliner\\scripts\\lib\\pipeline.js\n...\n    61\t\r\n    62\tfunction renderFrontmatter(cmd) {\r\n    63\t  const lines = ['---'];\r\n    64\t  lines.push(`name: ${cmd.name}`);\r\n    65\t  if (cmd.description) lines.push(`description: ${cmd.description}`);\r\n    66\t  if (cmd.argument_hint) lines.push(`argument-hint: \\\"${cmd.argument_hint.replaceAll('\\\"', '\\\\\\\\\\\"')}\\\"`);\r\n    67\t  if (cmd.allowed_tools?.length) lines.push(`allowed-tools: ${csv(cmd.allowed_tools)}`);\r\n    68\t  if (cmd.group) lines.push(`group: ${cmd.group}`);\r\n    69\t  lines.push('---');\r\n    70\t  return lines.join('\\n');\r\n    71\t}\r\n    72\t\r\n    73\tfunction slash(cmd) {\r\n    74\t  return cmd.group ? `/${cmd.group}:${cmd.name}` : `/${cmd.name}`;\r\n    75\t}\r\n...\n\nPath: .claude\\skills\\slash-command-outliner\\scripts\\init-cycle.js\n...\n   198\t\n   199\t    const rel = toPosixPath(path.relative(repoRoot, f));\n   200\t    const cmd = {\n   201\t      ordinal,\n   202\t      name,\n   203\t      group,\n   204\t      slash,\n   205\t      description,\n   206\t      file_path: rel,\n   207\t      argument_hint: argumentHint,\n   208\t      allowed_tools_csv: allowedToolsCsv,\n   209\t      status: 'pending',\n   210\t      llm: { status: 'pending' },\n   211\t    };\n   212\t    commands.push(cmd);\n   213\t\n   214\t    const id = cmdIdFromOrdinal(ordinal);\n   215\t    const reqRel = path.relative(repoRoot, path.join(reqDir, `${id}.requirements.md`)).replaceAll('\\\\', '/');\n   216\t    const reqMd = renderRequirementDoc({\n   217\t      command: cmd,\n   218\t      sourceFile: rel,\n   219\t      headings: headings.map((h) => ({ level: h.level, text: h.text })),\n   220\t    });\n   221\t    writeText(repoRoot, reqRel, reqMd);\n   222\t  }\n   223\t\n   224\t  const corpus = {\n   225\t    schema_version: '1.0.0',\n   226\t    generated_at: new Date().toISOString(),\n   227\t    slash_commands_root: commandsRoot,\n   228\t    total_commands: commands.length,\n   229\t    commands,\n   230\t  };\n...\n\nPath: .claude\\skills\\slash-command-outliner\\templates\\agent-outline.md\n     1\t# Agent Outline: {{command.group}}:{{command.name}}\r\n     2\t\r\n     3\t## Purpose\r\n     4\t\r\n     5\tImplement and/or evolve the slash command according to CCW conventions with minimal regressions.\r\n     6\t\r\n     7\t## Execution Model\r\n     8\t\r\n     9\t- Default: incremental, testable changes\r\n    10\t- Use ACE-tool to find existing patterns before adding new abstractions\r\n    11\t\r\n    12\t## State & Artifacts\r\n    13\t\r\n    14\t- Session folder (if used): `.workflow/...`\r\n    15\t- Required outputs:\r\n    16\t  - Slash MD (command doc)\r\n    17\t  - Any scripts/modules referenced by the command\r\n    18\t  - Validation notes / regression snapshots\r\n    19\t\r\n    20\t## Tooling\r\n    21\t\r\n    22\t- Allowed tools: {{command.allowed_tools_csv}}\r\n    23\t- Non-negotiables:\r\n    24\t  - no unrelated changes\r\n    25\t  - verify non-regression against completed corpus\r\n...\n\nPath: .claude\\skills\\slash-command-outliner\\SKILL.md\n     1\t---\r\n     2\tname: slash-command-outliner\r\n     3\tdescription: Generate CCW-aligned slash command development outlines from a requirement/spec doc, validated via corpus-wide iteration and non-regression. Triggers on \"slash command outliner\", \"slash 命令大纲\", \"slash 命令生成器\", \"命令大纲\".\r\n     4\tallowed-tools: Read, Write, AskUserQuestion, Task, Bash, TodoWrite, mcp__ace-tool__search_context\r\n     5\t---\r\n     6\t\r\n     7\t# Slash Command Outliner\r\n     8\t\r\n     9\tInput a **slash command requirement/spec document**. Output a **CCW-aligned, end-to-end development outline** (Slash MD outline + Agent MD outline) plus a **gap-report** that compares against reference implementations and CCW server/tooling corpus. Improve quality by iterating across **all** existing commands with **non-regression snapshots**.\r\n    10\t\r\n    11\tThis skill is designed to be **precise** (no fluff) and **stable** (non-regression gate).\r\n    12\t\r\n    13\t## Canonical Workflow (Phases)\r\n    14\t\r\n    15\t1) `phases/01-collect-spec.md`  \r\n    16\t2) `phases/02-retrieve-and-rank-references.md`  \r\n    17\t3) `phases/03-generate-outlines.md`  \r\n    18\t4) `phases/04-gap-report-and-iterate.md`  \r\n    19\t5) `phases/05-regression-and-closure.md`\r\n    20\t\r\n    21\t## Specs (Hard Rules)\r\n    22\t\r\n    23\t- Spec input format: `specs/spec-input.md`\r\n    24\t- Quality gates (P0 non-regression): `specs/quality-gates.md`\r\n    25\t- Corpus scope (slash + server/tooling): `specs/corpus-scope.md`\r\n    26\t\r\n    27\t## Templates\r\n    28\t\r\n    29\t- Slash command outline: `templates/slash-command-outline.md`\r\n    30\t- Agent outline: `templates/agent-outline.md`\r\n    31\t- Gap report: `templates/gap-report.md`\r\n    32\t\r\n    33\t## Scripts (Optional, Deterministic Validation)\r\n...\n\nPath: .claude\\skills\\slash-command-outliner\\scripts\\scan-corpus.js\n...\n    87\t\r\n    88\t  const mdFiles = walkMdFiles(commandsRootAbs);\r\n    89\t  const commands = [];\r\n    90\t  let ordinal = 0;\r\n    91\t  for (const f of mdFiles) {\r\n    92\t    ordinal += 1;\r\n    93\t    const { header } = readCommandFile(f);\r\n    94\t    const name = (header?.name && String(header.name).trim().length > 0)\r\n    95\t      ? String(header.name).trim()\r\n    96\t      : path.basename(f, '.md');\r\n    97\t    const group = inferGroup(commandsRootAbs, f, header);\r\n    98\t    const slash = computeSlash(group, name);\r\n    99\t    const description = header?.description ? String(header.description) : '';\r\n   100\t    commands.push({\r\n   101\t      ordinal,\r\n   102\t      name,\r\n   103\t      group,\r\n   104\t      slash,\r\n   105\t      description,\r\n   106\t      file_path: toPosixPath(path.relative(repoRoot, f)),\r\n   107\t    });\r\n   108\t  }\r\n   109\t\r\n   110\t  const result = {\r\n   111\t    schema_version: '1.0.0',\r\n   112\t    generated_at: new Date().toISOString(),\r\n   113\t    slash_commands_root: root,\r\n   114\t    total_commands: commands.length,\r\n   115\t    commands,\r\n   116\t  };\r\n...\n\nPath: ccw\\frontend\\src\\types\\flow.ts\n...\n   203\t\r\n   204\texport const NODE_TYPE_CONFIGS: Record<FlowNodeType, NodeTypeConfig> = {\r\n   205\t  'slash-command': {\r\n   206\t    type: 'slash-command',\r\n   207\t    label: 'Slash Command',\r\n   208\t    description: 'Execute CCW slash commands',\r\n   209\t    icon: 'Terminal',\r\n   210\t    color: 'bg-blue-500',\r\n   211\t    defaultData: {\r\n   212\t      label: 'New Command',\r\n   213\t      command: '',\r\n   214\t      args: '',\r\n   215\t      execution: { mode: 'mainprocess' },\r\n   216\t      onError: 'stop',\r\n   217\t    } as SlashCommandNodeData,\r\n   218\t    handles: { inputs: 1, outputs: 1 },\r\n   219\t  },\r\n   220\t  'file-operation': {\r\n   221\t    type: 'file-operation',\r\n   222\t    label: 'File Operation',\r\n   223\t    description: 'Read/write/delete files',\r\n   224\t    icon: 'FileText',\r\n   225\t    color: 'bg-green-500',\r\n   226\t    defaultData: {\r\n   227\t      label: 'File Operation',\r\n   228\t      operation: 'read',\r\n   229\t      path: '',\r\n   230\t      addToContext: false,\r\n   231\t    } as FileOperationNodeData,\r\n   232\t    handles: { inputs: 1, outputs: 1 },\r\n   233\t  },\r\n...\n\nPath: .claude\\commands\\issue\\from-brainstorm.md\n...\n   323\t\r\n   324\t```\r\n   325\tbrainstorm-with-file\r\n   326\t        │\r\n   327\t        ├─ synthesis.json\r\n   328\t        ├─ perspectives.json\r\n   329\t        └─ .brainstorming/** (optional)\r\n   330\t        │\r\n   331\t        ▼\r\n   332\t /issue:from-brainstorm  ◄─── This command\r\n   333\t        │\r\n   334\t        ├─ ISS-YYYYMMDD-NNN (enriched issue)\r\n   335\t        └─ SOL-{issue-id}-{uid} (structured solution)\r\n   336\t        │\r\n   337\t        ▼\r\n   338\t /issue:queue\r\n   339\t        │\r\n   340\t        ▼\r\n   341\t /parallel-dev-cycle\r\n   342\t        │\r\n   343\t        ▼\r\n   344\t   RA → EP → CD → VAS\r\n   345\t```\r\n   346\t\r\n   347\t## Session Files Reference\r\n   348\t\r\n   349\t### Input Files\r\n   350\t\r\n   351\t```\r\n   352\t.workflow/.brainstorm/BS-{slug}-{date}/\r\n   353\t├── synthesis.json           # REQUIRED - Top ideas with scores\r\n   354\t├── perspectives.json        # OPTIONAL - Multi-CLI insights\r\n   355\t├── brainstorm.md           # Reference only\r\n   356\t└── .brainstorming/         # OPTIONAL - Synthesis artifacts\r\n   357\t    ├── system-architect/\r\n   358\t    │   └── analysis.md     # Contains clarifications + enhancements\r\n   359\t    ├── api-designer/\r\n   360\t    │   └── analysis.md\r\n   361\t    └── ...\r\n   362\t```\r\n...\n\nPath: .claude\\commands\\ccw-coordinator.md#chunk2of2\n...\n   113\t\r\n   114\t| Command Type | Parameter Pattern | Example |\r\n   115\t|--------------|------------------|---------|\r\n   116\t| **Planning** | `\"task description\"` | `/workflow:plan -y \"Implement OAuth2\"` |\r\n   117\t| **Execution (with plan)** | `--resume-session=\"WFS-xxx\"` | `/workflow:execute -y --resume-session=\"WFS-plan-001\"` |\r\n   118\t| **Execution (standalone)** | `--in-memory` or `\"task\"` | `/workflow:lite-execute -y --in-memory` |\r\n   119\t| **Session-based** | `--session=\"WFS-xxx\"` | `/workflow:test-fix-gen -y --session=\"WFS-impl-001\"` |\r\n   120\t| **Fix/Debug** | `\"problem description\"` | `/workflow:lite-fix -y \"Fix timeout bug\"` |\r\n   121\t\r\n   122\t### Complete Examples\r\n   123\t\r\n   124\t**Planning Command**:\r\n   125\t```bash\r\n   126\tccw cli -p '/workflow:plan -y \"Implement user registration with email validation\"\r\n...\n\n",
+      "type": "text"
+    }
+  ]
+}
+
+thinking
+**Verifying documentation specs**
+
+I'm working on a specification derived from existing documents, and I need to make sure to follow templates while providing an evidence table with at least two sources. I have to gather references that show similar patterns and a verification script to enforce evidence rows. 
+
+I need to create several files including spec.json and references.json, and I see I can use templates under the specified directory. I'll fill in the placeholders with actual values, and it looks like I’ll need to manually craft the documents instead of using an automated script. I'll need to check the verification script for the required format.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/verify-evidence.js' in C:\Project\Claude-Code-Workflow succeeded in 369ms:
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+export function usage() {
+  console.log(
+    [
+      'Usage:',
+      '  node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<path.md> [--file=<path2.md> ...]',
+      '',
+      'Behavior:',
+      '  - Extracts evidence tables from markdown (gap-report and/or outline)',
+      '  - Enforces evidence-based gates:',
+      '    - Each row must label Status as Existing or Planned',
+      '    - Evidence must include BOTH docs and ts anchors:',
+      '      - docs: .claude/commands/**.md / <section heading>',
+      '      - ts: ccw/src/** / <function|case|pattern>',
+      '    - Existing rows must point to verifiable pointers (paths must exist when pointer looks like a path)',
+      '',
+      'Notes:',
+
+
+thinking
+**Clarifying evidence requirements**
+
+I need to ensure that the script guidelines are clear. Evidence tables should have specific columns for pointer status and evidence verification. Each evidence cell must include the relevant documents, and those documents must exist with appropriate headings. If a pointer appears as a path, it has to exist, and it shouldn't contain any commas or newlines. I should create outputs including an evidence table and possibly a gap report, while maintaining minimal content. This clarity will keep things safe and organized.
+thinking
+**Reviewing template requirements**
+
+I need to ensure we're following the core sections in the gate and including them in the outlines for the template. It’s also essential to check if there are templates for `spec.json` and `references.json`. I should look into the skill phases, specifically inspecting the `spec-input.md` for schema and possible templates in `references.json`. Opening the phases in the designated directory will help clarify the output requirements. This way, I can make sure everything aligns correctly.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-ChildItem -Force .codex/skills/slash-command-outliner/phases | Select-Object Name' in C:\Project\Claude-Code-Workflow succeeded in 383ms:
+
+[32;1mName[0m
+[32;1m----[0m
+01-collect-spec.md
+02-retrieve-and-rank-references.md
+03-generate-outlines.md
+04-gap-report-and-iterate.md
+05-regression-and-closure.md
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/01-collect-spec.md' in C:\Project\Claude-Code-Workflow succeeded in 371ms:
+# Phase 01: Collect Spec (No Leakage)
+
+## Goal
+
+Turn a human requirement/rules document into a **minimal, structured spec** that is sufficient to generate:
+
+- Slash command outline (CCW command MD skeleton)
+- Agent outline (execution + tools + state)
+
+Do **not** copy/paste existing implementation docs as input; treat them as oracle only during gap analysis.
+
+## Required Inputs (ask if missing)
+
+1. Command identity:
+   - `group` (workflow|issue|learn|cli|other)
+   - `name` (kebab-case)
+   - `description` (one sentence)
+   - `argument-hint` (optional)
+2. Allowed tools:
+   - exact list for frontmatter `allowed-tools`
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/02-retrieve-and-rank-references.md' in C:\Project\Claude-Code-Workflow succeeded in 371ms:
+# Phase 02: Retrieve + Rank References
+
+## Goal
+
+Find the closest existing commands and extract **reusable patterns** without copying full content.
+
+## Steps
+
+1) Use `mcp__ace-tool__search_context` to recall similar commands and relevant tooling code.
+2) Produce Top N candidates (default N=5) with deterministic scoring:
+   - same `group` / command family
+   - similar interaction model (AskUserQuestion, multi-round loop, etc.)
+   - similar artifacts (writes to `.workflow/*`, `.claude/*`, etc.)
+   - similar allowed-tools surface
+3) Require user confirmation for Top 1 (high-confidence can be preselected but must be overridable).
+
+## Output
+
+Write:
+- `specs/outputs/references.json`
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/03-generate-outlines.md' in C:\Project\Claude-Code-Workflow succeeded in 372ms:
+# Phase 03: Generate Outlines (Slash MD + Agent MD)
+
+## Goal
+
+Generate:
+- a **Slash command MD outline** that matches CCW conventions (frontmatter + required sections)
+- an **Agent outline** that explains execution model, state, and validation strategy
+
+Use templates; keep output concise and implementation-oriented.
+
+## Inputs
+
+- `specs/outputs/spec.json`
+- `specs/outputs/references.json` (selected reference)
+- Rules: `../specs/quality-gates.md`
+
+## Output Files
+
+- `specs/outputs/generated-slash-outline.md` (based on `../templates/slash-command-outline.md`)
+- `specs/outputs/generated-agent-outline.md` (based on `../templates/agent-outline.md`)
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/04-gap-report-and-iterate.md' in C:\Project\Claude-Code-Workflow succeeded in 372ms:
+# Phase 04: Gap Report + Iterate
+
+## Goal
+
+Compare the generated outlines against:
+1) The selected reference command implementation (oracle)
+2) The CCW server/tooling corpus (routes, mcp tools, cli internals)
+
+Then propose the smallest set of changes to close gaps.
+
+## Inputs
+
+- `specs/outputs/generated-slash-outline.md`
+- `specs/outputs/generated-agent-outline.md`
+- `specs/outputs/references.json`
+- Tooling scope: `../specs/corpus-scope.md`
+
+## Output
+
+Write:
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/05-regression-and-closure.md' in C:\Project\Claude-Code-Workflow succeeded in 370ms:
+# Phase 05: Regression + Closure
+
+## Goal
+
+Make sure improvements do not regress previously-validated commands (non-regression).
+
+## What to Update (Cycle Mode)
+
+When iterating against the full corpus:
+- Update per-command status in `corpus-manifest.json`
+- Check off `TODO_LIST.md` items
+- Save snapshots in `regression/expected/` for commands marked completed
+- Write snapshot diffs into `regression/diff/` and block on unexpected changes
+
+## Non-regression Policy
+
+See `../specs/quality-gates.md`.
+
+## Completion Criteria
+
+tool ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Locate implementation of slash command ccw-coordinator, including command registry entries, routing, and any handler functions. Keywords: ccw-coordinator, coordinator, orchestration, CommandRegistry, slash command"})
+ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Locate implementation of slash command ccw-coordinator, including command registry entries, routing, and any handler functions. Keywords: ccw-coordinator, coordinator, orchestration, CommandRegistry, slash command"}) success in 6.61s:
+{
+  "content": [
+    {
+      "text": "The following code sections were retrieved:\nPath: .claude\\commands\\ccw-coordinator.md#chunk2of2\n...\n    65\t\r\n    66\t```javascript\r\n    67\timport { CommandRegistry } from 'ccw/tools/command-registry';\r\n    68\t\r\n    69\tconst registry = new CommandRegistry();\r\n    70\t\r\n    71\t// Get all commands\r\n    72\tconst allCommands = registry.getAllCommandsSummary();\r\n    73\t// Map<\"/workflow:lite-plan\" => {name, description}>\r\n    74\t\r\n    75\t// Get categorized\r\n    76\tconst byCategory = registry.getAllCommandsByCategory();\r\n    77\t// {planning, execution, testing, review, other}\r\n    78\t\r\n    79\t// Get single command metadata\r\n    80\tconst cmd = registry.getCommand('lite-plan');\r\n    81\t// {name, command, description, argumentHint, allowedTools, filePath}\r\n    82\t```\r\n    83\t\r\n    84\t## Universal Prompt Template\r\n    85\t\r\n    86\t### Standard Format\r\n    87\t\r\n    88\t```bash\r\n    89\tccw cli -p \"PROMPT_CONTENT\" --tool <tool> --mode <mode>\r\n    90\t```\r\n    91\t\r\n    92\t### Prompt Content Template\r\n    93\t\r\n    94\t```\r\n    95\t/workflow:<command> -y <command_parameters>\r\n    96\t\r\n    97\tTask: <task_description>\r\n...\n   113\t\r\n   114\t| Command Type | Parameter Pattern | Example |\r\n   115\t|--------------|------------------|---------|\r\n   116\t| **Planning** | `\"task description\"` | `/workflow:plan -y \"Implement OAuth2\"` |\r\n   117\t| **Execution (with plan)** | `--resume-session=\"WFS-xxx\"` | `/workflow:execute -y --resume-session=\"WFS-plan-001\"` |\r\n   118\t| **Execution (standalone)** | `--in-memory` or `\"task\"` | `/workflow:lite-execute -y --in-memory` |\r\n   119\t| **Session-based** | `--session=\"WFS-xxx\"` | `/workflow:test-fix-gen -y --session=\"WFS-impl-001\"` |\r\n   120\t| **Fix/Debug** | `\"problem description\"` | `/workflow:lite-fix -y \"Fix timeout bug\"` |\r\n   121\t\r\n   122\t### Complete Examples\r\n   123\t\r\n   124\t**Planning Command**:\r\n   125\t```bash\r\n   126\tccw cli -p '/workflow:plan -y \"Implement user registration with email validation\"\r\n   127\t\r\n   128\tTask: Implement user registration' --tool claude --mode write\r\n   129\t```\r\n   130\t\r\n   131\t**Execution with Context**:\r\n   132\t```bash\r\n   133\tccw cli -p '/workflow:execute -y --resume-session=\"WFS-plan-20250124\"\r\n   134\t\r\n   135\tTask: Implement user registration\r\n   136\t\r\n   137\tPrevious results:\r\n   138\t- /workflow:plan: WFS-plan-20250124 (IMPL_PLAN.md)' --tool claude --mode write\r\n   139\t```\r\n   140\t\r\n   141\t**Standalone Lite Execution**:\r\n   142\t```bash\r\n   143\tccw cli -p '/workflow:lite-fix -y \"Fix login timeout in auth module\"\r\n   144\t\r\n   145\tTask: Fix login timeout' --tool claude --mode write\r\n   146\t```\r\n   147\t\r\n   148\t## Execution Flow\r\n   149\t\r\n   150\t```javascript\r\n   151\t// Main entry point\r\n   152\tasync function ccwCoordinator(taskDescription) {\r\n   153\t  // Phase 1\r\n   154\t  const analysis = await analyzeRequirements(taskDescription);\r\n   155\t\r\n   156\t  // Phase 2\r\n   157\t  const chain = await recommendCommandChain(analysis);\r\n   158\t  const confirmedChain = await getUserConfirmation(chain);\r\n   159\t\r\n   160\t  // Phase 3\r\n   161\t  const state = await executeCommandChain(confirmedChain, analysis);\r\n   162\t\r\n   163\t  console.log(`✅ Complete! Session: ${state.session_id}`);\r\n   164\t  console.log(`State: .workflow/.ccw-coordinator/${state.session_id}/state.json`);\r\n   165\t}\r\n...\n   237\t\r\n   238\t```javascript\r\n   239\t// Example: Execute command and stop\r\n   240\tconst prompt = '/workflow:plan -y \"Implement user authentication\"\\n\\nTask: Implement user auth system';\r\n   241\tconst taskId = Bash(`ccw cli -p \"${prompt}\" --tool claude --mode write`, { run_in_background: true }).task_id;\r\n   242\tstate.execution_results.push({ status: 'in-progress', task_id: taskId, ... });\r\n   243\tWrite(`${stateDir}/state.json`, JSON.stringify(state, null, 2));\r\n   244\tbreak; // ⚠️ STOP HERE - DO NOT use TaskOutput polling\r\n   245\t\r\n   246\t// Hook callback will call handleCliCompletion(sessionId, taskId, output) when done\r\n   247\t// → Updates state → Triggers next command via resumeChainExecution()\r\n   248\t```\r\n   249\t\r\n   250\t\r\n   251\t## Available Commands\r\n   252\t\r\n   253\tAll from `~/.claude/commands/workflow/` and `~/.claude/commands/issue/`:\r\n...\n\nPath: .claude\\skills\\ccw-help\\command.json#chunk1of2\n     1\t{\r\n     2\t  \"_metadata\": {\r\n     3\t    \"version\": \"3.0.0\",\r\n     4\t    \"total_commands\": 73,\r\n     5\t    \"total_agents\": 19,\r\n     6\t    \"description\": \"Auto-generated CCW-Help command index from analyze_commands.py\",\r\n     7\t    \"generated\": \"Auto-updated - all commands synced from file system\",\r\n     8\t    \"last_sync\": \"command.json now stays in sync with CLI definitions\"\r\n     9\t  },\r\n    10\t  \"essential_commands\": [],\r\n    11\t  \"commands\": [\r\n    12\t    {\r\n    13\t      \"name\": \"ccw-coordinator\",\r\n    14\t      \"command\": \"/ccw-coordinator\",\r\n    15\t      \"description\": \"Command orchestration tool - analyze requirements, recommend chain, execute sequentially with state persistence\",\r\n    16\t      \"arguments\": \"[task description]\",\r\n    17\t      \"category\": \"general\",\r\n    18\t      \"subcategory\": null,\r\n    19\t      \"usage_scenario\": \"general\",\r\n    20\t      \"difficulty\": \"Intermediate\",\r\n    21\t      \"source\": \"../../commands/ccw-coordinator.md\"\r\n    22\t    },\r\n...\n\nPath: .claude\\skills\\ccw-help\\index\\all-commands.json#chunk1of2\n     1\t[\r\n     2\t  {\r\n     3\t    \"name\": \"ccw-coordinator\",\r\n     4\t    \"command\": \"/ccw-coordinator\",\r\n     5\t    \"description\": \"Command orchestration tool - analyze requirements, recommend chain, execute sequentially with state persistence\",\r\n     6\t    \"arguments\": \"[task description]\",\r\n     7\t    \"category\": \"general\",\r\n     8\t    \"subcategory\": null,\r\n     9\t    \"usage_scenario\": \"general\",\r\n    10\t    \"difficulty\": \"Intermediate\",\r\n    11\t    \"source\": \"../../../commands/ccw-coordinator.md\"\r\n    12\t  },\r\n...\n\nPath: .claude\\commands\\codex-coordinator.md\n...\n   387\t\r\n   388\t| Command | Purpose | Usage | Output |\r\n   389\t|---------|---------|-------|--------|\r\n   390\t| **issue-discover** | Multi-perspective issue discovery | `@~/.codex/prompts/issue-discover.md PATTERN=\"src/**\"` | issues.jsonl |\r\n   391\t| **issue-discover-by-prompt** | Prompt-based discovery | `@~/.codex/prompts/issue-discover-by-prompt.md PROMPT=\"...\"` | issues |\r\n   392\t| **issue-plan** | Plan issue solutions | `@~/.codex/prompts/issue-plan.md --all-pending` | issue-plans.json |\r\n   393\t| **issue-queue** | Form execution queue | `@~/.codex/prompts/issue-queue.md --from-plan` | queue.json |\r\n   394\t| **issue-execute** | Execute issue queue | `@~/.codex/prompts/issue-execute.md QUEUE=\"...\"` | Completed |\r\n   395\t\r\n   396\t### Analysis Commands\r\n...\n   410\t\r\n   411\t| Command | Purpose | Usage | Output |\r\n   412\t|---------|---------|-------|--------|\r\n   413\t| **clean** | Intelligent code cleanup | `@~/.codex/prompts/clean.md` | Cleaned code |\r\n   414\t| **compact** | Compact session memory | `@~/.codex/prompts/compact.md SESSION=\"...\"` | Compressed state |\r\n   415\t\r\n   416\t## Execution Flow\r\n   417\t\r\n   418\t```\r\n   419\tUser Input: TASK=\"...\"\r\n   420\t    ↓\r\n   421\tPhase 1: analyzeRequirements(task)\r\n   422\t    ↓\r\n   423\tPhase 2: recommendCommandChain(analysis)\r\n   424\t         Display pipeline and commands\r\n   425\t    ↓\r\n   426\tUser Confirmation\r\n   427\t    ↓\r\n   428\tPhase 3: executeCommandChain(chain, analysis)\r\n   429\t    ├─ For each command:\r\n   430\t    │  ├─ Update state to \"running\"\r\n   431\t    │  ├─ Build command string with parameters\r\n   432\t    │  ├─ Execute @command [] with parameters\r\n   433\t    │  ├─ Save execution results\r\n   434\t    │  └─ Update state to \"completed\"\r\n   435\t    ↓\r\n   436\tOutput completion summary\r\n   437\t```\r\n   438\t\r\n   439\t## Key Design Principles\r\n   440\t\r\n   441\t1. **Atomic Execution** - Never split minimum execution units\r\n   442\t2. **State Persistence** - All state saved to JSON\r\n   443\t3. **User Control** - Confirmation before execution\r\n   444\t4. **Context Passing** - Parameters chain across commands\r\n   445\t5. **Resume Support** - Can resume from state.json\r\n   446\t6. **Intelligent Routing** - Task type determines command chain\r\n   447\t7. **Complexity Awareness** - Different paths for simple vs complex tasks\r\n   448\t\r\n   449\t## Command Invocation Format\r\n   450\t\r\n   451\t**Format**: `@~/.codex/prompts/<command-name>.md <parameters>`\r\n...\n   472\t\r\n   473\t## Session Management\r\n   474\t\r\n   475\t**Resume Previous Session**:\r\n   476\t```\r\n   477\t1. Find session in .workflow/.codex-coordinator/\r\n   478\t2. Load state.json\r\n   479\t3. Identify last completed command\r\n   480\t4. Restart from next pending command\r\n   481\t```\r\n   482\t\r\n   483\t**View Session Progress**:\r\n   484\t```\r\n   485\tcat .workflow/.codex-coordinator/{session-id}/state.json\r\n   486\t```\r\n   487\t\r\n   488\t---\r\n   489\t\r\n   490\t## Execution Instructions\r\n   491\t\r\n   492\tThe coordinator workflow follows these steps:\r\n   493\t\r\n   494\t1. **Parse Input**: Extract task description from TASK parameter\r\n   495\t2. **Analyze**: Determine goal, scope, complexity, and task type\r\n   496\t3. **Recommend**: Build optimal command chain based on analysis\r\n   497\t4. **Confirm**: Display pipeline and request user approval\r\n   498\t5. **Execute**: Run commands sequentially with state tracking\r\n   499\t6. **Report**: Display final results and artifacts\r\n...\n\nPath: .claude\\commands\\ccw-coordinator.md#chunk1of2\n     1\t---\r\n     2\tname: ccw-coordinator\r\n     3\tdescription: Command orchestration tool - analyze requirements, recommend chain, execute sequentially with state persistence\r\n     4\targument-hint: \"[task description]\"\r\n     5\tallowed-tools: Task(*), AskUserQuestion(*), Read(*), Write(*), Bash(*), Glob(*), Grep(*)\r\n     6\t---\r\n     7\t\r\n     8\t# CCW Coordinator Command\r\n     9\t\r\n    10\tInteractive orchestration tool: analyze task → discover commands → recommend chain → execute sequentially → track state.\r\n    11\t\r\n    12\t**Execution Model**: Pseudocode guidance. Claude intelligently executes each phase based on context.\r\n    13\t\r\n    14\t## Core Concept: Minimum Execution Units (最小执行单元)\r\n    15\t\r\n    16\t### What is a Minimum Execution Unit?\r\n...\n\nPath: README_CN.md\n...\n   257\t\r\n   258\t通过 `ccw view` 打开 Dashboard，在 **CodexLens Manager** 中管理索引和执行搜索。\r\n   259\t\r\n   260\t</details>\r\n   261\t\r\n   262\t---\r\n   263\t\r\n   264\t## 💻 CCW CLI 命令\r\n   265\t\r\n   266\t### 🌟 推荐命令（核心功能）\r\n   267\t\r\n   268\t<div align=\"center\">\r\n   269\t<table>\r\n   270\t<tr><th>命令</th><th>说明</th><th>适用场景</th></tr>\r\n   271\t<tr>\r\n   272\t  <td><b>/ccw</b></td>\r\n   273\t  <td>自动工作流编排器 - 分析意图、自动选择工作流级别、在主进程中执行命令链</td>\r\n   274\t  <td>✅ 通用任务、自动选择工作流、快速开发</td>\r\n   275\t</tr>\r\n   276\t<tr>\r\n   277\t  <td><b>/ccw-coordinator</b></td>\r\n   278\t  <td>智能编排器 - 智能推荐命令链、支持手动调整、通过外部 CLI 执行、持久化状态</td>\r\n   279\t  <td>🔧 复杂多步骤工作流、可自定义链、可恢复会话</td>\r\n   280\t</tr>\r\n   281\t</table>\r\n   282\t</div>\r\n   283\t\r\n   284\t**快速示例**：\r\n   285\t\r\n   286\t```bash\r\n   287\t# /ccw - 自动工作流选择（主进程）\r\n   288\t/ccw \"添加用户认证\"                    # 自动根据意图选择工作流\r\n   289\t/ccw \"修复 WebSocket 中的内存泄漏\"     # 识别为 bugfix 工作流\r\n   290\t/ccw \"使用 TDD 方式实现\"                # 路由到 TDD 工作流\r\n   291\t\r\n   292\t# /ccw-coordinator - 手动链编排（外部 CLI）\r\n   293\t/ccw-coordinator \"实现 OAuth2 系统\"     # 分析 → 推荐链 → 用户确认 → 执行\r\n   294\t```\r\n   295\t\r\n   296\t**主要区别**：\r\n...\n\nPath: ccw\\src\\tools\\command-registry.ts\n...\n    29\t\r\n    30\texport class CommandRegistry {\r\n    31\t  private commandDir: string | null;\r\n    32\t  private cache: Map<string, CommandMetadata>;\r\n    33\t\r\n    34\t  constructor(commandDir?: string) {\r\n    35\t    this.cache = new Map();\r\n    36\t\r\n    37\t    if (commandDir) {\r\n    38\t      this.commandDir = commandDir;\r\n    39\t    } else {\r\n    40\t      this.commandDir = this.findCommandDir();\r\n    41\t    }\r\n    42\t  }\r\n    43\t\r\n    44\t  /**\r\n    45\t   * Auto-detect ~/.claude/commands/workflow directory\r\n    46\t   */\r\n    47\t  private findCommandDir(): string | null {\r\n    48\t    // Try relative to current working directory\r\n    49\t    const relativePath = join('.claude', 'commands', 'workflow');\r\n    50\t    if (existsSync(relativePath)) {\r\n    51\t      return relativePath;\r\n    52\t    }\r\n    53\t\r\n    54\t    // Try user home directory\r\n    55\t    const homeDir = homedir();\r\n    56\t    const homeCommandDir = join(homeDir, '.claude', 'commands', 'workflow');\r\n    57\t    if (existsSync(homeCommandDir)) {\r\n    58\t      return homeCommandDir;\r\n    59\t    }\r\n    60\t\r\n    61\t    return null;\r\n    62\t  }\r\n...\n   118\t\r\n   119\t  /**\r\n   120\t   * Get single command metadata\r\n   121\t   * @param commandName Command name (e.g., \"lite-plan\" or \"/workflow:lite-plan\")\r\n   122\t   * @returns Command metadata or null\r\n   123\t   */\r\n   124\t  public getCommand(commandName: string): CommandMetadata | null {\r\n   125\t    if (!this.commandDir) {\r\n   126\t      console.error('ERROR: ~/.claude/commands/workflow directory not found');\r\n   127\t      return null;\r\n   128\t    }\r\n   129\t\r\n   130\t    // Normalize command name\r\n   131\t    const normalized = commandName.startsWith('/workflow:')\r\n   132\t      ? commandName.substring('/workflow:'.length)\r\n   133\t      : commandName;\r\n   134\t\r\n   135\t    // Check cache\r\n   136\t    const cached = this.cache.get(normalized);\r\n   137\t    if (cached) {\r\n   138\t      return cached;\r\n   139\t    }\r\n   140\t\r\n   141\t    // Read command file\r\n   142\t    const filePath = join(this.commandDir, `${normalized}.md`);\r\n   143\t    if (!existsSync(filePath)) {\r\n   144\t      return null;\r\n   145\t    }\r\n...\n   280\t\r\n   281\t  /**\r\n   282\t   * Convert to JSON for serialization\r\n   283\t   */\r\n   284\t  public toJSON(): Record<string, any> {\r\n   285\t    const result: Record<string, CommandMetadata> = {};\r\n   286\t    for (const [key, value] of this.cache) {\r\n   287\t      result[`/workflow:${key}`] = value;\r\n   288\t    }\r\n   289\t    return result;\r\n   290\t  }\r\n   291\t\r\n   292\t  /**\r\n   293\t   * Clear the command cache\r\n   294\t   * Use this to invalidate cached commands after enable/disable operations\r\n   295\t   * @returns void\r\n   296\t   */\r\n   297\t  public clearCache(): void {\r\n   298\t    this.cache.clear();\r\n   299\t  }\r\n   300\t}\r\n   301\t\r\n   302\t/**\r\n   303\t * Export function for direct usage\r\n   304\t */\r\n   305\texport function createCommandRegistry(commandDir?: string): CommandRegistry {\r\n   306\t  return new CommandRegistry(commandDir);\r\n   307\t}\r\n   308\t\r\n   309\t/**\r\n   310\t * Export function to get all commands\r\n   311\t */\r\n   312\texport function getAllCommandsSync(): Map<string, CommandSummary> {\r\n   313\t  const registry = new CommandRegistry();\r\n   314\t  return registry.getAllCommandsSummary();\r\n   315\t}\r\n...\n\nPath: ccw\\src\\core\\routes\\commands-routes.ts\n...\n   435\t\r\n   436\t  const results: CommandOperationResult[] = [];\r\n   437\t\r\n   438\t  for (const cmd of targetCommands) {\r\n   439\t    const result = await toggleCommand(cmd.name, location, projectPath, initialPath);\r\n   440\t    results.push(result);\r\n   441\t  }\r\n   442\t\r\n   443\t  const successCount = results.filter(r => r.success).length;\r\n   444\t  const failCount = results.filter(r => !r.success).length;\r\n   445\t\r\n   446\t  return {\r\n   447\t    success: failCount === 0,\r\n   448\t    results,\r\n   449\t    message: `${enable ? 'Enabled' : 'Disabled'} ${successCount} commands${failCount > 0 ? `, ${failCount} failed` : ''}`\r\n   450\t  };\r\n   451\t}\r\n   452\t\r\n   453\t// ========== Route Handler ==========\r\n   454\t\r\n   455\t/**\r\n   456\t * Handle Commands routes\r\n   457\t * @returns true if route was handled, false otherwise\r\n   458\t */\r\n   459\texport async function handleCommandsRoutes(ctx: RouteContext): Promise<boolean> {\r\n   460\t  const { pathname, url, req, res, initialPath, handlePostRequest } = ctx;\r\n...\n\nPath: ccw\\src\\core\\routes\\hooks-routes.ts\n...\n   415\t\r\n   416\t  // API: Execute CCW CLI command and parse status\r\n   417\t  if (pathname === '/api/hook/ccw-exec' && req.method === 'POST') {\r\n   418\t    handlePostRequest(req, res, async (body) => {\r\n   419\t      if (typeof body !== 'object' || body === null) {\r\n   420\t        return { error: 'Invalid request body', status: 400 };\r\n   421\t      }\r\n   422\t\r\n   423\t      const { filePath, command = 'parse-status' } = body as { filePath?: unknown; command?: unknown };\r\n   424\t\r\n   425\t      if (typeof filePath !== 'string') {\r\n   426\t        return { error: 'filePath is required', status: 400 };\r\n   427\t      }\r\n   428\t\r\n   429\t      // Check if this is a CCW status.json file\r\n   430\t      if (!filePath.includes('status.json') ||\r\n   431\t          !filePath.match(/\\.(ccw|ccw-coordinator|ccw-debug)\\//)) {\r\n   432\t        return { success: false, message: 'Not a CCW status file' };\r\n   433\t      }\r\n...\n\nPath: ccw\\src\\tools\\index.ts\n...\n   367\tregisterTool(toLegacyTool(coreMemoryMod));\r\n   368\tregisterTool(toLegacyTool(contextCacheMod));\r\n   369\tregisterTool(toLegacyTool(skillContextLoaderMod));\r\n   370\tregisterTool(toLegacyTool(askQuestionMod));\r\n   371\t\r\n   372\t// Register legacy JS tools\r\n   373\tregisterTool(uiGeneratePreviewTool);\r\n   374\tregisterTool(uiInstantiatePrototypesTool);\r\n   375\tregisterTool(updateModuleClaudeTool);\r\n   376\tregisterTool(memoryQueueTool);\r\n   377\t\r\n   378\t// Export for external tool registration\r\n   379\texport { registerTool };\r\n   380\t\r\n   381\t// Export ToolSchema type\r\n   382\texport type { ToolSchema };\r\n   383\t\r\n   384\t// Export CommandRegistry for direct import\r\n   385\texport { CommandRegistry, createCommandRegistry, getAllCommandsSync, getCommandSync } from './command-registry.js';\r\n   386\texport type { CommandMetadata, CommandSummary } from './command-registry.js';\r\n...\n\nPath: ccw\\docs-site\\docs\\commands\\general\\ccw.mdx\n...\n    19\t\r\n    20\t- **Auto Complexity Analysis** - Evaluates task based on keywords and context\r\n    21\t- **Workflow Selection** - Automatically selects optimal workflow level (1-5)\r\n    22\t- **Unit-Based Orchestration** - Groups commands into Minimum Execution Units\r\n    23\t- **State Persistence** - Tracks execution state in `.workflow/.ccw-coordinator/`\r\n    24\t- **Intelligent Routing** - Direct execution vs CLI-based execution\r\n    25\t\r\n    26\t## Usage\r\n    27\t\r\n    28\t```bash\r\n    29\t# Let CCW analyze and select workflow\r\n    30\t/ccw \"Implement user authentication\"\r\n    31\t\r\n    32\t# Explicit workflow selection\r\n    33\t/ccw --workflow rapid \"Add logout endpoint\"\r\n    34\t\r\n    35\t# Skip tests\r\n    36\t/ccw --skip-tests \"Quick config fix\"\r\n    37\t\r\n    38\t# Auto-confirm (skip confirmation prompts)\r\n    39\t/ccw --yes \"Simple bug fix\"\r\n    40\t```\r\n    41\t\r\n    42\t## Command Options\r\n...\n\nPath: ccw\\src\\tools\\codex-lens-lsp.ts\n...\n   267\t\r\n   268\t/**\r\n   269\t * Main handler function\r\n   270\t */\r\n   271\texport async function handler(params: Record<string, unknown>): Promise<ToolResult<LSPResult>> {\r\n   272\t  try {\r\n   273\t    // Validate parameters\r\n   274\t    const validatedParams = ParamsSchema.parse(params);\r\n   275\t\r\n   276\t    // Route to appropriate handler based on action\r\n   277\t    let result: LSPResult;\r\n   278\t    switch (validatedParams.action) {\r\n   279\t      case 'symbol_search':\r\n   280\t        result = await handleSymbolSearch(validatedParams);\r\n   281\t        break;\r\n   282\t      case 'find_definition':\r\n   283\t        result = await handleFindDefinition(validatedParams);\r\n   284\t        break;\r\n   285\t      case 'find_references':\r\n   286\t        result = await handleFindReferences(validatedParams);\r\n   287\t        break;\r\n   288\t      case 'get_hover':\r\n   289\t        result = await handleGetHover(validatedParams);\r\n   290\t        break;\r\n   291\t      default:\r\n   292\t        return {\r\n   293\t          success: false,\r\n   294\t          error: `Unknown action: ${(validatedParams as any).action}`,\r\n   295\t          result: null as any,\r\n   296\t        };\r\n   297\t    }\r\n...\n\nPath: README.md\n...\n   285\t\r\n   286\t```bash\r\n   287\t# /ccw - Auto workflow selection (Main Process)\r\n   288\t/ccw \"Add user authentication\"              # Auto-selects workflow based on intent\r\n   289\t/ccw \"Fix memory leak in WebSocket\"         # Detects bugfix workflow\r\n   290\t/ccw \"Implement with TDD\"                   # Routes to TDD workflow\r\n   291\t\r\n   292\t# /ccw-coordinator - Manual chain orchestration (External CLI)\r\n   293\t/ccw-coordinator \"Implement OAuth2 system\"  # Analyzes → Recommends chain → User confirms → Executes\r\n   294\t```\r\n   295\t\r\n   296\t**Key Differences**:\r\n...\n\n",
+      "type": "text"
+    }
+  ]
+}
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Select-String -Path .claude/commands/ccw-coordinator.md -Pattern '"'"'^(#{1,6})'"\\s+' | ForEach-Object { "'$_.Line }' in C:\Project\Claude-Code-Workflow succeeded in 402ms:
+# CCW Coordinator Command
+## Core Concept: Minimum Execution Units (最小执行单元)
+### What is a Minimum Execution Unit?
+### Minimum Execution Units
+### Command-to-Unit Mapping (命令与最小单元的映射)
+### Atomic Group Rules
+## 3-Phase Workflow
+### Phase 1: Analyze Requirements
+### Phase 2: Discover Commands & Recommend Chain
+#### Command Port Definition
+#### Recommendation Algorithm
+#### Display to User
+### Phase 2b: Get User Confirmation
+### Phase 3: Execute Sequential Command Chain
+## State File Structure
+### Status Flow
+### Field Descriptions
+## CommandRegistry Integration
+## Universal Prompt Template
+### Standard Format
+
+thinking
+**Locating code references**
+
+I'm confirming that the headings list matches the required structure, and I’ll be using those headings in the evidence collection. To find documentation evidence, I can reference the `ccw-coordinator` integration documentation. Now, I need to find TypeScript anchors in the `ccw/src/**` directory using a substring. I’m thinking the relevant code for `ccw-coordinator` might be in the ccw package, but there's also a `ccw/src` folder in the root. I plan to search for 'ccw-coordinator' using smart search.
+tool ccw-tools.smart_search({"action":"search","path":"C:/Project/Claude-Code-Workflow","query":"ccw-coordinator","mode":"fuzzy","maxResults":20})
+2026-02-04T16:39:39.707784Z ERROR rmcp::transport::async_rw: Error reading from stream: serde error expected value at line 1 column 2
+ccw-tools.smart_search({"action":"search","path":"C:/Project/Claude-Code-Workflow","query":"ccw-coordinator","mode":"fuzzy","maxResults":20}) failed in 3.03s:
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+rg -n "'"\\/ccw-coordinator\" ccw/src" in C:\Project\Claude-Code-Workflow exited 1 in 380ms:
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Test-Path ccw/src/tools/command-registry.js; Test-Path ccw/src/tools/command-registry.ts; Get-ChildItem ccw/src/tools -Force | Select-Object Name' in C:\Project\Claude-Code-Workflow succeeded in 393ms:
+False
+True
+
+[32;1mName[0m
+[32;1m----[0m
+__tests__
+.gitignore
+ask-question.ts
+classify-folders.ts
+claude-cli-tools.ts
+cli-config-manager.ts
+cli-executor-core.ts
+cli-executor-state.ts
+cli-executor-utils.ts
+cli-executor.ts
+cli-history-store.ts
+cli-output-converter.ts
+cli-prompt-builder.ts
+codex-lens-lsp.ts
+codex-lens.ts
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/spec-input.md' in C:\Project\Claude-Code-Workflow succeeded in 391ms:
+# Spec Input (Schema + Rules)
+
+The spec is the only “source input” for outline generation. It must be **minimal** and **non-leaky**.
+
+## Minimal JSON Schema (informal)
+
+```json
+{
+  "command": {
+    "group": "workflow|issue|learn|cli|other",
+    "name": "kebab-case",
+    "description": "one sentence",
+    "argument_hint": "[--flag] \"args\"",
+    "allowed_tools": ["Read(*)", "Write(*)"]
+  },
+  "intent": {
+    "type": "analyze|plan|execute|brainstorm|manage|utility",
+    "interaction": "single-shot|iterative|loop",
+    "primary_user_value": "what this command accomplishes"
+  },
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/scan-corpus.js' in C:\Project\Claude-Code-Workflow succeeded in 370ms:
+import fs from 'node:fs';
+import path from 'node:path';
+
+import { readCommandFile, toPosixPath } from './lib/command-md.js';
+
+function usage() {
+  // Keep this script dependency-free (no commander).
+  console.log(
+    [
+      'Usage:',
+      '  node .codex/skills/slash-command-outliner/scripts/scan-corpus.js --root=.claude/commands --out=corpus.json',
+      '',
+      'Notes:',
+      '  - Excludes node_modules/ and _disabled/ directories',
+    ].join('\n')
+  );
+}
+
+function parseArgs(argv) {
+  const args = {};
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -TotalCount 40 .claude/commands/ccw-coordinator.md' in C:\Project\Claude-Code-Workflow succeeded in 380ms:
+---
+name: ccw-coordinator
+description: Command orchestration tool - analyze requirements, recommend chain, execute sequentially with state persistence
+argument-hint: "[task description]"
+allowed-tools: Task(*), AskUserQuestion(*), Read(*), Write(*), Bash(*), Glob(*), Grep(*)
+---
+
+# CCW Coordinator Command
+
+Interactive orchestration tool: analyze task → discover commands → recommend chain → execute sequentially → track state.
+
+**Execution Model**: Pseudocode guidance. Claude intelligently executes each phase based on context.
+
+## Core Concept: Minimum Execution Units (最小执行单元)
+
+### What is a Minimum Execution Unit?
+
+**Definition**: A set of commands that must execute together as an atomic group to achieve a meaningful workflow milestone. Splitting these commands breaks the logical flow and creates incomplete states.
+
+**Why This Matters**:
+
+
+
+thinking
+**Evaluating command structure**
+
+It looks like the frontmatter doesn't include a group field. The template does include it, but the command documentation might not consistently mention group. Quality gates indicate that "name," "description," and "allowed-tools" fields are mandatory, with group being optional. Since it's not explicitly stated, I think we could either include an empty string for group or omit it altogether. However, aligning with the template is tricky, especially considering the command line that utilizes the group field. I’ll need to think through how to handle this carefully.
+thinking
+**Interpreting quality gates and templates**
+
+The quality gates refer to core sections, and the template serves as guidance rather than a strict format. I think the user wants me to keep the core sections and overall layout but make adjustments for the lack of a group. For the spec.json, I’ll set the group to an empty string. We also need the allowed-tools list from the requirements documentation, which includes several tools. Regarding the TypeScript anchors, I’ll find the dual sources for each pointer row from both documentation and the TypeScript evidence.
+thinking
+**Identifying documentation and TypeScript evidence**
+
+I need to ensure that each row includes both documentation and TypeScript evidence, and I can reuse existing entries without using placeholders. It’s crucial to verify that the documentation file and headings exist. For documentation, I can refer to files like `.claude/commands/ccw-coordinator.md`, specifically the "CommandRegistry Integration" section. For TypeScript evidence, I’ll select the pertinent file—specifically `ccw/src/tools/command-registry.ts`—and use the anchor string for the `CommandRegistry` class. I'll open the relevant file to get the exact substring needed.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+rg -n "class CommandRegistry" ccw/src/tools/command-registry.ts; rg -n "export class CommandRegistry" ccw/src/tools/command-registry.ts; Get-Content -TotalCount 80 ccw/src/tools/command-registry.ts' in C:\Project\Claude-Code-Workflow succeeded in 438ms:
+30:export class CommandRegistry {
+30:export class CommandRegistry {
+/**
+ * Command Registry Tool
+ *
+ * Features:
+ * 1. Scan and parse YAML headers from command files
+ * 2. Read from global ~/.claude/commands/workflow directory
+ * 3. Support on-demand extraction (not full scan)
+ * 4. Cache parsed metadata for performance
+ */
+
+import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
+
+export interface CommandMetadata {
+  name: string;
+  command: string;
+  description: string;
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+rg -n "ccw-coordinator" ccw/src/core/routes/hooks-routes.ts | Select-Object -First 20' in C:\Project\Claude-Code-Workflow succeeded in 407ms:
+431:          !filePath.match(/\.(ccw|ccw-coordinator|ccw-debug)\//)) {
+477:          !filePath.match(/\.(ccw|ccw-coordinator|ccw-debug)\//)) {
+
+thinking
+I'm looking at the anchor string `ccw-coordinator` and wondering about the state.json path, which is supposed to be `.workflow/.ccw-coordinator/<session>/state.json`. It seems like this might not exist in the repo right now since it's a runtime artifact. I think the pointer rows could include these runtime paths as planned. The pointer cell looks like it refers to `.workflow/.ccw-coordinator/`, which I believe exists. I'll check the `.workflow` directory to see if `.ccw-coordinator` is there.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Test-Path .workflow/.ccw-coordinator; Get-ChildItem -Force .workflow | Select-Object Name' in C:\Project\Claude-Code-Workflow succeeded in 409ms:
+False
+
+[32;1mName[0m
+[32;1m----[0m
+.analysis
+.brainstorm
+.cycle
+.develop
+.lite-plan
+.scratchpad
+learn
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+rg -n "orchestrat|command chain|recommend|minimum execution unit|execution unit|CommandRegistry" .claude/commands' in C:\Project\Claude-Code-Workflow succeeded in 397ms:
+.claude/commands\ccw-plan.md:10:Planning orchestrator: requirement analysis → strategy selection → planning execution.
+.claude/commands\ccw-plan.md:24:| **CLI-Assisted Planning** | ccw cli (analysis) → recommendations | quick analysis + decision |
+.claude/commands\ccw-plan.md:91:quick|fast|immediate|recommendation|suggest                → cli
+.claude/commands\ccw-plan.md:107:| **cli** | ccw cli --mode analysis --rule planning-* | None | Quick planning recommendation |
+.claude/commands\ccw-plan.md:201:| "Quick: should we use OAuth2?" | cli | ccw cli --mode analysis → recommendation | Immediate planning advice |
+.claude/commands\ccw-plan.md:230:// CLI mode (quick recommendations)
+.claude/commands\ccw-plan.md:301:- **cli**: No command_chain, stores CLI recommendations and user decision
+.claude/commands\ccw-plan.md:315:- ✓ Accept → Create lite-plan from recommendations
+.claude/commands\ccw-plan.md:317:- ✗ Done → Stop (recommendation only)
+.claude/commands\ccw-plan.md:322:- Planning approach recommendations
+.claude/commands\ccw-plan.md:381:3. **CLI Integration** - Quick analysis for immediate recommendations
+.claude/commands\ccw-plan.md:405:# CLI-assisted planning (quick recommendations)
+.claude/commands\ccw-plan.md:428:├─ Keywords: "quick", "fast", "recommendation"
+.claude/commands\ccw-plan.md:429:│  └─ Mode: CLI (quick analysis → recommendations)
+.claude/commands\codex-coordinator.md:3:description: Command orchestration tool for Codex - analyze requirements, recommend command chain, execute sequentially with state persistence
+.claude/commands\codex-coordinator.md:9:Interactive orchestration tool for Codex commands: analyze task → discover commands → recommend chain → execute sequentially → track state.
+.claude/commands\codex-coordinator.md:11:**Execution Model**: Intelligent agent-driven workflow. Claude analyzes each phase and orchestrates command execution.
+.claude/commands\codex-coordinator.md:64:1. **Never Split Units**: Coordinator must recommend complete units, not partial chains
+.claude/commands\codex-coordinator.md:126:Dynamic command chain assembly using task type and complexity matching.
+.claude/commands\codex-coordinator.md:142:async function recommendCommandChain(analysis) {
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -TotalCount 30 .claude/commands/codex-coordinator.md' in C:\Project\Claude-Code-Workflow succeeded in 383ms:
+---
+name: codex-coordinator
+description: Command orchestration tool for Codex - analyze requirements, recommend command chain, execute sequentially with state persistence
+argument-hint: "TASK=\"<task description>\" [--depth=standard|deep] [--auto-confirm] [--verbose]"
+---
+
+# Codex Coordinator Command
+
+Interactive orchestration tool for Codex commands: analyze task → discover commands → recommend chain → execute sequentially → track state.
+
+**Execution Model**: Intelligent agent-driven workflow. Claude analyzes each phase and orchestrates command execution.
+
+## Core Concept: Minimum Execution Units (最小执行单元)
+
+### What is a Minimum Execution Unit?
+
+**Definition**: A set of commands that must execute together as an atomic group to achieve a meaningful workflow milestone. Splitting these commands breaks the logical flow and creates incomplete states.
+
+**Why This Matters**:
+- **Prevents Incomplete States**: Avoid stopping after task generation without execution
+
+
+
+thinking
+**Analyzing script logic**
+
+The script is rejecting pointers with '{{' in the pointer cell but doesn’t check other cells—hmm, that could be a flaw. We should really replace placeholders everywhere. In the Implementation pointers section, there are "Likely code locations" listed, and the evidence table needs one row per pointer. I should avoid using `TBD` in evidence rows as suggested, but I might consider it for other sections. For the group field, I think it’s clearer to use `group: ""` explicitly in the front matter.
+thinking
+**Structuring allowed tools and specs**
+
+I need to specify the `allowed-tools` field in the front matter as CSV, including exactly `Task(*), AskUserQuestion(*), Read(*), Write(*), Bash(*), Glob(*), Grep(*)`. This setup should reflect in `spec.json`. 
+
+I think setting constraints like `max_rounds` to 6 sounds like a safe bet, even though the command is interactive and can loop until the chain is done. For artifact reads, I might want to include the command files and ensure proper discovery paths for slash commands, mentioning how files read and write in specific directories.
+thinking
+**Identifying key coordinators**
+
+It looks like the `ccw-coordinator` functions similarly to the `codex-coordinator`, both being in the root. I’m considering the top five coordinators to focus on.
+
+First, we have `/codex-coordinator`, linked to the `.claude/commands/codex-coordinator.md`, which is almost identical. Then, there's `/ccw-plan`, associated with the `.claude/commands/ccw-plan.md`, a planning orchestrator with recommendations. Lastly, I want to check if `/ccw` exists by seeing if `.claude/commands/ccw.md` is there using `Test-Path`.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Test-Path .claude/commands/ccw.md; Test-Path .claude/commands/ccw-plan.md; Test-Path .claude/commands/codex-coordinator.md; Test-Path .claude/commands/workflow/flow-create.md' in C:\Project\Claude-Code-Workflow succeeded in 369ms:
+True
+True
+True
+False
+
+thinking
+It seems like I'm checking to see if there's a `.md` file for workflow creation at a different path. The ACE result is pointing to `.claude/commands/flow-create.md` at the root, but that's not in the workflow folder. I guess I need to verify this and determine where the correct file might be located. Let’s take a look to make sure I can find the right workflow file!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Test-Path .claude/commands/flow-create.md' in C:\Project\Claude-Code-Workflow succeeded in 377ms:
+True
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Test-Path .claude/commands/parallel-dev-cycle.md; Test-Path .claude/commands/workflow/plan.md; Test-Path .claude/commands/workflow/execute.md; Test-Path .claude/commands/workflow/lite-execute.md' in C:\Project\Claude-Code-Workflow succeeded in 378ms:
+False
+True
+True
+True
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+rg -n "export '"\\{ CommandRegistry\" ccw/src/tools/index.ts; rg -n \"getAllCommandsSync\" ccw/src/tools/index.ts; Get-Content -TotalCount 420 ccw/src/tools/index.ts | Select-Object -Last 30" in C:\Project\Claude-Code-Workflow succeeded in 444ms:
+385:export { CommandRegistry, createCommandRegistry, getAllCommandsSync, getCommandSync } from './command-registry.js';
+385:export { CommandRegistry, createCommandRegistry, getAllCommandsSync, getCommandSync } from './command-registry.js';
+registerTool(toLegacyTool(discoverDesignFilesMod));
+registerTool(toLegacyTool(generateModuleDocsMod));
+registerTool(toLegacyTool(convertTokensToCssMod));
+registerTool(toLegacyTool(sessionManagerMod));
+registerTool(toLegacyTool(cliExecutorMod));
+registerTool(toLegacyTool(smartSearchMod));
+// codex_lens removed - functionality integrated into smart_search
+registerTool(toLegacyTool(codexLensLspMod));
+registerTool(toLegacyTool(vscodeLspMod));
+registerTool(toLegacyTool(readFileMod));
+registerTool(toLegacyTool(coreMemoryMod));
+registerTool(toLegacyTool(contextCacheMod));
+registerTool(toLegacyTool(skillContextLoaderMod));
+registerTool(toLegacyTool(askQuestionMod));
+
+// Register legacy JS tools
+registerTool(uiGeneratePreviewTool);
+registerTool(uiInstantiatePrototypesTool);
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+rg -n "commands, '"'issue'|issue\\b\" ccw/src/tools/command-registry.ts" in C:\Project\Claude-Code-Workflow exited 1 in 384ms:
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+rg -n "getAllCommands" ccw/src/tools/command-registry.ts' in C:\Project\Claude-Code-Workflow succeeded in 389ms:
+202:  public getAllCommandsSummary(): Map<string, CommandSummary> {
+250:  public getAllCommandsByCategory(): Record<string, CommandMetadata[]> {
+251:    const summary = this.getAllCommandsSummary();
+312:export function getAllCommandsSync(): Map<string, CommandSummary> {
+314:  return registry.getAllCommandsSummary();
+
+thinking
+**Exploring categorization methods**
+
+I’ve got these methods to look into, and it seems they return information by category. But wait, it’s only from the workflow command directory? Hmm, that might mean it categorizes based on the name or some existing logic. I should definitely dig into the logic behind categorization. I’ll focus on the getAllCommandsByCategory function to understand how it works and what it returns. Let’s see what I can discover!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -TotalCount 380 ccw/src/tools/command-registry.ts | Select-Object -Skip 170 | Select-Object -First 140' in C:\Project\Claude-Code-Workflow succeeded in 394ms:
+      }
+    } catch (error) {
+      const err = error as Error;
+      console.error(`Failed to read command ${filePath}:`, err.message);
+    }
+
+    return null;
+  }
+
+  /**
+   * Get multiple commands metadata
+   * @param commandNames Array of command names
+   * @returns Map of command metadata
+   */
+  public getCommands(commandNames: string[]): Map<string, CommandMetadata> {
+    const result = new Map<string, CommandMetadata>();
+
+    for (const name of commandNames) {
+      const cmd = this.getCommand(name);
+      if (cmd) {
+
+
+
+
+
+thinking
+**Clarifying pointer statuses**
+
+I need to outline steps for the fix-plan. Also, I have to ensure that the evidence tables include pointers for modifications to CommandRegistry. Each planned pointer should have documentation and TypeScript anchors. If `ccw/src/tools/command-registry.ts` exists but needs changes, its status should stay Existing, but if it's scheduled for modification, it should be labeled as Planned. Quality gates specify that pointers need clear labels, which makes it a bit ambiguous. If something already exists and will change, does that then fit the Planned category?
+thinking
+**Understanding pointer status**
+
+It seems I can mark something as verifiable Existing, but the notes don't clarify how to handle modifications. The template indicates that Planned is for items that will be created or modified. For the pointer `ccw/src/tools/command-registry.ts`, it exists, but since we plan to change it, I want to be clear. I might consider marking it as Existing while mentioning it will likely be modified, yet that might be misleading. According to the template, Planned can indeed cover modifications, even if a file exists.
+thinking
+**Determining pointer labels**
+
+The hard rule states not to label something as Existing unless it's verifiable, but it doesn’t mean every existing pointer must be labeled as such. I think marking it as Planned could better indicate that it will be modified. However, the evidence verifier doesn’t strictly require an Existing status for files that exist. For our assignment about the slash command outliner, I see that `ccw-coordinator` exists in the documentation. I’ll label it as Existing but note that it may need updates. The same applies to `ccw/src/tools/command-registry.ts`, which exists but likely needs changes.
+thinking
+**Planning command modifications**
+
+Our command may just use existing parts, but the gap report suggests changes. Since this is an outliner, I should include statuses for pointers about implementing the new command. For example, `ccw/src/tools/command-registry.ts` might need modification, so I’ll mark it as Planned. Existing paths don’t violate anything, and while verification isn't required, we’ll do it anyway. The user mentioned avoiding placeholders in evidence rows. I’ll also make sure no pointer contains a comma or newline. Now I need to output the spec.json and references, create the appropriate directories, and ensure we have the right content for those output files.
+thinking
+**Gathering references and organizing output**
+
+Before I start writing, I need to collect a few references from specific files: `ccw-plan.md`, `ccw.md`, `plan.md`, and `execute.md`. I’m looking to summarize headings for the references json and potentially include the codex-coordinator for support in the gap report, even though it’s not strictly necessary. The references.json script doesn’t validate, but consistency is key. I’ll need headings for the documents in the evidence rows, focusing mainly on ccw-coordinator while possibly including some codex headings too. In the end, I need to ensure the output files are properly formatted and ready for the verification process.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+rg -n "function findEvidenceTables|columns" .codex/skills/slash-command-outliner/scripts/verify-evidence.js' in C:\Project\Claude-Code-Workflow succeeded in 380ms:
+166:export function findEvidenceTables(lines) {
+193:      columns: { pointerIdx, statusIdx, evidenceIdx, verifyIdx },
+201:export function validateEvidenceRow({ repoRoot, mdPath, row, columns }) {
+203:  const pointerRaw = stripBackticks(row.cells[columns.pointerIdx] || '');
+204:  const statusRaw = stripBackticks(row.cells[columns.statusIdx] || '');
+205:  const evidenceRaw = row.cells[columns.evidenceIdx] || '';
+206:  const verifyRaw = stripBackticks(row.cells[columns.verifyIdx] || '');
+292:      const res = validateEvidenceRow({ repoRoot, mdPath, row, columns: t.columns });
+328:    console.error('ERROR: no evidence tables found. Expected a markdown table with columns: Pointer | Status | Evidence | Verify | ...');
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -TotalCount 240 .codex/skills/slash-command-outliner/scripts/verify-evidence.js | Select-Object -Skip 150 | Select-Object -First 90' in C:\Project\Claude-Code-Workflow succeeded in 409ms:
+  const parts = raw.split('|');
+  // Support both forms:
+  // - with trailing pipe: "| a | b |"
+  // - without trailing pipe: "| a | b"
+  const sliceEnd = raw.endsWith('|') ? -1 : undefined;
+  const cells = parts
+    .slice(1, sliceEnd)
+    .map((c) => String(c).trim());
+  return cells;
+}
+
+export function isSeparatorRow(cells) {
+  return cells.every((c) => /^:?-{3,}:?$/.test(c));
+}
+
+export function findEvidenceTables(lines) {
+  const tables = [];
+  for (let i = 0; i < lines.length; i++) {
+    const cells = splitTableRow(lines[i]);
+    if (!cells) continue;
+
+
+
+thinking
+**Clarifying evidence formatting**
+
+I'm focusing on how to format the header cell to contain 'Evidence (docs + TS)', which includes the necessary evidence. The 'parseEvidenceCell' requires a specific delimiter, so I must ensure that spaces matter around the " / ". It’s essential the evidence string follows the structure: `docs: \`file\` / \`Heading\` ; ts: \`file\` / \`anchor\``. I also need to be cautious with semicolons and spacing in my code to avoid errors with 'docs:' and 'ts:'.
+thinking
+**Developing file handling strategy**
+
+I see that the command includes `'./command-registry.js';`, which has slashes but won't be split since the delimiter is " / ". Now, regarding the command doc heading, that seems fine. I need to create both `spec.json` and `references.json`, ensuring they are valid JSON. 
+
+I'm also crafting the output directory path and using 'apply_patch' to add files. It’s important that we use forward slashes, especially on Windows, to avoid issues. While I'm not sure if 'apply_patch' automatically creates directories, to be safe, I could use 'write_file' with the createDirectories option set to true.
+thinking
+**Planning directory creation**
+
+I’m trying to figure out if the patch tool can create directories, but I'm not entirely sure. To be safe, I’ll use the shell command `New-Item -ItemType Directory -Force` to create the necessary directories first. The user asked me to avoid creating extra files, but I still need the directories. So I’ll make that path: `.workflow/.cycle/cycle-local-.../llm/CMD-001/specs/outputs` with PowerShell and then proceed with the 'apply_patch' to add files afterward.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+$dir = '"'.workflow/.cycle/cycle-local-20260205T003504-slashcmdoutliner-codex.progress/llm/CMD-001/specs/outputs'
+New-Item -ItemType Directory -Force -Path "'$dir | Out-Null
+Get-Item $dir | Select-Object FullName' in C:\Project\Claude-Code-Workflow succeeded in 390ms:
+
+[32;1mFullName[0m
+[32;1m--------[0m
+C:\Project\Claude-Code-Workflow\.workflow\.cycle\cycle-local-20260205T003504-slashcmdoutliner-codex.progress\llm\CMD-0…
+
+
+[spawn_error] spawnSync C:\nvm4w\nodejs\node.exe ETIMEDOUT

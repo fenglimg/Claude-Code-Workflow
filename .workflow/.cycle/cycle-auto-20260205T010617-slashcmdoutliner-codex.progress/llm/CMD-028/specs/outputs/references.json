@@ -1,0 +1,61 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:synthesis",
+      "file_path": ".claude/commands/workflow/brainstorm/synthesis.md",
+      "score": 0.92,
+      "why": [
+        "Same group (workflow) and same brainstorm family (brainstorm/*)",
+        "Iterative AskUserQuestion flow with explicit max-4-per-call batching",
+        "Session management + writes under .workflow/active/*"
+      ]
+    },
+    {
+      "slash": "/workflow:auto-parallel",
+      "file_path": ".claude/commands/workflow/brainstorm/auto-parallel.md",
+      "score": 0.84,
+      "why": [
+        "Same argument-hint pattern (-y/--yes + topic + --count)",
+        "Role selection + multi-phase orchestration structure",
+        "Shares session folder and brainstorming artifacts"
+      ]
+    },
+    {
+      "slash": "/workflow:role-analysis",
+      "file_path": ".claude/commands/workflow/brainstorm/role-analysis.md",
+      "score": 0.78,
+      "why": [
+        "Role-centric questioning and context gathering",
+        "Uses AskUserQuestion and persists structured outputs",
+        "Provides error-handling patterns for missing session/framework"
+      ]
+    },
+    {
+      "slash": "/workflow:brainstorm-with-file",
+      "file_path": ".claude/commands/workflow/brainstorm-with-file.md",
+      "score": 0.72,
+      "why": [
+        "Workflow brainstorm interaction and phased structure",
+        "Defines session initialization + output artifacts",
+        "Patterns for context overflow protection and error handling"
+      ]
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 0.55,
+      "why": [
+        "Workflow command frontmatter + core section conventions",
+        "Auto mode patterns and safety rules",
+        "Task tracking / TodoWrite patterns"
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:synthesis",
+    "file_path": ".claude/commands/workflow/brainstorm/synthesis.md",
+    "score": 0.92,
+    "why": "Closest match on interaction model (AskUserQuestion multi-round), structure (phased workflow), and session-based file updates."
+  }
+}
+

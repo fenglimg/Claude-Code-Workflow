@@ -1,0 +1,100 @@
+{
+  "session_id": "ANL-测试slashcommandoutliner-2026-02-04",
+  "timestamp": "2026-02-04T23:55:57+08:00",
+  "topic": "如何测试 .claude/skills/slash-command-outliner 以确保能够达到效果",
+  "dimensions": [
+    "implementation",
+    "architecture",
+    "concept"
+  ],
+  "sources": [
+    {
+      "type": "codebase",
+      "notes": "Reviewed skill definition/specs/phases/scripts and executed regress-all once to confirm current failure mode."
+    },
+    {
+      "type": "cli",
+      "tool": "gemini",
+      "notes": "Gemini provided a 3-level testing breakdown but some suggested CLI flags were inaccurate vs repo scripts; treated as advisory only."
+    }
+  ],
+  "key_findings": [
+    {
+      "id": "F1",
+      "title": "Skill 自带 2 类确定性“测试/门禁”机制：evidence gate + 非回归快照",
+      "evidence": [
+        ".claude/skills/slash-command-outliner/specs/quality-gates.md",
+        ".claude/skills/slash-command-outliner/phases/04-gap-report-and-iterate.md",
+        ".claude/skills/slash-command-outliner/scripts/verify-evidence.js",
+        ".claude/skills/slash-command-outliner/scripts/regress-all.js"
+      ],
+      "details": [
+        "LLM 输出门禁：verify-evidence.js 检查 evidence 表格（Existing/Planned、docs+ts 双证据、Existing 可验证）",
+        "非回归：regress-all.js 生成 derived spec + outline + gap report，并对 outline 做 expected/current/diff 快照 gate"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "F2",
+      "title": "目前 repo 中 regress-all 不能直接跑通：缺少 cycle corpus manifests",
+      "evidence": [
+        ".claude/skills/slash-command-outliner/scripts/README.md",
+        ".claude/skills/slash-command-outliner/scripts/regress-all.js"
+      ],
+      "details": [
+        "regress-all 读取 `.workflow/.cycle/<id>.progress/corpus/corpus-manifest.json` + `tooling-manifest.json`",
+        "仓库存在示例 cycle 目录 `cycle-v1-20260203T001806-slashcmdoutliner-qmhuep.progress`，但缺少 `corpus/` 目录与 manifests",
+        "实测运行 `node .claude/skills/slash-command-outliner/scripts/regress-all.js --cycle-id=... --limit=1` 报错：corpus manifest not found"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "F3",
+      "title": "已存在可直接运行的单测入口：verify-evidence.test.js（node:test）",
+      "evidence": [
+        ".claude/skills/slash-command-outliner/scripts/verify-evidence.test.js",
+        "package.json"
+      ],
+      "details": [
+        "verify-evidence.test.js 使用 `import test from 'node:test'`，可用 `node --test <file>` 在 CI 上跑",
+        "本机 Node 版本 v20.16.0，满足 node:test 运行"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "F4",
+      "title": "deterministic outline/gap-report 生成脚本主要用于“基线/回归”，不等价于 LLM 输出验证",
+      "evidence": [
+        ".claude/skills/slash-command-outliner/scripts/lib/pipeline.js",
+        ".claude/skills/slash-command-outliner/scripts/verify-evidence.js"
+      ],
+      "details": [
+        "pipeline.js 的 `renderOutlineFromSpec` 生成的是 P0 section scaffolding + implementation pointers 列表（无 evidence table）",
+        "verify-evidence.js 要求 evidence markdown 表格，因此更适合作为“LLM 输出 gate”，而不是 deterministic scaffold 的校验"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "discussion_points": [
+    "你要验证的“效果”更偏：A) deterministic 脚本可靠性/非回归，还是 B) LLM 输出质量（evidence gate + P0 sections + artifacts）？",
+    "是否需要把 regress-all 的 manifests 生成补齐（新增一个脚本/命令）来让回归测试一键可跑？",
+    "期望测试产物落在哪里：`.workflow/.scratchpad/`（一次性）还是 `.workflow/.cycle/<id>.progress/`（可追踪快照）？"
+  ],
+  "open_questions": [
+    {
+      "q": "你希望的测试入口是“开发者本机命令”还是“CI workflow”还是两者？",
+      "why_it_matters": "决定是否需要新增 npm script / GitHub Actions job / 生成 manifests 的脚本。"
+    },
+    {
+      "q": "E2E 是否允许调用外部模型（Claude/Codex/Gemini）？还是只做离线确定性验证？",
+      "why_it_matters": "LLM E2E 才能覆盖 templates+phases 产物质量，但会引入不可重复性；离线只能验证 gates/回归框架。"
+    }
+  ],
+  "_metadata": {
+    "assumptions": [
+      "“测试达到效果”包含：能生成符合质量门禁的 outline/gap-report，并能阻止回归",
+      "优先提供 PowerShell 可运行的步骤"
+    ]
+  }
+}
+

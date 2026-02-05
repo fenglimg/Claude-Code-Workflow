@@ -1,0 +1,39 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:lite-plan",
+      "file_path": ".claude/commands/workflow/lite-plan.md",
+      "score": 10,
+      "why": "Same lite-family structure (multi-angle agent, optional clarification, plan + confirmation, handoff to lite-execute) and same allowed-tools surface."
+    },
+    {
+      "slash": "/workflow:lite-execute",
+      "file_path": ".claude/commands/workflow/lite-execute.md",
+      "score": 8,
+      "why": "Directly relevant as the execution handoff target; useful for context packaging and execution confirmation patterns (but different allowed-tools, includes Bash)."
+    },
+    {
+      "slash": "/workflow:debug-with-file",
+      "file_path": ".claude/commands/workflow/debug-with-file.md",
+      "score": 6,
+      "why": "Bug-focused workflow with iterative debugging and session artifacts; heavier tool surface than lite-fix."
+    },
+    {
+      "slash": "/workflow:test-fix-gen",
+      "file_path": ".claude/commands/workflow/test-fix-gen.md",
+      "score": 5,
+      "why": "Fix-oriented orchestrator that produces artifacts and coordinates multiple phases; less aligned with lite workflow and different tools."
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 4,
+      "why": "Planning conventions and section structure reference; not a lightweight, severity-driven bug fix flow."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:lite-plan",
+    "file_path": ".claude/commands/workflow/lite-plan.md",
+    "reason": "Closest match in interaction model and command structure; easiest to adapt without introducing new patterns."
+  }
+}

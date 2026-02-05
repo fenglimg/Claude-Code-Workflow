@@ -1,0 +1,56 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "lite-execute"
+  },
+  "selected_reference": {
+    "slash": "/workflow:lite-execute",
+    "file_path": ".claude/commands/workflow/lite-execute.md",
+    "why": "Canonical workflow execution command doc for this command; used as oracle for gap analysis."
+  },
+  "reference_slash_docs": [
+    {
+      "path": ".claude/commands/workflow/lite-plan.md",
+      "why": "Upstream planner that sets executionContext and invokes lite-execute in --in-memory mode."
+    },
+    {
+      "path": ".claude/commands/workflow/unified-execute-with-file.md",
+      "why": "Related executor pattern for routing tasks to Agent vs CLI; includes prompt builders and resume IDs."
+    },
+    {
+      "path": ".claude/commands/workflow/multi-cli-plan.md",
+      "why": "Another command that builds executionContext; useful for shared data-shape conventions."
+    },
+    {
+      "path": ".claude/commands/workflow/lite-fix.md",
+      "why": "Post-execution remediation workflow; informs review/fix-plan expectations."
+    }
+  ],
+  "reference_ts": [
+    {
+      "path": "ccw/src/tools/command-registry.ts",
+      "anchors": [
+        "commandName.startsWith('/workflow:')",
+        "const filePath = join(this.commandDir, `${normalized}.md`);"
+      ],
+      "why": "Loads workflow command markdown and frontmatter metadata (name/description/allowed-tools/argument-hint)."
+    },
+    {
+      "path": "ccw/src/core/routes/commands-routes.ts",
+      "anchors": [
+        "scanCommandsRecursive(projectDir, projectDir, 'project', projectPath);",
+        "console.error('[Commands] Error reading commands config:', error);"
+      ],
+      "why": "Discovers and lists available commands (.md and .md.disabled) in project and user scopes."
+    },
+    {
+      "path": "ccw/src/tools/cli-executor-core.ts",
+      "anchors": [
+        "import { executeLiteLLMEndpoint } from './litellm-executor.js';",
+        "if (resumeDecision?.strategy === 'native')"
+      ],
+      "why": "Underlying CLI execution and resume/merge behavior that lite-execute delegates to via 'ccw cli'."
+    }
+  ],
+  "generated_at": "2026-02-05"
+}

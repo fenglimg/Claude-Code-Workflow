@@ -1,0 +1,11 @@
+Used skill `slash-command-outliner` and generated CMD-034 outputs (templates + quality gates), writing exactly these files under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-034/specs/outputs`:
+
+- `spec.json`
+- `references.json`
+- `generated-slash-outline.md`
+- `generated-agent-outline.md`
+- `gap-report.md`
+- `fix-plan.md`
+
+Evidence gate status:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.../generated-slash-outline.md --file=.../gap-report.md` ✅ passed

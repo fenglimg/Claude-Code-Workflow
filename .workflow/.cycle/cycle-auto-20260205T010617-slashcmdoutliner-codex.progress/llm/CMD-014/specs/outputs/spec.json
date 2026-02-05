@@ -1,0 +1,59 @@
+{
+  "command": {
+    "group": "issue",
+    "name": "from-brainstorm",
+    "title": "Issue From-Brainstorm",
+    "description": "Convert brainstorm session ideas into issue with executable solution for parallel-dev-cycle",
+    "argument_hint": "SESSION=\"<session-id>\" [--idea=<index>] [--auto] [-y|--yes]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Glob(*)",
+      "AskUserQuestion(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "iterative",
+    "primary_user_value": "Convert a brainstorm session into a new issue plus a bound solution, ready for /issue:queue and /issue:execute."
+  },
+  "inputs": {
+    "required": ["SESSION (session id or path under .workflow/.brainstorm)"],
+    "optional": ["--idea=<index> (0-based)", "--auto", "-y|--yes"]
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/.brainstorm/<session>/synthesis.json",
+      ".workflow/.brainstorm/<session>/perspectives.json",
+      ".workflow/.brainstorm/<session>/.brainstorming/**",
+      ".workflow/.brainstorm/<session>/brainstorm.md"
+    ],
+    "writes": [
+      ".workflow/issues/",
+      ".workflow/issues/issues.jsonl",
+      ".workflow/issues/solutions/<issue-id>.jsonl"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 6,
+    "must_not": [
+      "Do not label implementation pointers as Existing unless verifiable in the repo now.",
+      "Do not bypass ccw issue CLI for issue lifecycle updates (create/bind/update).",
+      "Do not perform destructive operations unless explicitly requested."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name/description/allowed-tools)",
+      "allowed-tools correct for interactive + auto modes",
+      "core sections present (Overview/Usage/Execution/Outputs/Error Handling)",
+      "all mentioned artifacts are documented as created-by-command or pre-existing"
+    ]
+  },
+  "derived_from": {
+    "oracle_command_doc": ".claude/commands/issue/from-brainstorm.md"
+  }
+}
+

@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/issue:discover",
+      "file_path": ".claude/commands/issue/discover.md",
+      "score": 95,
+      "why": "Same group (issue); same discoveries storage family (.workflow/issues/discoveries); similar interaction (auto mode + multi-step exploration) and shares downstream viewing/export flows."
+    },
+    {
+      "slash": "/issue:from-brainstorm",
+      "file_path": ".claude/commands/issue/from-brainstorm.md",
+      "score": 82,
+      "why": "Prompt-driven issue generation; focuses on turning free-form text into structured issues, useful for output format and issue-candidate conventions."
+    },
+    {
+      "slash": "/workflow:tools:context-gather",
+      "file_path": ".claude/commands/workflow/tools/context-gather.md",
+      "score": 78,
+      "why": "Agent-based context gathering workflow; aligns with ACE-assisted exploration and session folder artifacts, useful for task decomposition patterns."
+    },
+    {
+      "slash": "/issue:convert-to-plan",
+      "file_path": ".claude/commands/issue/convert-to-plan.md",
+      "score": 72,
+      "why": "Transforms discovered issues into an implementation plan; complements this command's 'discover then plan' flow and artifact linking."
+    },
+    {
+      "slash": "/issue:plan",
+      "file_path": ".claude/commands/issue/plan.md",
+      "score": 65,
+      "why": "Canonical planning command in the same group; provides conventions for plan artifacts and subsequent execution workflows."
+    }
+  ],
+  "selected": {
+    "slash": "/issue:discover",
+    "file_path": ".claude/commands/issue/discover.md",
+    "why": "Closest match in storage layout and end-to-end discovery lifecycle; best baseline to keep outputs compatible with CCW discovery routes and dashboards."
+  }
+}
+

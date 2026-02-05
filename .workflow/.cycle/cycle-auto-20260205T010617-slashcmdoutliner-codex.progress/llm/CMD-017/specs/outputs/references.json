@@ -1,0 +1,44 @@
+{
+  "command": {
+    "group": "issue",
+    "name": "queue"
+  },
+  "candidates": [
+    {
+      "slash": "/issue:queue",
+      "file_path": ".claude/commands/issue/queue.md",
+      "score": 100,
+      "why": "Exact command + same artifacts (.workflow/issues/queues/*) + same allowed-tools + agent-driven multi-phase flow."
+    },
+    {
+      "slash": "/issue:execute",
+      "file_path": ".claude/commands/issue/execute.md",
+      "score": 88,
+      "why": "Same domain (issue execution), likely consumes queue artifacts and uses iterative execution/clarification patterns."
+    },
+    {
+      "slash": "/issue:plan",
+      "file_path": ".claude/commands/issue/plan.md",
+      "score": 80,
+      "why": "Upstream command that produces planned issues/solutions; shares constraints around using ccw CLI instead of direct .workflow edits."
+    },
+    {
+      "slash": "/issue:convert-to-plan",
+      "file_path": ".claude/commands/issue/convert-to-plan.md",
+      "score": 72,
+      "why": "Solution/issue binding and solution schema references; adjacent to the bound-solutions inputs required for queue formation."
+    },
+    {
+      "slash": "/issue:discover",
+      "file_path": ".claude/commands/issue/discover.md",
+      "score": 60,
+      "why": "Issue list/status patterns and CLI usage conventions; useful for consistent UX and status filtering."
+    }
+  ],
+  "selected": {
+    "slash": "/issue:queue",
+    "file_path": ".claude/commands/issue/queue.md",
+    "score": 100,
+    "reason": "Oracle for this command (exact match). Use it only for gap analysis; spec remains non-leaky."
+  }
+}

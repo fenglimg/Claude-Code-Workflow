@@ -1,0 +1,45 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "tdd-verify",
+    "description": "Verify TDD workflow compliance against Red-Green-Refactor cycles. Generates quality report with coverage analysis and quality gate recommendation. Orchestrates sub-commands for comprehensive validation.",
+    "argument_hint": "[optional: --session WFS-session-id]",
+    "allowed_tools": ["Skill(*)", "TodoWrite(*)", "Read(*)", "Write(*)", "Bash(*)", "Glob(*)"]
+  },
+  "intent": {
+    "type": "analyze",
+    "interaction": "single-shot",
+    "primary_user_value": "Validate TDD session task-chain integrity and Red-Green-Refactor compliance, then generate a compliance report with a merge/quality-gate recommendation."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/WFS-*/.task/*.json",
+      ".workflow/active/WFS-*/.summaries/",
+      ".workflow/active/WFS-*/.process/"
+    ],
+    "writes": [
+      ".workflow/active/WFS-{session-id}/TDD_COMPLIANCE_REPORT.md",
+      ".workflow/active/WFS-{session-id}/.process/test-results.json",
+      ".workflow/active/WFS-{session-id}/.process/coverage-report.json",
+      ".workflow/active/WFS-{session-id}/.process/tdd-cycle-report.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 2,
+    "time_budget_seconds": 600,
+    "must_not": [
+      "must not modify source task files under .workflow/active/WFS-*/.task/",
+      "must not modify implementation/source code",
+      "must not create or delete tasks in the workflow"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name, description, allowed-tools)",
+      "allowed-tools correct for orchestrator workflow (calls sub-commands)",
+      "core sections present: Overview, Usage, Execution Process, Outputs / Artifacts, Error Handling",
+      "evidence pointers labeled Existing vs Planned with dual-source evidence (docs + TS)"
+    ]
+  }
+}
+

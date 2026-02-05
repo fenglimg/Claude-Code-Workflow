@@ -1,0 +1,50 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "review-session-cycle",
+    "description": "Session-based comprehensive multi-dimensional code review. Analyzes git changes from workflow session across 7 dimensions with hybrid parallel-iterative execution, aggregates findings, and performs focused deep-dives on critical issues until quality gates met.",
+    "argument_hint": "[session-id] [--dimensions=security,architecture,...] [--max-iterations=N]",
+    "allowed_tools": ["Skill(*)", "TodoWrite(*)", "Read(*)", "Bash(*)", "Task(*)"]
+  },
+  "intent": {
+    "type": "analyze",
+    "interaction": "iterative",
+    "primary_user_value": "Run a session-scoped, 7-dimension review of git changes, aggregate severity/cross-cutting findings, and optionally deep-dive critical issues until completion criteria or max iterations."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/WFS-{session-id}/workflow-session.json",
+      ".workflow/active/WFS-{session-id}/TODO_LIST.md",
+      "git history since session creation (via Bash: git log --since)",
+      ".workflow/project-tech.json (if present)",
+      ".workflow/project-guidelines.json (if present)"
+    ],
+    "writes": [
+      ".workflow/active/WFS-{session-id}/.review/review-state.json",
+      ".workflow/active/WFS-{session-id}/.review/review-progress.json",
+      ".workflow/active/WFS-{session-id}/.review/dimensions/{dimension}.json",
+      ".workflow/active/WFS-{session-id}/.review/iterations/iteration-{N}-finding-{uuid}.json",
+      ".workflow/active/WFS-{session-id}/.review/reports/{dimension}-analysis.md",
+      ".workflow/active/WFS-{session-id}/.review/reports/{dimension}-cli-output.txt",
+      ".workflow/active/WFS-{session-id}/.review/reports/deep-dive-{N}-{uuid}.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 3,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not broaden scope beyond files changed within the workflow session unless explicitly requested.",
+      "Do not block the whole run on a single dimension failure; continue and record partial results.",
+      "Do not apply code fixes; produce findings and remediation guidance only (fixing is a separate command)."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name/description/allowed-tools",
+      "Allowed-tools match the command's actual needs",
+      "Core sections present: Overview, Usage, Execution Process, Output/Artifacts, Error Handling",
+      "Implementation pointers are evidence-backed (Existing vs Planned)"
+    ]
+  }
+}
+

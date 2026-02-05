@@ -1,0 +1,45 @@
+{
+  "command": {
+    "slash": "/memory:update-related",
+    "group": "memory",
+    "name": "update-related"
+  },
+  "candidates": [
+    {
+      "slash": "/memory:update-related",
+      "file_path": ".claude/commands/memory/update-related.md",
+      "score": 1.0,
+      "why": "Exact command (oracle). Same group, same artifacts (CLAUDE.md), same batching + tool fallback."
+    },
+    {
+      "slash": "/memory:update-full",
+      "file_path": ".claude/commands/memory/update-full.md",
+      "score": 0.85,
+      "why": "Same CLAUDE.md update family; shares y/n plan gate, batching (4/module), and gemini->qwen->codex fallback."
+    },
+    {
+      "slash": "/memory:docs-related-cli",
+      "file_path": ".claude/commands/memory/docs-related-cli.md",
+      "score": 0.78,
+      "why": "Same changed-module detection + depth batching behavior; nearly identical coordinator/worker split and thresholds (<15 / >=15)."
+    },
+    {
+      "slash": "/memory:docs-full-cli",
+      "file_path": ".claude/commands/memory/docs-full-cli.md",
+      "score": 0.7,
+      "why": "Similar plan gate + multi-depth/layer execution model; useful for verification/safety patterns and reporting style."
+    },
+    {
+      "slash": "/memory:compact",
+      "file_path": ".claude/commands/memory/compact.md",
+      "score": 0.55,
+      "why": "Same group and user workflow surface; useful for consistent memory command doc structure and examples style."
+    }
+  ],
+  "selected": {
+    "slash": "/memory:update-related",
+    "file_path": ".claude/commands/memory/update-related.md",
+    "reason": "Use the command's own doc as the oracle reference to avoid drift; use sibling memory commands as secondary pattern references."
+  }
+}
+

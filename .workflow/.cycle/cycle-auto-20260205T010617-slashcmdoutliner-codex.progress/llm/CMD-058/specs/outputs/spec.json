@@ -1,0 +1,53 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "tools:code-validation-gate",
+    "description": "Validate AI-generated code for common errors (imports, variables, types) before test execution",
+    "argument_hint": "--session WFS-test-session-id [--fix] [--strict]",
+    "allowed_tools": [
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Bash(*)",
+      "Glob(*)",
+      "Grep(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "single-shot",
+    "primary_user_value": "Fail fast on fundamental code issues (compile/import/variable/type/AI-pattern errors) and optionally apply safe fixes before running tests."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/{session_id}/workflow-session.json",
+      ".workflow/active/{session_id}/.process/context-package.json",
+      ".workflow/active/{session_id}/.process/test-context-package.json",
+      ".workflow/active/{session_id}/.task/IMPL-001-output/",
+      "tsconfig.json",
+      "package.json",
+      ".eslintrc*"
+    ],
+    "writes": [
+      ".workflow/active/{session_id}/.process/code-validation-report.md",
+      ".workflow/active/{session_id}/.process/code-validation-report.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 2,
+    "time_budget_seconds": 600,
+    "must_not": [
+      "Apply non-trivial code changes when --fix is enabled (limit to safe, mechanical fixes only).",
+      "Proceed to test execution when compilation errors are present."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name, description, allowed-tools (and argument-hint when applicable).",
+      "Usage, Execution Process, Outputs/Artifacts, and Error Handling sections are present.",
+      "Compilation errors (L0.1) block further validation and result in HARD_FAIL.",
+      "Report artifacts are written to .workflow/active/{session_id}/.process/ as documented."
+    ]
+  }
+}
+

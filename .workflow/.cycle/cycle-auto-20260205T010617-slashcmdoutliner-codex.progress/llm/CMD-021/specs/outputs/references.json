@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/memory:update-full",
+      "file_path": ".claude/commands/memory/update-full.md",
+      "score": 0.9,
+      "why": "Same group (memory), heavy CLI tool selection + structured output patterns; closest operational cousin for tool fallback + safety rules."
+    },
+    {
+      "slash": "/memory:update-related",
+      "file_path": ".claude/commands/memory/update-related.md",
+      "score": 0.82,
+      "why": "Same group (memory) and CLI-based analysis/update flow; simpler than update-full while still centered on context extraction."
+    },
+    {
+      "slash": "/memory:docs-full-cli",
+      "file_path": ".claude/commands/memory/docs-full-cli.md",
+      "score": 0.74,
+      "why": "CLI-driven corpus/documentation extraction; shares 'read-only analysis' and structured outputs."
+    },
+    {
+      "slash": "/memory:docs-related-cli",
+      "file_path": ".claude/commands/memory/docs-related-cli.md",
+      "score": 0.7,
+      "why": "Targets related-scope analysis via CLI; similar scoping concepts for load context."
+    },
+    {
+      "slash": "/memory:compact",
+      "file_path": ".claude/commands/memory/compact.md",
+      "score": 0.6,
+      "why": "Same family but focuses on compaction; useful for output formatting expectations, less for discovery workflow."
+    }
+  ],
+  "selected": {
+    "slash": "/memory:update-full",
+    "file_path": ".claude/commands/memory/update-full.md",
+    "why": "Best match for (a) CLI tool selection (gemini/qwen), (b) deterministic phased execution, and (c) explicit safety/error handling patterns."
+  }
+}
+

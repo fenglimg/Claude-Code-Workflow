@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:test-cycle-execute",
+      "file_path": ".claude/commands/workflow/test-cycle-execute.md",
+      "score": 95,
+      "why": "Test-focused orchestrator with progressive testing concepts, explicit orchestrator boundary, and execution flow/state patterns compatible with auto-continue workflows."
+    },
+    {
+      "slash": "/workflow:brainstorm:auto-parallel",
+      "file_path": ".claude/commands/workflow/brainstorm/auto-parallel.md",
+      "score": 90,
+      "why": "Closest match for auto-continue orchestrator pattern (task attachment/collapse, phase-based execution, TodoWrite-driven continuation)."
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 82,
+      "why": "Strong reference for execution loop discipline, TodoWrite coordination, error handling/recovery patterns, and artifact validation in workflow sessions."
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 76,
+      "why": "Multi-phase command-chain orchestration with clear called-by/calls/follow-up command documentation conventions."
+    },
+    {
+      "slash": "/workflow:tools:test-task-generate",
+      "file_path": ".claude/commands/workflow/tools/test-task-generate.md",
+      "score": 72,
+      "why": "Defines downstream artifacts (IMPL_PLAN.md, TODO_LIST.md, IMPL-*.json) and the L0-L3 test quality expectations that test-fix-gen must reference and validate."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:test-cycle-execute",
+    "file_path": ".claude/commands/workflow/test-cycle-execute.md",
+    "reason": "Best overall fit: test-oriented orchestrator with progressive testing framing and robust workflow-session artifact/state conventions."
+  }
+}
+

@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "command": {
+    "slash": "/workflow:gather",
+    "group": "workflow",
+    "name": "gather"
+  },
+  "candidates": [
+    {
+      "slash": "/workflow:gather",
+      "file_path": ".claude/commands/workflow/tools/context-gather.md",
+      "score": 1.0,
+      "why": "Oracle command doc for CMD-060 (frontmatter + headings)."
+    },
+    {
+      "slash": "/workflow:test-context-gather",
+      "file_path": ".claude/commands/workflow/tools/test-context-gather.md",
+      "score": 0.92,
+      "why": "Same detection-first orchestration pattern; produces a standardized *-package.json under .workflow/active."
+    },
+    {
+      "slash": "/workflow:task-generate-agent",
+      "file_path": ".claude/commands/workflow/tools/task-generate-agent.md",
+      "score": 0.78,
+      "why": "Uses Task(...) subagents in a session-oriented workflow and writes artifacts under .workflow/active."
+    },
+    {
+      "slash": "/workflow:conflict-resolution",
+      "file_path": ".claude/commands/workflow/tools/conflict-resolution.md",
+      "score": 0.74,
+      "why": "Tooling-oriented workflow command; useful for consistent error handling + artifact conventions."
+    },
+    {
+      "slash": "/workflow:artifacts",
+      "file_path": ".claude/commands/workflow/brainstorm/artifacts.md",
+      "score": 0.58,
+      "why": "Shows multi-phase orchestration + .workflow/active artifact routing (different tool surface)."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:gather",
+    "file_path": ".claude/commands/workflow/tools/context-gather.md",
+    "why": "Use the command's own doc as oracle for section coverage; use peers above for pattern cross-checks."
+  },
+  "tooling_code": [
+    {
+      "path": "ccw/src/tools/session-manager.ts",
+      "anchor": "const ACTIVE_BASE = '.workflow/active';",
+      "why": "Canonical routing for .workflow/active/<session> artifacts used by WFS commands."
+    },
+    {
+      "path": "ccw/src/tools/command-registry.ts",
+      "anchor": "const relativePath = join('.claude', 'commands', 'workflow');",
+      "why": "Command discovery/indexing expectations for .claude/commands/workflow (potential mismatch with nested tools/* layout)."
+    }
+  ]
+}
+

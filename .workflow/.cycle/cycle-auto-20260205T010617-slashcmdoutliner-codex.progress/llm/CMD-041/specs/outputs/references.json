@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-02-05T00:00:00.000Z",
+  "command": {
+    "group": "workflow",
+    "name": "multi-cli-plan",
+    "slash": "/workflow:multi-cli-plan"
+  },
+  "candidates": [
+    {
+      "slash": "/workflow:collaborative-plan-with-file",
+      "file_path": ".claude/commands/workflow/collaborative-plan-with-file.md",
+      "score": 0.92,
+      "why": "Closest multi-agent planning command: Task delegation + AskUserQuestion decision points + session artifacts under .workflow + ACE context gathering."
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 0.83,
+      "why": "Same planning family (multi-phase), strong session/artifact conventions and error-handling patterns."
+    },
+    {
+      "slash": "/workflow:lite-plan",
+      "file_path": ".claude/commands/workflow/lite-plan.md",
+      "score": 0.78,
+      "why": "Same execution handoff pattern to lite-execute; good baseline for user-confirmation gates and auto-mode behavior."
+    },
+    {
+      "slash": "/workflow:plan-verify",
+      "file_path": ".claude/commands/workflow/plan-verify.md",
+      "score": 0.66,
+      "why": "Useful read-only validation/reporting structure and artifact verification steps for plans."
+    },
+    {
+      "slash": "/workflow:replan",
+      "file_path": ".claude/commands/workflow/replan.md",
+      "score": 0.62,
+      "why": "Useful interactive questioning flow and session-level updates, but less aligned with multi-agent delegation."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:collaborative-plan-with-file",
+    "file_path": ".claude/commands/workflow/collaborative-plan-with-file.md",
+    "why": "Best overall match for orchestrator boundary + Task-based delegation + .workflow session artifacts; easiest to reuse patterns without copying content."
+  }
+}
+

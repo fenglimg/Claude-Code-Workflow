@@ -1,0 +1,57 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:review-module-cycle",
+      "file_path": ".claude/commands/workflow/review-module-cycle.md",
+      "score": 95,
+      "why": [
+        "Same 7-dimension parallel review model + aggregation + optional deep-dive",
+        "Very similar artifacts under .workflow/.../.review/",
+        "Same orchestrator boundary and agent roles"
+      ]
+    },
+    {
+      "slash": "/workflow:review-cycle-fix",
+      "file_path": ".claude/commands/workflow/review-cycle-fix.md",
+      "score": 82,
+      "why": [
+        "Consumes .review outputs and drives iterative execution",
+        "Strong patterns for iteration control, progress tracking, and partial success",
+        "Useful for downstream contract of exported findings"
+      ]
+    },
+    {
+      "slash": "/workflow:session:start",
+      "file_path": ".claude/commands/workflow/session/start.md",
+      "score": 62,
+      "why": [
+        "Defines session lifecycle expectations and WFS-* directory conventions",
+        "Provides context for locating the session directory when session-id omitted"
+      ]
+    },
+    {
+      "slash": "/workflow:session:list",
+      "file_path": ".claude/commands/workflow/session/list.md",
+      "score": 55,
+      "why": [
+        "Provides discoverability patterns for active/archived sessions",
+        "Useful as a fallback when multiple active sessions exist"
+      ]
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 50,
+      "why": [
+        "Creates/structures workflow sessions consumed by session-based commands",
+        "Documents baseline .workflow/active/WFS-* layout"
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:review-module-cycle",
+    "file_path": ".claude/commands/workflow/review-module-cycle.md",
+    "why": "Closest interaction model and artifact schema; differs mainly by scope selection (module globs vs session git changes)."
+  }
+}
+

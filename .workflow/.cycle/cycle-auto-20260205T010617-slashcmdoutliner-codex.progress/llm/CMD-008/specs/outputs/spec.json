@@ -1,0 +1,48 @@
+{
+  "command": {
+    "group": "other",
+    "name": "codex-coordinator",
+    "description": "Command orchestration tool for Codex - analyze requirements, recommend command chain, execute sequentially with state persistence",
+    "argument_hint": "TASK=\"<task description>\" [--depth=standard|deep] [--auto-confirm] [--verbose]",
+    "allowed_tools": [
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Write(*)",
+      "Bash(*)",
+      "Glob(*)",
+      "Grep(*)"
+    ]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "iterative",
+    "primary_user_value": "Turn a free-form task into an atomic Codex command pipeline, confirm it, then run it sequentially with resumable state."
+  },
+  "artifacts": {
+    "reads": [
+      ".codex/prompts/*.md",
+      ".workflow/.codex-coordinator/<session-id>/state.json"
+    ],
+    "writes": [
+      ".workflow/.codex-coordinator/<session-id>/state.json",
+      ".workflow/.codex-coordinator/<session-id>/runs.jsonl"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 3,
+    "time_budget_seconds": 900,
+    "must_not": [
+      "Do not claim pointers are Existing unless verifiable in the repo.",
+      "Do not execute a partial Minimum Execution Unit unless user explicitly overrides.",
+      "Do not proceed to execution without explicit confirmation unless --auto-confirm is set."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter has name/description/allowed-tools",
+      "Allowed-tools matches described behavior (analyze + confirm + execute + persist state)",
+      "Core sections present: Overview, Usage, Execution Process, Output/Artifacts, Error Handling",
+      "Implementation pointers are labeled Existing vs Planned with dual-source evidence (docs + TS)"
+    ]
+  }
+}

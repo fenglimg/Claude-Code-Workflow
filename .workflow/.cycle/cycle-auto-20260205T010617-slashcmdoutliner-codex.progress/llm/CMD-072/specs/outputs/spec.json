@@ -1,0 +1,51 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "imitate-auto",
+    "description": "UI design workflow with direct code/image input for design token extraction and prototype generation",
+    "argument_hint": "[--input \"<value>\"] [--session <id>]",
+    "allowed_tools": [
+      "Skill(*)",
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Bash(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "loop",
+    "primary_user_value": "Auto-detect code/images/text input, extract style/layout/animation tokens, assemble UI prototypes, and optionally sync results into an existing workflow session."
+  },
+  "artifacts": {
+    "reads": [
+      "<input paths and/or glob patterns from --input>",
+      ".workflow/active/WFS-<session>/ (when --session provided, must already exist)"
+    ],
+    "writes": [
+      ".workflow/active/<run_id>/style-extraction/",
+      ".workflow/active/<run_id>/animation-extraction/",
+      ".workflow/active/<run_id>/layout-extraction/",
+      ".workflow/active/<run_id>/prototypes/"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not stop mid-run; continue phase-to-phase until Phase 4 completion criteria are met",
+      "Do not claim completion before Phase 4 (integration report or explicit standalone skip)",
+      "Do not treat Skill execute as delegation; it is task expansion + orchestrator executes attached tasks",
+      "Do not introduce tools outside the allowed-tools list"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name/description/allowed-tools present)",
+      "allowed-tools match described behavior",
+      "core sections present (Overview, Usage, Inputs, Outputs/Artifacts, Execution Process, Error Handling)",
+      "implementation pointers labeled Existing vs Planned with dual-source evidence (docs + TS)",
+      "evidence verification gate passes (verify-evidence.js)"
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "command": {
+    "group": "workflow:ui-design",
+    "name": "layout-extract",
+    "description": "Extract structural layout information from reference images or text prompts using Claude analysis with variant generation or refinement mode",
+    "argument_hint": "[-y|--yes] [--design-id <id>] [--session <id>] [--images \"<glob>\"] [--prompt \"<desc>\"] [--targets \"<list>\"] [--variants <count>] [--device-type <desktop|mobile|tablet|responsive>] [--interactive] [--refine]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "AskUserQuestion(*)",
+      "Task(ui-design-agent)",
+      "mcp__exa__web_search_exa(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "iterative",
+    "primary_user_value": "Turn UI references (images or a text prompt) into structural layout templates JSON via option generation (explore/refine) and optional interactive selection."
+  },
+  "artifacts": {
+    "reads": [
+      "--images <glob> (if provided)",
+      "--prompt <desc> (if provided)",
+      "{base_path}/.intermediates/layout-analysis/analysis-options.json (cache + interactive selections)",
+      "{base_path}/layout-extraction/layout-templates.json (skip-if-exists / refinement input)"
+    ],
+    "writes": [
+      "{base_path}/.intermediates/layout-analysis/analysis-options.json",
+      "{base_path}/layout-extraction/layout-templates.json",
+      "TodoWrite updates (completion + user-facing status)"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 2,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not claim a pointer is Existing unless it is verifiable in the repo now.",
+      "Refinement mode forces variants_count = 1 (ignore user-provided --variants).",
+      "Exploration mode variants_count defaults to 3 and must be clamped to 1-5.",
+      "If --interactive is absent, do not ask interactive selection questions.",
+      "Base path resolution priority: --design-id > --session > auto-detect; validate and convert to absolute path.",
+      "Input priority: --images overrides --prompt; require at least one input source."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter valid (name/description/allowed-tools; argument-hint recommended).",
+      "Detects mode (explore vs refine) and targets deterministically with documented priorities.",
+      "Writes analysis-options.json then layout-templates.json; includes lightweight validation/verification steps.",
+      "Interactive mode updates analysis-options.json with an embedded user_selection field."
+    ]
+  }
+}

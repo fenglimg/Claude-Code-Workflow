@@ -1,0 +1,56 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "analyze-with-file",
+    "description": "Interactive collaborative analysis with documented discussions, CLI-assisted exploration, and evolving understanding",
+    "argument_hint": "[-y|--yes] [-c|--continue] \"topic or question\"",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Grep(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)"
+    ]
+  },
+  "intent": {
+    "type": "analyze",
+    "interaction": "iterative",
+    "primary_user_value": "Turn an ambiguous topic/question into a documented, evidence-backed analysis via structured discussion and CLI-assisted exploration."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/.analysis/{session-id}/discussion.md (continue mode)",
+      ".workflow/project-tech.json (optional)",
+      "repo files via Read/Grep/Glob (scoped to the topic)"
+    ],
+    "writes": [
+      ".workflow/.analysis/{session-id}/discussion.md",
+      ".workflow/.analysis/{session-id}/exploration-codebase.json",
+      ".workflow/.analysis/{session-id}/explorations/{perspective}.json (optional)",
+      ".workflow/.analysis/{session-id}/perspectives.json (optional)",
+      ".workflow/.analysis/{session-id}/explorations.json (optional)"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 5,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "no destructive operations without explicit user request",
+      "do not claim unverifiable pointers as Existing",
+      "do not leak sensitive data from the repo into summaries"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name/description/allowed-tools/group)",
+      "allowed-tools match intended behavior (interactive discussion + CLI exploration + writing artifacts)",
+      "core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
+      "artifact paths are either created by the command (session outputs) or documented as optional pre-existing inputs"
+    ]
+  }
+}
+

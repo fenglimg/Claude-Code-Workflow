@@ -1,0 +1,41 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:tools:conflict-resolution",
+      "file_path": ".claude/commands/workflow/tools/conflict-resolution.md",
+      "score": 100,
+      "why": "Oracle command doc for this exact command; contains the required phases, outputs, and interaction loop structure."
+    },
+    {
+      "slash": "/workflow:plan-verify",
+      "file_path": ".claude/commands/workflow/plan-verify.md",
+      "score": 86,
+      "why": "Similar goal (plan vs repo validation) and uses CLI-assisted analysis patterns in the workflow family."
+    },
+    {
+      "slash": "/workflow:replan",
+      "file_path": ".claude/commands/workflow/replan.md",
+      "score": 80,
+      "why": "Handles plan adjustments and tool selection (gemini/qwen/codex) with structured workflow artifacts."
+    },
+    {
+      "slash": "/workflow:review-session-cycle",
+      "file_path": ".claude/commands/workflow/review-session-cycle.md",
+      "score": 74,
+      "why": "Demonstrates iterative, multi-round CLI-tool analysis with explicit tool priority and synthesis steps."
+    },
+    {
+      "slash": "/workflow:tools:context-gather",
+      "file_path": ".claude/commands/workflow/tools/context-gather.md",
+      "score": 70,
+      "why": "Same tools namespace; uses WFS session artifacts and a deterministic context-package output model."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:tools:conflict-resolution",
+    "file_path": ".claude/commands/workflow/tools/conflict-resolution.md",
+    "score": 100,
+    "why": "Use the oracle doc to avoid drift; only fill missing P0 gates (e.g., allowed-tools) and add evidence-based pointers."
+  }
+}
+

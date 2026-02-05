@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:review-module-cycle",
+      "file_path": ".claude/commands/workflow/review-module-cycle.md",
+      "score": 1,
+      "why": "Exact command doc for the requested command; defines modules/files scope, 7-dimension review, hybrid parallel-iterative execution, and review artifacts."
+    },
+    {
+      "slash": "/workflow:review-session-cycle",
+      "file_path": ".claude/commands/workflow/review-session-cycle.md",
+      "score": 0.92,
+      "why": "Same review-cycle architecture (7 dimensions + iterations + .review artifacts) but targets session git changes instead of arbitrary file patterns."
+    },
+    {
+      "slash": "/workflow:review-cycle-fix",
+      "file_path": ".claude/commands/workflow/review-cycle-fix.md",
+      "score": 0.78,
+      "why": "Downstream companion that consumes .review findings and produces fix plans/execution; useful for outputs and related-command links."
+    },
+    {
+      "slash": "/workflow:review",
+      "file_path": ".claude/commands/workflow/review.md",
+      "score": 0.62,
+      "why": "Single-dimension review flow patterns (review types, execution template) that can be reused for per-dimension agent prompting."
+    },
+    {
+      "slash": "/workflow:session:start",
+      "file_path": ".claude/commands/workflow/session/start.md",
+      "score": 0.55,
+      "why": "Session creation/discovery patterns used by workflow commands when they need a session context and standardized folder structure."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:review-module-cycle",
+    "file_path": ".claude/commands/workflow/review-module-cycle.md",
+    "score": 1,
+    "why": "Use the canonical command doc as oracle for gap analysis and as the primary reference for headings/sections and artifact definitions."
+  }
+}

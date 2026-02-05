@@ -1,0 +1,991 @@
+Reading prompt from stdin...
+OpenAI Codex v0.93.0 (research preview)
+--------
+workdir: C:\Project\Claude-Code-Workflow
+model: gpt-5.2
+provider: codex
+approval: never
+sandbox: danger-full-access
+reasoning effort: high
+reasoning summaries: auto
+session id: 019c2da9-d3ed-7261-8c6a-d2d5ab588dc3
+--------
+user
+Use the repo skill: slash-command-outliner (path: .codex/skills/slash-command-outliner).
+
+Cycle: cycle-auto-20260205T010617-slashcmdoutliner-codex
+Command: CMD-071
+
+Input requirement doc (non-leaky): `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-071.requirements.md`
+
+Write the following output files (create directories as needed) under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs`:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/fix-plan.md`
+
+Hard rules (P0):
+- Follow templates: .codex/skills/slash-command-outliner/templates/*
+- Follow gates: .codex/skills/slash-command-outliner/specs/quality-gates.md
+- Evidence tables MUST pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js
+- Never label a pointer as Existing unless it is verifiable in the repo now.
+- For ANY pointer row, provide dual-source evidence:
+  - docs: .claude/commands/**.md / <real heading text>
+  - ts: ccw/src/** / <literal anchor string present in file>
+- Avoid placeholders like TBD/N/A in evidence rows; if unsure, mark as Planned and add Verify steps.
+
+Keep the written files concise; do not write extra files unless necessary.
+
+deprecated: `[features].web_search_request` is deprecated. Use `web_search` instead.
+  Set `web_search` to `"live"`, `"cached"`, or `"disabled"` in config.toml.
+mcp: ace-tool starting
+mcp: ccw-tools starting
+mcp: exa starting
+mcp: ccw-tools ready
+mcp: ace-tool ready
+mcp: exa ready
+mcp startup: ready: ccw-tools, ace-tool, exa
+
+
+
+thinking
+**Evaluating file access tools**
+
+I'm considering that we might not have a resource for reading from the filesystem directly. The options are a bit limited since there's no direct file read tool other than shell commands or using smart_search results. Smart_search can return content, but not in full. I think I’ll go with using shell_command with PowerShell’s `Get-Content -Raw`. However, there’s a bit of confusion about whether to prefix with `bash -lc` or go for direct binary calls. I need to figure out which guideline to follow!
+thinking
+**Planning PowerShell commands**
+
+Alright, it looks like I can run direct commands in PowerShell without needing wrappers, so I’ll follow the repo instructions and include encoding lines. The user indicated that the shell is PowerShell, so that fits perfectly.
+
+I also need to create outputs under `.workflow/.../outputs`, so I'll use the write_file tool for the final output. First, I’ll gather templates by listing the directory with `Get-ChildItem -Recurse`.
+
+Additionally, I need to verify scripts and check the requirement document to understand command details. I should research existing patterns in the repo, focusing on `.claude/commands` and `ccw/src`, while gathering at least three similar patterns for reference.
+thinking
+**Starting with skill file**
+
+I need to open the skill file first. To do that, I’ll use functions.shell_command to read it, making sure to include the encoding preface for each command according to guidelines. I’ll also set the working directory to `C:\Project\Claude-Code-Workflow` to keep everything organized. It feels like I’m taking the right steps here, so let’s get started with this process!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/SKILL.md' in C:\Project\Claude-Code-Workflow succeeded in 304ms:
+---
+name: slash-command-outliner
+description: Codex version of slash-command-outliner. Generate CCW-aligned slash command development outlines from a requirement/spec doc, validated via corpus-wide iteration and non-regression. Triggers on "slash command outliner", "slash 命令大纲", "slash 命令生成器", "命令大纲".
+allowed-tools: Read, Write, AskUserQuestion, Task, Bash, TodoWrite, mcp__ace-tool__search_context
+---
+
+# Slash Command Outliner (Codex)
+
+Input a **slash command requirement/spec document**. Output a **CCW-aligned, end-to-end development outline** (Slash MD outline + Agent MD outline) plus a **gap-report** that compares against reference implementations and CCW server/tooling corpus. Improve quality by iterating across **all** existing commands with **non-regression snapshots**.
+
+This skill is designed to be **precise** (no fluff) and **stable** (non-regression gate).
+
+## Canonical Workflow (Phases)
+
+1) `phases/01-collect-spec.md`  
+2) `phases/02-retrieve-and-rank-references.md`  
+3) `phases/03-generate-outlines.md`  
+4) `phases/04-gap-report-and-iterate.md`  
+5) `phases/05-regression-and-closure.md`
+
+
+thinking
+**Reviewing project documents**
+
+I need to gather information from various project documents, focusing on quality gates and templates. I'll check the instructions in the phase documents for clarity. Opening relevant files is next, and I’ll use shell commands to do this efficiently. My plan is to start with `specs/quality-gates.md`, `specs/spec-input.md`, and `specs/corpus-scope.md`, as well as the templates. That should set me up well for my next steps!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/quality-gates.md' in C:\Project\Claude-Code-Workflow succeeded in 304ms:
+# Quality Gates (Non-regression First)
+
+## P0 Gates (Must Pass)
+
+P0 failure means “not CCW-aligned” and blocks completion.
+
+1) **Frontmatter completeness**
+   - `name`, `description`, `allowed-tools` must exist
+   - `argument-hint` optional but recommended for non-trivial commands
+2) **Allowed-tools correctness**
+   - no tools outside the supported CCW set for the intended workflow
+   - no missing tools required by the described behavior
+3) **Core sections present**
+   - at least: `Overview`, `Usage`, `Execution Process`, `Output/Artifacts`, `Error Handling`
+4) **No broken artifact references**
+   - referenced paths must be either created by the command or explicitly documented as pre-existing
+
+5) **Implementation pointers must be evidence-based (Existing vs Planned)**
+   - Every implementation pointer (file/module/CLI subcommand/tool entry) MUST be labeled:
+     - `Existing`: verifiable in repo now
+
+thinking
+**Checking evidence table structure**
+
+I’m looking into the evidence table structure. There’s this verify-evidence.js script that isn’t mentioned in my SKILL but is part of the user’s hard rules. I need to remember to run it at the end. Also, I’ll be using templates, making sure that they include the evidence table. So, let’s open those templates and make sure everything is in place. It’s important to have these elements lined up correctly!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/slash-command-outline.md' in C:\Project\Claude-Code-Workflow succeeded in 310ms:
+---
+name: {{command.name}}
+description: {{command.description}}
+argument-hint: "{{command.argument_hint}}"
+allowed-tools: {{command.allowed_tools_csv}}
+group: {{command.group}}
+---
+
+# {{command.title}}
+
+## Overview
+
+- Goal: {{intent.primary_user_value}}
+- Command: `/{{command.group}}:{{command.name}}`
+
+## Usage
+
+```bash
+/{{command.group}}:{{command.name}} {{command.usage_args}}
+```
+
+thinking
+**Reviewing evidence template**
+
+I see that the template includes a placeholder evidence row marked as TBD, but I need to avoid placeholders based on the user's clear rule. If I'm unsure, I should mark it as Planned and add steps to verify. I’ll ensure that the evidence table references actual document headings and has a corresponding TypeScript anchor string. To get this right, I think I'll need to open up other templates for reference.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/agent-outline.md' in C:\Project\Claude-Code-Workflow succeeded in 310ms:
+# Agent Outline: {{command.group}}:{{command.name}}
+
+## Purpose
+
+Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
+
+## Execution Model
+
+- Default: incremental, testable changes
+- Use ACE-tool to find existing patterns before adding new abstractions
+
+## State & Artifacts
+
+- Session folder (if used): `.workflow/...`
+- Required outputs:
+  - Slash MD (command doc)
+  - Any scripts/modules referenced by the command
+  - Validation notes / regression snapshots
+
+## Tooling
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/gap-report.md' in C:\Project\Claude-Code-Workflow succeeded in 322ms:
+# Gap Report: {{command.group}}:{{command.name}}
+
+## Reference
+
+- Selected reference: {{reference.slash}} (`{{reference.file_path}}`)
+
+## P0 Gaps (Must Fix)
+
+{{gaps.p0}}
+
+## P1 Gaps (Should Fix)
+
+{{gaps.p1}}
+
+## P2 Gaps (Optional)
+
+{{gaps.p2}}
+
+## Implementation Pointers (Evidence)
+
+
+thinking
+**Preparing gap report files**
+
+I see the gap report template has placeholders that need to be filled with real evidence. We also need to gather the spec.json and references.json documents. It's possible there are templates or scripts available for this. I think it might be useful to check the phases documentation to see if it includes the spec schema for reference. Let's also list the files in skill for a complete overview of what we have.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem -Recurse .codex/skills/slash-command-outliner | Select-Object FullName' in C:\Project\Claude-Code-Workflow succeeded in 333ms:
+
+[32;1mFullName[0m
+[32;1m--------[0m
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\phases
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\scripts
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\specs
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\templates
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\SKILL.md
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\phases\01-collect-spec.md
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\phases\02-retrieve-and-rank-references.md
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\phases\03-generate-outlines.md
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\phases\04-gap-report-and-iterate.md
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\phases\05-regression-and-closure.md
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\scripts\lib
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\scripts\derive-spec.js
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\scripts\gap-report.js
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\scripts\generate-outline.js
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\scripts\README.md
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\scripts\regress-all.js
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\scripts\scan-corpus.js
+
+thinking
+**Evaluating specifications**
+
+I'm noticing that there's a file named verify-evidence.js that I need to follow. I should read the phases and the spec-input schema to get a clear understanding of what to do next. To do that, I'll open up spec-input.md so I can see what the spec.json should actually include. This seems crucial for ensuring everything aligns with what’s needed!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/spec-input.md' in C:\Project\Claude-Code-Workflow succeeded in 304ms:
+# Spec Input (Schema + Rules)
+
+The spec is the only “source input” for outline generation. It must be **minimal** and **non-leaky**.
+
+## Minimal JSON Schema (informal)
+
+```json
+{
+  "command": {
+    "group": "workflow|issue|learn|cli|other",
+    "name": "kebab-case",
+    "description": "one sentence",
+    "argument_hint": "[--flag] \"args\"",
+    "allowed_tools": ["Read(*)", "Write(*)"]
+  },
+  "intent": {
+    "type": "analyze|plan|execute|brainstorm|manage|utility",
+    "interaction": "single-shot|iterative|loop",
+    "primary_user_value": "what this command accomplishes"
+  },
+
+thinking
+**Inspecting JSON schemas**
+
+I’m thinking that the `spec.json` follows a minimal schema. The `references.json` likely contains selected reference commands and pointers for evidence. I should take a closer look at the scripts like `derive-spec` and `generate-outline` as they might hold some valuable insights. Reading the README for these scripts could help me understand their purpose better. There’s a lot here to explore!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/README.md' in C:\Project\Claude-Code-Workflow succeeded in 313ms:
+# Slash Command Outliner Scripts
+
+All scripts are deterministic (no LLM). They exist to prove corpus coverage and enforce non-regression.
+
+## Common
+
+Run from repo root.
+
+## Scan corpus (rebuild a command list)
+
+```bash
+node .codex/skills/slash-command-outliner/scripts/scan-corpus.js --root=.claude/commands --out=.workflow/.scratchpad/commands.json
+```
+
+## Regress all commands (cycle mode)
+
+```bash
+node .codex/skills/slash-command-outliner/scripts/regress-all.js --cycle-id=cycle-v1-20260203T001806-slashcmdoutliner-qmhuep
+```
+
+
+thinking
+**Exploring output creation**
+
+I need to create the outputs in the cycle folder. It looks like I'm not supposed to use scripts like derive-spec, but the user wants to create a spec.json file instead. I might be able to use skill scripts to generate that. However, I have to check if the script "generate-outline" requires the spec file, so I’ll inspect generate-outline.js to clarify everything.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/generate-outline.js' in C:\Project\Claude-Code-Workflow succeeded in 301ms:
+import fs from 'node:fs';
+import path from 'node:path';
+
+import { renderOutlineFromSpec, writeText } from './lib/pipeline.js';
+import { findImplementationHints } from './lib/implementation-hints.js';
+
+function usage() {
+  console.log(
+    [
+      'Usage:',
+      '  node .codex/skills/slash-command-outliner/scripts/generate-outline.js --spec=spec.json --out=outline.md',
+      '    [--tooling-manifest=tooling.json]',
+      '',
+      'Generates a CCW-aligned slash command outline deterministically (no LLM).',
+    ].join('\n')
+  );
+}
+
+function parseArgs(argv) {
+  const args = {};
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/01-collect-spec.md' in C:\Project\Claude-Code-Workflow succeeded in 308ms:
+# Phase 01: Collect Spec (No Leakage)
+
+## Goal
+
+Turn a human requirement/rules document into a **minimal, structured spec** that is sufficient to generate:
+
+- Slash command outline (CCW command MD skeleton)
+- Agent outline (execution + tools + state)
+
+Do **not** copy/paste existing implementation docs as input; treat them as oracle only during gap analysis.
+
+## Required Inputs (ask if missing)
+
+1. Command identity:
+   - `group` (workflow|issue|learn|cli|other)
+   - `name` (kebab-case)
+   - `description` (one sentence)
+   - `argument-hint` (optional)
+2. Allowed tools:
+   - exact list for frontmatter `allowed-tools`
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/02-retrieve-and-rank-references.md' in C:\Project\Claude-Code-Workflow succeeded in 309ms:
+# Phase 02: Retrieve + Rank References
+
+## Goal
+
+Find the closest existing commands and extract **reusable patterns** without copying full content.
+
+## Steps
+
+1) Use `mcp__ace-tool__search_context` to recall similar commands and relevant tooling code.
+2) Produce Top N candidates (default N=5) with deterministic scoring:
+   - same `group` / command family
+   - similar interaction model (AskUserQuestion, multi-round loop, etc.)
+   - similar artifacts (writes to `.workflow/*`, `.claude/*`, etc.)
+   - similar allowed-tools surface
+3) Require user confirmation for Top 1 (high-confidence can be preselected but must be overridable).
+
+## Output
+
+Write:
+- `specs/outputs/references.json`
+
+thinking
+I need to prepare the references.json file properly before moving on. After that, I'll generate the outlines for phase 03. It’s important to read through everything to identify what should be included. I want to make sure I cover all the necessary details in the outlines, and I’m aware that organizing everything effectively is key to the success of this project. Let's stay focused and get it done!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/03-generate-outlines.md' in C:\Project\Claude-Code-Workflow succeeded in 303ms:
+# Phase 03: Generate Outlines (Slash MD + Agent MD)
+
+## Goal
+
+Generate:
+- a **Slash command MD outline** that matches CCW conventions (frontmatter + required sections)
+- an **Agent outline** that explains execution model, state, and validation strategy
+
+Use templates; keep output concise and implementation-oriented.
+
+## Inputs
+
+- `specs/outputs/spec.json`
+- `specs/outputs/references.json` (selected reference)
+- Rules: `../specs/quality-gates.md`
+
+## Output Files
+
+- `specs/outputs/generated-slash-outline.md` (based on `../templates/slash-command-outline.md`)
+- `specs/outputs/generated-agent-outline.md` (based on `../templates/agent-outline.md`)
+
+thinking
+**Evaluating pointer path details**
+
+I’m considering the planned new pointer path and how we can back it up with evidence from existing documentation and test scripts showing similar behaviors. The "Pointer" field could specify the planned file path, and I’d need to make sure the evidence cell cites relevant documentation. I’m also thinking about the script's requirements, especially whether it checks for the existence of the file if marked as Existing. I’ll definitely take a closer look at everything.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/04-gap-report-and-iterate.md' in C:\Project\Claude-Code-Workflow succeeded in 306ms:
+# Phase 04: Gap Report + Iterate
+
+## Goal
+
+Compare the generated outlines against:
+1) The selected reference command implementation (oracle)
+2) The CCW server/tooling corpus (routes, mcp tools, cli internals)
+
+Then propose the smallest set of changes to close gaps.
+
+## Inputs
+
+- `specs/outputs/generated-slash-outline.md`
+- `specs/outputs/generated-agent-outline.md`
+- `specs/outputs/references.json`
+- Tooling scope: `../specs/corpus-scope.md`
+
+## Output
+
+Write:
+
+thinking
+**Ensuring verification process**
+
+I need to run a verification on the generated files since that's what the user wants. It's important to ensure everything passes successfully. When I reach phase 05, I can decide whether to mention closure. It might not be necessary, but I think I should leave things open for completeness. It's all about making sure I'm thorough in this process!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/05-regression-and-closure.md' in C:\Project\Claude-Code-Workflow succeeded in 311ms:
+# Phase 05: Regression + Closure
+
+## Goal
+
+Make sure improvements do not regress previously-validated commands (non-regression).
+
+## What to Update (Cycle Mode)
+
+When iterating against the full corpus:
+- Update per-command status in `corpus-manifest.json`
+- Check off `TODO_LIST.md` items
+- Save snapshots in `regression/expected/` for commands marked completed
+- Write snapshot diffs into `regression/diff/` and block on unexpected changes
+
+## Non-regression Policy
+
+See `../specs/quality-gates.md`.
+
+## Completion Criteria
+
+
+thinking
+**Running workflow for CMD-071**
+
+I’m setting up to execute the workflow for command CMD-071, following the requirement document closely. I'll produce several outputs including spec.json, references.json, generated outlines, a gap report, and a fix plan. It’s important to keep everything concise and ensure that the evidence tables successfully pass the verify-evidence.js process. I need to focus now on reading the requirement document carefully to ensure I don’t miss anything crucial.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-071.requirements.md' in C:\Project\Claude-Code-Workflow succeeded in 317ms:
+# Requirement (non-leaky): /workflow:generate
+
+## Source
+
+- Command doc (oracle, do not paste full contents into spec): `.claude/commands/workflow/ui-design/generate.md`
+
+## Command Identity
+
+- group: workflow
+- name: generate
+- description: Assemble UI prototypes by combining layout templates with design tokens (default animation support), pure assembler without new content generation
+- argument-hint: [--design-id <id>] [--session <id>]
+- allowed-tools: TodoWrite(*), Read(*), Write(*), Task(ui-design-agent), Bash(*)
+
+## Structure Hints (Headings Only)
+
+- Generate UI Prototypes (/workflow:ui-design:generate)
+  - Overview
+  - Execution Process
+  - Phase 1: Setup & Validation
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .claude/commands/workflow/ui-design/generate.md' in C:\Project\Claude-Code-Workflow succeeded in 313ms:
+---
+name: generate
+description: Assemble UI prototypes by combining layout templates with design tokens (default animation support), pure assembler without new content generation
+argument-hint: [--design-id <id>] [--session <id>]
+allowed-tools: TodoWrite(*), Read(*), Write(*), Task(ui-design-agent), Bash(*)
+---
+
+# Generate UI Prototypes (/workflow:ui-design:generate)
+
+## Overview
+Pure assembler that combines pre-extracted layout templates with design tokens to generate UI prototypes (`style × layout × targets`). No layout design logic - purely combines existing components.
+
+**Strategy**: Pure Assembly
+- **Input**: `layout-*.json` files + `design-tokens.json` (+ reference images if available)
+- **Process**: Combine structure (DOM) with style (tokens)
+- **Output**: Complete HTML/CSS prototypes
+- **No Design Logic**: All layout and style decisions already made
+- **Automatic Image Reference**: If source images exist in layout templates, they're automatically used for visual context
+
+**Prerequisite Commands**:
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem .claude/commands -Recurse -Filter *.md | Select-Object -First 10 FullName' in C:\Project\Claude-Code-Workflow succeeded in 325ms:
+
+[32;1mFullName[0m
+[32;1m--------[0m
+C:\Project\Claude-Code-Workflow\.claude\commands\ccw-coordinator.md
+C:\Project\Claude-Code-Workflow\.claude\commands\ccw-debug.md
+C:\Project\Claude-Code-Workflow\.claude\commands\ccw-plan.md
+C:\Project\Claude-Code-Workflow\.claude\commands\ccw-test.md
+C:\Project\Claude-Code-Workflow\.claude\commands\ccw.md
+C:\Project\Claude-Code-Workflow\.claude\commands\codex-coordinator.md
+C:\Project\Claude-Code-Workflow\.claude\commands\flow-create.md
+C:\Project\Claude-Code-Workflow\.claude\commands\cli\cli-init.md
+C:\Project\Claude-Code-Workflow\.claude\commands\cli\codex-review.md
+C:\Project\Claude-Code-Workflow\.claude\commands\issue\convert-to-plan.md
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -TotalCount 40 .claude/commands/issue/convert-to-plan.md' in C:\Project\Claude-Code-Workflow succeeded in 320ms:
+---
+name: convert-to-plan
+description: Convert planning artifacts (lite-plan, workflow session, markdown) to issue solutions
+argument-hint: "[-y|--yes] [--issue <id>] [--supplement] <SOURCE>"
+allowed-tools: TodoWrite(*), Bash(*), Read(*), Write(*), Glob(*), AskUserQuestion(*)
+---
+
+## Auto Mode
+
+When `--yes` or `-y`: Skip confirmation, auto-create issue and bind solution.
+
+# Issue Convert-to-Plan Command (/issue:convert-to-plan)
+
+## Overview
+
+Converts various planning artifact formats into issue workflow solutions with intelligent detection and automatic binding.
+
+**Supported Sources** (auto-detected):
+- **lite-plan**: `.workflow/.lite-plan/{slug}/plan.json`
+- **workflow-session**: `WFS-xxx` ID or `.workflow/active/{session}/` folder
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -TotalCount 20 .claude/commands/workflow/ui-design/layout-extract.md' in C:\Project\Claude-Code-Workflow succeeded in 333ms:
+---
+name: layout-extract
+description: Extract structural layout information from reference images or text prompts using Claude analysis with variant generation or refinement mode
+argument-hint: "[-y|--yes] [--design-id <id>] [--session <id>] [--images "<glob>"] [--prompt "<desc>"] [--targets "<list>"] [--variants <count>] [--device-type <desktop|mobile|tablet|responsive>] [--interactive] [--refine]"
+allowed-tools: TodoWrite(*), Read(*), Write(*), Glob(*), Bash(*), AskUserQuestion(*), Task(ui-design-agent), mcp__exa__web_search_exa(*)
+---
+
+## Auto Mode
+
+When `--yes` or `-y`: Skip all clarification questions, use AI-inferred layout decisions.
+
+# Layout Extraction Command
+
+## Overview
+
+Extract structural layout information from reference images or text prompts using AI analysis. Supports two modes:
+1. **Exploration Mode** (default): Generate multiple contrasting layout variants
+2. **Refinement Mode** (`--refine`): Refine a single existing layout through detailed adjustments
+
+This command separates the "scaffolding" (HTML structure and CSS layout) from the "paint" (visual tokens handled by `style-extract`).
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "'"\\/workflow:\" .claude/commands/workflow/ui-design/layout-extract.md" in C:\Project\Claude-Code-Workflow succeeded in 316ms:
+115:  echo "💡 HINT: Run '/workflow:ui-design:list' to see available design runs"
+656:Next: /workflow:ui-design:generate will combine these structural templates with design systems to produce final prototypes.
+tool ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Locate TypeScript implementation for ui design workflow commands, especially generate prototypes and tool exec ui_generate_preview. Keywords: ui_generate_preview, ui-design-agent, workflow ui-design generate, prototypes compare.html"})
+ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Locate TypeScript implementation for ui design workflow commands, especially generate prototypes and tool exec ui_generate_preview. Keywords: ui_generate_preview, ui-design-agent, workflow ui-design generate, prototypes compare.html"}) success in 5.81s:
+{
+  "content": [
+    {
+      "text": "The following code sections were retrieved:\nPath: .claude\\commands\\workflow\\ui-design\\explore-auto.md\n...\n   559\t\r\n   560\t### Phase 10: UI Assembly\r\n   561\t\r\n   562\t**Step 10.1: Execute** - Assemble UI prototypes from design tokens and layout templates\r\n   563\t\r\n   564\t```javascript\r\n   565\tcommand = \"/workflow:ui-design:generate --design-id \\\"{design_id}\\\"\" + (--session ? \" --session {session_id}\" : \"\")\r\n   566\t\r\n   567\ttotal = style_variants × layout_variants × len(inferred_target_list)\r\n   568\t\r\n   569\tREPORT: \"🚀 Phase 10: UI Assembly | Matrix: {s}×{l}×{n} = {total} prototypes\"\r\n   570\tREPORT: \"   → Pure assembly: Combining layout templates + design tokens\"\r\n   571\tREPORT: \"   → Device: {device_type} (from layout templates)\"\r\n   572\tREPORT: \"   → Assembly tasks: {total} combinations\"\r\n   573\t\r\n   574\t# Skill execute ATTACHES generate's tasks to current workflow\r\n   575\t# Orchestrator will EXECUTE these attached tasks itself\r\n   576\tSkill(skill=command)\r\n   577\t\r\n   578\t# After executing all attached tasks, collapse them into phase summary\r\n   579\t# Workflow complete - generate command handles preview file generation (compare.html, PREVIEW.md)\r\n   580\t# Output (generated by generate command):\r\n   581\t# - {target}-style-{s}-layout-{l}.html (assembled prototypes)\r\n   582\t# - {target}-style-{s}-layout-{l}.css\r\n   583\t# - compare.html (interactive matrix view)\r\n   584\t# - PREVIEW.md (usage instructions)\r\n   585\t```\r\n...\n   625\t\r\n   626\tArchitecture: Style-Centric Batch Generation\r\n   627\tRun ID: {run_id} | Session: {session_id or \"standalone\"}\r\n   628\tType: {icon} {target_type} | Device: {device_type} | Matrix: {s}×{l}×{n} = {total} prototypes\r\n   629\t\r\n   630\tPhase 7: {s} complete design systems (style-extract with multi-select)\r\n   631\tPhase 9: {n×l} layout templates (layout-extract with multi-select)\r\n   632\t  - Device: {device_type} layouts\r\n   633\t  - {n} targets × {l} layout variants = {n×l} structural templates\r\n   634\t  - User-selected concepts generated in parallel\r\n   635\tPhase 10: UI Assembly (generate)\r\n   636\t  - Pure assembly: layout templates + design tokens\r\n   637\t  - {s}×{l}×{n} = {total} final prototypes\r\n   638\t  - Preview files: compare.html, PREVIEW.md (auto-generated by generate command)\r\n...\n\nPath: .claude\\commands\\workflow\\ui-design\\imitate-auto.md\n...\n   473\t\r\n   474\t    # Default target if not specified\r\n   475\t    command_parts.append(\"--targets \\\"home\\\"\")\r\n   476\t    command_parts.extend([\"--variants 1\", \"--refine\", \"--interactive\"])\r\n   477\t\r\n   478\t    layout_extract_command = \" \".join(command_parts)\r\n   479\t\r\n   480\t    # Skill execute ATTACHES layout-extract's tasks to current workflow\r\n   481\t    # Orchestrator will EXECUTE these attached tasks itself\r\n   482\t    Skill(skill=layout_extract_command)\r\n   483\t\r\n   484\t    # After executing all attached tasks, collapse them into phase summary\r\n   485\t    TodoWrite(mark_completed: \"Extract layout\", mark_in_progress: \"Assemble UI\")\r\n   486\t```\r\n   487\t\r\n   488\t### Phase 3: UI Assembly\r\n   489\t\r\n   490\t**Step 3.1: Execute** - Assemble UI prototypes from design tokens and layout templates\r\n   491\t\r\n   492\t```javascript\r\n   493\tREPORT: \"🚀 Phase 3: UI Assembly\"\r\n   494\tgenerate_command = f\"/workflow:ui-design:generate --design-id \\\"{design_id}\\\"\"\r\n   495\t\r\n   496\t# Skill execute ATTACHES generate's tasks to current workflow\r\n   497\t# Orchestrator will EXECUTE these attached tasks itself\r\n   498\tSkill(skill=generate_command)\r\n   499\t\r\n   500\t# After executing all attached tasks, collapse them into phase summary\r\n   501\tTodoWrite(mark_completed: \"Assemble UI\", mark_in_progress: session_id ? \"Integrate design system\" : \"Completion\")\r\n   502\t```\r\n   503\t\r\n   504\t### Phase 4: Design System Integration\r\n   505\t\r\n   506\t**Step 4.1: Execute** - Integrate design system into workflow session\r\n...\n   573\t\r\n   574\tPhase 4 - Integration: {IF session_id: \"✅ Integrated into session\" ELSE: \"⏭️ Standalone mode\"}\r\n   575\t\r\n   576\t━━━ 📂 Output Structure ━━━\r\n   577\t\r\n   578\t{base_path}/\r\n   579\t├── style-extraction/               # Production-ready design systems\r\n   580\t│   └── style-1/\r\n   581\t│       ├── design-tokens.json\r\n   582\t│       └── style-guide.md\r\n   583\t├── animation-extraction/           # CSS animations and transitions\r\n   584\t│   ├── animation-tokens.json\r\n   585\t│   └── animation-guide.md\r\n   586\t├── layout-extraction/              # Structure templates\r\n   587\t│   └── layout-home-1.json          # Layout templates\r\n   588\t└── prototypes/                     # {generated_count} HTML/CSS files\r\n   589\t    ├── home-style-1-layout-1.html + .css\r\n   590\t    ├── compare.html                # Interactive preview\r\n   591\t    └── index.html                  # Quick navigation\r\n   592\t\r\n   593\t━━━ ⚡ Performance ━━━\r\n   594\t\r\n   595\tTotal workflow time: ~{estimate_total_time()} minutes\r\n   596\t  Style extraction: ~{extract_time}\r\n   597\t  Animation extraction: ~{animation_time}\r\n   598\t  Layout extraction: ~{layout_time}\r\n   599\t  UI generation: ~{generate_time}\r\n   600\t\r\n   601\t━━━ 🌐 Next Steps ━━━\r\n   602\t\r\n   603\t1. Preview prototypes:\r\n   604\t   • Interactive matrix: Open {base_path}/prototypes/compare.html\r\n   605\t   • Quick navigation: Open {base_path}/prototypes/index.html\r\n   606\t\r\n   607\t{IF session_id:\r\n   608\t2. Create implementation tasks:\r\n   609\t   /workflow:plan --session {session_id}\r\n   610\t\r\n   611\t3. Generate tests (if needed):\r\n   612\t   /workflow:test-gen {session_id}\r\n   613\tELSE:\r\n   614\t2. To integrate into a workflow session:\r\n   615\t   • Create session: /workflow:session:start\r\n   616\t   • Copy design-tokens.json to session artifacts\r\n...\n   702\t\r\n   703\t- **Input**: `--images` (glob pattern) and/or `--prompt` (text/file paths) + optional `--session`\r\n   704\t- **Output**: Complete design system in `{base_path}/` (style-extraction, layout-extraction, prototypes)\r\n   705\t- **Sub-commands Executeed**:\r\n   706\t  1. `/workflow:ui-design:import-from-code` (Phase 0.5, conditional - if code files detected)\r\n   707\t  2. `/workflow:ui-design:style-extract` (Phase 2 - complete design systems)\r\n   708\t  3. `/workflow:ui-design:animation-extract` (Phase 2.3 - animation tokens)\r\n   709\t  4. `/workflow:ui-design:layout-extract` (Phase 2.5 - structure templates)\r\n   710\t  5. `/workflow:ui-design:generate` (Phase 3 - pure assembly)\r\n   711\t  6. `/workflow:ui-design:update` (Phase 4, if --session)\r\n...\n   732\t\r\n   733\t📂 {base_path}/\r\n   734\t  ├── style-extraction/style-1/     # Production-ready design system\r\n   735\t  ├── animation-extraction/         # Animation tokens\r\n   736\t  ├── layout-extraction/            # Structure templates\r\n   737\t  └── prototypes/                   # {generated_count} HTML/CSS files\r\n   738\t\r\n   739\t🌐 Preview: {base_path}/prototypes/compare.html\r\n   740\t  - Interactive preview\r\n   741\t  - Design token driven\r\n   742\t  - {generated_count} assembled prototypes\r\n   743\t\r\n   744\tNext: [/workflow:execute] OR [Open compare.html → /workflow:plan]\r\n   745\t```\r\n...\n\nPath: .claude\\commands\\workflow\\ui-design\\design-sync.md\n...\n   251\t\r\n   252\t## Reference Prototypes\r\n   253\t{FOR each selected_prototype:\r\n   254\t- **{page_name}**: @../../{design_id}/prototypes/{prototype}.html\r\n   255\t}\r\n   256\t\r\n   257\t## Token System\r\n   258\tFor complete token definitions and usage examples, see:\r\n   259\t- Design Tokens: @../../{design_id}/{design_tokens_path}\r\n   260\t- Style Guide: @../../{design_id}/{style_guide_path}\r\n   261\t\r\n   262\t---\r\n   263\t*Auto-generated by /workflow:ui-design:update | Last updated: {timestamp}*\r\n   264\t```\r\n   265\t\r\n   266\t**Implementation**:\r\n   267\t```bash\r\n   268\tWrite(file_path=\".workflow/active/WFS-{session}/.brainstorming/ui-designer/design-system-reference.md\",\r\n   269\t      content=\"[generated content with @ references]\")\r\n   270\t```\r\n...\n   419\t```\r\n   420\t\r\n   421\t## Error Handling\r\n   422\t\r\n   423\t- **Missing design artifacts**: Error with message \"Run /workflow:ui-design:style-extract and /workflow:ui-design:generate first\"\r\n   424\t- **role analysis documents not found**: Warning, create minimal version with just UI/UX Guidelines\r\n   425\t- **ui-designer/ directory missing**: Create directory and file\r\n   426\t- **Edit conflicts**: Preserve existing content, append or replace only UI/UX Guidelines section\r\n   427\t- **Invalid prototype names**: Skip invalid entries, continue with valid ones\r\n   428\t\r\n   429\t## Validation Checks\r\n...\n   449\t\r\n   450\t- **Input**: Design system artifacts from `/workflow:ui-design:style-extract` and `/workflow:ui-design:generate`\r\n   451\t- **Output**: Updated role analysis documents, role analysis.md files, ui-designer/design-system-reference.md with @ references\r\n   452\t- **Next Phase**: `/workflow:plan` discovers and utilizes design system through @ references\r\n   453\t- **Auto Integration**: Automatically triggered by `/workflow:ui-design:auto` workflow\r\n   454\t\r\n...\n\nPath: .claude\\commands\\workflow\\ui-design\\layout-extract.md\n...\n   510\t\r\n   511\t### Step 2: Launch Parallel Agent Tasks\r\n   512\tGenerate layout templates for ALL selected concepts in parallel:\r\n   513\t```javascript\r\n   514\tFOR each task in task_list:\r\n   515\t    Task(ui-design-agent): `\r\n   516\t      [LAYOUT_TEMPLATE_GENERATION_TASK #{task.variant_id} for {task.target}]\r\n   517\t      Generate detailed layout template based on user-selected concept.\r\n   518\t      Focus ONLY on structure and layout. DO NOT concern with visual style (colors, fonts, etc.).\r\n   519\t\r\n   520\t      SESSION: {session_id} | BASE_PATH: {base_path}\r\n   521\t      TARGET: {task.target} | VARIANT: {task.variant_id}\r\n   522\t      DEVICE_TYPE: {device_type}\r\n...\n\nPath: docs\\COMMAND_SPEC.md\n...\n   371\t\r\n   372\t### **/workflow:ui-design:generate**\r\n   373\t- **Syntax**: `/workflow:ui-design:generate [--base-path <path>] ...`\r\n   374\t- **Responsibilities**: A pure assembler that combines pre-extracted layout templates with design tokens to generate final UI prototypes.\r\n   375\t- **Agent Calls**: `@ui-design-agent`.\r\n   376\t- **Example**:\r\n   377\t  ```bash\r\n   378\t  /workflow:ui-design:generate --session WFS-design-run\r\n   379\t  ```\r\n...\n\nPath: .claude\\commands\\workflow\\ui-design\\reference-page-generator.md\n     1\t---\r\n     2\tname: workflow:ui-design:reference-page-generator\r\n     3\tdescription: Generate multi-component reference pages and documentation from design run extraction\r\n     4\targument-hint: \"[--design-run <path>] [--package-name <name>] [--output-dir <path>]\"\r\n     5\tallowed-tools: Read,Write,Bash,Task,TodoWrite\r\n     6\tauto-continue: true\r\n     7\t---\r\n     8\t\r\n     9\t# UI Design: Reference Page Generator\r\n    10\t\r\n    11\t## Overview\r\n    12\t\r\n    13\tConverts design run extraction results into shareable reference package with:\r\n    14\t- Interactive multi-component preview (preview.html + preview.css)\r\n    15\t- Component layout templates (layout-templates.json)\r\n    16\t\r\n    17\t**Role**: Takes existing design run (from `import-from-code` or other extraction commands) and generates preview pages for easy reference.\r\n    18\t\r\n    19\t## Usage\r\n    20\t\r\n    21\t### Command Syntax\r\n...\n   199\t\r\n   200\t```javascript\r\n   201\tTask(ui-design-agent): `\r\n   202\t  [PREVIEW_SHOWCASE_GENERATION]\r\n   203\t  Generate interactive multi-component showcase panel for reference package\r\n   204\t\r\n   205\t  PACKAGE_DIR: ${package_dir} | PACKAGE_NAME: ${package_name}\r\n   206\t\r\n   207\t  ## Input Files (MUST READ ALL)\r\n   208\t\r\n   209\t  1. ${package_dir}/layout-templates.json (component layout patterns - REQUIRED)\r\n   210\t  2. ${package_dir}/design-tokens.json (design tokens - REQUIRED)\r\n   211\t  3. ${package_dir}/animation-tokens.json (optional, if exists)\r\n   212\t\r\n   213\t  ## Generation Task\r\n   214\t\r\n   215\t  Create interactive showcase with these sections:\r\n   216\t\r\n   217\t  ### Section 1: Colors\r\n   218\t  - Display all color categories as color swatches\r\n   219\t  - Show hex/rgb values\r\n   220\t  - Group by: brand, semantic, surface, text, border\r\n...\n\nPath: .claude\\agents\\ui-design-agent.md\n...\n    24\t\r\n    25\tcolor: orange\r\n    26\t---\r\n    27\t\r\n    28\tYou are a specialized **UI Design Agent** that executes design generation tasks autonomously to produce production-ready design systems and prototypes.\r\n    29\t\r\n    30\t## Agent Operation\r\n    31\t\r\n    32\t### Execution Flow\r\n    33\t\r\n    34\t```\r\n    35\tSTEP 1: Identify Task Pattern\r\n    36\t→ Parse [TASK_TYPE_IDENTIFIER] from prompt\r\n    37\t→ Determine pattern: Option Generation | System Generation | Assembly\r\n    38\t\r\n    39\tSTEP 2: Load Context\r\n    40\t→ Read input data specified in task prompt\r\n    41\t→ Validate BASE_PATH and output directory structure\r\n    42\t\r\n    43\tSTEP 3: Execute Pattern-Specific Generation\r\n    44\t→ Pattern 1: Generate contrasting options → analysis-options.json\r\n    45\t→ Pattern 2: MCP research (Explore mode) → Apply standards → Generate system\r\n    46\t→ Pattern 3: Load inputs → Combine components → Resolve {token.path} to values\r\n...\n\nPath: ccw\\tests\\visual\\ui-generate-preview.visual.test.ts\n     1\timport { after, before, describe, it } from 'node:test';\r\n     2\timport assert from 'node:assert/strict';\r\n     3\timport { createServer } from 'node:http';\r\n     4\timport { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';\r\n     5\timport { tmpdir } from 'node:os';\r\n     6\timport { basename, join, resolve, sep } from 'node:path';\r\n     7\t\r\n     8\timport { chromium } from 'playwright';\r\n     9\t\r\n    10\timport { uiGeneratePreviewTool } from '../../src/tools/ui-generate-preview.js';\r\n    11\timport { captureSnapshot, compareSnapshots, updateBaseline } from './helpers/visual-tester.ts';\r\n    12\t\r\n    13\ttype Viewport = { width: number; height: number; name: string };\r\n    14\ttype StaticServer = { baseUrl: string; close: () => Promise<void> };\r\n...\n    28\t\r\n    29\tfunction assertVisualMatch(name: string, currentPath: string): void {\r\n    30\t  const baselinePath = resolve(resolve(currentPath, '..', '..'), 'baseline', basename(currentPath));\r\n    31\t\r\n    32\t  if (!existsSync(baselinePath)) {\r\n    33\t    if (shouldUpdateBaselines()) {\r\n    34\t      updateBaseline(name);\r\n    35\t      return;\r\n    36\t    }\r\n    37\t    throw new Error(\r\n    38\t      `Missing baseline snapshot: ${baselinePath}\\n` +\r\n    39\t        `Re-run with CCW_VISUAL_UPDATE_BASELINE=1 to generate baselines.`\r\n    40\t    );\r\n    41\t  }\r\n    42\t\r\n    43\t  if (shouldUpdateBaselines()) {\r\n    44\t    updateBaseline(name);\r\n    45\t    return;\r\n    46\t  }\r\n    47\t\r\n    48\t  const result = compareSnapshots(baselinePath, currentPath, TOLERANCE_PERCENT, {\r\n    49\t    allowSizeMismatch: !!process.env.CI,\r\n    50\t  });\r\n    51\t  assert.equal(\r\n    52\t    result.pass,\r\n    53\t    true,\r\n    54\t    `Visual mismatch for ${name}: diffRatio=${result.diffRatio} diffPixels=${result.diffPixels} diff=${result.diffPath ?? 'n/a'}`\r\n    55\t  );\r\n    56\t}\r\n...\n    99\t\r\n   100\t  return await new Promise<StaticServer>((resolvePromise, reject) => {\r\n   101\t    server.on('error', reject);\r\n   102\t    server.listen(0, '127.0.0.1', () => {\r\n   103\t      const address = server.address();\r\n   104\t      if (!address || typeof address === 'string') {\r\n   105\t        reject(new Error('Failed to start server'));\r\n   106\t        return;\r\n   107\t      }\r\n   108\t\r\n   109\t      resolvePromise({\r\n   110\t        baseUrl: `http://127.0.0.1:${address.port}`,\r\n   111\t        close: () =>\r\n   112\t          new Promise<void>((closeResolve) => {\r\n   113\t            server.close(() => closeResolve());\r\n   114\t          }),\r\n   115\t      });\r\n   116\t    });\r\n   117\t  });\r\n   118\t}\r\n   119\t\r\n   120\tfunction writePrototypeHtml(filePath: string, target: string, style: number, layout: number): void {\r\n   121\t  const hue = ((style - 1) * 120 + (layout - 1) * 45) % 360;\r\n   122\t  const title = `${target} / style ${style} / layout ${layout}`;\r\n   123\t  const lines = Array.from({ length: 80 }, (_, i) => `<div class=\\\"line\\\">Line ${i + 1}</div>`).join('');\r\n...\n   144\t  <div class=\"content\">${lines}</div>\r\n   145\t</body>\r\n   146\t</html>`,\r\n   147\t    'utf8'\r\n   148\t  );\r\n   149\t}\r\n   150\t\r\n   151\tdescribe('ui_generate_preview visual regression', () => {\r\n   152\t  const prototypesDir = mkdtempSync(join(tmpdir(), 'ccw-ui-generate-preview-'));\r\n   153\t  const templatePath = resolve(process.cwd(), '.claude/workflows/_template-compare-matrix.html');\r\n   154\t\r\n   155\t  let server: StaticServer | undefined;\r\n   156\t  let browser: import('playwright').Browser | undefined;\r\n   157\t\r\n   158\t  before(async () => {\r\n   159\t    const targets = ['button', 'card'];\r\n   160\t\r\n   161\t    for (const target of targets) {\r\n   162\t      for (let style = 1; style <= 2; style++) {\r\n   163\t        for (let layout = 1; layout <= 2; layout++) {\r\n   164\t          const fileName = `${target}-style-${style}-layout-${layout}.html`;\r\n   165\t          writePrototypeHtml(join(prototypesDir, fileName), target, style, layout);\r\n   166\t        }\r\n   167\t      }\r\n   168\t    }\r\n   169\t\r\n   170\t    await uiGeneratePreviewTool.execute({\r\n   171\t      prototypesDir,\r\n   172\t      template: templatePath,\r\n   173\t      runId: 'run-test',\r\n   174\t      sessionId: 'test',\r\n   175\t      timestamp: '2020-01-01T00:00:00.000Z',\r\n   176\t    });\r\n   177\t\r\n   178\t    server = await startStaticServer(prototypesDir);\r\n   179\t    browser = await chromium.launch();\r\n   180\t  });\r\n   181\t\r\n   182\t  after(async () => {\r\n   183\t    await browser?.close();\r\n   184\t    await server?.close();\r\n   185\t    rmSync(prototypesDir, { recursive: true, force: true });\r\n   186\t  });\r\n   187\t\r\n   188\t  it('captures stable index.html screenshots across viewports', { timeout: 60_000 }, async () => {\r\n   189\t    assert.ok(server);\r\n   190\t    assert.ok(browser);\r\n   191\t\r\n   192\t    for (const viewport of VIEWPORTS) {\r\n   193\t      const page = await browser.newPage({ viewport });\r\n   194\t      await page.goto(`${server.baseUrl}/index.html`, { waitUntil: 'load' });\r\n   195\t      await page.waitForSelector('a[href=\"compare.html\"]');\r\n   196\t\r\n   197\t      const name = `ui-generate-preview_index_${viewport.name}`;\r\n   198\t      const currentPath = await captureSnapshot(`${server.baseUrl}/index.html`, undefined, name, {\r\n   199\t        page,\r\n   200\t        skipGoto: true,\r\n   201\t        fullPage: true,\r\n   202\t      });\r\n   203\t      assertVisualMatch(name, currentPath);\r\n   204\t      await page.close();\r\n   205\t    }\r\n   206\t  });\r\n...\n   222\t\r\n   223\t    const initialName = 'ui-generate-preview_compare_desktop_initial';\r\n   224\t    const initialPath = await captureSnapshot(`${server.baseUrl}/compare.html`, undefined, initialName, {\r\n   225\t      page,\r\n   226\t      skipGoto: true,\r\n   227\t      fullPage: false,\r\n   228\t    });\r\n   229\t    assertVisualMatch(initialName, initialPath);\r\n   230\t\r\n   231\t    // Responsive baseline captures for initial view (tablet/mobile)\r\n   232\t    for (const viewport of VIEWPORTS.slice(1)) {\r\n   233\t      await page.setViewportSize({ width: viewport.width, height: viewport.height });\r\n   234\t      await page.waitForTimeout(250);\r\n   235\t\r\n   236\t      const responsiveName = `ui-generate-preview_compare_${viewport.name}_initial`;\r\n   237\t      const responsivePath = await captureSnapshot(`${server.baseUrl}/compare.html`, undefined, responsiveName, {\r\n   238\t        page,\r\n   239\t        skipGoto: true,\r\n   240\t        fullPage: false,\r\n   241\t      });\r\n   242\t      assertVisualMatch(responsiveName, responsivePath);\r\n   243\t    }\r\n...\n\nPath: .claude\\skills\\ccw-help\\command.json#chunk1of2\n...\n   738\t    {\r\n   739\t      \"name\": \"generate\",\r\n   740\t      \"command\": \"/workflow:ui-design:generate\",\r\n   741\t      \"description\": \"Assemble UI prototypes by combining layout templates with design tokens (default animation support), pure assembler without new content generation\",\r\n   742\t      \"arguments\": \"[--design-id <id>] [--session <id>]\",\r\n   743\t      \"category\": \"workflow\",\r\n   744\t      \"subcategory\": \"ui-design\",\r\n   745\t      \"usage_scenario\": \"implementation\",\r\n   746\t      \"difficulty\": \"Intermediate\",\r\n   747\t      \"source\": \"../../commands/workflow/ui-design/generate.md\"\r\n   748\t    },\r\n...\n\n",
+      "type": "text"
+    }
+  ]
+}
+
+thinking
+**Searching for paths**
+
+I'm looking at the ACE result, which has a TypeScript snippet from what seems like a test for ui_generate_preview, but the path is truncated. I need to find evidence in the ccw/src and the specific anchor string. So, I'm thinking of finding the file path for uiGeneratePreviewTool and similar files. I might use smart_search or shell rg to locate `uiGeneratePreviewTool` or `ui_generate_preview` on ccw/src. Let's initiate the shell search!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "ui_generate_preview|uiGeneratePreviewTool" ccw/src' in C:\Project\Claude-Code-Workflow succeeded in 332ms:
+ccw/src\tools\index.ts:33:import { uiGeneratePreviewTool } from './ui-generate-preview.js';
+ccw/src\tools\index.ts:373:registerTool(uiGeneratePreviewTool);
+ccw/src\tools\ui-instantiate-prototypes.js:225:    // Import and execute ui_generate_preview tool
+ccw/src\tools\ui-instantiate-prototypes.js:226:    const { uiGeneratePreviewTool } = await import('./ui-generate-preview.js');
+ccw/src\tools\ui-instantiate-prototypes.js:227:    const previewResult = await uiGeneratePreviewTool.execute({ prototypesDir: basePath });
+ccw/src\tools\ui-generate-preview.js:313:export const uiGeneratePreviewTool = {
+ccw/src\tools\ui-generate-preview.js:314:  name: 'ui_generate_preview',
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "ui-design-agent" ccw/src' in C:\Project\Claude-Code-Workflow exited 1 in 343ms:
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "template-compare-matrix|compare-matrix" ccw/src' in C:\Project\Claude-Code-Workflow succeeded in 324ms:
+ccw/src\tools\ui-generate-preview.js:43:    '.claude/workflows/_template-compare-matrix.html'
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -TotalCount 80 ccw/src/tools/ui-generate-preview.js' in C:\Project\Claude-Code-Workflow succeeded in 332ms:
+/**
+ * UI Generate Preview Tool
+ * Generate compare.html and index.html for UI prototypes
+ */
+
+import { readdirSync, existsSync, readFileSync, writeFileSync } from 'fs';
+import { resolve, basename } from 'path';
+
+/**
+ * Auto-detect matrix dimensions from file patterns
+ * Pattern: {target}-style-{s}-layout-{l}.html
+ */
+function detectMatrixDimensions(prototypesDir) {
+  const files = readdirSync(prototypesDir).filter(f => f.match(/.*-style-\d+-layout-\d+\.html$/));
+
+  const styles = new Set();
+  const layouts = new Set();
+  const targets = new Set();
+
+  files.forEach(file => {
+
+thinking
+**Evaluating the UI preview generation**
+
+I think using the export object at the bottom makes sense. I’ll focus on the anchor string “name: 'ui_generate_preview'” as it seems straightforward for generating the preview. It feels like a simple step, but I'm eager to ensure everything flows well together. So, I'll double-check that everything aligns properly and see if there are any additional considerations I might need to keep in mind for success.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Tail 60 ccw/src/tools/ui-generate-preview.js' in C:\Project\Claude-Code-Workflow succeeded in 323ms:
+  const indexHtml = generateIndexHtml(metadata);
+  const previewMd = generatePreviewMd(metadata);
+
+  // Write files
+  writeFileSync(resolve(targetPath, 'compare.html'), compareHtml, 'utf8');
+  writeFileSync(resolve(targetPath, 'index.html'), indexHtml, 'utf8');
+  writeFileSync(resolve(targetPath, 'PREVIEW.md'), previewMd, 'utf8');
+
+  return {
+    success: true,
+    prototypes_dir: prototypesDir,
+    styles,
+    layouts,
+    targets,
+    total_prototypes: styles * layouts * targets.length,
+    files_generated: ['compare.html', 'index.html', 'PREVIEW.md']
+  };
+}
+
+/**
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -TotalCount 80 ccw/src/tools/ui-instantiate-prototypes.js' in C:\Project\Claude-Code-Workflow succeeded in 332ms:
+/**
+ * UI Instantiate Prototypes Tool
+ * Create final UI prototypes from templates (Style × Layout × Page matrix)
+ */
+
+import { readdirSync, existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'fs';
+import { resolve, join, basename } from 'path';
+
+/**
+ * Auto-detect pages from templates directory
+ */
+function autoDetectPages(templatesDir) {
+  if (!existsSync(templatesDir)) {
+    return [];
+  }
+
+  const files = readdirSync(templatesDir).filter(f => f.match(/.*-layout-\d+\.html$/));
+  const pages = new Set();
+
+  files.forEach(file => {
+
+thinking
+**Exploring layout tools**
+
+I think this tool may not be directly used by commands. Instead, it generates layout templates in JSON format rather than HTML. Hmm, I wonder if there's a different tool for creating prototypes from those layout templates and design tokens. Perhaps I should look for something like `ui-assemble-prototypes`. So, I can try searching for terms like `layout-extraction` or `design-tokens` to find the right resources. That should help me!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "layout-extraction|design-tokens'"\\.json|style-extraction|prototypes\\/\" ccw/src/tools" in C:\Project\Claude-Code-Workflow succeeded in 334ms:
+ccw/src/tools\convert-tokens-to-css.ts:3: * Transform design-tokens.json to CSS custom properties
+ccw/src/tools\convert-tokens-to-css.ts:128:  lines.push('   Auto-generated from design-tokens.json');
+ccw/src/tools\convert-tokens-to-css.ts:270:  description: `Transform design-tokens.json to CSS custom properties.
+ccw/src/tools\ui-instantiate-prototypes.js:32:  const styleDir = resolve(basePath, '..', 'style-extraction');
+ccw/src/tools\ui-instantiate-prototypes.js:167:  const styleDir = resolve(basePath, '..', 'style-extraction');
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Test-Path .claude/workflows/_template-compare-matrix.html
+Test-Path ccw/src/tools/ui-generate-preview.js
+Test-Path .claude/commands/workflow/ui-design/generate.md' in C:\Project\Claude-Code-Workflow succeeded in 319ms:
+True
+True
+True
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "_template-compare-matrix" .claude/commands' in C:\Project\Claude-Code-Workflow exited 1 in 348ms:
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "registerTool'"\\(uiGeneratePreviewTool\\)|uiGeneratePreviewTool\" ccw/src/tools/index.ts" in C:\Project\Claude-Code-Workflow succeeded in 320ms:
+33:import { uiGeneratePreviewTool } from './ui-generate-preview.js';
+373:registerTool(uiGeneratePreviewTool);
+
+
+thinking
+**Clarifying documentation revisions**
+
+I need to propose minimal fixes to close gaps in the documentation and label each fix by scope. However, the user only wants output files, not to implement commands, so I'm generating outlines instead. The requirements document refers to existing command documentation, suggesting this is part of regression testing. For the gap report, I should ensure evidence gating is properly handled. I might add a field for `derived_from` referencing the oracle file path, but it should remain minimal. Lastly, I’ll ensure that evidence rows do not contain placeholders or TBDs.
+thinking
+**Ensuring evidence tables format**
+
+I need to create evidence tables for both the gap report and the generated outline, and they must be parseable. To figure out the exact format expectations, I'll inspect the `verify-evidence.js` script closely. This will help ensure I understand what's required for the tables. Once I have that information, I can proceed with creating the tables correctly. Let’s open the script and take a closer look!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/verify-evidence.js' in C:\Project\Claude-Code-Workflow succeeded in 308ms:
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+export function usage() {
+  console.log(
+    [
+      'Usage:',
+      '  node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<path.md> [--file=<path2.md> ...]',
+      '',
+      'Behavior:',
+      '  - Extracts evidence tables from markdown (gap-report and/or outline)',
+      '  - Enforces evidence-based gates:',
+      '    - Each row must label Status as Existing or Planned',
+      '    - Evidence must include BOTH docs and ts anchors:',
+      '      - docs: .claude/commands/**.md / <section heading>',
+      '      - ts: ccw/src/** / <function|case|pattern>',
+      '    - Existing rows must point to verifiable pointers (paths must exist when pointer looks like a path)',
+      '',
+      'Notes:',
+
+
+
+
+thinking
+**Creating output files**
+
+I need to avoid using placeholders like TBD/N/A in evidence rows; if I'm unsure, I'll mark it as Planned and add Verify steps instead. I’ve already drafted the fix plan and gap report, and the fix plan may not require an evidence table. I'll create the necessary output files in the specified directory using the write_file tool. 
+
+It looks like I should keep the outputs concise while including a summarized execution outline and sections for error handling and examples.
+thinking
+**Organizing references and gaps**
+
+For references.json, I’ll include the top 5 candidate commands with their corresponding slashes, file paths, scores, and reasons. I need to make sure the file paths exist and include the necessary slashes. While evidence for these is not strictly required, it would be better to include it.
+
+Next, I’ll focus on gap-report.md, comparing it with reference generate.md since the outlines might differ from the original. I’ll document any gaps, like missing detailed bash snippets and a quality checklist in the outlines. I’ll be careful with artifact references, ensuring they are either created or documented.
+thinking
+**Refining the outline and fix plan**
+
+For the outline, I’ll indicate it reads from the base_path and writes, avoiding references to unknown paths. I must ensure the implementation pointers are evidence-based. 
+
+Next, for fix-plan.md, I’ll create a minimal list to verify that the actual document includes any missing required sections. While we’re generating the outline, I’ll consider proposing actions to align the outlines through the gap report. 
+
+I’ll also ensure that evidence tables pass specific verifications and maintain concise written files without unnecessary extras. It might be useful to use the update_plan tool since this task seems moderately complex.
+thinking
+**Creating a minimal plan**
+
+The user didn't explicitly ask for a detailed plan, but the developer suggests it’s necessary. I’ll proceed by outlining a minimal plan that includes four key steps. This way, I’ll keep the approach structured without overwhelming details. 
+
+Since this involves multiple outputs, using the update_plan tool seems like a good way to stay organized and ensure clarity throughout the process. It’ll help guide each step methodically! I'll implement that now.
+Plan update
+Generate CMD-071 slash/agent outlines + spec and evidence-backed gap report, then validate via verify-evidence.js.
+  → Read requirement + oracle command doc; identify key artifacts, workflow phases, and implementation/tool pointers.
+  • Collect repo evidence anchors (docs headings + ccw/src literal strings) for all pointers; rank reference commands.
+  • Write required output files from templates (spec.json, references.json, outlines, gap-report, fix-plan) with non-leaky concise content and evidence tables.
+  • Run deterministic gate: verify-evidence.js on generated-slash-outline.md and gap-report.md; iterate until passing.
+
+thinking
+**Organizing evidence anchors**
+
+I’ve read the requirements and discovered the TS anchors. My next step is to gather evidence anchors and create a reference list. I need to make sure I have the right headings for the documents. For instance, the command document has an "Overview" heading as `## Overview`, which works well. I can also use `### File Operations` for the preview tool pointer since it matches with an existing heading. Now, I’ll verify this using a search.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "''^## (Overview|Execution Process|Phase 3: Generate Preview Files|Simple Bash Commands|Output Structure|Error Handling)" .claude/commands/workflow/ui-design/generate.md
+rg -n "''^### (Step 1: Resolve Base Path & Parse Configuration|File Operations|Validation Commands)" .claude/commands/workflow/ui-design/generate.md' in C:\Project\Claude-Code-Workflow succeeded in 354ms:
+10:## Overview
+24:## Execution Process
+319:## Phase 3: Generate Preview Files
+400:## Simple Bash Commands
+438:## Output Structure
+456:## Error Handling
+56:### Step 1: Resolve Base Path & Parse Configuration
+411:### Validation Commands
+429:### File Operations
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "uiGeneratePreviewTool'"\\.execute\\(\\{ prototypesDir\" ccw/src/tools/ui-instantiate-prototypes.js
+rg -n \"await import\\('\\./ui-generate-preview\\.js'\\)\" ccw/src/tools/ui-instantiate-prototypes.js" in C:\Project\Claude-Code-Workflow succeeded in 380ms:
+227:    const previewResult = await uiGeneratePreviewTool.execute({ prototypesDir: basePath });
+226:    const { uiGeneratePreviewTool } = await import('./ui-generate-preview.js');
+
+thinking
+**Organizing candidate references**
+
+Alright, I’m focusing on referencing the candidates list. I need to look at the directory `.claude/commands/workflow/ui-design/*.md` to find the relevant documents. My goal is to produce a list of the top five candidates, along with their scores. This will help in evaluating the options effectively. I'll get started on listing those candidates now!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem .claude/commands/workflow/ui-design -Filter *.md | Sort-Object Name | Select-Object Name,FullName' in C:\Project\Claude-Code-Workflow succeeded in 331ms:
+
+[32;1mName                       [0m[32;1m FullName[0m
+[32;1m----                       [0m [32;1m--------[0m
+animation-extract.md        C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\animation-extract.md
+codify-style.md             C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\codify-style.md
+design-sync.md              C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\design-sync.md
+explore-auto.md             C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\explore-auto.md
+generate.md                 C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\generate.md
+imitate-auto.md             C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\imitate-auto.md
+import-from-code.md         C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\import-from-code.md
+layout-extract.md           C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\layout-extract.md
+reference-page-generator.md C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\reference-page-generat…
+style-extract.md            C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\style-extract.md
+
+Plan update
+  ✓ Read requirement + oracle command doc; identify key artifacts, workflow phases, and implementation/tool pointers.
+  → Collect repo evidence anchors (docs headings + ccw/src literal strings) for all pointers; rank reference commands.
+  • Write required output files from templates (spec.json, references.json, outlines, gap-report, fix-plan) with non-leaky concise content and evidence tables.
+  • Run deterministic gate: verify-evidence.js on generated-slash-outline.md and gap-report.md; iterate until passing.
+
+thinking
+**Updating my plan**
+
+I need to remember to use `->` instead of "arrow." Now, I can mark step 2 as complete and start working on step 3. It feels like I should focus on updating the plan after I've finished writing. But wait, I just realized that step 2 is actually where I compile evidence and references, so that's done now. Let's move forward and update everything.
+Plan update
+  ✓ Read requirement + oracle command doc; identify key artifacts, workflow phases, and implementation/tool pointers.
+  ✓ Collect repo evidence anchors (docs headings + ccw/src literal strings) for all pointers; rank reference commands.
+  → Write required output files from templates (spec.json, references.json, outlines, gap-report, fix-plan) with non-leaky concise content and evidence tables.
+  • Run deterministic gate: verify-evidence.js on generated-slash-outline.md and gap-report.md; iterate until passing.
+
+thinking
+**Writing JSON files**
+
+I'm getting ready to create some JSON files with an indentation of 2 for better readability. For spec.json, I want to include the "derived_from" field but keep it minimal. In references.json, I’ll make sure to include the "candidates." I’m planning to use the multi_tool_use.parallel feature to handle writing the files six times efficiently. It’s all about organizing the data right!
+tool ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/spec.json","content":"{\n  \"derived_from\": \".claude/commands/workflow/ui-design/generate.md\",\n  \"command\": {\n    \"group\": \"workflow\",\n    \"name\": \"generate\",\n    \"description\": \"Assemble UI prototypes by combining layout templates with design tokens (default animation support), pure assembler without new content generation\",\n    \"argument_hint\": \"[--design-id <id>] [--session <id>]\",\n    \"allowed_tools\": [\n      \"TodoWrite(*)\",\n      \"Read(*)\",\n      \"Write(*)\",\n      \"Task(ui-design-agent)\",\n      \"Bash(*)\"\n    ]\n  },\n  \"intent\": {\n    \"type\": \"execute\",\n    \"interaction\": \"single-shot\",\n    \"primary_user_value\": \"Generate HTML/CSS UI prototypes by assembling layout templates with design tokens for /workflow:ui-design:generate (no new content generation).\"\n  },\n  \"artifacts\": {\n    \"reads\": [\n      \"{base_path}/layout-extraction/layout-*.json\",\n      \"{base_path}/style-extraction/style-*/design-tokens.json\",\n      \"{base_path}/animation-extraction/animation-tokens.json (optional)\",\n      \".claude/workflows/_template-compare-matrix.html (optional)\"\n    ],\n    \"writes\": [\n      \"{base_path}/prototypes/{target}-style-{s}-layout-{l}.html\",\n      \"{base_path}/prototypes/{target}-style-{s}-layout-{l}.css\",\n      \"{base_path}/prototypes/compare.html\",\n      \"{base_path}/prototypes/index.html\",\n      \"{base_path}/prototypes/PREVIEW.md\"\n    ]\n  },\n  \"constraints\": {\n    \"max_rounds\": 0,\n    \"time_budget_seconds\": 0,\n    \"must_not\": [\n      \"Do not invent layout or token content; only assemble existing inputs\",\n      \"Do not claim pointers are Existing unless verifiable in-repo\",\n      \"Do not write outside the resolved design-run base_path except for required tool/template reads\"\n    ]\n  },\n  \"acceptance\": {\n    \"p0\": [\n      \"Frontmatter valid (name/description/allowed-tools; argument-hint if applicable)\",\n      \"Base path resolved by priority: --design-id > --session > auto-detect latest\",\n      \"Reads all layout-*.json templates and all style-*/design-tokens.json variants\",\n      \"Optionally reads animation-tokens.json when present\",\n      \"Writes prototypes and preview files; generated prototype count equals styles * layouts * targets\"\n    ]\n  }\n}\n"})
+ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/spec.json","content":"{\n  \"derived_from\": \".claude/commands/workflow/ui-design/generate.md\",\n  \"command\": {\n    \"group\": \"workflow\",\n    \"name\": \"generate\",\n    \"description\": \"Assemble UI prototypes by combining layout templates with design tokens (default animation support), pure assembler without new content generation\",\n    \"argument_hint\": \"[--design-id <id>] [--session <id>]\",\n    \"allowed_tools\": [\n      \"TodoWrite(*)\",\n      \"Read(*)\",\n      \"Write(*)\",\n      \"Task(ui-design-agent)\",\n      \"Bash(*)\"\n    ]\n  },\n  \"intent\": {\n    \"type\": \"execute\",\n    \"interaction\": \"single-shot\",\n    \"primary_user_value\": \"Generate HTML/CSS UI prototypes by assembling layout templates with design tokens for /workflow:ui-design:generate (no new content generation).\"\n  },\n  \"artifacts\": {\n    \"reads\": [\n      \"{base_path}/layout-extraction/layout-*.json\",\n      \"{base_path}/style-extraction/style-*/design-tokens.json\",\n      \"{base_path}/animation-extraction/animation-tokens.json (optional)\",\n      \".claude/workflows/_template-compare-matrix.html (optional)\"\n    ],\n    \"writes\": [\n      \"{base_path}/prototypes/{target}-style-{s}-layout-{l}.html\",\n      \"{base_path}/prototypes/{target}-style-{s}-layout-{l}.css\",\n      \"{base_path}/prototypes/compare.html\",\n      \"{base_path}/prototypes/index.html\",\n      \"{base_path}/prototypes/PREVIEW.md\"\n    ]\n  },\n  \"constraints\": {\n    \"max_rounds\": 0,\n    \"time_budget_seconds\": 0,\n    \"must_not\": [\n      \"Do not invent layout or token content; only assemble existing inputs\",\n      \"Do not claim pointers are Existing unless verifiable in-repo\",\n      \"Do not write outside the resolved design-run base_path except for required tool/template reads\"\n    ]\n  },\n  \"acceptance\": {\n    \"p0\": [\n      \"Frontmatter valid (name/description/allowed-tools; argument-hint if applicable)\",\n      \"Base path resolved by priority: --design-id > --session > auto-detect latest\",\n      \"Reads all layout-*.json templates and all style-*/design-tokens.json variants\",\n      \"Optionally reads animation-tokens.json when present\",\n      \"Writes prototypes and preview files; generated prototype count equals styles * layouts * targets\"\n    ]\n  }\n}\n"}) success in 26ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"path\": \"C:\\\\Project\\\\Claude-Code-Workflow\\\\.workflow\\\\.cycle\\\\cycle-auto-20260205T010617-slashcmdoutliner-codex.progress\\\\llm\\\\CMD-071\\\\specs\\\\outputs\\\\spec.json\",\n  \"bytes\": 2159,\n  \"message\": \"Created (2159B) - verified\"\n}",
+      "type": "text"
+    }
+  ]
+}
+tool ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/references.json","content":"{\n  \"command\": \"/workflow:ui-design:generate\",\n  \"selected\": {\n    \"slash\": \"/workflow:ui-design:generate\",\n    \"file_path\": \".claude/commands/workflow/ui-design/generate.md\",\n    \"score\": 1,\n    \"why\": \"Exact match (same command). Canonical behavior + artifact contract for prototype assembly and preview generation.\"\n  },\n  \"candidates\": [\n    {\n      \"slash\": \"/workflow:ui-design:generate\",\n      \"file_path\": \".claude/commands/workflow/ui-design/generate.md\",\n      \"score\": 1,\n      \"why\": \"Exact match; contains full phase breakdown, artifact paths, and preview generation usage (ui_generate_preview).\"\n    },\n    {\n      \"slash\": \"/workflow:ui-design:layout-extract\",\n      \"file_path\": \".claude/commands/workflow/ui-design/layout-extract.md\",\n      \"score\": 0.82,\n      \"why\": \"Same ui-design family; produces layout-extraction inputs consumed by generate; similar base-path/session conventions and agent usage.\"\n    },\n    {\n      \"slash\": \"/workflow:ui-design:style-extract\",\n      \"file_path\": \".claude/commands/workflow/ui-design/style-extract.md\",\n      \"score\": 0.78,\n      \"why\": \"Same ui-design family; produces style-extraction inputs consumed by generate; similar validation and multi-variant outputs.\"\n    },\n    {\n      \"slash\": \"/workflow:ui-design:animation-extract\",\n      \"file_path\": \".claude/commands/workflow/ui-design/animation-extract.md\",\n      \"score\": 0.66,\n      \"why\": \"Same artifact ecosystem; optional animation tokens integrate into assembly stage.\"\n    },\n    {\n      \"slash\": \"/workflow:ui-design:explore-auto\",\n      \"file_path\": \".claude/commands/workflow/ui-design/explore-auto.md\",\n      \"score\": 0.6,\n      \"why\": \"Orchestrator command that calls generate as a phase; good reference for sequencing and reporting conventions.\"\n    }\n  ]\n}\n"})
+ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/references.json","content":"{\n  \"command\": \"/workflow:ui-design:generate\",\n  \"selected\": {\n    \"slash\": \"/workflow:ui-design:generate\",\n    \"file_path\": \".claude/commands/workflow/ui-design/generate.md\",\n    \"score\": 1,\n    \"why\": \"Exact match (same command). Canonical behavior + artifact contract for prototype assembly and preview generation.\"\n  },\n  \"candidates\": [\n    {\n      \"slash\": \"/workflow:ui-design:generate\",\n      \"file_path\": \".claude/commands/workflow/ui-design/generate.md\",\n      \"score\": 1,\n      \"why\": \"Exact match; contains full phase breakdown, artifact paths, and preview generation usage (ui_generate_preview).\"\n    },\n    {\n      \"slash\": \"/workflow:ui-design:layout-extract\",\n      \"file_path\": \".claude/commands/workflow/ui-design/layout-extract.md\",\n      \"score\": 0.82,\n      \"why\": \"Same ui-design family; produces layout-extraction inputs consumed by generate; similar base-path/session conventions and agent usage.\"\n    },\n    {\n      \"slash\": \"/workflow:ui-design:style-extract\",\n      \"file_path\": \".claude/commands/workflow/ui-design/style-extract.md\",\n      \"score\": 0.78,\n      \"why\": \"Same ui-design family; produces style-extraction inputs consumed by generate; similar validation and multi-variant outputs.\"\n    },\n    {\n      \"slash\": \"/workflow:ui-design:animation-extract\",\n      \"file_path\": \".claude/commands/workflow/ui-design/animation-extract.md\",\n      \"score\": 0.66,\n      \"why\": \"Same artifact ecosystem; optional animation tokens integrate into assembly stage.\"\n    },\n    {\n      \"slash\": \"/workflow:ui-design:explore-auto\",\n      \"file_path\": \".claude/commands/workflow/ui-design/explore-auto.md\",\n      \"score\": 0.6,\n      \"why\": \"Orchestrator command that calls generate as a phase; good reference for sequencing and reporting conventions.\"\n    }\n  ]\n}\n"}) success in 11ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"path\": \"C:\\\\Project\\\\Claude-Code-Workflow\\\\.workflow\\\\.cycle\\\\cycle-auto-20260205T010617-slashcmdoutliner-codex.progress\\\\llm\\\\CMD-071\\\\specs\\\\outputs\\\\references.json\",\n  \"bytes\": 1783,\n  \"message\": \"Created (1783B) - verified\"\n}",
+      "type": "text"
+    }
+  ]
+}
+tool ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/generated-slash-outline.md","content":"---\nname: generate\ndescription: Assemble UI prototypes by combining layout templates with design tokens (default animation support), pure assembler without new content generation\nargument-hint: \"[--design-id <id>] [--session <id>]\"\nallowed-tools: TodoWrite(*), Read(*), Write(*), Task(ui-design-agent), Bash(*)\ngroup: workflow\n---\n\n# Generate UI Prototypes\n\n## Overview\n\n- Goal: Assemble UI prototypes (HTML/CSS) by combining layout templates with design tokens; no new content generation.\n- Command: `/workflow:ui-design:generate`\n\n## Usage\n\n```bash\n/workflow:ui-design:generate [--design-id <id>] [--session <id>]\n```\n\n## Inputs\n\n- Required inputs:\n  - A resolved design-run base path (selected by `--design-id`, `--session`, or auto-detect latest)\n  - Layout templates: `{base_path}/layout-extraction/layout-*.json`\n  - Design tokens for each style: `{base_path}/style-extraction/style-*/design-tokens.json`\n- Optional inputs:\n  - Animation tokens: `{base_path}/animation-extraction/animation-tokens.json`\n  - Preview template override (tool default): `.claude/workflows/_template-compare-matrix.html`\n\n## Outputs / Artifacts\n\n- Writes:\n  - `{base_path}/prototypes/{target}-style-{s}-layout-{l}.html`\n  - `{base_path}/prototypes/{target}-style-{s}-layout-{l}.css`\n  - `{base_path}/prototypes/compare.html`\n  - `{base_path}/prototypes/index.html`\n  - `{base_path}/prototypes/PREVIEW.md`\n- Reads:\n  - `{base_path}/layout-extraction/layout-*.json`\n  - `{base_path}/style-extraction/style-*/design-tokens.json`\n  - `{base_path}/animation-extraction/animation-tokens.json` (optional)\n\n## Implementation Pointers\n\n- Command doc: `.claude/commands/workflow/ui-design/generate.md`\n- Likely code locations:\n  - `ccw/src/tools/ui-generate-preview.js` (tool: `ui_generate_preview`)\n  - `ccw/src/tools/index.ts` (tool registration)\n  - `.claude/workflows/_template-compare-matrix.html` (preview template)\n\n### Evidence (Existing vs Planned)\n\nYou MUST label each pointer as `Existing` (verifiable in repo now) or `Planned` (will be created/modified).\n\nRules:\n- `Existing` MUST include evidence from BOTH:\n  - a command doc source: `.claude/commands/**.md` (section heading is sufficient)\n  - a TypeScript source: `ccw/src/**` (function name / subcommand case / a ripgrep-able string)\n- If you cannot verify, downgrade to `Planned` and add a concrete `Verify` step (e.g. `Test-Path <path>`, `rg \"<pattern>\" <path>`).\n\n| Pointer | Status | Evidence (docs + TS) | Verify | Why |\n|---|---|---|---|---|\n| `.claude/commands/workflow/ui-design/generate.md` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `Overview` ; ts: `ccw/src/tools/ui-generate-preview.js` / `name: 'ui_generate_preview'` | `Test-Path .claude/commands/workflow/ui-design/generate.md` | Canonical command behavior and artifact contract |\n| `ccw/src/tools/ui-generate-preview.js` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `File Operations` ; ts: `ccw/src/tools/ui-generate-preview.js` / `name: 'ui_generate_preview'` | `Test-Path ccw/src/tools/ui-generate-preview.js; rg \"name: 'ui_generate_preview'\" ccw/src/tools/ui-generate-preview.js` | Generates preview artifacts (`compare.html`, `index.html`, `PREVIEW.md`) |\n| `ccw/src/tools/index.ts` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `File Operations` ; ts: `ccw/src/tools/index.ts` / `registerTool(uiGeneratePreviewTool);` | `Test-Path ccw/src/tools/index.ts; rg \"registerTool\\(uiGeneratePreviewTool\\);\" ccw/src/tools/index.ts` | Registers preview tool for `ccw tool exec ui_generate_preview` |\n| `.claude/workflows/_template-compare-matrix.html` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `Phase 3: Generate Preview Files` ; ts: `ccw/src/tools/ui-generate-preview.js` / `.claude/workflows/_template-compare-matrix.html` | `Test-Path .claude/workflows/_template-compare-matrix.html` | Default template consumed by preview generation tool |\n\nNotes:\n- Expand code pointers into one row per pointer.\n- For TS evidence, prefer anchors like `function <name>` / `case '<subcommand>'` / a stable string literal that can be found via `rg`.\n\n## Execution Process\n\n1. Phase 1: Setup and validation\n   - Resolve base path by priority: `--design-id` > `--session` > auto-detect latest design-run.\n   - Load layout templates (multi-file `layout-*.json`) and extract targets/device metadata.\n   - Load/validate design tokens for each style variant.\n   - Optionally load animation tokens when present.\n2. Phase 2: Assembly (agent)\n   - Compute grouping plan across styles and layouts (balanced distribution; each agent handles one style).\n   - Execute batched tasks; after each batch, verify generated files exist and basic HTML/CSS sanity.\n3. Phase 3: Preview generation\n   - Run `ccw tool exec ui_generate_preview` over `{base_path}/prototypes`.\n   - Verify `compare.html`, `index.html`, `PREVIEW.md` exist.\n4. Completion\n   - Update todo state and report output summary (counts + locations).\n\n## Error Handling\n\n- Missing base path (no matching design-run): tell user to run `/workflow:ui-design:list` and re-run with `--design-id` or `--session`.\n- Missing layout templates: instruct to run `/workflow:ui-design:layout-extract` first.\n- Missing design tokens: instruct to run `/workflow:ui-design:style-extract` first.\n- Partial generation: keep successfully generated files; re-run after fixing missing inputs.\n\n## Examples\n\n```bash\n# Use explicit design id\n/workflow:ui-design:generate --design-id \"DESIGN-123\"\n\n# Use latest in a session\n/workflow:ui-design:generate --session \"WFS-ABC\"\n\n# Verify expected counts (example commands; adjust base_path)\nls \"{base_path}/prototypes\" | rg \"-style-\\d+-layout-\\d+\\.html$\" | Measure-Object\nTest-Path \"{base_path}/prototypes/compare.html\"\n```\n"})
+ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/generated-slash-outline.md","content":"---\nname: generate\ndescription: Assemble UI prototypes by combining layout templates with design tokens (default animation support), pure assembler without new content generation\nargument-hint: \"[--design-id <id>] [--session <id>]\"\nallowed-tools: TodoWrite(*), Read(*), Write(*), Task(ui-design-agent), Bash(*)\ngroup: workflow\n---\n\n# Generate UI Prototypes\n\n## Overview\n\n- Goal: Assemble UI prototypes (HTML/CSS) by combining layout templates with design tokens; no new content generation.\n- Command: `/workflow:ui-design:generate`\n\n## Usage\n\n```bash\n/workflow:ui-design:generate [--design-id <id>] [--session <id>]\n```\n\n## Inputs\n\n- Required inputs:\n  - A resolved design-run base path (selected by `--design-id`, `--session`, or auto-detect latest)\n  - Layout templates: `{base_path}/layout-extraction/layout-*.json`\n  - Design tokens for each style: `{base_path}/style-extraction/style-*/design-tokens.json`\n- Optional inputs:\n  - Animation tokens: `{base_path}/animation-extraction/animation-tokens.json`\n  - Preview template override (tool default): `.claude/workflows/_template-compare-matrix.html`\n\n## Outputs / Artifacts\n\n- Writes:\n  - `{base_path}/prototypes/{target}-style-{s}-layout-{l}.html`\n  - `{base_path}/prototypes/{target}-style-{s}-layout-{l}.css`\n  - `{base_path}/prototypes/compare.html`\n  - `{base_path}/prototypes/index.html`\n  - `{base_path}/prototypes/PREVIEW.md`\n- Reads:\n  - `{base_path}/layout-extraction/layout-*.json`\n  - `{base_path}/style-extraction/style-*/design-tokens.json`\n  - `{base_path}/animation-extraction/animation-tokens.json` (optional)\n\n## Implementation Pointers\n\n- Command doc: `.claude/commands/workflow/ui-design/generate.md`\n- Likely code locations:\n  - `ccw/src/tools/ui-generate-preview.js` (tool: `ui_generate_preview`)\n  - `ccw/src/tools/index.ts` (tool registration)\n  - `.claude/workflows/_template-compare-matrix.html` (preview template)\n\n### Evidence (Existing vs Planned)\n\nYou MUST label each pointer as `Existing` (verifiable in repo now) or `Planned` (will be created/modified).\n\nRules:\n- `Existing` MUST include evidence from BOTH:\n  - a command doc source: `.claude/commands/**.md` (section heading is sufficient)\n  - a TypeScript source: `ccw/src/**` (function name / subcommand case / a ripgrep-able string)\n- If you cannot verify, downgrade to `Planned` and add a concrete `Verify` step (e.g. `Test-Path <path>`, `rg \"<pattern>\" <path>`).\n\n| Pointer | Status | Evidence (docs + TS) | Verify | Why |\n|---|---|---|---|---|\n| `.claude/commands/workflow/ui-design/generate.md` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `Overview` ; ts: `ccw/src/tools/ui-generate-preview.js` / `name: 'ui_generate_preview'` | `Test-Path .claude/commands/workflow/ui-design/generate.md` | Canonical command behavior and artifact contract |\n| `ccw/src/tools/ui-generate-preview.js` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `File Operations` ; ts: `ccw/src/tools/ui-generate-preview.js` / `name: 'ui_generate_preview'` | `Test-Path ccw/src/tools/ui-generate-preview.js; rg \"name: 'ui_generate_preview'\" ccw/src/tools/ui-generate-preview.js` | Generates preview artifacts (`compare.html`, `index.html`, `PREVIEW.md`) |\n| `ccw/src/tools/index.ts` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `File Operations` ; ts: `ccw/src/tools/index.ts` / `registerTool(uiGeneratePreviewTool);` | `Test-Path ccw/src/tools/index.ts; rg \"registerTool\\(uiGeneratePreviewTool\\);\" ccw/src/tools/index.ts` | Registers preview tool for `ccw tool exec ui_generate_preview` |\n| `.claude/workflows/_template-compare-matrix.html` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `Phase 3: Generate Preview Files` ; ts: `ccw/src/tools/ui-generate-preview.js` / `.claude/workflows/_template-compare-matrix.html` | `Test-Path .claude/workflows/_template-compare-matrix.html` | Default template consumed by preview generation tool |\n\nNotes:\n- Expand code pointers into one row per pointer.\n- For TS evidence, prefer anchors like `function <name>` / `case '<subcommand>'` / a stable string literal that can be found via `rg`.\n\n## Execution Process\n\n1. Phase 1: Setup and validation\n   - Resolve base path by priority: `--design-id` > `--session` > auto-detect latest design-run.\n   - Load layout templates (multi-file `layout-*.json`) and extract targets/device metadata.\n   - Load/validate design tokens for each style variant.\n   - Optionally load animation tokens when present.\n2. Phase 2: Assembly (agent)\n   - Compute grouping plan across styles and layouts (balanced distribution; each agent handles one style).\n   - Execute batched tasks; after each batch, verify generated files exist and basic HTML/CSS sanity.\n3. Phase 3: Preview generation\n   - Run `ccw tool exec ui_generate_preview` over `{base_path}/prototypes`.\n   - Verify `compare.html`, `index.html`, `PREVIEW.md` exist.\n4. Completion\n   - Update todo state and report output summary (counts + locations).\n\n## Error Handling\n\n- Missing base path (no matching design-run): tell user to run `/workflow:ui-design:list` and re-run with `--design-id` or `--session`.\n- Missing layout templates: instruct to run `/workflow:ui-design:layout-extract` first.\n- Missing design tokens: instruct to run `/workflow:ui-design:style-extract` first.\n- Partial generation: keep successfully generated files; re-run after fixing missing inputs.\n\n## Examples\n\n```bash\n# Use explicit design id\n/workflow:ui-design:generate --design-id \"DESIGN-123\"\n\n# Use latest in a session\n/workflow:ui-design:generate --session \"WFS-ABC\"\n\n# Verify expected counts (example commands; adjust base_path)\nls \"{base_path}/prototypes\" | rg \"-style-\\d+-layout-\\d+\\.html$\" | Measure-Object\nTest-Path \"{base_path}/prototypes/compare.html\"\n```\n"}) success in 13ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"path\": \"C:\\\\Project\\\\Claude-Code-Workflow\\\\.workflow\\\\.cycle\\\\cycle-auto-20260205T010617-slashcmdoutliner-codex.progress\\\\llm\\\\CMD-071\\\\specs\\\\outputs\\\\generated-slash-outline.md\",\n  \"bytes\": 5787,\n  \"message\": \"Created (5787B) - verified\"\n}",
+      "type": "text"
+    }
+  ]
+}
+tool ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/generated-agent-outline.md","content":"# Agent Outline: workflow:generate\n\n## Purpose\n\nImplement and/or evolve the slash command according to CCW conventions with minimal regressions.\n\n## Execution Model\n\n- Default: incremental, testable changes\n- Use ACE-tool to find existing patterns before adding new abstractions\n- For `/workflow:ui-design:generate`: keep the command as a pure assembler (no new content generation)\n\n## State & Artifacts\n\n- Session folder (if used): `.workflow/active/WFS-*/...`\n- Required outputs:\n  - Slash MD (command doc): `.claude/commands/workflow/ui-design/generate.md`\n  - Generated prototypes: `{base_path}/prototypes/*`\n  - Preview files: `{base_path}/prototypes/compare.html`, `index.html`, `PREVIEW.md`\n\n## Tooling\n\n- Allowed tools: TodoWrite(*), Read(*), Write(*), Task(ui-design-agent), Bash(*)\n- Non-negotiables:\n  - no unrelated changes\n  - verify non-regression against completed corpus\n\n## Validation Strategy\n\n- P0 gates: frontmatter + allowed-tools + core sections + artifact references\n- Deterministic evidence gate: verify evidence tables in outline + gap report\n- Runtime checks (command-level):\n  - base path resolution priority is correct\n  - generated file count matches styles * layouts * targets\n  - preview artifacts exist and contain basic expected markers (DOCTYPE, CSS links)\n"})
+ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/generated-agent-outline.md","content":"# Agent Outline: workflow:generate\n\n## Purpose\n\nImplement and/or evolve the slash command according to CCW conventions with minimal regressions.\n\n## Execution Model\n\n- Default: incremental, testable changes\n- Use ACE-tool to find existing patterns before adding new abstractions\n- For `/workflow:ui-design:generate`: keep the command as a pure assembler (no new content generation)\n\n## State & Artifacts\n\n- Session folder (if used): `.workflow/active/WFS-*/...`\n- Required outputs:\n  - Slash MD (command doc): `.claude/commands/workflow/ui-design/generate.md`\n  - Generated prototypes: `{base_path}/prototypes/*`\n  - Preview files: `{base_path}/prototypes/compare.html`, `index.html`, `PREVIEW.md`\n\n## Tooling\n\n- Allowed tools: TodoWrite(*), Read(*), Write(*), Task(ui-design-agent), Bash(*)\n- Non-negotiables:\n  - no unrelated changes\n  - verify non-regression against completed corpus\n\n## Validation Strategy\n\n- P0 gates: frontmatter + allowed-tools + core sections + artifact references\n- Deterministic evidence gate: verify evidence tables in outline + gap report\n- Runtime checks (command-level):\n  - base path resolution priority is correct\n  - generated file count matches styles * layouts * targets\n  - preview artifacts exist and contain basic expected markers (DOCTYPE, CSS links)\n"}) success in 10ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"path\": \"C:\\\\Project\\\\Claude-Code-Workflow\\\\.workflow\\\\.cycle\\\\cycle-auto-20260205T010617-slashcmdoutliner-codex.progress\\\\llm\\\\CMD-071\\\\specs\\\\outputs\\\\generated-agent-outline.md\",\n  \"bytes\": 1291,\n  \"message\": \"Created (1291B) - verified\"\n}",
+      "type": "text"
+    }
+  ]
+}
+tool ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/gap-report.md","content":"# Gap Report: workflow:generate\n\n## Reference\n\n- Selected reference: /workflow:ui-design:generate (`.claude/commands/workflow/ui-design/generate.md`)\n\n## P0 Gaps (Must Fix)\n\n- None identified for this outline set (frontmatter/tooling/core sections present; artifact refs are explicit; evidence tables included).\n\n## P1 Gaps (Should Fix)\n\n- The generated slash outline is intentionally terse vs the oracle command doc; if used as a rewrite target, it should re-add:\n  - detailed bash snippets for each validation sub-step (path resolution, multi-file checks)\n  - the full quality checklist and recovery strategies\n  - explicit batching limits (max layouts per agent, max concurrent agents) if those are enforced operationally\n\n## P2 Gaps (Optional)\n\n- Add a small set of concrete sample matrices (e.g. styles=2, layouts=3, targets=2) to clarify expected output counts and naming.\n\n## Implementation Pointers (Evidence)\n\nYou MUST provide an evidence table for all key implementation pointers mentioned in the outlines.\n\nRules (P0):\n- Every pointer MUST be labeled `Existing` or `Planned`.\n- `Existing` MUST be verifiable (path exists). Include a concrete `Verify` command for each existing pointer.\n- Do NOT describe `Planned` pointers as \"validated/exists\".\n- Evidence MUST reference BOTH sources somewhere in this section:\n  - command docs: `.claude/commands/**.md` (section heading is enough)\n  - TypeScript implementation: `ccw/src/**` (function name / subcommand case / ripgrep-able string)\n\n| Pointer | Status | Evidence | Verify | Notes |\n|---|---|---|---|---|\n| `.claude/commands/workflow/ui-design/generate.md` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `Overview` ; ts: `ccw/src/tools/ui-generate-preview.js` / `name: 'ui_generate_preview'` | `Test-Path .claude/commands/workflow/ui-design/generate.md` | Oracle command doc; defines phases and artifact contract |\n| `ccw/src/tools/ui-generate-preview.js` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `Phase 3: Generate Preview Files` ; ts: `ccw/src/tools/ui-generate-preview.js` / `name: 'ui_generate_preview'` | `Test-Path ccw/src/tools/ui-generate-preview.js; rg \"name: 'ui_generate_preview'\" ccw/src/tools/ui-generate-preview.js` | Generates compare/index/PREVIEW artifacts |\n| `ccw/src/tools/index.ts` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `File Operations` ; ts: `ccw/src/tools/index.ts` / `registerTool(uiGeneratePreviewTool);` | `Test-Path ccw/src/tools/index.ts; rg \"registerTool\\(uiGeneratePreviewTool\\);\" ccw/src/tools/index.ts` | Tool registration for `ccw tool exec` |\n| `.claude/workflows/_template-compare-matrix.html` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `Phase 3: Generate Preview Files` ; ts: `ccw/src/tools/ui-generate-preview.js` / `.claude/workflows/_template-compare-matrix.html` | `Test-Path .claude/workflows/_template-compare-matrix.html` | Default compare matrix template used by preview tool |\n\n## Implementation Hints (Tooling/Server)\n\n- Preview generation is handled by `ui_generate_preview` (registered in `ccw/src/tools/index.ts`), so the command can treat preview creation as a tool invocation.\n- The preview tool auto-detects matrix dimensions from file naming pattern `{target}-style-{s}-layout-{l}.html`.\n\n## Proposed Fix Plan (Minimal)\n\n- If promoting the terse outline into the canonical command doc, copy back the missing P1-level operational details from the oracle while keeping evidence labels correct.\n- Keep preview generation delegated to `ui_generate_preview` and ensure template fallback behavior remains documented.\n"})
+ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/gap-report.md","content":"# Gap Report: workflow:generate\n\n## Reference\n\n- Selected reference: /workflow:ui-design:generate (`.claude/commands/workflow/ui-design/generate.md`)\n\n## P0 Gaps (Must Fix)\n\n- None identified for this outline set (frontmatter/tooling/core sections present; artifact refs are explicit; evidence tables included).\n\n## P1 Gaps (Should Fix)\n\n- The generated slash outline is intentionally terse vs the oracle command doc; if used as a rewrite target, it should re-add:\n  - detailed bash snippets for each validation sub-step (path resolution, multi-file checks)\n  - the full quality checklist and recovery strategies\n  - explicit batching limits (max layouts per agent, max concurrent agents) if those are enforced operationally\n\n## P2 Gaps (Optional)\n\n- Add a small set of concrete sample matrices (e.g. styles=2, layouts=3, targets=2) to clarify expected output counts and naming.\n\n## Implementation Pointers (Evidence)\n\nYou MUST provide an evidence table for all key implementation pointers mentioned in the outlines.\n\nRules (P0):\n- Every pointer MUST be labeled `Existing` or `Planned`.\n- `Existing` MUST be verifiable (path exists). Include a concrete `Verify` command for each existing pointer.\n- Do NOT describe `Planned` pointers as \"validated/exists\".\n- Evidence MUST reference BOTH sources somewhere in this section:\n  - command docs: `.claude/commands/**.md` (section heading is enough)\n  - TypeScript implementation: `ccw/src/**` (function name / subcommand case / ripgrep-able string)\n\n| Pointer | Status | Evidence | Verify | Notes |\n|---|---|---|---|---|\n| `.claude/commands/workflow/ui-design/generate.md` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `Overview` ; ts: `ccw/src/tools/ui-generate-preview.js` / `name: 'ui_generate_preview'` | `Test-Path .claude/commands/workflow/ui-design/generate.md` | Oracle command doc; defines phases and artifact contract |\n| `ccw/src/tools/ui-generate-preview.js` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `Phase 3: Generate Preview Files` ; ts: `ccw/src/tools/ui-generate-preview.js` / `name: 'ui_generate_preview'` | `Test-Path ccw/src/tools/ui-generate-preview.js; rg \"name: 'ui_generate_preview'\" ccw/src/tools/ui-generate-preview.js` | Generates compare/index/PREVIEW artifacts |\n| `ccw/src/tools/index.ts` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `File Operations` ; ts: `ccw/src/tools/index.ts` / `registerTool(uiGeneratePreviewTool);` | `Test-Path ccw/src/tools/index.ts; rg \"registerTool\\(uiGeneratePreviewTool\\);\" ccw/src/tools/index.ts` | Tool registration for `ccw tool exec` |\n| `.claude/workflows/_template-compare-matrix.html` | Existing | docs: `.claude/commands/workflow/ui-design/generate.md` / `Phase 3: Generate Preview Files` ; ts: `ccw/src/tools/ui-generate-preview.js` / `.claude/workflows/_template-compare-matrix.html` | `Test-Path .claude/workflows/_template-compare-matrix.html` | Default compare matrix template used by preview tool |\n\n## Implementation Hints (Tooling/Server)\n\n- Preview generation is handled by `ui_generate_preview` (registered in `ccw/src/tools/index.ts`), so the command can treat preview creation as a tool invocation.\n- The preview tool auto-detects matrix dimensions from file naming pattern `{target}-style-{s}-layout-{l}.html`.\n\n## Proposed Fix Plan (Minimal)\n\n- If promoting the terse outline into the canonical command doc, copy back the missing P1-level operational details from the oracle while keeping evidence labels correct.\n- Keep preview generation delegated to `ui_generate_preview` and ensure template fallback behavior remains documented.\n"}) success in 10ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"path\": \"C:\\\\Project\\\\Claude-Code-Workflow\\\\.workflow\\\\.cycle\\\\cycle-auto-20260205T010617-slashcmdoutliner-codex.progress\\\\llm\\\\CMD-071\\\\specs\\\\outputs\\\\gap-report.md\",\n  \"bytes\": 3641,\n  \"message\": \"Created (3641B) - verified\"\n}",
+      "type": "text"
+    }
+  ]
+}
+tool ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/fix-plan.md","content":"# Fix Plan: /workflow:ui-design:generate\n\nP0 (must):\n- Keep evidence tables valid: do not mark pointers Existing unless path exists; keep docs headings and ccw/src anchors literal.\n\nP1 (should):\n- Expand the generated slash outline into an implementation-ready doc by re-adding:\n  - concrete bash validation snippets per step (layout templates exist, design tokens exist, counts)\n  - explicit batching limits (max layouts per agent, max concurrent agents) if they are enforced\n  - recovery strategies and a small quality checklist\n\nP2 (optional):\n- Add one worked example matrix with expected file count math and a short sample of filenames.\n"})
+ccw-tools.write_file({"path":".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/fix-plan.md","content":"# Fix Plan: /workflow:ui-design:generate\n\nP0 (must):\n- Keep evidence tables valid: do not mark pointers Existing unless path exists; keep docs headings and ccw/src anchors literal.\n\nP1 (should):\n- Expand the generated slash outline into an implementation-ready doc by re-adding:\n  - concrete bash validation snippets per step (layout templates exist, design tokens exist, counts)\n  - explicit batching limits (max layouts per agent, max concurrent agents) if they are enforced\n  - recovery strategies and a small quality checklist\n\nP2 (optional):\n- Add one worked example matrix with expected file count math and a short sample of filenames.\n"}) success in 9ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"path\": \"C:\\\\Project\\\\Claude-Code-Workflow\\\\.workflow\\\\.cycle\\\\cycle-auto-20260205T010617-slashcmdoutliner-codex.progress\\\\llm\\\\CMD-071\\\\specs\\\\outputs\\\\fix-plan.md\",\n  \"bytes\": 642,\n  \"message\": \"Created (642B) - verified\"\n}",
+      "type": "text"
+    }
+  ]
+}
+
+thinking
+**Running verification process**
+
+I’m preparing to run the verification process on the gap report and the generated outline. I need to ensure that I’m using the correct command, which involves running verify-evidence.js with Node. I have to remember to set the working directory to the root first, which is always a little detail I can overlook. Once I confirm that everything is set up correctly, I’ll call the command and check the results.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/gap-report.md --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/generated-slash-outline.md' in C:\Project\Claude-Code-Workflow succeeded in 344ms:
+OK: evidence verification passed
+Plan update
+  ✓ Read requirement + oracle command doc; identify key artifacts, workflow phases, and implementation/tool pointers.
+  ✓ Collect repo evidence anchors (docs headings + ccw/src literal strings) for all pointers; rank reference commands.
+  ✓ Write required output files from templates (spec.json, references.json, outlines, gap-report, fix-plan) with non-leaky concise content and evidence tables.
+  ✓ Run deterministic gate: verify-evidence.js on generated-slash-outline.md and gap-report.md; iterate until passing.
+
+thinking
+**Finalizing written files**
+
+I've completed the request! The user wanted the written files to be concise and without extras, which I've done. Now, I need to mention the paths created and the evidence gate pass. Although the user didn’t explicitly ask for next steps, I think it's best to include them anyway. I’ll keep the final message in plain text and make sure to verify the output path. Let's wrap this up!
+codex
+Wrote CMD-071 outputs under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-071/specs/outputs/`:
+- `spec.json`
+- `references.json`
+- `generated-slash-outline.md`
+- `generated-agent-outline.md`
+- `gap-report.md`
+- `fix-plan.md`
+
+Validation:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.../gap-report.md --file=.../generated-slash-outline.md` -> PASS
+tokens used
+113,689

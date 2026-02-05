@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0.0",
+  "id": "CMD-053",
+  "created_at": "2026-02-05T01:06:17Z",
+  "derived_from": ".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-053.requirements.md",
+  "oracle_command_doc": ".claude/commands/workflow/session/start.md",
+  "command": {
+    "group": "workflow",
+    "name": "start",
+    "title": "Start Workflow Session (/workflow:session:start)",
+    "description": "Discover existing sessions or start new workflow session with intelligent session management and conflict detection",
+    "argument_hint": "[--type <workflow|review|tdd|test|docs>] [--auto|--new] [optional: task description for new session]",
+    "usage_args": "[--type <workflow|review|tdd|test|docs>] [--auto|--new] [task description]",
+    "allowed_tools": ["Skill(*)", "AskUserQuestion(*)", "Read(*)", "Write(*)", "Bash(*)"]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "iterative",
+    "primary_user_value": "Discover existing sessions or start a new workflow session, with safe defaults and conflict handling."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/project-tech.json",
+      ".workflow/project-guidelines.json",
+      ".workflow/active/",
+      ".workflow/active/WFS-*/workflow-session.json"
+    ],
+    "writes": [
+      ".workflow/project-tech.json",
+      ".workflow/project-guidelines.json",
+      ".workflow/active/WFS-*/",
+      ".workflow/active/WFS-*/workflow-session.json",
+      ".workflow/active/WFS-*/.process/",
+      ".workflow/active/WFS-*/.task/",
+      ".workflow/active/WFS-*/.summaries/"
+    ]
+  },
+  "constraints": {
+    "must_not": [
+      "Do not label implementation pointers as Existing unless verifiable in the repo now.",
+      "Do not use placeholders (TBD/N/A) in evidence table rows; if unsure, mark Planned and add concrete Verify steps."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter contains name, description, allowed-tools (and argument-hint if non-trivial)",
+      "Core sections present: Overview, Usage, Execution Process, Outputs / Artifacts, Error Handling",
+      "Evidence tables validate via verify-evidence.js (docs + TS anchors, Existing pointers verifiable)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/session/start.md",
+    "code_pointers": [
+      "ccw/src/tools/session-manager.ts",
+      "ccw/src/core/session-scanner.ts"
+    ]
+  }
+}
+

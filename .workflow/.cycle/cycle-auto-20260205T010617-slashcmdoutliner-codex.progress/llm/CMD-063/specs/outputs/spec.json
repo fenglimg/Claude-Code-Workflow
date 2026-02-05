@@ -1,0 +1,50 @@
+{
+  "command": {
+    "group": "workflow",
+    "subgroup": "tools",
+    "name": "tdd-coverage-analysis",
+    "description": "Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification",
+    "argument_hint": "--session WFS-session-id",
+    "allowed_tools": ["Read(*)", "Write(*)", "Bash(*)"]
+  },
+  "intent": {
+    "type": "analyze",
+    "interaction": "single-shot",
+    "primary_user_value": "Run the project's test suite with coverage and verify Red-Green-Refactor task chains for a workflow session, producing a concise compliance report."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/{session_id}/.task/TEST-*.json",
+      ".workflow/active/{session_id}/.summaries/TEST-*-summary.md",
+      ".workflow/active/{session_id}/.summaries/IMPL-*-summary.md",
+      ".workflow/active/{session_id}/.summaries/REFACTOR-*-summary.md",
+      "package.json",
+      "pytest.ini",
+      "setup.py",
+      "Cargo.toml",
+      "go.mod"
+    ],
+    "writes": [
+      ".workflow/active/{session_id}/.process/test-results.json",
+      ".workflow/active/{session_id}/.process/coverage-report.json",
+      ".workflow/active/{session_id}/.process/tdd-cycle-report.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Must not edit source code or workflow task inputs",
+      "Must not delete or overwrite existing session artifacts without explicit user intent"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes: name, description, allowed-tools",
+      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
+      "Implementation pointers labeled Existing vs Planned with dual-source evidence (docs + TS) and concrete Verify commands",
+      "Evidence tables pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js"
+    ]
+  }
+}
+

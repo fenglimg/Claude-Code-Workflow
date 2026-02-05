@@ -1,0 +1,55 @@
+{
+  "command": {
+    "group": "issue",
+    "name": "convert-to-plan",
+    "description": "Convert planning artifacts (lite-plan, workflow session, markdown) to issue solutions",
+    "argument_hint": "[-y|--yes] [--issue <id>] [--supplement] <SOURCE>",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Glob(*)",
+      "AskUserQuestion(*)"
+    ]
+  },
+  "intent": {
+    "type": "plan",
+    "interaction": "iterative",
+    "primary_user_value": "Turn an existing planning artifact into a normalized issue Solution and bind it to an issue (create new or attach to an existing issue)."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/.lite-plan/**/plan.json",
+      ".workflow/active/WFS-*/workflow-session.json",
+      ".workflow/active/WFS-*/IMPL_PLAN.md",
+      ".workflow/active/WFS-*/.task/IMPL-*.json",
+      "<SOURCE>.md",
+      "<SOURCE>.json",
+      ".claude/workflows/cli-templates/schemas/solution-schema.json"
+    ],
+    "writes": [
+      ".workflow/issues/solutions",
+      ".workflow/issues/solutions/<issue-id>.jsonl"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 2,
+    "time_budget_seconds": 180,
+    "must_not": [
+      "Do not read or edit .workflow/issues/*.jsonl directly for issue/solution operations; use ccw issue CLI commands.",
+      "Do not skip confirmation unless -y/--yes is provided.",
+      "Do not claim implementation pointers are Existing unless they are verifiable in the repo."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name/description/argument-hint/allowed-tools",
+      "Supports sources: lite-plan dir, workflow session ID/folder, markdown file, json file",
+      "Implements flags: --issue, --supplement, -y/--yes",
+      "Persists a Solution in .workflow/issues/solutions/<issue-id>.jsonl and binds it to the issue via CLI",
+      "Uses ccw issue CLI (status/init/bind/solutions/solution) for issue operations"
+    ]
+  }
+}
+

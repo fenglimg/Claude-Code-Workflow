@@ -1,0 +1,45 @@
+{
+  "command": {
+    "group": "memory",
+    "name": "compact"
+  },
+  "candidates": [
+    {
+      "slash": "/memory:compact",
+      "file_path": ".claude/commands/memory/compact.md",
+      "score": 100,
+      "why": "Exact command + same allowed-tools (core_memory + Read) + same structured-output contract and recovery-id reporting."
+    },
+    {
+      "slash": "/memory:tips",
+      "file_path": ".claude/commands/memory/tips.md",
+      "score": 86,
+      "why": "Same core_memory import workflow and similar UX pattern: generate structured text then persist via mcp__ccw-tools__core_memory."
+    },
+    {
+      "slash": "/memory:load",
+      "file_path": ".claude/commands/memory/load.md",
+      "score": 78,
+      "why": "Same domain (memory management) and complementary recovery flow (export/search/list to restore context)."
+    },
+    {
+      "slash": "/memory:update-related",
+      "file_path": ".claude/commands/memory/update-related.md",
+      "score": 70,
+      "why": "Same memory module ecosystem; includes constraints around safe updates and referencing read-only context files."
+    },
+    {
+      "slash": "/memory:update-full",
+      "file_path": ".claude/commands/memory/update-full.md",
+      "score": 66,
+      "why": "Same memory maintenance patterns and naming conventions; useful for consistent artifact vocabulary and quality checklist style."
+    }
+  ],
+  "selected": {
+    "slash": "/memory:compact",
+    "file_path": ".claude/commands/memory/compact.md",
+    "score": 100,
+    "reason": "Oracle for this command (exact match). Use it only for gap analysis; spec remains non-leaky."
+  }
+}
+

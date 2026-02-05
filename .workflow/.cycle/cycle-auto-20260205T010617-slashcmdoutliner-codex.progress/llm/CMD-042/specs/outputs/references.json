@@ -1,0 +1,60 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:plan-verify",
+      "file_path": ".claude/commands/workflow/plan-verify.md",
+      "score": 100,
+      "why": [
+        "Exact match (same command identity and artifact model)",
+        "Includes required sections: Goal, Operating Constraints, Execution Steps, report structure",
+        "Uses the same session folder conventions under .workflow/active/WFS-{session}"
+      ]
+    },
+    {
+      "slash": "/workflow:tdd-verify",
+      "file_path": ".claude/commands/workflow/tdd-verify.md",
+      "score": 82,
+      "why": [
+        "Same group (workflow) and verification intent",
+        "Similar read-only analysis posture + quality gate framing",
+        "Works against workflow session artifacts"
+      ]
+    },
+    {
+      "slash": "/workflow:review",
+      "file_path": ".claude/commands/workflow/review.md",
+      "score": 73,
+      "why": [
+        "Same group (workflow) and produces a structured report",
+        "Shares severity-based findings patterns",
+        "Often reads session artifacts and emits recommendations"
+      ]
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 66,
+      "why": [
+        "Adjacent workflow stage (plan -> verify)",
+        "Defines expected artifacts (IMPL_PLAN.md + .task JSONs) that plan-verify consumes",
+        "Contains session discovery and orchestration conventions"
+      ]
+    },
+    {
+      "slash": "/workflow:replan",
+      "file_path": ".claude/commands/workflow/replan.md",
+      "score": 58,
+      "why": [
+        "Same group (workflow) and interacts with the same planning artifacts",
+        "Provides patterns for dealing with incomplete/changed artifacts",
+        "Useful for remediation guidance in the verification report"
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:plan-verify",
+    "file_path": ".claude/commands/workflow/plan-verify.md",
+    "reason": "The oracle command doc already defines the intended workflow, artifacts, constraints, and output report structure for /workflow:plan-verify."
+  }
+}
+

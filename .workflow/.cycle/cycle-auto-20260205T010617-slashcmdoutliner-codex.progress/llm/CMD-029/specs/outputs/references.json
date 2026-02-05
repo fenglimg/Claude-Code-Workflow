@@ -1,0 +1,60 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:brainstorm:role-analysis",
+      "file_path": ".claude/commands/workflow/brainstorm/role-analysis.md",
+      "score": 92,
+      "why": [
+        "Same family: workflow/brainstorm",
+        "Includes role-based Task execution and TodoWrite integration",
+        "Shares session folder conventions under .workflow/active/WFS-*/.brainstorming/"
+      ]
+    },
+    {
+      "slash": "/workflow:brainstorm:artifacts",
+      "file_path": ".claude/commands/workflow/brainstorm/artifacts.md",
+      "score": 90,
+      "why": [
+        "Same family: workflow/brainstorm",
+        "Provides phase-based workflow + session management patterns",
+        "Writes guidance specification artifact used by downstream phases"
+      ]
+    },
+    {
+      "slash": "/workflow:brainstorm:synthesis",
+      "file_path": ".claude/commands/workflow/brainstorm/synthesis.md",
+      "score": 86,
+      "why": [
+        "Same family: workflow/brainstorm",
+        "Shows multi-role aggregation and structured output generation",
+        "Includes parallel update agent patterns"
+      ]
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 76,
+      "why": [
+        "Defines sequential vs parallel execution semantics",
+        "Strong TodoWrite status tracking conventions",
+        "Useful for orchestrator error/parallelism rules"
+      ]
+    },
+    {
+      "slash": "/workflow:brainstorm-with-file",
+      "file_path": ".claude/commands/workflow/brainstorm-with-file.md",
+      "score": 72,
+      "why": [
+        "Brainstorming workflow with parallel perspectives",
+        "Demonstrates multi-agent orchestration patterns",
+        "Different input mode (file-driven), but reusable structure"
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:brainstorm:role-analysis",
+    "file_path": ".claude/commands/workflow/brainstorm/role-analysis.md",
+    "why": "Closest match for role-driven Task execution + session-aware orchestration patterns; complements artifacts (Phase 1) and synthesis (Phase 3)."
+  }
+}
+

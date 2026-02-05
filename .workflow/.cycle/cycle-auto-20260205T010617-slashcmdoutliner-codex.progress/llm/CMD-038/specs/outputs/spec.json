@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-02-05T01:06:17Z",
+  "source": {
+    "requirements_doc": ".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-038.requirements.md",
+    "oracle_command_doc": ".claude/commands/workflow/lite-execute.md"
+  },
+  "command": {
+    "group": "workflow",
+    "name": "lite-execute",
+    "description": "Execute tasks based on in-memory plan, prompt description, or file content",
+    "argument_hint": "[-y|--yes] [--in-memory] [\"task description\"|file-path]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "Bash(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "iterative",
+    "primary_user_value": "Execute a set of tasks from an in-memory plan, a prompt, or a file; orchestrate Agent/CLI execution with progress tracking and optional review."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/project-guidelines.json",
+      ".workflow/project-tech.json",
+      "<INPUT file-path>",
+      "<executionContext.session.artifacts.plan>",
+      "<executionContext.session.artifacts.explorations_manifest>",
+      "<executionContext.session.artifacts.explorations[*].path>"
+    ],
+    "writes": [
+      ".workflow/project-tech.json (optional: development_index update)",
+      "<in-memory executionContext>",
+      "<background CLI executions via ccw cli --id/--resume>"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 0,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not claim a pointer is Existing unless it is verifiable in the repo now",
+      "Evidence for implementation pointers must be dual-source (docs + TS)",
+      "If unsure, mark as Planned and add Verify steps"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name/description/allowed-tools)",
+      "allowed-tools correct for described behavior",
+      "core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
+      "no broken artifact references",
+      "implementation pointers labeled Existing/Planned with dual-source evidence"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      "Workflow Lite-Execute Command (/workflow:lite-execute)",
+      "Overview",
+      "Usage",
+      "Command Syntax",
+      "Flags",
+      "Arguments",
+      "Input Modes",
+      "Mode 1: In-Memory Plan",
+      "Mode 2: Prompt Description",
+      "Mode 3: File Content",
+      "Execution Process",
+      "Detailed Execution Steps",
+      "Step 1: Initialize Execution Tracking",
+      "Step 2: Task Grouping & Batch Creation",
+      "Step 3: Launch Execution",
+      "Unified Task Prompt Builder",
+      "Step 4: Progress Tracking",
+      "Step 5: Code Review (Optional)",
+      "Step 6: Update Development Index",
+      "Best Practices",
+      "Error Handling",
+      "Data Structures",
+      "executionContext (Input - Mode 1)",
+      "executionResult (Output)",
+      "Post-Completion Expansion"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/lite-execute.md",
+    "code_pointers": [
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/core/routes/commands-routes.ts",
+      "ccw/src/tools/cli-executor-core.ts"
+    ]
+  }
+}

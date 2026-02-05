@@ -1,0 +1,54 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "brainstorm-with-file",
+    "description": "Interactive brainstorming with multi-CLI collaboration, idea expansion, and documented thought evolution",
+    "argument_hint": "[-y|--yes] [-c|--continue] [-m|--mode creative|structured] \"idea or topic\"",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Grep(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)"
+    ]
+  },
+  "intent": {
+    "type": "brainstorm",
+    "interaction": "iterative",
+    "primary_user_value": "Expand an initial idea/topic into multi-perspective options with a documented thought evolution and final synthesis."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/.brainstorm/<session-id>/brainstorm.md (when --continue)",
+      "repo files as needed (via cli-explore-agent / Grep / Glob)"
+    ],
+    "writes": [
+      ".workflow/.brainstorm/<session-id>/brainstorm.md",
+      ".workflow/.brainstorm/<session-id>/exploration-codebase.json",
+      ".workflow/.brainstorm/<session-id>/perspectives.json",
+      ".workflow/.brainstorm/<session-id>/ideas/<idea-slug>.md",
+      ".workflow/.brainstorm/<session-id>/synthesis.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 6,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "make unrelated repo changes",
+      "run destructive operations without explicit user request",
+      "claim pointers are Existing unless verifiable in-repo"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name/description/allowed-tools/group)",
+      "allowed-tools correct for described workflow",
+      "core sections present (Overview/Usage/Execution Process/Outputs/Error Handling)",
+      "artifact paths referenced are consistent with the session folder"
+    ]
+  }
+}

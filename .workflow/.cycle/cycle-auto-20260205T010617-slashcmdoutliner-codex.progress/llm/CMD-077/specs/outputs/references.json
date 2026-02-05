@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:lite-execute",
+      "file_path": ".claude/commands/workflow/lite-execute.md",
+      "score": 92,
+      "why": "Closest execution-oriented command that accepts file input, builds a unified execution prompt, and tracks progress."
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 84,
+      "why": "Full workflow executor with session discovery/resume patterns and optional commit behavior; good for execution-loop structure."
+    },
+    {
+      "slash": "/workflow:test-cycle-execute",
+      "file_path": ".claude/commands/workflow/test-cycle-execute.md",
+      "score": 76,
+      "why": "Iterative multi-agent execution loop with resumability, artifact writing, and structured progress tracking."
+    },
+    {
+      "slash": "/workflow:analyze-with-file",
+      "file_path": ".claude/commands/workflow/analyze-with-file.md",
+      "score": 62,
+      "why": "File-driven workflow command; useful for argument parsing and file reading conventions."
+    },
+    {
+      "slash": "/workflow:collaborative-plan-with-file",
+      "file_path": ".claude/commands/workflow/collaborative-plan-with-file.md",
+      "score": 58,
+      "why": "Consumes external file artifacts and coordinates multi-step work; useful for multi-phase structure conventions."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:lite-execute",
+    "file_path": ".claude/commands/workflow/lite-execute.md",
+    "why": "Best match for file-driven execution orchestration + unified prompt building; extend with unified event-log/session model."
+  }
+}
+

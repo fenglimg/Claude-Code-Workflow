@@ -1,0 +1,144 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-02-04T21:10:18.7305762Z",
+  "requirements_path": ".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-019.requirements.md",
+  "derived_from": ".claude/commands/memory/docs-full-cli.md",
+  "command": {
+    "group": "memory",
+    "name": "docs-full-cli",
+    "description": "Generate full project documentation using CLI execution (Layer 3->1) with batched agents (4 modules/agent) and gemini->qwen->codex fallback, <20 modules uses direct parallel",
+    "argument_hint": "[path] [--tool <gemini|qwen|codex>]",
+    "usage_args": "[path] [--tool <gemini|qwen|codex>]",
+    "allowed_tools": [
+      "AskUserQuestion(*)",
+      "Bash(*)",
+      "Task(*)"
+    ]
+  },
+  "intent": {
+    "primary_user_value": "Generate complete project/module documentation into .workflow/docs/ using a layer-based (deep-to-shallow) strategy with CLI execution, batching, and tool fallback."
+  },
+  "inputs": {
+    "required": [],
+    "optional": [
+      "path (positional): target directory; default current directory",
+      "--tool <gemini|qwen|codex>: primary CLI tool; default gemini"
+    ]
+  },
+  "artifacts": {
+    "writes": [
+      ".workflow/docs/{project_name}/**/*.md"
+    ],
+    "reads": [
+      "repository files under <path>",
+      "~/.claude/workflows/cli-templates/prompts/documentation/* (pre-existing)"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/memory/docs-full-cli.md",
+    "code_pointers": [
+      "ccw/src/tools/get-modules-by-depth.ts",
+      "ccw/src/tools/classify-folders.ts",
+      "ccw/src/tools/generate-module-docs.ts",
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/tools/claude-cli-tools.ts"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      {
+        "level": 1,
+        "text": "Full Documentation Generation - CLI Mode (/memory:docs-full-cli)"
+      },
+      {
+        "level": 2,
+        "text": "Overview"
+      },
+      {
+        "level": 2,
+        "text": "3-Layer Architecture & Auto-Strategy Selection"
+      },
+      {
+        "level": 3,
+        "text": "Layer Definition & Strategy Assignment"
+      },
+      {
+        "level": 3,
+        "text": "Strategy Details"
+      },
+      {
+        "level": 4,
+        "text": "Full Strategy (Layer 3 Only)"
+      },
+      {
+        "level": 4,
+        "text": "Single Strategy (Layers 1-2)"
+      },
+      {
+        "level": 3,
+        "text": "Example Flow"
+      },
+      {
+        "level": 2,
+        "text": "Core Execution Rules"
+      },
+      {
+        "level": 2,
+        "text": "Tool Fallback Hierarchy"
+      },
+      {
+        "level": 2,
+        "text": "Execution Phases"
+      },
+      {
+        "level": 3,
+        "text": "Phase 1: Discovery & Analysis"
+      },
+      {
+        "level": 3,
+        "text": "Phase 2: Plan Presentation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3A: Direct Execution (<20 modules)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 3B: Agent Batch Execution (>=20 modules)"
+      },
+      {
+        "level": 3,
+        "text": "Phase 4: Project-Level Documentation"
+      },
+      {
+        "level": 3,
+        "text": "Phase 5: Verification"
+      },
+      {
+        "level": 2,
+        "text": "Error Handling"
+      },
+      {
+        "level": 2,
+        "text": "Output Structure"
+      },
+      {
+        "level": 2,
+        "text": "Usage Examples"
+      },
+      {
+        "level": 2,
+        "text": "Key Advantages"
+      },
+      {
+        "level": 2,
+        "text": "Template Reference"
+      },
+      {
+        "level": 2,
+        "text": "Related Commands"
+      }
+    ]
+  }
+}
+

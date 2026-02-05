@@ -1,0 +1,39 @@
+{
+  "candidates": [
+    {
+      "slash": "/issue:plan",
+      "file_path": ".claude/commands/issue/plan.md",
+      "score": 1,
+      "why": "Exact command (oracle). Matches group=issue, same allowed-tools, and defines the orchestrator + issue-plan-agent closed-loop."
+    },
+    {
+      "slash": "/issue:queue",
+      "file_path": ".claude/commands/issue/queue.md",
+      "score": 0.86,
+      "why": "Same issue lifecycle family; uses ccw issue CLI, batching, JSON outputs, and includes strong data-access principles."
+    },
+    {
+      "slash": "/issue:execute",
+      "file_path": ".claude/commands/issue/execute.md",
+      "score": 0.82,
+      "why": "Same issue lifecycle; coordinates execution using CLI + user selection, with error handling and JSON/brief modes."
+    },
+    {
+      "slash": "/issue:from-brainstorm",
+      "file_path": ".claude/commands/issue/from-brainstorm.md",
+      "score": 0.74,
+      "why": "Issue creation/planning adjacent; includes interactive vs auto mode patterns and selection flows."
+    },
+    {
+      "slash": "/issue:convert-to-plan",
+      "file_path": ".claude/commands/issue/convert-to-plan.md",
+      "score": 0.71,
+      "why": "Transforms external inputs into issue planning artifacts; similar validation and file-writing behaviors."
+    }
+  ],
+  "selected": {
+    "slash": "/issue:plan",
+    "file_path": ".claude/commands/issue/plan.md",
+    "why": "Oracle source for required headings/behavior; use as the primary reference for non-regression and gap analysis."
+  }
+}

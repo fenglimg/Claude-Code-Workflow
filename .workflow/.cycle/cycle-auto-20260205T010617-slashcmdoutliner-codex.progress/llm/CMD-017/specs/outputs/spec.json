@@ -1,0 +1,93 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-02-04T20:45:35.4919502Z",
+  "command": {
+    "group": "issue",
+    "name": "queue",
+    "description": "Form execution queue from bound solutions using issue-queue-agent (solution-level)",
+    "argument_hint": "[-y|--yes] [--queues <n>] [--issue <id>]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "iterative",
+    "primary_user_value": "Create one or more solution-level execution queues from planned issues with bound solutions, with conflict clarification when needed."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/issues/issues.jsonl",
+      ".workflow/issues/solutions/*.jsonl",
+      ".workflow/issues/queues/index.json",
+      ".workflow/issues/queues/{queue-id}.json"
+    ],
+    "writes": [
+      ".workflow/issues/queues/index.json",
+      ".workflow/issues/queues/{queue-id}.json",
+      ".workflow/issues/issues.jsonl"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 5,
+    "time_budget_seconds": 900,
+    "must_not": [
+      "Do not claim any implementation pointer is Existing unless it is verifiable in the repo now.",
+      "Do not directly edit .workflow files; prefer the ccw CLI via Bash for issue/solution/queue operations.",
+      "If high-severity conflicts require user input, block and ask clarifying questions rather than guessing ordering."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name, description, allowed-tools (and argument-hint for non-trivial commands)",
+      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
+      "Implementation pointers evidence table uses Existing vs Planned correctly with dual-source evidence (docs + TS)",
+      "Evidence tables pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      "Auto Mode",
+      "Issue Queue Command (/issue:queue)",
+      "Overview",
+      "Core Capabilities",
+      "Core Guidelines",
+      "Usage",
+      "Examples",
+      "Flags",
+      "CLI subcommands (ccw issue queue ...)",
+      "Execution Process",
+      "Implementation",
+      "Phase 1: Solution Loading & Distribution",
+      "Phase 2-4: Agent-Driven Queue Formation",
+      "Order Solutions into Execution Queue",
+      "Input",
+      "Workflow",
+      "Output Requirements",
+      "Rules",
+      "Done Criteria",
+      "Phase 5: Conflict Clarification",
+      "Phase 6: Status Update & Summary",
+      "Option 1: Batch update from queue (recommended)",
+      "Option 2: Individual issue update",
+      "Phase 7: Active Queue Check & Decision",
+      "Storage Structure (Queue History)",
+      "Queue Index Schema",
+      "Error Handling",
+      "Quality Checklist",
+      "Related Commands"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/issue/queue.md",
+    "code_pointers": [
+      "ccw/src/commands/issue.ts",
+      "ccw/src/core/routes/issue-routes.ts",
+      ".codex/agents/issue-queue-agent.md"
+    ]
+  }
+}

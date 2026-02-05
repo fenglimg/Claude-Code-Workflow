@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/multi-cli-plan.md",
+  "created_at": "2026-02-05T00:00:00.000Z",
+  "command": {
+    "group": "workflow",
+    "name": "multi-cli-plan",
+    "description": "Multi-CLI collaborative planning workflow with ACE context gathering and iterative cross-verification. Uses cli-discuss-agent for Gemini+Codex+Claude analysis to converge on optimal execution plan.",
+    "argument_hint": "[-y|--yes] <task description> [--max-rounds=3] [--tools=gemini,codex] [--mode=parallel|serial]",
+    "usage_args": "\"<task description>\" [--max-rounds=3] [--tools=gemini,codex,claude] [--mode=parallel|serial] [-y|--yes]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Bash(*)",
+      "Write(*)",
+      "mcp__ace-tool__search_context(*)"
+    ]
+  },
+  "intent": {
+    "type": "plan",
+    "interaction": "iterative",
+    "primary_user_value": "Cross-verify multiple model/CLI perspectives, converge on a plan, then hand off an approved plan to lite-execute."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/.multi-cli-plan/<session-id>/session-state.json",
+      ".workflow/.multi-cli-plan/<session-id>/rounds/<n>/synthesis.json",
+      ".workflow/.multi-cli-plan/<session-id>/context-package.json"
+    ],
+    "writes": [
+      ".workflow/.multi-cli-plan/<session-id>/session-state.json",
+      ".workflow/.multi-cli-plan/<session-id>/rounds/<n>/synthesis.json",
+      ".workflow/.multi-cli-plan/<session-id>/context-package.json",
+      ".workflow/.multi-cli-plan/<session-id>/plan.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds_default": 3,
+    "must_not": [
+      "do not execute code changes without explicit user approval unless --yes is set",
+      "do not exceed max rounds without a user decision"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "command doc frontmatter present (name/description/allowed-tools)",
+      "documents iterative phase flow and user decision points",
+      "documents session output directory and artifacts"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      { "level": 2, "text": "Auto Mode" },
+      { "level": 2, "text": "Quick Start" },
+      { "level": 2, "text": "What & Why" },
+      { "level": 3, "text": "Core Concept" },
+      { "level": 3, "text": "Orchestrator Boundary (CRITICAL)" },
+      { "level": 3, "text": "Execution Flow" },
+      { "level": 3, "text": "Agent Roles" },
+      { "level": 2, "text": "Core Responsibilities" },
+      { "level": 3, "text": "Phase 1: Context Gathering" },
+      { "level": 3, "text": "Phase 2: Agent Delegation" },
+      { "level": 2, "text": "Output" },
+      { "level": 2, "text": "Output File Structure" },
+      { "level": 2, "text": "synthesis.json Schema" },
+      { "level": 2, "text": "TodoWrite Structure" },
+      { "level": 2, "text": "Error Handling" },
+      { "level": 2, "text": "Configuration" },
+      { "level": 2, "text": "Best Practices" },
+      { "level": 2, "text": "Related Commands" }
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/workflow/multi-cli-plan.md",
+    "code_pointers": [
+      "ccw/src/tools/command-registry.ts",
+      "ccw/src/core/lite-scanner.ts",
+      "ccw/src/core/routes/session-routes.ts",
+      "ccw/src/types/session.ts"
+    ]
+  }
+}
+

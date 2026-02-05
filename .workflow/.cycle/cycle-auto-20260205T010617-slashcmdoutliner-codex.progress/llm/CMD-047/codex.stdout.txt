@@ -1,0 +1,11 @@
+Wrote CMD-047 outputs under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-047/specs/outputs/`:
+
+- `spec.json`
+- `references.json`
+- `generated-slash-outline.md`
+- `generated-agent-outline.md`
+- `gap-report.md`
+- `fix-plan.md`
+
+Validated evidence tables (dual-source docs + TS anchors, Existing vs Planned) with:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.../generated-slash-outline.md --file=.../gap-report.md` (PASS)

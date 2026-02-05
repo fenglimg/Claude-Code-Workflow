@@ -1,0 +1,55 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:test-cycle-execute",
+      "file_path": ".claude/commands/workflow/test-cycle-execute.md",
+      "score": 100,
+      "why": [
+        "Exact command match (same group/name/args/allowed-tools).",
+        "Defines session file structure, iteration state, and agent-role split for the loop."
+      ]
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 86,
+      "why": [
+        "Same group and execution-oriented interaction model.",
+        "Has resume-session semantics and workflow session discovery patterns."
+      ]
+    },
+    {
+      "slash": "/workflow:test-fix-gen",
+      "file_path": ".claude/commands/workflow/test-fix-gen.md",
+      "score": 80,
+      "why": [
+        "Testing workflow family; upstream of test-cycle execution.",
+        "Uses workflow sessions and produces artifacts consumed by test-cycle execution."
+      ]
+    },
+    {
+      "slash": "/workflow:tools:test-task-generate",
+      "file_path": ".claude/commands/workflow/tools/test-task-generate.md",
+      "score": 72,
+      "why": [
+        "Closest tooling-oriented reference for generating task JSON artifacts in sessions.",
+        "Helps align task naming and file placement with session conventions."
+      ]
+    },
+    {
+      "slash": "/workflow:plan-verify",
+      "file_path": ".claude/commands/workflow/plan-verify.md",
+      "score": 65,
+      "why": [
+        "Provides a multi-phase workflow template and calls /workflow:execute with resume-session.",
+        "Useful for TodoWrite/status tracking conventions."
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:test-cycle-execute",
+    "file_path": ".claude/commands/workflow/test-cycle-execute.md",
+    "why": "Highest-confidence reference (exact match) to validate headings, artifacts, and loop semantics."
+  }
+}
+

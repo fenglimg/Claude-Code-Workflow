@@ -1,0 +1,47 @@
+{
+  "command": {
+    "group": "other",
+    "name": "ccw",
+    "description": "Main workflow orchestrator - analyze intent, select workflow, execute command chain in main process",
+    "argument_hint": "\"task description\"",
+    "allowed_tools": [
+      "Skill(*)",
+      "TodoWrite(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Grep(*)",
+      "Glob(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "iterative",
+    "primary_user_value": "Analyze a natural-language task, select an appropriate CCW workflow, and execute the resulting command chain with TODO + status tracking."
+  },
+  "artifacts": {
+    "reads": [
+      ".claude/commands/**.md",
+      ".workflow/**"
+    ],
+    "writes": [
+      ".workflow/.ccw/<session_id>/status.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 2,
+    "time_budget_seconds": 900,
+    "must_not": [
+      "claim pointers are Existing unless verifiable in repo now",
+      "write outside the workspace without explicit user request",
+      "introduce unrelated changes"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter includes name, description, allowed-tools",
+      "allowed-tools matches intended behavior",
+      "core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
+      "evidence tables pass verify-evidence.js (dual-source docs + TS)"
+    ]
+  }
+}

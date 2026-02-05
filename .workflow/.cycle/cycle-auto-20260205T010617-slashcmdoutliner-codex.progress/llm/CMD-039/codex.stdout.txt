@@ -1,0 +1,13 @@
+Used skill `slash-command-outliner` and generated CMD-039 outputs from `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-039.requirements.md`.
+
+Wrote:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-039/specs/outputs/fix-plan.md`
+
+Quality gate:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=...generated-slash-outline.md` ✅
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=...gap-report.md` ✅

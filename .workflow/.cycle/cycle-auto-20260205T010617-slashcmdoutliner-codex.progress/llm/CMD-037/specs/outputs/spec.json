@@ -1,0 +1,50 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "init",
+    "title": "Workflow Init Command (/workflow:init)",
+    "description": "Initialize project-level state with intelligent project analysis using cli-explore-agent",
+    "argument_hint": "[--regenerate]",
+    "allowed_tools": [
+      "Bash(*)",
+      "Task(cli-explore-agent)",
+      "AskUserQuestion(*)",
+      "Skill(workflow:init-guidelines)",
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "iterative",
+    "primary_user_value": "Initialize .workflow/project-tech.json (analysis) and .workflow/project-guidelines.json (rules scaffold) so other workflows and the CCW dashboard have project context."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/project-tech.json",
+      ".workflow/project-guidelines.json"
+    ],
+    "writes": [
+      ".workflow/project-tech.json",
+      ".workflow/project-tech.json.backup",
+      ".workflow/project-guidelines.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 300,
+    "must_not": [
+      "Overwrite existing .workflow/project-tech.json unless --regenerate is set",
+      "Interrupt calling workflows after initialization completes (return immediately)",
+      "Claim implementation pointers are Existing without repo-verifiable evidence (docs heading + ccw/src anchor + Test-Path/rg verify)"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name, description, argument-hint, allowed-tools, group",
+      "Core sections present: Overview, Usage, Inputs, Outputs/Artifacts, Execution Process, Error Handling",
+      "Every implementation pointer row includes dual-source evidence (docs + ccw/src literal anchor) and a concrete Verify command; never label unverifiable pointers as Existing"
+    ]
+  }
+}
+

@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:tools:test-concept-enhanced",
+      "file_path": ".claude/commands/workflow/tools/test-concept-enhanced.md",
+      "score": 1.0,
+      "why": "Oracle command doc for CMD-064; exact match on name/description and execution model (cli-execution-agent + Gemini)."
+    },
+    {
+      "slash": "/workflow:tools:test-context-gather",
+      "file_path": ".claude/commands/workflow/tools/test-context-gather.md",
+      "score": 0.92,
+      "why": "Same workflow/tools family; prepares the upstream test-context-package consumed by test-concept-enhanced; similar agent-delegation structure."
+    },
+    {
+      "slash": "/workflow:tools:test-task-generate",
+      "file_path": ".claude/commands/workflow/tools/test-task-generate.md",
+      "score": 0.86,
+      "why": "Adjacent downstream command in the same test workflow chain; shares session/artifact conventions under .workflow/active/{id}."
+    },
+    {
+      "slash": "/workflow:tools:conflict-resolution",
+      "file_path": ".claude/commands/workflow/tools/conflict-resolution.md",
+      "score": 0.77,
+      "why": "Uses cli-execution-agent with Gemini/Qwen and iterative user clarification patterns; useful for interaction + error-handling comparisons."
+    },
+    {
+      "slash": "/workflow:tools:tdd-coverage-analysis",
+      "file_path": ".claude/commands/workflow/tools/tdd-coverage-analysis.md",
+      "score": 0.71,
+      "why": "Testing-focused tooling command with explicit allowed-tools and artifact writing; useful for aligning frontmatter/tool surface."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:tools:test-concept-enhanced",
+    "file_path": ".claude/commands/workflow/tools/test-concept-enhanced.md",
+    "reason": "Use as reference oracle for a non-leaky outline + gap analysis against CCW quality gates (frontmatter, core sections, evidence)."
+  }
+}
+

@@ -1,0 +1,2486 @@
+Reading prompt from stdin...
+OpenAI Codex v0.93.0 (research preview)
+--------
+workdir: C:\Project\Claude-Code-Workflow
+model: gpt-5.2
+provider: codex
+approval: never
+sandbox: danger-full-access
+reasoning effort: high
+reasoning summaries: auto
+session id: 019c2d88-7135-70c2-8386-90bc229ade62
+--------
+user
+Use the repo skill: slash-command-outliner (path: .codex/skills/slash-command-outliner).
+
+Cycle: cycle-auto-20260205T010617-slashcmdoutliner-codex
+Command: CMD-068
+
+Input requirement doc (non-leaky): `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-068.requirements.md`
+
+Write the following output files (create directories as needed) under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs`:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md`
+
+Hard rules (P0):
+- Follow templates: .codex/skills/slash-command-outliner/templates/*
+- Follow gates: .codex/skills/slash-command-outliner/specs/quality-gates.md
+- Evidence tables MUST pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js
+- Never label a pointer as Existing unless it is verifiable in the repo now.
+- For ANY pointer row, provide dual-source evidence:
+  - docs: .claude/commands/**.md / <real heading text>
+  - ts: ccw/src/** / <literal anchor string present in file>
+- Avoid placeholders like TBD/N/A in evidence rows; if unsure, mark as Planned and add Verify steps.
+
+Keep the written files concise; do not write extra files unless necessary.
+
+deprecated: `[features].web_search_request` is deprecated. Use `web_search` instead.
+  Set `web_search` to `"live"`, `"cached"`, or `"disabled"` in config.toml.
+mcp: ace-tool starting
+mcp: ccw-tools starting
+mcp: exa starting
+mcp: ccw-tools ready
+mcp: ace-tool ready
+mcp: exa ready
+mcp startup: ready: ccw-tools, ace-tool, exa
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/SKILL.md' in C:\Project\Claude-Code-Workflow succeeded in 313ms:
+---
+name: slash-command-outliner
+description: Codex version of slash-command-outliner. Generate CCW-aligned slash command development outlines from a requirement/spec doc, validated via corpus-wide iteration and non-regression. Triggers on "slash command outliner", "slash 命令大纲", "slash 命令生成器", "命令大纲".
+allowed-tools: Read, Write, AskUserQuestion, Task, Bash, TodoWrite, mcp__ace-tool__search_context
+---
+
+# Slash Command Outliner (Codex)
+
+Input a **slash command requirement/spec document**. Output a **CCW-aligned, end-to-end development outline** (Slash MD outline + Agent MD outline) plus a **gap-report** that compares against reference implementations and CCW server/tooling corpus. Improve quality by iterating across **all** existing commands with **non-regression snapshots**.
+
+This skill is designed to be **precise** (no fluff) and **stable** (non-regression gate).
+
+## Canonical Workflow (Phases)
+
+1) `phases/01-collect-spec.md`  
+2) `phases/02-retrieve-and-rank-references.md`  
+3) `phases/03-generate-outlines.md`  
+4) `phases/04-gap-report-and-iterate.md`  
+5) `phases/05-regression-and-closure.md`
+
+
+thinking
+**Reading tools and templates**
+
+I see that skill lists mention allowed tools, but my environment has more tools available. I need to follow the phases documentation next. I'll open up the templates and quality gates, so let’s read those files carefully. Using shell commands like Get-Content -Raw would help me get key items. I should inspect the phase docs to understand their structure and the required outputs, like spec.json. So, I'll look at specs/quality-gates.md and templates now.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/quality-gates.md' in C:\Project\Claude-Code-Workflow succeeded in 316ms:
+# Quality Gates (Non-regression First)
+
+## P0 Gates (Must Pass)
+
+P0 failure means “not CCW-aligned” and blocks completion.
+
+1) **Frontmatter completeness**
+   - `name`, `description`, `allowed-tools` must exist
+   - `argument-hint` optional but recommended for non-trivial commands
+2) **Allowed-tools correctness**
+   - no tools outside the supported CCW set for the intended workflow
+   - no missing tools required by the described behavior
+3) **Core sections present**
+   - at least: `Overview`, `Usage`, `Execution Process`, `Output/Artifacts`, `Error Handling`
+4) **No broken artifact references**
+   - referenced paths must be either created by the command or explicitly documented as pre-existing
+
+5) **Implementation pointers must be evidence-based (Existing vs Planned)**
+   - Every implementation pointer (file/module/CLI subcommand/tool entry) MUST be labeled:
+     - `Existing`: verifiable in repo now
+
+thinking
+**Reviewing templates for outlines**
+
+I need to focus on the front matter and the outlines, but I’m noticing that what I’m outputting is more about generating spec JSON rather than actual commands. I should check out the templates for outlines, as they likely outline the necessary sections I need to include. It seems like a simple step, but I want to ensure I’m getting it right. Let’s take a closer look at those templates!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/slash-command-outline.md' in C:\Project\Claude-Code-Workflow succeeded in 317ms:
+---
+name: {{command.name}}
+description: {{command.description}}
+argument-hint: "{{command.argument_hint}}"
+allowed-tools: {{command.allowed_tools_csv}}
+group: {{command.group}}
+---
+
+# {{command.title}}
+
+## Overview
+
+- Goal: {{intent.primary_user_value}}
+- Command: `/{{command.group}}:{{command.name}}`
+
+## Usage
+
+```bash
+/{{command.group}}:{{command.name}} {{command.usage_args}}
+```
+
+
+thinking
+**Clarifying evidence requirements**
+
+I've got a template that includes placeholders like `TBD`, but the user has a hard rule against using those in evidence rows. Instead, when I'm uncertain, I should mark it as Planned and include Verify steps. Each row in the evidence table needs actual documentation and TS anchors. If I can't find something, I need to set it as Planned but still provide dual-source evidence for any pointer row. So, it seems that every pointer, even Planned ones, must be backed up by documentation—perhaps I can reference similar existing commands for evidence.
+thinking
+**Examining evidence patterns**
+
+For planned pointers, I think I can reference existing commands as evidence. This would involve pointing to documentation headings where similar pointers appear, and using the TS anchor string from those implementations. This approach should work with the verify-evidence script, as long as it can find those headings and anchors. I assume the script checks that both the documentation path and the TS path are correct. I'll need to look closely at verify-evidence.js to understand the expected format.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/verify-evidence.js' in C:\Project\Claude-Code-Workflow succeeded in 307ms:
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+export function usage() {
+  console.log(
+    [
+      'Usage:',
+      '  node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<path.md> [--file=<path2.md> ...]',
+      '',
+      'Behavior:',
+      '  - Extracts evidence tables from markdown (gap-report and/or outline)',
+      '  - Enforces evidence-based gates:',
+      '    - Each row must label Status as Existing or Planned',
+      '    - Evidence must include BOTH docs and ts anchors:',
+      '      - docs: .claude/commands/**.md / <section heading>',
+      '      - ts: ccw/src/** / <function|case|pattern>',
+      '    - Existing rows must point to verifiable pointers (paths must exist when pointer looks like a path)',
+      '',
+      'Notes:',
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/01-collect-spec.md' in C:\Project\Claude-Code-Workflow succeeded in 315ms:
+# Phase 01: Collect Spec (No Leakage)
+
+## Goal
+
+Turn a human requirement/rules document into a **minimal, structured spec** that is sufficient to generate:
+
+- Slash command outline (CCW command MD skeleton)
+- Agent outline (execution + tools + state)
+
+Do **not** copy/paste existing implementation docs as input; treat them as oracle only during gap analysis.
+
+## Required Inputs (ask if missing)
+
+1. Command identity:
+   - `group` (workflow|issue|learn|cli|other)
+   - `name` (kebab-case)
+   - `description` (one sentence)
+   - `argument-hint` (optional)
+2. Allowed tools:
+   - exact list for frontmatter `allowed-tools`
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/spec-input.md' in C:\Project\Claude-Code-Workflow succeeded in 307ms:
+# Spec Input (Schema + Rules)
+
+The spec is the only “source input” for outline generation. It must be **minimal** and **non-leaky**.
+
+## Minimal JSON Schema (informal)
+
+```json
+{
+  "command": {
+    "group": "workflow|issue|learn|cli|other",
+    "name": "kebab-case",
+    "description": "one sentence",
+    "argument_hint": "[--flag] \"args\"",
+    "allowed_tools": ["Read(*)", "Write(*)"]
+  },
+  "intent": {
+    "type": "analyze|plan|execute|brainstorm|manage|utility",
+    "interaction": "single-shot|iterative|loop",
+    "primary_user_value": "what this command accomplishes"
+  },
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/02-retrieve-and-rank-references.md' in C:\Project\Claude-Code-Workflow succeeded in 314ms:
+# Phase 02: Retrieve + Rank References
+
+## Goal
+
+Find the closest existing commands and extract **reusable patterns** without copying full content.
+
+## Steps
+
+1) Use `mcp__ace-tool__search_context` to recall similar commands and relevant tooling code.
+2) Produce Top N candidates (default N=5) with deterministic scoring:
+   - same `group` / command family
+   - similar interaction model (AskUserQuestion, multi-round loop, etc.)
+   - similar artifacts (writes to `.workflow/*`, `.claude/*`, etc.)
+   - similar allowed-tools surface
+3) Require user confirmation for Top 1 (high-confidence can be preselected but must be overridable).
+
+## Output
+
+Write:
+- `specs/outputs/references.json`
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/03-generate-outlines.md' in C:\Project\Claude-Code-Workflow succeeded in 315ms:
+# Phase 03: Generate Outlines (Slash MD + Agent MD)
+
+## Goal
+
+Generate:
+- a **Slash command MD outline** that matches CCW conventions (frontmatter + required sections)
+- an **Agent outline** that explains execution model, state, and validation strategy
+
+Use templates; keep output concise and implementation-oriented.
+
+## Inputs
+
+- `specs/outputs/spec.json`
+- `specs/outputs/references.json` (selected reference)
+- Rules: `../specs/quality-gates.md`
+
+## Output Files
+
+- `specs/outputs/generated-slash-outline.md` (based on `../templates/slash-command-outline.md`)
+- `specs/outputs/generated-agent-outline.md` (based on `../templates/agent-outline.md`)
+
+thinking
+**Clarifying user preferences**
+
+The user mentioned that I should avoid using placeholders like “TBD” in evidence rows, but it seems I can use them elsewhere if needed. I'll make sure to comply with this request. It's important to pay attention to those details as I work on the Phase 04 gap report. I just want to ensure everything aligns with what the user is looking for. Keeping everything clear and precise is the goal!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/04-gap-report-and-iterate.md' in C:\Project\Claude-Code-Workflow succeeded in 342ms:
+# Phase 04: Gap Report + Iterate
+
+## Goal
+
+Compare the generated outlines against:
+1) The selected reference command implementation (oracle)
+2) The CCW server/tooling corpus (routes, mcp tools, cli internals)
+
+Then propose the smallest set of changes to close gaps.
+
+## Inputs
+
+- `specs/outputs/generated-slash-outline.md`
+- `specs/outputs/generated-agent-outline.md`
+- `specs/outputs/references.json`
+- Tooling scope: `../specs/corpus-scope.md`
+
+## Output
+
+Write:
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/05-regression-and-closure.md' in C:\Project\Claude-Code-Workflow succeeded in 318ms:
+# Phase 05: Regression + Closure
+
+## Goal
+
+Make sure improvements do not regress previously-validated commands (non-regression).
+
+## What to Update (Cycle Mode)
+
+When iterating against the full corpus:
+- Update per-command status in `corpus-manifest.json`
+- Check off `TODO_LIST.md` items
+- Save snapshots in `regression/expected/` for commands marked completed
+- Write snapshot diffs into `regression/diff/` and block on unexpected changes
+
+## Non-regression Policy
+
+See `../specs/quality-gates.md`.
+
+## Completion Criteria
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-068.requirements.md' in C:\Project\Claude-Code-Workflow succeeded in 325ms:
+# Requirement (non-leaky): /workflow:workflow:ui-design:codify-style
+
+## Source
+
+- Command doc (oracle, do not paste full contents into spec): `.claude/commands/workflow/ui-design/codify-style.md`
+
+## Command Identity
+
+- group: workflow
+- name: workflow:ui-design:codify-style
+- description: Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)
+- argument-hint: <path> [--package-name <name>] [--output-dir <path>] [--overwrite]
+- allowed-tools: Skill,Bash,Read,TodoWrite
+
+## Structure Hints (Headings Only)
+
+- UI Design: Codify Style (Orchestrator)
+  - Overview & Execution Model
+  - Core Rules
+  - Usage
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Test-Path .claude/commands/workflow/ui-design/codify-style.md' in C:\Project\Claude-Code-Workflow succeeded in 314ms:
+True
+tool ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"slash command /workflow:ui-design:codify-style implementation pointer ccw/src command registry workflow ui-design codify-style"})
+ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"slash command /workflow:ui-design:codify-style implementation pointer ccw/src command registry workflow ui-design codify-style"}) success in 6.05s:
+{
+  "content": [
+    {
+      "text": "The following code sections were retrieved:\nPath: .claude\\commands\\workflow\\ui-design\\codify-style.md\n     1\t---\r\n     2\tname: workflow:ui-design:codify-style\r\n     3\tdescription: Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)\r\n     4\targument-hint: \"<path> [--package-name <name>] [--output-dir <path>] [--overwrite]\"\r\n     5\tallowed-tools: Skill,Bash,Read,TodoWrite\r\n     6\tauto-continue: true\r\n     7\t---\r\n     8\t\r\n     9\t# UI Design: Codify Style (Orchestrator)\r\n    10\t\r\n    11\t## Overview & Execution Model\r\n    12\t\r\n    13\t**Fully autonomous orchestrator**: Coordinates style extraction from codebase and generates shareable reference packages.\r\n    14\t\r\n    15\t**Pure Orchestrator Pattern**: Does NOT directly execute agent tasks. Delegates to specialized commands:\r\n    16\t1. `/workflow:ui-design:import-from-code` - Extract styles from source code\r\n    17\t2. `/workflow:ui-design:reference-page-generator` - Generate versioned reference package with interactive preview\r\n    18\t\r\n    19\t**Output**: Shareable, versioned style reference package at `.workflow/reference_style/{package-name}/`\r\n    20\t\r\n    21\t**Autonomous Flow** (⚠️ CONTINUOUS EXECUTION - DO NOT STOP):\r\n    22\t1. User triggers: `/workflow:ui-design:codify-style <path> --package-name <name>`\r\n    23\t2. Phase 0: Parameter validation & preparation → **IMMEDIATELY triggers Phase 1**\r\n    24\t3. Phase 1 (import-from-code) → **Attach 4 tasks → Execute tasks → Collapse** → Auto-continues to Phase 2\r\n    25\t4. Phase 2 (reference-page-generator) → **Attach 4 tasks → Execute tasks → Collapse** → Auto-continues to Phase 3\r\n    26\t5. Phase 3 (cleanup & verification) → **Execute orchestrator task** → Reports completion\r\n...\n    88\t```\r\n    89\t\r\n    90\t**Note**: Orchestrator tracks only high-level phases. Sub-command details shown when executed.\r\n    91\t\r\n    92\t**Step 0a: Parse and Validate Required Parameters**\r\n    93\t\r\n    94\t```bash\r\n    95\t# Parse positional path parameter (first non-flag argument)\r\n    96\tsource_path = FIRST_POSITIONAL_ARG\r\n    97\t\r\n    98\t# Validate source path\r\n    99\tIF NOT source_path:\r\n   100\t    REPORT: \"❌ ERROR: Missing required parameter: <path>\"\r\n   101\t    REPORT: \"USAGE: /workflow:ui-design:codify-style <path> [OPTIONS]\"\r\n   102\t    REPORT: \"EXAMPLE: /workflow:ui-design:codify-style ./src\"\r\n   103\t    REPORT: \"EXAMPLE: /workflow:ui-design:codify-style ./app --package-name design-system-v2\"\r\n   104\t    EXIT 1\r\n...\n   213\t```\r\n   214\t\r\n   215\t**Note**: Skill invocation **attaches** import-from-code's 4 tasks to current workflow. Orchestrator **executes** these tasks itself.\r\n   216\t\r\n   217\t**Next Action**: Tasks attached → **Execute Phase 1.0-1.3** sequentially\r\n   218\t\r\n   219\t---\r\n   220\t\r\n   221\t### Phase 1: Style Extraction from Source Code\r\n   222\t\r\n   223\t**Goal**: Extract design tokens, style patterns, and component styles from codebase\r\n   224\t\r\n   225\t**Command Construction**:\r\n   226\t\r\n   227\t```bash\r\n   228\t# Build command with required parameters only\r\n   229\t# Use temp_id as design-id since it's the workspace directory name\r\n   230\tcommand = \"/workflow:ui-design:import-from-code\" +\r\n   231\t          \" --design-id \\\"${temp_id}\\\"\" +\r\n   232\t          \" --source \\\"${source}\\\"\"\r\n   233\t```\r\n   234\t\r\n   235\t**Execute Command (Task Attachment Pattern)**:\r\n   236\t\r\n   237\t```bash\r\n   238\tTRY:\r\n   239\t    # Skill invocation ATTACHES import-from-code's 4 tasks to current workflow\r\n   240\t    # Orchestrator will EXECUTE these attached tasks itself:\r\n   241\t    #   1. Phase 1.0: Discover and categorize code files\r\n   242\t    #   2. Phase 1.1: Style Agent extraction\r\n   243\t    #   3. Phase 1.2: Animation Agent extraction\r\n   244\t    #   4. Phase 1.3: Layout Agent extraction\r\n   245\t    Skill(skill=command)\r\n   246\t\r\n   247\t    # After executing all attached tasks, verify extraction outputs\r\n   248\t    tokens_path = \"${design_run_path}/style-extraction/style-1/design-tokens.json\"\r\n   249\t    guide_path = \"${design_run_path}/style-extraction/style-1/style-guide.md\"\r\n   250\t\r\n   251\t    tokens_exists = Bash(test -f \"${tokens_path}\" && echo \"exists\" || echo \"missing\")\r\n   252\t    guide_exists = Bash(test -f \"${guide_path}\" && echo \"exists\" || echo \"missing\")\r\n...\n   265\t\r\n   266\t**Example Command**:\r\n   267\t```bash\r\n   268\t# Automatic file discovery\r\n   269\t/workflow:ui-design:import-from-code --design-id codify-temp-20250111-123456 --source ./src\r\n   270\t```\r\n   271\t\r\n   272\t**Completion Criteria**:\r\n   273\t- ✅ `import-from-code` command executed successfully\r\n   274\t- ✅ Design run created at `${design_run_path}`\r\n   275\t- ✅ Required files exist:\r\n   276\t  - `design-tokens.json` - Complete design token system\r\n   277\t  - `style-guide.md` - Style documentation\r\n   278\t- ⭕ Optional files:\r\n   279\t  - `animation-tokens.json` - Animation specifications\r\n   280\t  - `component-patterns.json` - Component catalog\r\n   281\t\r\n   282\t<!-- TodoWrite: REMOVE Phase 1.0-1.3 tasks, INSERT reference-page-generator tasks -->\r\n...\n   292\t  {\"content\": \"Phase 3: Cleanup and verify package\", \"status\": \"pending\", \"activeForm\": \"Cleanup and verification\"}\r\n   293\t]\r\n   294\t```\r\n   295\t\r\n   296\t**Note**: Phase 1 tasks completed and collapsed. Skill invocation **attaches** reference-page-generator's 3 tasks. Orchestrator **executes** these tasks itself.\r\n   297\t\r\n   298\t**Next Action**: Tasks attached → **Execute Phase 2.0-2.2** sequentially\r\n   299\t\r\n   300\t---\r\n   301\t\r\n   302\t### Phase 2: Reference Package Generation\r\n   303\t\r\n   304\t**Goal**: Generate shareable reference package with interactive preview and documentation\r\n   305\t\r\n   306\t**Command Construction**:\r\n   307\t\r\n   308\t```bash\r\n   309\tcommand = \"/workflow:ui-design:reference-page-generator \" +\r\n   310\t          \"--design-run \\\"${design_run_path}\\\" \" +\r\n   311\t          \"--package-name \\\"${package_name}\\\" \" +\r\n   312\t          \"--output-dir \\\"${output_dir}\\\"\"\r\n   313\t```\r\n   314\t\r\n   315\t**Execute Command (Task Attachment Pattern)**:\r\n...\n   340\t\r\n   341\t    IF missing_files.length > 0:\r\n   342\t        REPORT: \"⚠️  WARNING: Some expected files are missing\"\r\n   343\t        REPORT: \"Package may be incomplete. Continuing with cleanup...\"\r\n   344\t\r\n   345\tCATCH error:\r\n   346\t    REPORT: \"❌ ERROR: Reference package generation failed\"\r\n   347\t    REPORT: \"Error: ${error}\"\r\n   348\t    Bash(rm -rf .workflow/${temp_id})\r\n   349\t    EXIT 1\r\n   350\t```\r\n   351\t\r\n   352\t**Example Command**:\r\n   353\t```bash\r\n   354\t/workflow:ui-design:reference-page-generator \\\r\n   355\t  --design-run .workflow/codify-temp-20250111-123456 \\\r\n   356\t  --package-name main-app-style-v1 \\\r\n   357\t  --output-dir .workflow/reference_style\r\n   358\t```\r\n...\n   430\t\r\n   431\tFiles: layout-templates.json, design-tokens.json, animation-tokens.json (optional), preview.html, preview.css\r\n   432\t\r\n   433\tPreview: file://{absolute_package_path}/preview.html\r\n   434\t\r\n   435\tNext: /memory:style-skill-memory {package_name}\r\n   436\t```\r\n   437\t\r\n   438\t---\r\n   439\t\r\n   440\t## TodoWrite Pattern\r\n   441\t\r\n   442\t```javascript\r\n   443\t// Initialize IMMEDIATELY at the start to track orchestrator workflow (4 high-level tasks)\r\n   444\tTodoWrite({todos: [\r\n   445\t  {\"content\": \"Phase 0: Validate parameters and prepare session\", \"status\": \"in_progress\", \"activeForm\": \"Validating parameters\"},\r\n   446\t  {\"content\": \"Phase 1: Style extraction from source code (import-from-code)\", \"status\": \"pending\", \"activeForm\": \"Extracting styles\"},\r\n   447\t  {\"content\": \"Phase 2: Reference package generation (reference-page-generator)\", \"status\": \"pending\", \"activeForm\": \"Generating package\"},\r\n   448\t  {\"content\": \"Phase 3: Cleanup and verify package\", \"status\": \"pending\", \"activeForm\": \"Cleanup and verification\"}\r\n   449\t]})\r\n...\n   490\t\r\n   491\t```\r\n   492\tUser triggers: /workflow:ui-design:codify-style ./src --package-name my-style-v1\r\n   493\t  ↓\r\n   494\t[TodoWrite Init] 4 orchestrator-level tasks\r\n   495\t  ├─ Phase 0: Validate parameters and prepare session (in_progress)\r\n   496\t  ├─ Phase 1: Style extraction from source code (pending)\r\n   497\t  ├─ Phase 2: Reference package generation (pending)\r\n   498\t  └─ Phase 3: Cleanup and verify package (pending)\r\n   499\t  ↓\r\n   500\t[Phase 0] Parameter validation & preparation\r\n   501\t  ├─ Parse positional path parameter\r\n   502\t  ├─ Validate source directory exists\r\n   503\t  ├─ Auto-generate or validate package name\r\n   504\t  ├─ Check package overwrite protection\r\n   505\t  ├─ Create temporary workspace\r\n   506\t  └─ Display configuration summary\r\n   507\t  ↓\r\n   508\t[Phase 0 Complete] → TodoWrite: Phase 0 → completed\r\n   509\t  ↓\r\n   510\t[Phase 1 Invoke] → Skill(skill=\"workflow:ui-design:import-from-code\") ATTACHES 4 tasks\r\n...\n   619\t\r\n   620\t---\r\n   621\t\r\n   622\t\r\n   623\t\r\n   624\t## Architecture\r\n   625\t\r\n   626\t```\r\n   627\tcodify-style (orchestrator - simplified interface)\r\n   628\t  ├─ Phase 0: Intelligent Validation\r\n   629\t  │   ├─ Parse positional path parameter\r\n   630\t  │   ├─ Auto-generate package name (if not provided)\r\n   631\t  │   ├─ Safety checks (overwrite protection)\r\n   632\t  │   └─ User confirmation\r\n   633\t  ├─ Phase 1: /workflow:ui-design:import-from-code (style extraction)\r\n   634\t  │   ├─ Extract design tokens from source code\r\n   635\t  │   ├─ Generate style guide\r\n   636\t  │   └─ Extract component patterns\r\n   637\t  ├─ Phase 2: /workflow:ui-design:reference-page-generator (reference package)\r\n   638\t  │   ├─ Generate shareable package\r\n   639\t  │   ├─ Create interactive preview\r\n   640\t  │   └─ Generate documentation\r\n   641\t  └─ Phase 3: Cleanup & Verification\r\n   642\t      ├─ Remove temporary workspace\r\n   643\t      ├─ Verify package integrity\r\n   644\t      └─ Report completion\r\n...\n\nPath: ccw\\src\\tools\\command-registry.ts\n     1\t/**\r\n     2\t * Command Registry Tool\r\n     3\t *\r\n     4\t * Features:\r\n     5\t * 1. Scan and parse YAML headers from command files\r\n     6\t * 2. Read from global ~/.claude/commands/workflow directory\r\n     7\t * 3. Support on-demand extraction (not full scan)\r\n     8\t * 4. Cache parsed metadata for performance\r\n     9\t */\r\n    10\t\r\n    11\timport { existsSync, readdirSync, readFileSync, statSync } from 'fs';\r\n    12\timport { join } from 'path';\r\n    13\timport { homedir } from 'os';\r\n    14\t\r\n    15\texport interface CommandMetadata {\r\n    16\t  name: string;\r\n    17\t  command: string;\r\n    18\t  description: string;\r\n    19\t  argumentHint: string;\r\n    20\t  allowedTools: string[];\r\n    21\t  filePath: string;\r\n    22\t  group?: string;\r\n    23\t}\r\n    24\t\r\n    25\texport interface CommandSummary {\r\n    26\t  name: string;\r\n    27\t  description: string;\r\n    28\t}\r\n    29\t\r\n    30\texport class CommandRegistry {\r\n    31\t  private commandDir: string | null;\r\n    32\t  private cache: Map<string, CommandMetadata>;\r\n    33\t\r\n    34\t  constructor(commandDir?: string) {\r\n    35\t    this.cache = new Map();\r\n    36\t\r\n    37\t    if (commandDir) {\r\n    38\t      this.commandDir = commandDir;\r\n    39\t    } else {\r\n    40\t      this.commandDir = this.findCommandDir();\r\n    41\t    }\r\n    42\t  }\r\n    43\t\r\n    44\t  /**\r\n    45\t   * Auto-detect ~/.claude/commands/workflow directory\r\n    46\t   */\r\n    47\t  private findCommandDir(): string | null {\r\n    48\t    // Try relative to current working directory\r\n    49\t    const relativePath = join('.claude', 'commands', 'workflow');\r\n    50\t    if (existsSync(relativePath)) {\r\n    51\t      return relativePath;\r\n    52\t    }\r\n    53\t\r\n    54\t    // Try user home directory\r\n    55\t    const homeDir = homedir();\r\n    56\t    const homeCommandDir = join(homeDir, '.claude', 'commands', 'workflow');\r\n    57\t    if (existsSync(homeCommandDir)) {\r\n    58\t      return homeCommandDir;\r\n    59\t    }\r\n    60\t\r\n    61\t    return null;\r\n    62\t  }\r\n...\n   118\t\r\n   119\t  /**\r\n   120\t   * Get single command metadata\r\n   121\t   * @param commandName Command name (e.g., \"lite-plan\" or \"/workflow:lite-plan\")\r\n   122\t   * @returns Command metadata or null\r\n   123\t   */\r\n   124\t  public getCommand(commandName: string): CommandMetadata | null {\r\n   125\t    if (!this.commandDir) {\r\n   126\t      console.error('ERROR: ~/.claude/commands/workflow directory not found');\r\n   127\t      return null;\r\n   128\t    }\r\n   129\t\r\n   130\t    // Normalize command name\r\n   131\t    const normalized = commandName.startsWith('/workflow:')\r\n   132\t      ? commandName.substring('/workflow:'.length)\r\n   133\t      : commandName;\r\n   134\t\r\n   135\t    // Check cache\r\n   136\t    const cached = this.cache.get(normalized);\r\n   137\t    if (cached) {\r\n   138\t      return cached;\r\n   139\t    }\r\n   140\t\r\n   141\t    // Read command file\r\n   142\t    const filePath = join(this.commandDir, `${normalized}.md`);\r\n   143\t    if (!existsSync(filePath)) {\r\n   144\t      return null;\r\n   145\t    }\r\n   146\t\r\n   147\t    try {\r\n   148\t      const content = readFileSync(filePath, 'utf-8');\r\n   149\t      const header = this.parseYamlHeader(content);\r\n   150\t\r\n   151\t      if (header && header.name) {\r\n   152\t        const toolsStr = header['allowed-tools'] || '';\r\n   153\t        const allowedTools = toolsStr\r\n   154\t          .split(',')\r\n   155\t          .map((t: string) => t.trim())\r\n   156\t          .filter((t: string) => t);\r\n   157\t\r\n   158\t        const result: CommandMetadata = {\r\n   159\t          name: header.name,\r\n   160\t          command: `/workflow:${header.name}`,\r\n   161\t          description: header.description || '',\r\n   162\t          argumentHint: header['argument-hint'] || '',\r\n   163\t          allowedTools: allowedTools,\r\n   164\t          filePath: filePath,\r\n   165\t          group: header.group || undefined\r\n   166\t        };\r\n   167\t\r\n   168\t        // Cache result\r\n   169\t        this.cache.set(normalized, result);\r\n   170\t        return result;\r\n   171\t      }\r\n   172\t    } catch (error) {\r\n   173\t      const err = error as Error;\r\n   174\t      console.error(`Failed to read command ${filePath}:`, err.message);\r\n   175\t    }\r\n   176\t\r\n   177\t    return null;\r\n   178\t  }\r\n...\n   208\t\r\n   209\t    try {\r\n   210\t      const files = readdirSync(this.commandDir);\r\n   211\t\r\n   212\t      for (const file of files) {\r\n   213\t        // Skip _disabled directory\r\n   214\t        if (file === '_disabled') continue;\r\n   215\t\r\n   216\t        if (!file.endsWith('.md')) continue;\r\n   217\t\r\n   218\t        const filePath = join(this.commandDir, file);\r\n   219\t        const stat = statSync(filePath);\r\n   220\t\r\n   221\t        if (stat.isDirectory()) continue;\r\n   222\t\r\n   223\t        try {\r\n   224\t          const content = readFileSync(filePath, 'utf-8');\r\n   225\t          const header = this.parseYamlHeader(content);\r\n   226\t\r\n   227\t          if (header && header.name) {\r\n   228\t            const commandName = `/workflow:${header.name}`;\r\n   229\t            result.set(commandName, {\r\n   230\t              name: header.name,\r\n   231\t              description: header.description || ''\r\n   232\t            });\r\n   233\t          }\r\n   234\t        } catch (error) {\r\n   235\t          // Skip files that fail to read\r\n   236\t          continue;\r\n   237\t        }\r\n   238\t      }\r\n   239\t    } catch (error) {\r\n   240\t      // Return empty map if directory read fails\r\n   241\t      return result;\r\n   242\t    }\r\n   243\t\r\n   244\t    return result;\r\n   245\t  }\r\n...\n   280\t\r\n   281\t  /**\r\n   282\t   * Convert to JSON for serialization\r\n   283\t   */\r\n   284\t  public toJSON(): Record<string, any> {\r\n   285\t    const result: Record<string, CommandMetadata> = {};\r\n   286\t    for (const [key, value] of this.cache) {\r\n   287\t      result[`/workflow:${key}`] = value;\r\n   288\t    }\r\n   289\t    return result;\r\n   290\t  }\r\n   291\t\r\n   292\t  /**\r\n   293\t   * Clear the command cache\r\n   294\t   * Use this to invalidate cached commands after enable/disable operations\r\n   295\t   * @returns void\r\n   296\t   */\r\n   297\t  public clearCache(): void {\r\n   298\t    this.cache.clear();\r\n   299\t  }\r\n   300\t}\r\n   301\t\r\n   302\t/**\r\n   303\t * Export function for direct usage\r\n   304\t */\r\n   305\texport function createCommandRegistry(commandDir?: string): CommandRegistry {\r\n   306\t  return new CommandRegistry(commandDir);\r\n   307\t}\r\n   308\t\r\n   309\t/**\r\n   310\t * Export function to get all commands\r\n   311\t */\r\n   312\texport function getAllCommandsSync(): Map<string, CommandSummary> {\r\n   313\t  const registry = new CommandRegistry();\r\n   314\t  return registry.getAllCommandsSummary();\r\n   315\t}\r\n...\n\nPath: .claude\\commands\\ccw-coordinator.md#chunk2of2\n...\n    65\t\r\n    66\t```javascript\r\n    67\timport { CommandRegistry } from 'ccw/tools/command-registry';\r\n    68\t\r\n    69\tconst registry = new CommandRegistry();\r\n    70\t\r\n    71\t// Get all commands\r\n    72\tconst allCommands = registry.getAllCommandsSummary();\r\n    73\t// Map<\"/workflow:lite-plan\" => {name, description}>\r\n    74\t\r\n    75\t// Get categorized\r\n    76\tconst byCategory = registry.getAllCommandsByCategory();\r\n    77\t// {planning, execution, testing, review, other}\r\n    78\t\r\n    79\t// Get single command metadata\r\n    80\tconst cmd = registry.getCommand('lite-plan');\r\n    81\t// {name, command, description, argumentHint, allowedTools, filePath}\r\n    82\t```\r\n    83\t\r\n    84\t## Universal Prompt Template\r\n    85\t\r\n    86\t### Standard Format\r\n    87\t\r\n    88\t```bash\r\n    89\tccw cli -p \"PROMPT_CONTENT\" --tool <tool> --mode <mode>\r\n    90\t```\r\n    91\t\r\n    92\t### Prompt Content Template\r\n    93\t\r\n    94\t```\r\n    95\t/workflow:<command> -y <command_parameters>\r\n    96\t\r\n    97\tTask: <task_description>\r\n...\n\nPath: ccw\\src\\core\\routes\\commands-routes.ts\n...\n   287\t\r\n   288\t  const groupSet = new Set<string>();\r\n   289\t\r\n   290\t  try {\r\n   291\t    // Scan project commands (includes both .md and .md.disabled)\r\n   292\t    const projectDir = getCommandsDir('project', projectPath);\r\n   293\t    result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath);\r\n   294\t\r\n   295\t    // Scan user commands (includes both .md and .md.disabled)\r\n   296\t    const userDir = getCommandsDir('user', projectPath);\r\n   297\t    result.userCommands = scanCommandsRecursive(userDir, userDir, 'user', projectPath);\r\n   298\t\r\n   299\t    // Collect all groups\r\n   300\t    for (const cmd of [...result.projectCommands, ...result.userCommands]) {\r\n   301\t      groupSet.add(cmd.group);\r\n   302\t    }\r\n   303\t\r\n   304\t    result.groups = Array.from(groupSet).sort();\r\n   305\t  } catch (error) {\r\n   306\t    console.error('[Commands] Error reading commands config:', error);\r\n   307\t  }\r\n   308\t\r\n   309\t  return result;\r\n   310\t}\r\n...\n\nPath: ccw\\src\\core\\routes\\skills-routes.ts#chunk1of2\n...\n   726\t\r\n   727\t    // Create onOutput callback for real-time streaming\r\n   728\t    const onOutput = broadcastToClients\r\n   729\t      ? (unit: import('../../tools/cli-output-converter.js').CliOutputUnit) => {\r\n   730\t          // CliOutputUnit handler: use SmartContentFormatter for intelligent formatting (never returns null)\r\n   731\t          const content = SmartContentFormatter.format(unit.content, unit.type);\r\n   732\t          broadcastToClients({\r\n   733\t            type: 'CLI_OUTPUT',\r\n   734\t            payload: {\r\n   735\t              executionId,\r\n   736\t              chunkType: unit.type,\r\n   737\t              data: content\r\n   738\t            }\r\n   739\t          });\r\n   740\t        }\r\n   741\t      : undefined;\r\n   742\t\r\n   743\t    // Execute CLI tool (Claude) with write mode\r\n   744\t    const startTime = Date.now();\r\n   745\t    const result = await executeCliTool({\r\n   746\t      tool: 'claude',\r\n   747\t      prompt,\r\n   748\t      mode: 'write',\r\n   749\t      cd: baseDir,\r\n   750\t      timeout: 600000, // 10 minutes\r\n   751\t      category: 'internal',\r\n   752\t      id: executionId\r\n   753\t    }, onOutput);\r\n...\n\n",
+      "type": "text"
+    }
+  ]
+}
+tool ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"TodoWrite implementation ccw/src anchor string \"TodoWrite\" task list pattern"})
+ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"TodoWrite implementation ccw/src anchor string \"TodoWrite\" task list pattern"}) success in 6.04s:
+{
+  "content": [
+    {
+      "text": "The following code sections were retrieved:\nPath: .claude\\agents\\action-planning-agent.md#chunk1of2\n...\n   706\t\r\n   707\t### 2.3 TODO_LIST.md Structure\r\n   708\t\r\n   709\tGenerate at `.workflow/active/{session_id}/TODO_LIST.md`:\r\n   710\t\r\n   711\t**Single Module Format**:\r\n   712\t```markdown\r\n   713\t# Tasks: {Session Topic}\r\n   714\t\r\n   715\t## Task Progress\r\n   716\t- [ ] **IMPL-001**: [Task Title] → [📋](./.task/IMPL-001.json)\r\n   717\t- [ ] **IMPL-002**: [Task Title] → [📋](./.task/IMPL-002.json)\r\n   718\t- [x] **IMPL-003**: [Task Title] → [✅](./.summaries/IMPL-003-summary.md)\r\n   719\t\r\n   720\t## Status Legend\r\n   721\t- `- [ ]` = Pending task\r\n   722\t- `- [x]` = Completed task\r\n   723\t```\r\n   724\t\r\n   725\t**Multi-Module Format** (hierarchical by module):\r\n   726\t```markdown\r\n   727\t# Tasks: {Session Topic}\r\n   728\t\r\n   729\t## Module A (Frontend)\r\n   730\t- [ ] **IMPL-A1**: [Task Title] → [📋](./.task/IMPL-A1.json)\r\n   731\t- [ ] **IMPL-A2**: [Task Title] → [📋](./.task/IMPL-A2.json)\r\n...\n\nPath: .claude\\workflows\\cli-templates\\prompts\\workflow-task-json-agent-mode.txt\n...\n    35\t  \"flow_control\": {\r\n    36\t    \"pre_analysis\": [\r\n    37\t      {\r\n    38\t        \"step\": \"load_role_analyses_specification\",\r\n    39\t        \"action\": \"Load consolidated role analyses\",\r\n    40\t        \"commands\": [\r\n    41\t          \"Read({synthesis_spec_path})\"\r\n    42\t        ],\r\n    43\t        \"output_to\": \"synthesis_specification\",\r\n    44\t        \"on_error\": \"fail\"\r\n    45\t      },\r\n    46\t      {\r\n    47\t        \"step\": \"load_context_package\",\r\n    48\t        \"action\": \"Load context package for project structure\",\r\n    49\t        \"commands\": [\r\n    50\t          \"Read({context_package_path})\"\r\n    51\t        ],\r\n    52\t        \"output_to\": \"context_pkg\",\r\n    53\t        \"on_error\": \"fail\"\r\n    54\t      },\r\n    55\t      {\r\n    56\t        \"step\": \"local_codebase_exploration\",\r\n    57\t        \"action\": \"Explore codebase using local search\",\r\n    58\t        \"commands\": [\r\n    59\t          \"bash(rg '^(function|class|interface).*{keyword}' --type ts -n --max-count 15)\",\r\n    60\t          \"bash(find . -name '*{keyword}*' -type f | grep -v node_modules | head -10)\"\r\n    61\t        ],\r\n    62\t        \"output_to\": \"codebase_structure\",\r\n    63\t        \"on_error\": \"skip_optional\"\r\n    64\t      }\r\n    65\t    ],\r\n...\n\nPath: .claude\\commands\\workflow\\tools\\task-generate-tdd.md\n...\n   222\t\r\n   223\t  // Selective (load based on progressive strategy)\r\n   224\t  \"brainstorm_artifacts\": {\r\n   225\t    // Loaded from context-package.json → brainstorm_artifacts section\r\n   226\t    \"synthesis_output\": {\"path\": \"...\", \"exists\": true},  // Load if exists (highest priority)\r\n   227\t    \"guidance_specification\": {\"path\": \"...\", \"exists\": true},  // Load if no synthesis\r\n   228\t    \"role_analyses\": [  // Load SELECTIVELY based on task relevance\r\n   229\t      {\r\n   230\t        \"role\": \"system-architect\",\r\n   231\t        \"files\": [{\"path\": \"...\", \"type\": \"primary|supplementary\"}]\r\n   232\t      }\r\n   233\t    ]\r\n   234\t  },\r\n   235\t\r\n   236\t  // On-Demand (load if exists)\r\n   237\t  \"test_context_package\": {\r\n   238\t    // Load from test-context-package.json\r\n   239\t    // Contains existing test patterns and coverage analysis\r\n   240\t  },\r\n...\n   319\t\r\n   320\t### Phase 2: Agent Execution (TDD Document Generation)\r\n   321\t\r\n   322\t**Purpose**: Generate TDD planning documents (IMPL_PLAN.md, task JSONs, TODO_LIST.md) - planning only, NOT code implementation.\r\n   323\t\r\n   324\t**Agent Invocation**:\r\n   325\t```javascript\r\n   326\tTask(\r\n   327\t  subagent_type=\"action-planning-agent\",\r\n   328\t  run_in_background=false,\r\n   329\t  description=\"Generate TDD planning documents (IMPL_PLAN.md, task JSONs, TODO_LIST.md)\",\r\n   330\t  prompt=`\r\n   331\t## TASK OBJECTIVE\r\n   332\tGenerate TDD implementation planning documents (IMPL_PLAN.md, task JSONs, TODO_LIST.md) for workflow session\r\n   333\t\r\n   334\tIMPORTANT: This is PLANNING ONLY - you are generating planning documents, NOT implementing code.\r\n   335\t\r\n   336\tCRITICAL: Follow the progressive loading strategy (load analysis.md files incrementally due to file size):\r\n   337\t- **Core**: session metadata + context-package.json (always)\r\n   338\t- **Selective**: synthesis_output OR (guidance + relevant role analyses) - NOT all\r\n   339\t- **On-Demand**: conflict resolution (if conflict_risk >= medium), test context\r\n   340\t\r\n   341\t## SESSION PATHS\r\n   342\tInput:\r\n   343\t  - Session Metadata: .workflow/active/{session-id}/workflow-session.json\r\n   344\t  - Context Package: .workflow/active/{session-id}/.process/context-package.json\r\n   345\t  - Test Context: .workflow/active/{session-id}/.process/test-context-package.json\r\n   346\t\r\n   347\tOutput:\r\n   348\t  - Task Dir: .workflow/active/{session-id}/.task/\r\n   349\t  - IMPL_PLAN: .workflow/active/{session-id}/IMPL_PLAN.md\r\n   350\t  - TODO_LIST: .workflow/active/{session-id}/TODO_LIST.md\r\n...\n   421\t\r\n   422\t##### 1. TDD Task JSON Files (.task/IMPL-*.json)\r\n   423\t- **Location**: `.workflow/active/{session-id}/.task/`\r\n   424\t- **Schema**: 6-field structure with TDD-specific metadata\r\n   425\t  - `id, title, status, context_package_path, meta, context, flow_control`\r\n   426\t  - `meta.tdd_workflow`: true (REQUIRED)\r\n   427\t  - `meta.max_iterations`: 3 (Green phase test-fix cycle limit)\r\n   428\t  - `meta.cli_execution_id`: Unique CLI execution ID (format: `{session_id}-{task_id}`)\r\n   429\t  - `meta.cli_execution`: Strategy object (new|resume|fork|merge_fork)\r\n   430\t  - `context.tdd_cycles`: Array with quantified test cases and coverage\r\n   431\t  - `context.focus_paths`: Absolute or clear relative paths (enhanced with exploration critical_files)\r\n   432\t  - `flow_control.implementation_approach`: Exactly 3 steps with `tdd_phase` field\r\n...\n   611\t\r\n   612\t**Quick Reference**:\r\n   613\t- Each TDD task contains complete Red-Green-Refactor cycle\r\n   614\t- Task ID format: `IMPL-N` (simple) or `IMPL-N.M` (complex subtasks)\r\n   615\t- Required metadata:\r\n   616\t  - `meta.tdd_workflow: true`\r\n   617\t  - `meta.max_iterations: 3`\r\n   618\t  - `meta.cli_execution_id: \"{session_id}-{task_id}\"`\r\n   619\t  - `meta.cli_execution: { \"strategy\": \"new|resume|fork|merge_fork\", ... }`\r\n   620\t- Context: `tdd_cycles` array with quantified test cases and coverage:\r\n   621\t  ```javascript\r\n   622\t  tdd_cycles: [\r\n   623\t    {\r\n   624\t      test_count: 5,                    // Number of test cases to write\r\n   625\t      test_cases: [\"case1\", \"case2\"],   // Enumerated test scenarios\r\n   626\t      implementation_scope: \"...\",      // Files and functions to implement\r\n   627\t      expected_coverage: \">=85%\"        // Coverage target\r\n   628\t    }\r\n   629\t  ]\r\n...\n\nPath: .claude\\agents\\memory-bridge.md\n...\n    25\t\r\n    26\t### Step 1: Create Task List\r\n    27\t```bash\r\n    28\t# Parse module list and create todo items\r\n    29\tTodoWrite([\r\n    30\t  {content: \"Process depth 5 modules (N modules)\", status: \"pending\", activeForm: \"Processing depth 5 modules\"},\r\n    31\t  {content: \"Process depth 4 modules (N modules)\", status: \"pending\", activeForm: \"Processing depth 4 modules\"},\r\n    32\t  # ... for each depth level\r\n    33\t  {content: \"Safety check: verify only CLAUDE.md modified\", status: \"pending\", activeForm: \"Running safety check\"}\r\n    34\t])\r\n...\n\nPath: .claude\\commands\\workflow\\tools\\task-generate-agent.md\n...\n   517\t\r\n   518\t## EXPECTED DELIVERABLES\r\n   519\tTask JSON Files (.task/IMPL-${module.prefix}*.json):\r\n   520\t  - 6-field schema (id, title, status, context_package_path, meta, context, flow_control)\r\n   521\t  - Task ID format: IMPL-${module.prefix}1, IMPL-${module.prefix}2, ...\r\n   522\t  - Quantified requirements with explicit counts\r\n   523\t  - Artifacts integration from context package (filtered for ${module.name})\r\n   524\t  - **focus_paths generated directly from prioritized_context.priority_tiers filtered by ${module.paths.join(', ')}**\r\n   525\t    - NO re-sorting - use pre-computed tiers filtered for this module\r\n   526\t    - Critical files are PRIMARY focus, High files are SECONDARY\r\n   527\t  - Flow control with pre_analysis steps (use prioritized_context.dependency_order for module task sequencing)\r\n   528\t  - **CLI Execution IDs and strategies (MANDATORY)**\r\n...\n   582\t\r\n   583\t// Execute all in parallel\r\n   584\tawait Promise.all(planningTasks);\r\n   585\t```\r\n   586\t\r\n   587\t**Output Structure** (direct to .task/):\r\n   588\t```\r\n   589\t.task/\r\n   590\t├── IMPL-A1.json      # Module A (e.g., frontend)\r\n   591\t├── IMPL-A2.json\r\n   592\t├── IMPL-B1.json      # Module B (e.g., backend)\r\n   593\t├── IMPL-B2.json\r\n   594\t└── IMPL-C1.json      # Module C (e.g., shared)\r\n   595\t```\r\n   596\t\r\n   597\t**Task ID Naming**:\r\n   598\t- Format: `IMPL-{prefix}{seq}.json`\r\n   599\t- Prefix: A, B, C... (assigned by detection order)\r\n   600\t- Sequence: 1, 2, 3... (per-module increment)\r\n   601\t\r\n   602\t### Phase 3: Integration (+1 Coordinator Agent, Multi-Module Only)\r\n   603\t\r\n   604\t**Condition**: Only executed when `modules.length >= 2`\r\n   605\t\r\n   606\t**Purpose**: Collect all module tasks, resolve cross-module dependencies, generate unified IMPL_PLAN.md and TODO_LIST.md documents.\r\n...\n\nPath: .claude\\commands\\workflow\\tools\\test-task-generate.md\n...\n   233\t\r\n   234\tconst currentNotes = Read(testPlanningNotesPath)\r\n   235\tconst constraintCount = (currentNotes.match(/^\\d+\\./gm) || []).length\r\n   236\t\r\n   237\tEdit(testPlanningNotesPath, {\r\n   238\t  old: '## Consolidated Test Requirements (Phase 2 Input)',\r\n   239\t  new: `## Consolidated Test Requirements (Phase 2 Input)\r\n   240\t1. [Context] ${testFramework} framework conventions\r\n   241\t2. [Context] ${coverageTarget} coverage target\r\n   242\t${geminiConstraints.map((c, i) => `${i + 3}. ${c}`).join('\\n')}`\r\n   243\t})\r\n   244\t```\r\n   245\t\r\n   246\t---\r\n   247\t\r\n   248\t## Agent Invocation\r\n   249\t\r\n   250\t```javascript\r\n   251\tTask(\r\n   252\t  subagent_type=\"test-action-planning-agent\",\r\n   253\t  run_in_background=false,\r\n   254\t  description=\"Generate test planning documents\",\r\n   255\t  prompt=`\r\n   256\t## TASK OBJECTIVE\r\n   257\tGenerate test planning documents (IMPL_PLAN.md, task JSONs, TODO_LIST.md) for test workflow session\r\n...\n\nPath: .claude\\commands\\ccw.md\n...\n   331\t\r\n   332\t```javascript\r\n   333\tfunction setupTodoTracking(chain, workflow, analysis) {\r\n   334\t  const sessionId = `ccw-${Date.now()}`;\r\n   335\t  const stateDir = `.workflow/.ccw/${sessionId}`;\r\n   336\t  Bash(`mkdir -p \"${stateDir}\"`);\r\n   337\t\r\n   338\t  const todos = chain.map((step, i) => ({\r\n   339\t    content: `CCW:${workflow}: [${i + 1}/${chain.length}] ${step.cmd}`,\r\n   340\t    status: i === 0 ? 'in_progress' : 'pending',\r\n   341\t    activeForm: `Executing ${step.cmd}`\r\n   342\t  }));\r\n   343\t  TodoWrite({ todos });\r\n   344\t\r\n   345\t  // Initialize status.json for hook tracking\r\n   346\t  const state = {\r\n   347\t    session_id: sessionId,\r\n   348\t    workflow: workflow,\r\n   349\t    status: 'running',\r\n   350\t    created_at: new Date().toISOString(),\r\n   351\t    updated_at: new Date().toISOString(),\r\n   352\t    analysis: analysis,\r\n   353\t    command_chain: chain.map((step, idx) => ({\r\n   354\t      index: idx,\r\n   355\t      command: step.cmd,\r\n   356\t      status: idx === 0 ? 'running' : 'pending'\r\n   357\t    })),\r\n   358\t    current_index: 0\r\n   359\t  };\r\n...\n   443\t\r\n   444\t// Update TODO: mark current as complete, next as in-progress\r\n   445\tfunction updateTodoStatus(index, total, workflow, status) {\r\n   446\t  const todos = getAllCurrentTodos();\r\n   447\t  const updated = todos.map(todo => {\r\n   448\t    if (todo.content.startsWith(`CCW:${workflow}:`)) {\r\n   449\t      const stepNum = extractStepIndex(todo.content);\r\n   450\t      if (stepNum === index + 1) return { ...todo, status };\r\n   451\t      if (stepNum === index + 2 && status === 'completed') return { ...todo, status: 'in_progress' };\r\n   452\t    }\r\n   453\t    return todo;\r\n   454\t  });\r\n   455\t  TodoWrite({ todos: updated });\r\n   456\t}\r\n...\n   547\t\r\n   548\t**1. TodoWrite-Based Tracking** (UI Display): All execution state tracked via TodoWrite with `CCW:` prefix.\r\n   549\t\r\n   550\t```javascript\r\n   551\t// Initial state\r\n   552\ttodos = [\r\n   553\t  { content: \"CCW:rapid: [1/3] /workflow:lite-plan\", status: \"in_progress\" },\r\n   554\t  { content: \"CCW:rapid: [2/3] /workflow:lite-execute\", status: \"pending\" },\r\n   555\t  { content: \"CCW:rapid: [3/3] /workflow:test-cycle-execute\", status: \"pending\" }\r\n   556\t];\r\n   557\t\r\n   558\t// After command 1 completes\r\n   559\ttodos = [\r\n   560\t  { content: \"CCW:rapid: [1/3] /workflow:lite-plan\", status: \"completed\" },\r\n   561\t  { content: \"CCW:rapid: [2/3] /workflow:lite-execute\", status: \"in_progress\" },\r\n   562\t  { content: \"CCW:rapid: [3/3] /workflow:test-cycle-execute\", status: \"pending\" }\r\n   563\t];\r\n...\n\nPath: .codex\\agents\\doc-generator.md\n...\n   253\t\r\n   254\t### 4. Progress Tracking with TodoWrite\r\n   255\tUse `TodoWrite` to provide real-time visibility into the execution process.\r\n   256\t\r\n   257\t```javascript\r\n   258\t// At the start of execution\r\n   259\tTodoWrite({\r\n   260\t  todos: [\r\n   261\t    { \"content\": \"Load and validate task JSON\", \"status\": \"in_progress\" },\r\n   262\t    { \"content\": \"Execute pre-analysis step: discover_structure\", \"status\": \"pending\" },\r\n   263\t    { \"content\": \"Execute pre-analysis step: analyze_modules\", \"status\": \"pending\" },\r\n   264\t    { \"content\": \"Generate documentation content\", \"status\": \"pending\" },\r\n   265\t    { \"content\": \"Write documentation to target files\", \"status\": \"pending\" },\r\n   266\t    { \"content\": \"Run quality assurance checks\", \"status\": \"pending\" },\r\n   267\t    { \"content\": \"Update task status and generate summary\", \"status\": \"pending\" }\r\n   268\t  ]\r\n   269\t});\r\n...\n\nPath: .claude\\workflows\\cli-templates\\schemas\\plan-json-schema.json\n...\n    24\t    \"tasks\": {\r\n    25\t      \"type\": \"array\",\r\n    26\t      \"minItems\": 1,\r\n    27\t      \"maxItems\": 10,\r\n    28\t      \"items\": {\r\n    29\t        \"type\": \"object\",\r\n    30\t        \"required\": [\"id\", \"title\", \"scope\", \"action\", \"description\", \"implementation\", \"acceptance\"],\r\n    31\t        \"properties\": {\r\n    32\t          \"id\": {\r\n    33\t            \"type\": \"string\",\r\n    34\t            \"pattern\": \"^T[0-9]+$\",\r\n    35\t            \"description\": \"Task identifier (T1, T2, T3...)\"\r\n    36\t          },\r\n    37\t          \"title\": {\r\n    38\t            \"type\": \"string\",\r\n    39\t            \"description\": \"Task title (action verb + target module/feature)\"\r\n    40\t          },\r\n    41\t          \"scope\": {\r\n    42\t            \"type\": \"string\",\r\n    43\t            \"description\": \"Task scope: module path (src/auth/), feature name, or single file. Prefer module/feature level over single file.\"\r\n    44\t          },\r\n    45\t          \"file\": {\r\n    46\t            \"type\": \"string\",\r\n    47\t            \"description\": \"Primary file (deprecated, use scope + modification_points instead)\"\r\n    48\t          },\r\n...\n\nPath: .claude\\agents\\doc-generator.md\n...\n   253\t\r\n   254\t### 4. Progress Tracking with TodoWrite\r\n   255\tUse `TodoWrite` to provide real-time visibility into the execution process.\r\n   256\t\r\n   257\t```javascript\r\n   258\t// At the start of execution\r\n   259\tTodoWrite({\r\n   260\t  todos: [\r\n   261\t    { \"content\": \"Load and validate task JSON\", \"status\": \"in_progress\" },\r\n   262\t    { \"content\": \"Execute pre-analysis step: discover_structure\", \"status\": \"pending\" },\r\n   263\t    { \"content\": \"Execute pre-analysis step: analyze_modules\", \"status\": \"pending\" },\r\n   264\t    { \"content\": \"Generate documentation content\", \"status\": \"pending\" },\r\n   265\t    { \"content\": \"Write documentation to target files\", \"status\": \"pending\" },\r\n   266\t    { \"content\": \"Run quality assurance checks\", \"status\": \"pending\" },\r\n   267\t    { \"content\": \"Update task status and generate summary\", \"status\": \"pending\" }\r\n   268\t  ]\r\n   269\t});\r\n   270\t\r\n   271\t// After completing a step\r\n   272\tTodoWrite({\r\n   273\t  todos: [\r\n   274\t    { \"content\": \"Load and validate task JSON\", \"status\": \"completed\" },\r\n   275\t    { \"content\": \"Execute pre-analysis step: discover_structure\", \"status\": \"in_progress\" },\r\n   276\t    // ... rest of the tasks\r\n   277\t  ]\r\n   278\t});\r\n...\n\nPath: .claude\\commands\\issue\\execute.md\n...\n   252\t```\r\n   253\t\r\n   254\t### Phase 0 & 2: Setup Queue Worktree & Dispatch\r\n   255\t\r\n   256\t```javascript\r\n   257\t// Parallelism determined by DAG - no manual limit\r\n   258\t// All solutions in same batch have NO file conflicts and can run in parallel\r\n   259\tconst batch = dag.parallel_batches[0] || [];\r\n   260\t\r\n   261\t// Initialize TodoWrite\r\n   262\tTodoWrite({\r\n   263\t  todos: batch.map(id => ({\r\n   264\t    content: `Execute solution ${id}`,\r\n   265\t    status: 'pending',\r\n   266\t    activeForm: `Executing solution ${id}`\r\n   267\t  }))\r\n   268\t});\r\n...\n\nPath: .claude\\workflows\\cli-templates\\schemas\\solution-schema.json\n...\n    22\t    \"tasks\": {\r\n    23\t      \"type\": \"array\",\r\n    24\t      \"description\": \"Task breakdown for this solution\",\r\n    25\t      \"items\": {\r\n    26\t        \"type\": \"object\",\r\n    27\t        \"required\": [\"id\", \"title\", \"scope\", \"action\", \"implementation\", \"acceptance\"],\r\n    28\t        \"properties\": {\r\n    29\t          \"id\": {\r\n    30\t            \"type\": \"string\",\r\n    31\t            \"pattern\": \"^T[0-9]+$\"\r\n    32\t          },\r\n    33\t          \"title\": {\r\n    34\t            \"type\": \"string\",\r\n    35\t            \"description\": \"Action verb + target\"\r\n    36\t          },\r\n    37\t          \"scope\": {\r\n    38\t            \"type\": \"string\",\r\n    39\t            \"description\": \"Module path or feature area\"\r\n    40\t          },\r\n    41\t          \"action\": {\r\n    42\t            \"type\": \"string\",\r\n    43\t            \"enum\": [\"Create\", \"Update\", \"Implement\", \"Refactor\", \"Add\", \"Delete\", \"Configure\", \"Test\", \"Fix\"]\r\n    44\t          },\r\n    45\t          \"description\": {\r\n    46\t            \"type\": \"string\",\r\n    47\t            \"description\": \"1-2 sentences describing what to implement\"\r\n    48\t          },\r\n...\n\nPath: .claude\\commands\\workflow\\review-module-cycle.md\n...\n   727\t\r\n   728\t```javascript\r\n   729\tTodoWrite({\r\n   730\t  todos: [\r\n   731\t    { content: \"Phase 1: Discovery & Initialization\", status: \"completed\", activeForm: \"Initializing\" },\r\n   732\t    { content: \"Phase 2: Parallel Reviews (7 dimensions)\", status: \"in_progress\", activeForm: \"Reviewing\" },\r\n   733\t    { content: \"  → Security review\", status: \"in_progress\", activeForm: \"Analyzing security\" },\r\n   734\t    // ... other dimensions as sub-items\r\n   735\t    { content: \"Phase 3: Aggregation\", status: \"pending\", activeForm: \"Aggregating\" },\r\n   736\t    { content: \"Phase 4: Deep-dive\", status: \"pending\", activeForm: \"Deep-diving\" },\r\n   737\t    { content: \"Phase 5: Completion\", status: \"pending\", activeForm: \"Completing\" }\r\n   738\t  ]\r\n   739\t});\r\n...\n\nPath: ccw\\src\\tools\\loop-task-manager.ts\n...\n   314\t\r\n   315\t  /**\r\n   316\t   * Write tasks array to JSONL file\r\n   317\t   */\r\n   318\t  private async writeTasks(loopId: string, tasks: LoopTask[]): Promise<void> {\r\n   319\t    await this.ensureLoopDir(loopId);\r\n   320\t\r\n   321\t    const filePath = this.getTasksPath(loopId);\r\n   322\t\r\n   323\t    // Create backup if file exists\r\n   324\t    if (existsSync(filePath)) {\r\n   325\t      const backupPath = `${filePath}.backup`;\r\n   326\t      await copyFile(filePath, backupPath).catch(() => {});\r\n   327\t    }\r\n   328\t\r\n   329\t    // Write each task as a JSON line\r\n   330\t    const jsonlContent = tasks.map(t => JSON.stringify(t)).join('\\n');\r\n   331\t    await writeFile(filePath, jsonlContent, 'utf-8');\r\n   332\t  }\r\n...\n\nPath: .claude\\commands\\ccw-test.md\n...\n   106\t\r\n   107\t**Output**: `Mode: [mode] | Strategy: [strategy] | Commands: [1. /cmd1 2. /cmd2]`\r\n   108\t\r\n   109\t---\r\n   110\t\r\n   111\t### Phase 3: User Confirmation\r\n   112\t\r\n   113\t```\r\n   114\tTest Chain → Show Strategy → Ask User → User Decision:\r\n   115\t- ✓ Confirm → Continue to Phase 4\r\n   116\t- ⚙ Change Mode → Select Different Mode (back to Phase 2)\r\n   117\t- ✗ Cancel → Abort\r\n   118\t```\r\n   119\t\r\n   120\t---\r\n   121\t\r\n   122\t### Phase 4: Setup TODO Tracking & Status File\r\n   123\t\r\n   124\t```\r\n   125\tTest Chain → Create Session Dir → Initialize Tracking → Tracking State\r\n   126\t```\r\n   127\t\r\n   128\t**Session Structure**:\r\n   129\t```\r\n   130\tSession ID: CCWT-{target-module-slug}-{date}\r\n   131\tSession Dir: .workflow/.ccw-test/{session_id}/\r\n   132\t\r\n   133\tTodoWrite:\r\n   134\t  CCWT:{mode}: [1/n] /command1  [in_progress]\r\n   135\t  CCWT:{mode}: [2/n] /command2  [pending]\r\n   136\t  ...\r\n...\n\n",
+      "type": "text"
+    }
+  ]
+}
+
+thinking
+**Selecting reference candidates**
+
+I need to produce `references.json` with candidates and the selected one. The oracle itself might be a candidate because it's the command’s documentation. But, I should compare against existing command implementations.
+
+For the new command, we might look at related orchestrators like `workflow/ui-design/import-from-code` or `reference-page-generator`. However, since the command is an orchestrator, the document itself serves as a reference too. I’ll narrow down the top five candidates, including commands like `/workflow:ui-design:extract-style`. Let's search for existing command docs.
+tool ccw-tools.smart_search({"action":"find_files","pattern":".claude/commands/workflow/ui-design/*.md","path":"C:/Project/Claude-Code-Workflow"})
+ccw-tools.smart_search({"action":"find_files","pattern":".claude/commands/workflow/ui-design/*.md","path":"C:/Project/Claude-Code-Workflow"}) success in 99ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"success\": true,\n  \"results\": [],\n  \"metadata\": {\n    \"pattern\": \".claude/commands/workflow/ui-design/*.md\",\n    \"backend\": \"ripgrep\",\n    \"count\": 0,\n    \"pagination\": {\n      \"offset\": 0,\n      \"limit\": 5,\n      \"total\": 0,\n      \"has_more\": false\n    }\n  }\n}",
+      "type": "text"
+    }
+  ]
+}
+
+thinking
+**Exploring pattern syntax**
+
+I’m wondering if the pattern requires forward slashes instead of backslashes. It uses glob, but I’m not entirely sure if the `pattern` allows for a dot leading. Hmm, to be safe, let’s try the pattern as: `pattern":".claude/commands/workflow/ui-design/**/*.md"`. I think this might help clarify the function, yet I’m still figuring out the exact requirements here. Let's hope this adjustment works!
+tool ccw-tools.smart_search({"action":"find_files","pattern":".claude/commands/workflow/ui-design/**/*.md","path":"C:/Project/Claude-Code-Workflow","limit":50})
+ccw-tools.smart_search({"action":"find_files","pattern":".claude/commands/workflow/ui-design/**/*.md","path":"C:/Project/Claude-Code-Workflow","limit":50}) success in 77ms:
+{
+  "content": [
+    {
+      "text": "{\n  \"success\": true,\n  \"results\": [],\n  \"metadata\": {\n    \"pattern\": \".claude/commands/workflow/ui-design/**/*.md\",\n    \"backend\": \"ripgrep\",\n    \"count\": 0,\n    \"pagination\": {\n      \"offset\": 0,\n      \"limit\": 50,\n      \"total\": 0,\n      \"has_more\": false\n    }\n  }\n}",
+      "type": "text"
+    }
+  ]
+}
+tool ccw-tools.smart_search({"query":"workflow:ui-design","path":"C:/Project/Claude-Code-Workflow/.claude/commands","mode":"fuzzy","limit":20})
+2026-02-05T11:23:43.250139Z ERROR rmcp::transport::async_rw: Error reading from stream: serde error expected value at line 1 column 2
+ccw-tools.smart_search({"query":"workflow:ui-design","path":"C:/Project/Claude-Code-Workflow/.claude/commands","mode":"fuzzy","limit":20}) failed in 3.01s:
+
+thinking
+**Troubleshooting tool issues**
+
+It seems like the tool I tried to use failed with a message about the transport being closed. I’m wondering if the MCP server crashed. I’ll retry the operation to see if it works this time. But if it fails again, I might need to fallback to using shell commands like `rg` instead. However, the instructions recommend using MCP tools when possible, so I really want to try that route first before switching!
+tool ccw-tools.smart_search({"query":"workflow:ui-design","path":"C:/Project/Claude-Code-Workflow","mode":"fuzzy","limit":20})
+ccw-tools.smart_search({"query":"workflow:ui-design","path":"C:/Project/Claude-Code-Workflow","mode":"fuzzy","limit":20}) failed in 0ms:
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem -Recurse -File .claude/commands/workflow/ui-design | Select-Object FullName' in C:\Project\Claude-Code-Workflow succeeded in 338ms:
+
+[32;1mFullName[0m
+[32;1m--------[0m
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\animation-extract.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\codify-style.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\design-sync.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\explore-auto.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\generate.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\imitate-auto.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\import-from-code.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\layout-extract.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\reference-page-generator.md
+C:\Project\Claude-Code-Workflow\.claude\commands\workflow\ui-design\style-extract.md
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "class CommandRegistry" ccw/src' in C:\Project\Claude-Code-Workflow succeeded in 349ms:
+ccw/src\tools\command-registry.ts:30:export class CommandRegistry {
+
+thinking
+**Finding anchor string**
+
+I'm thinking about how to find a good anchor string in a file. I’ll start by using `Get-Content` to locate excerpts, especially around the lines that include the commandName. It might be useful to combine `rg` with `Get-Content`, but I’ll focus first on using `Get-Content -Raw` to get everything in one go. This should help me narrow down my search effectively!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw ccw/src/tools/command-registry.ts' in C:\Project\Claude-Code-Workflow succeeded in 314ms:
+/**
+ * Command Registry Tool
+ *
+ * Features:
+ * 1. Scan and parse YAML headers from command files
+ * 2. Read from global ~/.claude/commands/workflow directory
+ * 3. Support on-demand extraction (not full scan)
+ * 4. Cache parsed metadata for performance
+ */
+
+import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
+
+export interface CommandMetadata {
+  name: string;
+  command: string;
+  description: string;
+  argumentHint: string;
+  allowedTools: string[];
+
+
+
+thinking
+**Reviewing command structure**
+
+The snippet from ACE highlights possible inconsistencies in command triggers and how they relate to naming conventions. It seems like the documentation might not align properly or the registry isn't correctly applied. We need to make sure the outliner output follows the required format, where the command structure aligns as `/workflow:workflow:ui-design:codify-style`. I'll also need to include allowed tools in the front matter and verify the necessary core sections like Overview and Usage while ensuring group fields are included.
+thinking
+**Organizing evidence table**
+
+I need to ensure that the evidence table includes each pointer with its status and relevant evidence. For this orchestrator, the "implementation" primarily refers to the documentation itself, but I can also reference associated command documents and any relevant internal tool code. To keep things manageable, I want to limit the number of pointers while ensuring at least one row for a command document and possibly one for code. I might include four pointers, like the existing workflow command files and the command registry TypeScript file.
+thinking
+**Refining pointer details**
+
+The pointer cell should be updated to `ccw/src/tools/command-registry.ts` with the status marked as Existing. The evidence documentation will refer back to the `.claude/commands` file heading. We can utilize the "Implementation Details" or "Architecture" sections from the codify-style document as evidence. However, I need to confirm whether those headings actually exist within the codify-style document. I'll check the headings by running a small script or using `rg` to list them in the file.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "''^#{1,6} " .claude/commands/workflow/ui-design/codify-style.md' in C:\Project\Claude-Code-Workflow succeeded in 321ms:
+9:# UI Design: Codify Style (Orchestrator)
+11:## Overview & Execution Model
+40:## Core Rules
+53:## Usage
+55:### Command Syntax
+60:# Required
+63:# Optional
+74:## 4-Phase Execution
+76:### Phase 0: Intelligent Parameter Validation & Session Preparation
+95:# Parse positional path parameter (first non-flag argument)
+98:# Validate source path
+106:# Validate source path existence
+120:# Auto-generate package name if not provided
+148:# Set default output directory
+171:# Create temporary workspace for processing
+221:### Phase 1: Style Extraction from Source Code
+228:# Build command with required parameters only
+229:# Use temp_id as design-id since it's the workspace directory name
+268:# Automatic file discovery
+302:### Phase 2: Reference Package Generation
+
+
+thinking
+**Organizing documentation evidence**
+
+I’m looking at a great list of headings we can use for documentation evidence. We’ll use the exact heading text from the files like `.claude/commands/**.md`. Examples might include headings like "Implementation Details" or "Overview & Execution Model." 
+
+I need to gather headings from other command documents too, using `rg` to scan those files. Also, I want to ensure that the corresponding TS anchor strings exist in the chosen files for the evidence rows.
+thinking
+**Clarifying evidence requirements**
+
+The user has a clear rule: for any pointer row, I need to provide dual-source evidence from the documentation and TypeScript. This means I’ll reference files such as `.claude/commands/**.md` along with real heading text, and append the literal anchor string from files like `ccw/src/**`.
+
+I must ensure that evidence rows don't contain placeholders like TBD/N/A, so every row must provide actual paths and verify commands. Also, if a pointer is marked as "Existing," I'll need to confirm that the corresponding file exists. Next, I’ll generate a `generated-agent-outline.md` based on our templates.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/agent-outline.md' in C:\Project\Claude-Code-Workflow succeeded in 310ms:
+# Agent Outline: {{command.group}}:{{command.name}}
+
+## Purpose
+
+Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
+
+## Execution Model
+
+- Default: incremental, testable changes
+- Use ACE-tool to find existing patterns before adding new abstractions
+
+## State & Artifacts
+
+- Session folder (if used): `.workflow/...`
+- Required outputs:
+  - Slash MD (command doc)
+  - Any scripts/modules referenced by the command
+  - Validation notes / regression snapshots
+
+## Tooling
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/gap-report.md' in C:\Project\Claude-Code-Workflow succeeded in 312ms:
+# Gap Report: {{command.group}}:{{command.name}}
+
+## Reference
+
+- Selected reference: {{reference.slash}} (`{{reference.file_path}}`)
+
+## P0 Gaps (Must Fix)
+
+{{gaps.p0}}
+
+## P1 Gaps (Should Fix)
+
+{{gaps.p1}}
+
+## P2 Gaps (Optional)
+
+{{gaps.p2}}
+
+## Implementation Pointers (Evidence)
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$files = @(
+  '"'.claude/commands/workflow/ui-design/import-from-code.md',
+  '.claude/commands/workflow/ui-design/reference-page-generator.md',
+  '.claude/commands/workflow/ui-design/design-sync.md',
+  '.claude/commands/workflow/ui-design/generate.md',
+  '.claude/commands/workflow/ui-design/explore-auto.md'
+)
+foreach ("'$f in $files) {
+  Write-Output "--- $f";
+  rg -n "''^#{1,6} " $f;
+}
+' in C:\Project\Claude-Code-Workflow succeeded in 447ms:
+--- .claude/commands/workflow/ui-design/import-from-code.md
+9:# UI Design: Import from Code
+11:## Overview
+22:## Core Functionality
+29:## Usage
+31:### Command Syntax
+36:# Flags
+44:## Execution Process
+65:### Step 1: Setup & File Discovery
+72:# 1. Determine base path with priority: --design-id > --session > error
+97:# 2. Initialize directories
+107:# 3. Discover files using script
+140:### Step 2: Parallel Agent Analysis
+158:#### Style Agent Task (design-tokens.json, style-guide.md)
+274:#### Animation Agent Task (animation-tokens.json, animation-guide.md)
+354:#### Layout Agent Task (layout-templates.json, layout-guide.md)
+465:# Note: Agents run in parallel and write separate completeness reports
+466:# Each agent generates its own completeness-report.json directly
+467:# No synthesis phase needed
+475:## Output Files
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$files = @(
+  '"'.claude/commands/workflow/ui-design/codify-style.md',
+  '.claude/commands/workflow/ui-design/import-from-code.md',
+  '.claude/commands/workflow/ui-design/reference-page-generator.md',
+  '.claude/commands/workflow/ui-design/explore-auto.md',
+  '.claude/commands/workflow/ui-design/generate.md',
+  '.claude/commands/workflow/ui-design/design-sync.md'
+)
+foreach ("'$f in $files) {
+  Write-Output "--- $f";
+  Get-Content -TotalCount 12 $f;
+}
+' in C:\Project\Claude-Code-Workflow succeeded in 331ms:
+--- .claude/commands/workflow/ui-design/codify-style.md
+---
+name: workflow:ui-design:codify-style
+description: Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)
+argument-hint: "<path> [--package-name <name>] [--output-dir <path>] [--overwrite]"
+allowed-tools: Skill,Bash,Read,TodoWrite
+auto-continue: true
+---
+
+# UI Design: Codify Style (Orchestrator)
+
+## Overview & Execution Model
+
+--- .claude/commands/workflow/ui-design/import-from-code.md
+---
+name: workflow:ui-design:import-from-code
+description: Import design system from code files (CSS/JS/HTML/SCSS) with automatic file discovery and parallel agent analysis
+argument-hint: "[--design-id <id>] [--session <id>] [--source <path>]"
+allowed-tools: Read,Write,Bash,Glob,Grep,Task,TodoWrite
+auto-continue: true
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "scanCommandsRecursive" ccw/src/core/routes/commands-routes.ts
+Get-Content -Raw ccw/src/core/routes/commands-routes.ts' in C:\Project\Claude-Code-Workflow succeeded in 338ms:
+211:function scanCommandsRecursive(
+232:        results.push(...scanCommandsRecursive(baseDir, fullPath, location, projectPath));
+293:    result.projectCommands = scanCommandsRecursive(projectDir, projectDir, 'project', projectPath);
+297:    result.userCommands = scanCommandsRecursive(userDir, userDir, 'user', projectPath);
+/**
+ * Commands Routes Module
+ * Handles all Commands-related API endpoints
+ *
+ * API Endpoints:
+ * - GET /api/commands - List all commands with groups
+ * - POST /api/commands/:name/toggle - Enable/disable single command
+ * - POST /api/commands/group/:groupName/toggle - Batch toggle commands by group
+ */
+import { existsSync, readdirSync, readFileSync, mkdirSync, renameSync } from 'fs';
+import { join, relative, dirname, basename } from 'path';
+import { homedir } from 'os';
+import { validatePath as validateAllowedPath } from '../../utils/path-validator.js';
+import type { RouteContext } from './types.js';
+
+// ========== Types ==========
+
+
+
+thinking
+**Creating command document outline**
+
+I'm working on an outline for a command document, which already exists. It's about evolving or implementing, I think. The requirement document is for an orchestrator, so I'll structure the outline around that, describing the steps without copying the full text. I also need a gap report to compare this outline with the original document, identifying any missing elements like the "Pure Orchestrator Pattern". I want to minimize gaps, ideally having none that are critical.
+thinking
+**Reviewing outline and requirements**
+
+I want to ensure my outline includes all core sections and matches the required CCW sections. If everything checks out, the fix plan can simply say "No fixes required." However, if I'm implementing from scratch, I should list the necessary actions. It's important to verify that the command document maintains consistent naming conventions. The requirements also mention "automatic file discovery" and related phases. Additionally, I'm aware of the allowed tools like Skill and Bash, which align with how the orchestrator interacts.
+thinking
+**Setting up temporary workspace**
+
+The requirement states that I need to create a temporary workspace for processing and cleanup. For the spec.json, I’ll fill in the fields with a minimal and straightforward approach. I want to define the command group workflow, naming it `workflow:ui-design:codify-style`, and including a description, argument hints, and setting the intent type to "execute." The interaction type will be a "single-shot" autonomous run, focused on extracting design style assets. I’ll check the documentation for the specific output paths to ensure accuracy.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "reference_style|style_runs|design_run|temp|workspace" .claude/commands/workflow/ui-design/codify-style.md' in C:\Project\Claude-Code-Workflow succeeded in 320ms:
+19:**Output**: Shareable, versioned style reference package at `.workflow/reference_style/{package-name}/`
+29:- **Phase 0 (Validation)**: Validate parameters, prepare workspace → IMMEDIATELY triggers Phase 1
+66:--output-dir <path>     Output directory (default: .workflow/reference_style)
+142:STORE: package_name, output_dir (default: ".workflow/reference_style"), overwrite_flag
+149:output_dir = --output-dir OR ".workflow/reference_style"
+171:# Create temporary workspace for processing
+175:    temp_id = Bash(echo "codify-temp-$(date +%Y%m%d-%H%M%S)")
+177:    # Step 2: Create temporary directory
+178:    Bash(mkdir -p ".workflow/${temp_id}")
+181:    design_run_path = Bash(cd ".workflow/${temp_id}" && pwd)
+184:    REPORT: "❌ ERROR: Failed to create temporary workspace: ${error}"
+187:STORE: temp_id, design_run_path
+194:- `OUTPUT_DIR`: `.workflow/reference_style` (default) or user-specified
+197:- `TEMP_ID`: `codify-temp-{timestamp}` (temporary workspace identifier)
+198:- `DESIGN_RUN_PATH`: Absolute path to temporary workspace
+229:# Use temp_id as design-id since it's the workspace directory name
+231:          " --design-id \"${temp_id}\"" +
+248:    tokens_path = "${design_run_path}/style-extraction/style-1/design-tokens.json"
+249:    guide_path = "${design_run_path}/style-extraction/style-1/style-guide.md"
+262:    Bash(rm -rf .workflow/${temp_id})
+
+thinking
+**Investigating evidence table structure**
+
+I’m looking into the slash outline template for the evidence table header, which includes columns like "Pointer," "Status," "Evidence," "Verify," and "Why." I need to check the script to see if it uses these specific column names. My next step is to open the part of the script related to "findEvidenceTables" and get the column indices. I’ll use a command to locate "findEvidenceTables" in the script for further inspection.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "function findEvidenceTables" -n .codex/skills/slash-command-outliner/scripts/verify-evidence.js
+rg -n "getColumn" .codex/skills/slash-command-outliner/scripts/verify-evidence.js' in C:\Project\Claude-Code-Workflow exited 1 in 346ms:
+166:export function findEvidenceTables(lines) {
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$start=150;$end=250;$lines=Get-Content .codex/skills/slash-command-outliner/scripts/verify-evidence.js; $lines[$start..$end] -join "`n"' in C:\Project\Claude-Code-Workflow succeeded in 320ms:
+  const parts = raw.split('|');
+  // Support both forms:
+  // - with trailing pipe: "| a | b |"
+  // - without trailing pipe: "| a | b"
+  const sliceEnd = raw.endsWith('|') ? -1 : undefined;
+  const cells = parts
+    .slice(1, sliceEnd)
+    .map((c) => String(c).trim());
+  return cells;
+}
+
+export function isSeparatorRow(cells) {
+  return cells.every((c) => /^:?-{3,}:?$/.test(c));
+}
+
+export function findEvidenceTables(lines) {
+  const tables = [];
+  for (let i = 0; i < lines.length; i++) {
+    const cells = splitTableRow(lines[i]);
+    if (!cells) continue;
+
+thinking
+**Evaluating workflow paths**
+
+Okay, I'm considering the workflow paths for explore-auto. If the YAML name is explore-auto, I expect it to be `/workflow:explore-auto`. But, since the documentation is in ui-design, it could be `/workflow:ui-design:explore-auto`. I think using the slash based on the docs is best. I’ll quickly check the usage section to confirm. For the various candidate workflows, I'll derive their paths as follows: import-from-code, reference-page-generator, and generate all appear in the same format.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$files = @(
+  '"'.claude/commands/workflow/ui-design/codify-style.md',
+  '.claude/commands/workflow/ui-design/import-from-code.md',
+  '.claude/commands/workflow/ui-design/reference-page-generator.md',
+  '.claude/commands/workflow/ui-design/explore-auto.md',
+  '.claude/commands/workflow/ui-design/generate.md',
+  '.claude/commands/workflow/ui-design/design-sync.md'
+)
+foreach ("'$f in $files) {
+  Write-Output "--- $f";
+  rg -n "/workflow:" $f | Select-Object -First 6;
+}
+' in C:\Project\Claude-Code-Workflow succeeded in 474ms:
+--- .claude/commands/workflow/ui-design/codify-style.md
+16:1. `/workflow:ui-design:import-from-code` - Extract styles from source code
+17:2. `/workflow:ui-design:reference-page-generator` - Generate versioned reference package with interactive preview
+22:1. User triggers: `/workflow:ui-design:codify-style <path> --package-name <name>`
+58:/workflow:ui-design:codify-style <path> [OPTIONS]
+101:    REPORT: "USAGE: /workflow:ui-design:codify-style <path> [OPTIONS]"
+102:    REPORT: "EXAMPLE: /workflow:ui-design:codify-style ./src"
+--- .claude/commands/workflow/ui-design/import-from-code.md
+34:/workflow:ui-design:import-from-code [FLAGS]
+78:    echo "HINT: Run '/workflow:ui-design:list' to see available design runs"
+--- .claude/commands/workflow/ui-design/reference-page-generator.md
+24:/workflow:ui-design:reference-page-generator [FLAGS]
+69:  echo "USAGE: /workflow:ui-design:reference-page-generator --design-run <path> --package-name <name>"
+83:  echo "HINT: Run '/workflow:ui-design:import-from-code' first to create design run"
+--- .claude/commands/workflow/ui-design/explore-auto.md
+20:1. User triggers: `/workflow:ui-design:explore-auto [params]`
+66:      ├─ code_only | hybrid → Execute /workflow:ui-design:import-from-code
+71:      ├─ visual_only OR supplement needed → Execute /workflow:ui-design:style-extract
+76:      ├─ visual_only OR incomplete OR regenerate → Execute /workflow:ui-design:animation-extract
+81:      ├─ True → Execute /workflow:ui-design:layout-extract
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$lines = Get-Content ccw/src/core/routes/commands-routes.ts
+$start=190;$end=270;$lines[$start..$end] -join "`n"' in C:\Project\Claude-Code-Workflow succeeded in 317ms:
+  // First check custom assignments
+  const config = loadGroupsConfig(location, projectPath);
+  if (config.assignments[commandName]) {
+    return config.assignments[commandName];
+  }
+
+  // Fallback to path-based inference - use full directory path as group
+  const parts = relativePath.split(/[/\\]/);
+  if (parts.length > 1) {
+    // Use full directory path (excluding filename) as group
+    // e.g., 'workflow/review/code-review.md' -> 'workflow/review'
+    return parts.slice(0, -1).join('/');
+  }
+
+  return 'other';
+}
+
+/**
+ * Recursively scan directory for command files
+ */
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem -File .claude/commands/workflow | Select-Object -First 10 Name
+Get-Content -TotalCount 8 .claude/commands/workflow/lite-plan.md' in C:\Project\Claude-Code-Workflow succeeded in 338ms:
+
+[32;1mName[0m
+[32;1m----[0m
+analyze-with-file.md
+brainstorm-with-file.md
+clean.md
+collaborative-plan-with-file.md
+debug-with-file.md
+execute.md
+init-guidelines.md
+init.md
+lite-execute.md
+lite-fix.md
+---
+name: lite-plan
+description: Lightweight interactive planning workflow with in-memory planning, code exploration, and execution execute to lite-execute after user confirmation
+argument-hint: "[-y|--yes] [-e|--explore] \"task description\"|file.md"
+allowed-tools: TodoWrite(*), Task(*), Skill(*), AskUserQuestion(*)
+---
+
+
+
+thinking
+**Reviewing script execution**
+
+I’m thinking we should include all required pointers, even if it might feel redundant. The evidence script needs at least one evidence table in each file, so I'll make sure to include that. Next, I’ll run the evidence gate by executing the node script with a proper output file path. I need to avoid JSON parse errors and will set up the output directory. Although the write_file tool may have issues, I'll switch to the apply_patch tool to continue.
+thinking
+**Setting up the output directory**
+
+I'm planning to use the apply_patch tool to add files with the correct content, as it might be the easiest way to avoid issues with the MCP server. However, the apply_patch tool needs a freeform patch. I need to create the necessary directories first, but I'm uncertain if the tool creates them automatically. To be safe, I'll use a shell command like `New-Item -Force -ItemType Directory` to create the output directory before adding the content.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$dir = '"'.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs'
+New-Item -ItemType Directory -Force -Path "'$dir | Out-Null
+Write-Output $dir' in C:\Project\Claude-Code-Workflow succeeded in 328ms:
+.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs
+
+
+
+
+Reconnecting... 1/5 (stream disconnected before completion: stream closed before response.completed)
+
+
+thinking
+**Evaluating command structure**
+
+I need to consider that the minimal spec wants a command object and might not allow for a "title," so I may need to omit that to keep it minimal. The templates require fields like command.title, group, name, description, argument_hint, and allowed_tools. We can create our own outlines instead of relying on a script, but I suspect that including the title could be beneficial. The requirements mention the title "UI Design: Codify Style (Orchestrator)," so perhaps I can use that.
+thinking
+**Checking spec structure**
+
+It seems like the placeholder in the template means our generated outline will be final, not just templated. Thus, spec.json doesn't really affect this directly. However, it might be used later by scripts, so it's best to include safe fields in our output. I should take a quick look at the scripts, like derive-spec.js or generate-outline.js, to check what the expected spec structure is. Opening those scripts should help clarify things!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/generate-outline.js' in C:\Project\Claude-Code-Workflow succeeded in 314ms:
+import fs from 'node:fs';
+import path from 'node:path';
+
+import { renderOutlineFromSpec, writeText } from './lib/pipeline.js';
+import { findImplementationHints } from './lib/implementation-hints.js';
+
+function usage() {
+  console.log(
+    [
+      'Usage:',
+      '  node .codex/skills/slash-command-outliner/scripts/generate-outline.js --spec=spec.json --out=outline.md',
+      '    [--tooling-manifest=tooling.json]',
+      '',
+      'Generates a CCW-aligned slash command outline deterministically (no LLM).',
+    ].join('\n')
+  );
+}
+
+function parseArgs(argv) {
+  const args = {};
+
+thinking
+**Inspecting pipeline structure**
+
+I’m thinking the deterministic pipeline probably needs some sort of structure. I should look into `renderOutlineFromSpec` and the spec schema to see how they fit together. So, I’m planning to open up the file located at `.codex/skills/slash-command-outliner/scripts/lib/pipeline.js` to dive deeper. I’m curious about how these components interact and what requirements they might have for proper functioning.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/lib/pipeline.js' in C:\Project\Claude-Code-Workflow succeeded in 313ms:
+import fs from 'node:fs';
+import path from 'node:path';
+
+import { extractHeadings, parseYamlHeader, readCommandFile, toPosixPath } from './command-md.js';
+import { findImplementationHints } from './implementation-hints.js';
+
+export function splitCsv(s) {
+  return String(s || '')
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+function inferGroupFromCommandPath(commandPath, headerGroup) {
+  if (headerGroup && String(headerGroup).trim().length > 0) return String(headerGroup).trim();
+  const p = toPosixPath(String(commandPath || ''));
+  const marker = '.claude/commands/';
+  const idx = p.indexOf(marker);
+  if (idx === -1) return '';
+  const rel = p.slice(idx + marker.length);
+
+thinking
+**Checking file existence**
+
+I need to write files with 'apply_patch' and 'Add File' for each one, but I should check if they already exist first. If they don't, I'll use the 'Add File' patch. If they do exist, I'll update the file instead. So, my next step is to check the directory listing to see what's there. It's crucial to ensure I'm working with the right files before taking further action!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem -Force .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs | Select-Object Name' in C:\Project\Claude-Code-Workflow succeeded in 319ms:
+
+
+
+
+
+
+thinking
+**Considering pointer cell implementation**
+
+I think we can use file paths for the pointer cell instead of slashes to keep everything clear and align with path checks. If the status is "Existing," the script checks if the path exists, which is promising. I’ll include these file paths in the evidence table and mention the slash commands in the implementation pointers list. Importantly, every pointer row must contain docs+ts evidence, as enforced by the script. For the gap report, we should cover key pointers mentioned before. Now, regarding the apply_patch, we can create one patch with six add file hunks, ensuring the content uses Unix newlines and correct JSON formatting.
+thinking
+**Establishing markdown structure**
+
+I need to set the frontmatter for markdown correctly. It should include the allowed tools listed as `Skill,Bash,Read,TodoWrite`, matching the existing command documentation. For the argument hint, I’ll enclose it in quotes like this: `argument-hint: "<path> ..."`. The group should be labeled as "workflow." 
+
+As for the title, I’m thinking of using "UI Design: Codify Style (Orchestrator)" for consistency. The top heading will mirror this. I’ll also include the command string in the overview as "Command: `/workflow:workflow:ui-design:codify-style`" to tie everything together neatly.
+thinking
+**Clarifying command documentation**
+
+I'm thinking of how to present the command in the documentation clearly. I might mention both formats: "Command (frontmatter name): `/workflow:workflow:ui-design:codify-style`" and the CLI invocation should be `/workflow:ui-design:codify-style`. I worry this will confuse things, but it feels honest. 
+
+To keep the usage section straightforward, I should stick with `/workflow:workflow:...` as indicated in the requirements but note verification might be necessary. I’ll definitely include a note for the gap report. For usage args, I’ll show `<path> [--package-name <name>] [--output-dir <path>] [--overwrite]`. Now, I need to create evidence rows and select headings like "Overview & Execution Model" or "Implementation Details" for the codify-style doc.
+thinking
+**Setting headings and verifying commands**
+
+I’ve decided to use "Overview & Execution Model" for the pointer in the codify-style document. For the import-from-code and reference-page-generator documents, I'll go with "Execution Process." 
+
+In the commands-routes.ts pointer, I can use the codify-style doc's heading "Architecture" for documentation evidence. I need to make sure that the evidence file paths follow the format `.claude/commands/**.md`. I’ll verify the paths for the codify-style documents and the commands-routes.ts file. I can use commands like `Test-Path` to check the existence of specific files, ensuring that any anchor strings in the evidence cell remain accurate and correctly formatted.
+thinking
+**Setting evidence formatting**
+
+I need to quote specific commands correctly, and using backticks in Markdown is fine. However, the verify-evidence script only checks if the verify command isn't empty, not for correctness. 
+
+In the evidence cell, I should ensure proper delimiters and spacing, like: `docs: .claude/commands/workflow/ui-design/codify-style.md / Overview & Execution Model ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive(`. 
+
+I’ll remember that `takePart('docs')` will find everything after 'docs:' up to the next key or semicolon, and I plan to keep both document parts in the same cell separated by a semicolon without using backticks. 
+
+Now, I’ll prepare the gap report with an evidence section that includes our pointer rows and fill the gaps with a bullet list, avoiding any placeholders. Additionally, I’ll update the fix-plan.md with a bullet list that includes tags. After that, let's write the patch to add files!
+file update
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md
+# Gap Report: workflow:workflow:ui-design:codify-style
+
+## Reference
+
+- Selected reference: /workflow:ui-design:codify-style (`.claude/commands/workflow/ui-design/codify-style.md`)
+
+## P0 Gaps (Must Fix)
+
+- None identified for the outline scaffolding (core sections present + evidence table included).
+
+## P1 Gaps (Should Fix)
+
+- Command identity consistency: oracle doc usage strings show `/workflow:ui-design:codify-style`, while the frontmatter-derived slash format for this cycle spec is `/workflow:workflow:ui-design:codify-style`. Verify how the runtime resolves nested command paths vs `name:` frontmatter, and align the outline/usage accordingly.
+- Cross-platform Bash assumptions: the orchestrator uses `mkdir -p`, `rm -rf`, `date`, and optional `jq`; confirm availability in the target execution environment and document prerequisites/recovery.
+
+## P2 Gaps (Optional)
+
+- Expand quick verification reporting (component count, absolute paths) into a small, stable checklist to reduce operator uncertainty.
+
+## Implementation Pointers (Evidence)
+
+| Pointer | Status | Evidence | Verify | Notes |
+|---|---|---|---|---|
+| `.claude/commands/workflow/ui-design/codify-style.md` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Overview & Execution Model ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/codify-style.md` | Primary orchestrator doc; defines 4-phase flow and delegate calls |
+| `.claude/commands/workflow/ui-design/import-from-code.md` | Existing | docs: .claude/commands/workflow/ui-design/import-from-code.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/import-from-code.md` | Delegate for extraction outputs consumed by Phase 2 |
+| `.claude/commands/workflow/ui-design/reference-page-generator.md` | Existing | docs: .claude/commands/workflow/ui-design/reference-page-generator.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/reference-page-generator.md` | Delegate for reference package + preview generation |
+| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Architecture ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path ccw/src/core/routes/commands-routes.ts; rg \"function scanCommandsRecursive\\(\" ccw/src/core/routes/commands-routes.ts` | Confirms how commands are discovered and grouped in CCW tooling/server |
+
+## Implementation Hints (Tooling/Server)
+
+- Command discovery/grouping is implemented in `ccw/src/core/routes/commands-routes.ts` (recursive scan + group inference). This impacts how nested `.claude/commands/workflow/ui-design/*.md` commands are surfaced and may explain the frontmatter vs invocation mismatch.
+
+## Proposed Fix Plan (Minimal)
+
+1. Verify command resolution: confirm whether invocation is derived from relative path (e.g. `workflow/ui-design/codify-style.md`) or from `name:` frontmatter, then update usage strings to a single canonical form.
+2. Add a short prerequisites note for Bash utilities used (`rm`, `mkdir`, `date`, optional `jq`), with fallback behavior when missing.
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json
+{
+  "command": {
+    "group": "workflow",
+    "name": "workflow:ui-design:codify-style",
+    "description": "Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)",
+    "argument_hint": "<path> [--package-name <name>] [--output-dir <path>] [--overwrite]",
+    "allowed_tools": ["Skill", "Bash", "Read", "TodoWrite"]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "single-shot",
+    "primary_user_value": "Extract styles from a codebase path and generate a shareable reference-style package with preview."
+  },
+  "artifacts": {
+    "reads": ["<path> (source code path)", ".workflow/reference_style/** (existence/overwrite checks)"],
+    "writes": [
+      ".workflow/reference_style/<package-name>/",
+      ".workflow/codify-temp-<timestamp>/ (temporary workspace; cleaned up)"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 600,
+    "must_not": [
+      "do not overwrite existing output package unless --overwrite is set",
+      "do not delete anything outside .workflow/",
+      "do not stop between phases (auto-continue)"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name/description/allowed-tools)",
+      "allowed-tools correct for orchestrator (Skill,Bash,Read,TodoWrite)",
+      "core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
+      "evidence tables: each pointer row includes docs + TS anchors"
+    ]
+  }
+}
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md
+# Agent Outline: workflow:workflow:ui-design:codify-style
+
+## Purpose
+
+Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
+
+## Execution Model
+
+- Default: incremental, testable changes; keep edits small and phase-scoped.
+- Before changes: inspect 3+ similar commands (orchestrators + ui-design pipeline delegates).
+
+## State & Artifacts
+
+- Session folder: `.workflow/codify-temp-<timestamp>/` (temporary; must be cleaned up)
+- Required outputs:
+  - `.claude/commands/workflow/ui-design/codify-style.md` (orchestrator command doc)
+  - Delegate command docs: `import-from-code`, `reference-page-generator` (already present; verify anchors)
+  - Final package: `.workflow/reference_style/<package-name>/`
+
+## Tooling
+
+- Allowed tools: Skill,Bash,Read,TodoWrite
+- Non-negotiables:
+  - no unrelated changes outside the command’s scope
+  - preserve auto-continue behavior across phases
+  - verify evidence tables (docs + TS anchors) when updating pointers
+
+## Validation Strategy
+
+- P0 gates:
+  - frontmatter has `name`, `description`, `allowed-tools`
+  - core sections exist: `Overview`, `Usage`, `Execution Process`, `Outputs / Artifacts`, `Error Handling`
+  - artifact paths are consistent with `.workflow/reference_style` and temp workspace cleanup rules
+- Deterministic evidence gate:
+  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<outline_or_gap_report.md>`
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md
+# Fix Plan: workflow:workflow:ui-design:codify-style
+
+## P0 (Must)
+
+- No P0 fixes required for the generated outline artifacts (sections + evidence tables are present).
+
+## P1 (Should)
+
+1. Command identity verification
+   - Decide canonical invocation string for this command in the runtime.
+   - Update `/workflow:...` usage strings and any cross-references to match the canonical resolution.
+2. Bash runtime prerequisites
+   - Document required utilities used by the orchestrator (`mkdir`, `rm`, `date`; `jq` optional).
+   - Add explicit recovery notes for when prerequisites are missing.
+
+## P2 (Optional)
+
+1. Tighten verification output
+   - Provide a stable completion report format (absolute package path, key file list, component count if available).
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json
+{
+  "candidates": [
+    {
+      "slash": "/workflow:ui-design:codify-style",
+      "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
+      "score": 1.0,
+      "why": "Exact oracle for the orchestrator: 4-phase flow, Skill delegation, temp workspace, reference_style output."
+    },
+    {
+      "slash": "/workflow:ui-design:import-from-code",
+      "file_path": ".claude/commands/workflow/ui-design/import-from-code.md",
+      "score": 0.86,
+      "why": "Phase 1 dependency; establishes file discovery + parallel agents + extraction outputs used by codify-style."
+    },
+    {
+      "slash": "/workflow:ui-design:reference-page-generator",
+      "file_path": ".claude/commands/workflow/ui-design/reference-page-generator.md",
+      "score": 0.82,
+      "why": "Phase 2 dependency; generates versioned package + preview structure under reference_style."
+    },
+    {
+      "slash": "/workflow:ui-design:explore-auto",
+      "file_path": ".claude/commands/workflow/ui-design/explore-auto.md",
+      "score": 0.74,
+      "why": "Similar orchestrator mechanics (Skill attaches tasks + auto-continue + TodoWrite patterns) with a longer phase pipeline."
+    },
+    {
+      "slash": "/workflow:lite-plan",
+      "file_path": ".claude/commands/workflow/lite-plan.md",
+      "score": 0.6,
+      "why": "Reference for CCW command doc conventions: frontmatter, core sections, TodoWrite lifecycle, and orchestrator-style control flow."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:ui-design:codify-style",
+    "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
+    "reason": "Oracle command doc for CMD-068; use for gap-check and wording alignment without leaking full content."
+  }
+}
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md
+---
+name: workflow:ui-design:codify-style
+description: Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)
+argument-hint: "<path> [--package-name <name>] [--output-dir <path>] [--overwrite]"
+allowed-tools: Skill,Bash,Read,TodoWrite
+group: workflow
+---
+
+# UI Design: Codify Style (Orchestrator)
+
+## Overview
+
+- Goal: Extract styles from a codebase path and generate a shareable reference-style package with preview.
+- Command: `/workflow:workflow:ui-design:codify-style`
+- Execution model: fully autonomous orchestrator; delegates work to sub-commands via `Skill(...)` and tracks phases via `TodoWrite`.
+
+## Usage
+
+```bash
+/workflow:workflow:ui-design:codify-style <path> [--package-name <name>] [--output-dir <path>] [--overwrite]
+```
+
+## Inputs
+
+- Required inputs:
+  - `<path>`: source path to analyze (directory or file, repo-relative or absolute)
+- Optional inputs:
+  - `--package-name <name>`: output package name (default: derived from source path or timestamp)
+  - `--output-dir <path>`: output base directory (default: `.workflow/reference_style`)
+  - `--overwrite`: allow overwriting an existing package directory
+
+## Outputs / Artifacts
+
+- Writes:
+  - `.workflow/reference_style/<package-name>/` (final package + preview)
+  - `.workflow/codify-temp-<timestamp>/` (temporary workspace; cleaned up after completion)
+- Reads:
+  - `<path>` (source code)
+  - `.workflow/reference_style/**` (existence/overwrite checks)
+
+## Implementation Pointers
+
+- Command doc: `.claude/commands/workflow/ui-design/codify-style.md`
+- Likely code locations:
+  - `.claude/commands/workflow/ui-design/import-from-code.md` (Phase 1 delegate)
+  - `.claude/commands/workflow/ui-design/reference-page-generator.md` (Phase 2 delegate)
+  - `ccw/src/core/routes/commands-routes.ts` (command discovery + metadata used by CCW UI/tooling)
+
+### Evidence (Existing vs Planned)
+
+| Pointer | Status | Evidence (docs + TS) | Verify | Why |
+|---|---|---|---|---|
+| `.claude/commands/workflow/ui-design/codify-style.md` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Overview & Execution Model ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/codify-style.md` | Primary orchestrator command doc |
+| `.claude/commands/workflow/ui-design/import-from-code.md` | Existing | docs: .claude/commands/workflow/ui-design/import-from-code.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/import-from-code.md` | Phase 1 delegate (style extraction + file discovery) |
+| `.claude/commands/workflow/ui-design/reference-page-generator.md` | Existing | docs: .claude/commands/workflow/ui-design/reference-page-generator.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/reference-page-generator.md` | Phase 2 delegate (package + preview generation) |
+| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Architecture ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path ccw/src/core/routes/commands-routes.ts; rg \"function scanCommandsRecursive\\(\" ccw/src/core/routes/commands-routes.ts` | Ground-truth TS location for command scanning/grouping behavior |
+
+## Execution Process
+
+1. Phase 0: Parameter validation & session preparation
+   - Parse positional `<path>` (first non-flag argument); reject missing/empty.
+   - Validate source path exists; normalize to absolute for reporting.
+   - Determine `package_name` (flag or auto-generated) and `output_dir` (flag or default).
+   - Create temporary workspace `.workflow/codify-temp-<timestamp>/`; store `temp_id` and absolute `design_run_path`.
+   - Initialize `TodoWrite` with 4 high-level phases; auto-continue.
+2. Phase 1: Style extraction from source code (delegate)
+   - Build delegate command with required parameters only (use `temp_id` as `--design-id`).
+   - Invoke `Skill(...)` to attach delegate tasks and execute them; verify required outputs exist in temp workspace.
+3. Phase 2: Reference package generation (delegate)
+   - Build delegate command with `--design-run <design_run_path>`, `--package-name`, `--output-dir`.
+   - Invoke `Skill(...)` to attach and execute tasks; verify expected package files exist under `<output_dir>/<package_name>/`.
+4. Phase 3: Cleanup & verification
+   - Remove temporary workspace directory under `.workflow/`.
+   - Quick verification: report absolute final package path + component count when available.
+   - Emit completion message and final `TodoWrite` update.
+
+## Error Handling
+
+- Missing required `<path>`: print usage + examples; exit non-zero.
+- Invalid/non-existent source path: report error; exit non-zero (no partial outputs).
+- Temp workspace create failure: abort early; do not proceed to delegates.
+- Delegate failure (Phase 1/2): report phase-specific failure, attempt `.workflow/` cleanup, keep temp path for inspection if relevant.
+- Overwrite protection: if output package path exists and `--overwrite` is not set, abort with a clear remediation.
+
+## Examples
+
+```bash
+/workflow:workflow:ui-design:codify-style ./src
+/workflow:workflow:ui-design:codify-style ./app --package-name design-system-v2 --output-dir .workflow/reference_style --overwrite
+```
+
+apply_patch(auto_approved=true) exited 0 in 129ms:
+Success. Updated the following files:
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..0aa430e85f07036cd8b1069641aaa4a8017f6ca9
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md
+@@ -0,0 +1,20 @@
++# Fix Plan: workflow:workflow:ui-design:codify-style
++
++## P0 (Must)
++
++- No P0 fixes required for the generated outline artifacts (sections + evidence tables are present).
++
++## P1 (Should)
++
++1. Command identity verification
++   - Decide canonical invocation string for this command in the runtime.
++   - Update `/workflow:...` usage strings and any cross-references to match the canonical resolution.
++2. Bash runtime prerequisites
++   - Document required utilities used by the orchestrator (`mkdir`, `rm`, `date`; `jq` optional).
++   - Add explicit recovery notes for when prerequisites are missing.
++
++## P2 (Optional)
++
++1. Tighten verification output
++   - Provide a stable completion report format (absolute package path, key file list, component count if available).
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..217a09debae41f37fa64c13d9f1192dc34bc61f8
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md
+@@ -0,0 +1,37 @@
++# Gap Report: workflow:workflow:ui-design:codify-style
++
++## Reference
++
++- Selected reference: /workflow:ui-design:codify-style (`.claude/commands/workflow/ui-design/codify-style.md`)
++
++## P0 Gaps (Must Fix)
++
++- None identified for the outline scaffolding (core sections present + evidence table included).
++
++## P1 Gaps (Should Fix)
++
++- Command identity consistency: oracle doc usage strings show `/workflow:ui-design:codify-style`, while the frontmatter-derived slash format for this cycle spec is `/workflow:workflow:ui-design:codify-style`. Verify how the runtime resolves nested command paths vs `name:` frontmatter, and align the outline/usage accordingly.
++- Cross-platform Bash assumptions: the orchestrator uses `mkdir -p`, `rm -rf`, `date`, and optional `jq`; confirm availability in the target execution environment and document prerequisites/recovery.
++
++## P2 Gaps (Optional)
++
++- Expand quick verification reporting (component count, absolute paths) into a small, stable checklist to reduce operator uncertainty.
++
++## Implementation Pointers (Evidence)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/workflow/ui-design/codify-style.md` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Overview & Execution Model ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/codify-style.md` | Primary orchestrator doc; defines 4-phase flow and delegate calls |
++| `.claude/commands/workflow/ui-design/import-from-code.md` | Existing | docs: .claude/commands/workflow/ui-design/import-from-code.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/import-from-code.md` | Delegate for extraction outputs consumed by Phase 2 |
++| `.claude/commands/workflow/ui-design/reference-page-generator.md` | Existing | docs: .claude/commands/workflow/ui-design/reference-page-generator.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/reference-page-generator.md` | Delegate for reference package + preview generation |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Architecture ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path ccw/src/core/routes/commands-routes.ts; rg \"function scanCommandsRecursive\\(\" ccw/src/core/routes/commands-routes.ts` | Confirms how commands are discovered and grouped in CCW tooling/server |
++
++## Implementation Hints (Tooling/Server)
++
++- Command discovery/grouping is implemented in `ccw/src/core/routes/commands-routes.ts` (recursive scan + group inference). This impacts how nested `.claude/commands/workflow/ui-design/*.md` commands are surfaced and may explain the frontmatter vs invocation mismatch.
++
++## Proposed Fix Plan (Minimal)
++
++1. Verify command resolution: confirm whether invocation is derived from relative path (e.g. `workflow/ui-design/codify-style.md`) or from `name:` frontmatter, then update usage strings to a single canonical form.
++2. Add a short prerequisites note for Bash utilities used (`rm`, `mkdir`, `date`, optional `jq`), with fallback behavior when missing.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..d13dffe8aca8c88a1a0eecc593512cfd43bc98dc
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,36 @@
++# Agent Outline: workflow:workflow:ui-design:codify-style
++
++## Purpose
++
++Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
++
++## Execution Model
++
++- Default: incremental, testable changes; keep edits small and phase-scoped.
++- Before changes: inspect 3+ similar commands (orchestrators + ui-design pipeline delegates).
++
++## State & Artifacts
++
++- Session folder: `.workflow/codify-temp-<timestamp>/` (temporary; must be cleaned up)
++- Required outputs:
++  - `.claude/commands/workflow/ui-design/codify-style.md` (orchestrator command doc)
++  - Delegate command docs: `import-from-code`, `reference-page-generator` (already present; verify anchors)
++  - Final package: `.workflow/reference_style/<package-name>/`
++
++## Tooling
++
++- Allowed tools: Skill,Bash,Read,TodoWrite
++- Non-negotiables:
++  - no unrelated changes outside the command’s scope
++  - preserve auto-continue behavior across phases
++  - verify evidence tables (docs + TS anchors) when updating pointers
++
++## Validation Strategy
++
++- P0 gates:
++  - frontmatter has `name`, `description`, `allowed-tools`
++  - core sections exist: `Overview`, `Usage`, `Execution Process`, `Outputs / Artifacts`, `Error Handling`
++  - artifact paths are consistent with `.workflow/reference_style` and temp workspace cleanup rules
++- Deterministic evidence gate:
++  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<outline_or_gap_report.md>`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..1d2fed852c1f4aeffe26c39ef091a6ceddb17ef3
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,91 @@
++---
++name: workflow:ui-design:codify-style
++description: Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)
++argument-hint: "<path> [--package-name <name>] [--output-dir <path>] [--overwrite]"
++allowed-tools: Skill,Bash,Read,TodoWrite
++group: workflow
++---
++
++# UI Design: Codify Style (Orchestrator)
++
++## Overview
++
++- Goal: Extract styles from a codebase path and generate a shareable reference-style package with preview.
++- Command: `/workflow:workflow:ui-design:codify-style`
++- Execution model: fully autonomous orchestrator; delegates work to sub-commands via `Skill(...)` and tracks phases via `TodoWrite`.
++
++## Usage
++
++```bash
++/workflow:workflow:ui-design:codify-style <path> [--package-name <name>] [--output-dir <path>] [--overwrite]
++```
++
++## Inputs
++
++- Required inputs:
++  - `<path>`: source path to analyze (directory or file, repo-relative or absolute)
++- Optional inputs:
++  - `--package-name <name>`: output package name (default: derived from source path or timestamp)
++  - `--output-dir <path>`: output base directory (default: `.workflow/reference_style`)
++  - `--overwrite`: allow overwriting an existing package directory
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/reference_style/<package-name>/` (final package + preview)
++  - `.workflow/codify-temp-<timestamp>/` (temporary workspace; cleaned up after completion)
++- Reads:
++  - `<path>` (source code)
++  - `.workflow/reference_style/**` (existence/overwrite checks)
++
++## Implementation Pointers
++
++- Command doc: `.claude/commands/workflow/ui-design/codify-style.md`
++- Likely code locations:
++  - `.claude/commands/workflow/ui-design/import-from-code.md` (Phase 1 delegate)
++  - `.claude/commands/workflow/ui-design/reference-page-generator.md` (Phase 2 delegate)
++  - `ccw/src/core/routes/commands-routes.ts` (command discovery + metadata used by CCW UI/tooling)
++
++### Evidence (Existing vs Planned)
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/workflow/ui-design/codify-style.md` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Overview & Execution Model ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/codify-style.md` | Primary orchestrator command doc |
++| `.claude/commands/workflow/ui-design/import-from-code.md` | Existing | docs: .claude/commands/workflow/ui-design/import-from-code.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/import-from-code.md` | Phase 1 delegate (style extraction + file discovery) |
++| `.claude/commands/workflow/ui-design/reference-page-generator.md` | Existing | docs: .claude/commands/workflow/ui-design/reference-page-generator.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/reference-page-generator.md` | Phase 2 delegate (package + preview generation) |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Architecture ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path ccw/src/core/routes/commands-routes.ts; rg \"function scanCommandsRecursive\\(\" ccw/src/core/routes/commands-routes.ts` | Ground-truth TS location for command scanning/grouping behavior |
++
++## Execution Process
++
++1. Phase 0: Parameter validation & session preparation
++   - Parse positional `<path>` (first non-flag argument); reject missing/empty.
++   - Validate source path exists; normalize to absolute for reporting.
++   - Determine `package_name` (flag or auto-generated) and `output_dir` (flag or default).
++   - Create temporary workspace `.workflow/codify-temp-<timestamp>/`; store `temp_id` and absolute `design_run_path`.
++   - Initialize `TodoWrite` with 4 high-level phases; auto-continue.
++2. Phase 1: Style extraction from source code (delegate)
++   - Build delegate command with required parameters only (use `temp_id` as `--design-id`).
++   - Invoke `Skill(...)` to attach delegate tasks and execute them; verify required outputs exist in temp workspace.
++3. Phase 2: Reference package generation (delegate)
++   - Build delegate command with `--design-run <design_run_path>`, `--package-name`, `--output-dir`.
++   - Invoke `Skill(...)` to attach and execute tasks; verify expected package files exist under `<output_dir>/<package_name>/`.
++4. Phase 3: Cleanup & verification
++   - Remove temporary workspace directory under `.workflow/`.
++   - Quick verification: report absolute final package path + component count when available.
++   - Emit completion message and final `TodoWrite` update.
++
++## Error Handling
++
++- Missing required `<path>`: print usage + examples; exit non-zero.
++- Invalid/non-existent source path: report error; exit non-zero (no partial outputs).
++- Temp workspace create failure: abort early; do not proceed to delegates.
++- Delegate failure (Phase 1/2): report phase-specific failure, attempt `.workflow/` cleanup, keep temp path for inspection if relevant.
++- Overwrite protection: if output package path exists and `--overwrite` is not set, abort with a clear remediation.
++
++## Examples
++
++```bash
++/workflow:workflow:ui-design:codify-style ./src
++/workflow:workflow:ui-design:codify-style ./app --package-name design-system-v2 --output-dir .workflow/reference_style --overwrite
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..8b76645c5cc66d602704240aefecf3d50a88430f
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json
+@@ -0,0 +1,40 @@
++{
++  "candidates": [
++    {
++      "slash": "/workflow:ui-design:codify-style",
++      "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
++      "score": 1.0,
++      "why": "Exact oracle for the orchestrator: 4-phase flow, Skill delegation, temp workspace, reference_style output."
++    },
++    {
++      "slash": "/workflow:ui-design:import-from-code",
++      "file_path": ".claude/commands/workflow/ui-design/import-from-code.md",
++      "score": 0.86,
++      "why": "Phase 1 dependency; establishes file discovery + parallel agents + extraction outputs used by codify-style."
++    },
++    {
++      "slash": "/workflow:ui-design:reference-page-generator",
++      "file_path": ".claude/commands/workflow/ui-design/reference-page-generator.md",
++      "score": 0.82,
++      "why": "Phase 2 dependency; generates versioned package + preview structure under reference_style."
++    },
++    {
++      "slash": "/workflow:ui-design:explore-auto",
++      "file_path": ".claude/commands/workflow/ui-design/explore-auto.md",
++      "score": 0.74,
++      "why": "Similar orchestrator mechanics (Skill attaches tasks + auto-continue + TodoWrite patterns) with a longer phase pipeline."
++    },
++    {
++      "slash": "/workflow:lite-plan",
++      "file_path": ".claude/commands/workflow/lite-plan.md",
++      "score": 0.6,
++      "why": "Reference for CCW command doc conventions: frontmatter, core sections, TodoWrite lifecycle, and orchestrator-style control flow."
++    }
++  ],
++  "selected": {
++    "slash": "/workflow:ui-design:codify-style",
++    "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
++    "reason": "Oracle command doc for CMD-068; use for gap-check and wording alignment without leaking full content."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..66c4d47c5bf8b6885245663c931f73d8bc4ad1a4
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json
+@@ -0,0 +1,39 @@
++{
++  "command": {
++    "group": "workflow",
++    "name": "workflow:ui-design:codify-style",
++    "description": "Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)",
++    "argument_hint": "<path> [--package-name <name>] [--output-dir <path>] [--overwrite]",
++    "allowed_tools": ["Skill", "Bash", "Read", "TodoWrite"]
++  },
++  "intent": {
++    "type": "execute",
++    "interaction": "single-shot",
++    "primary_user_value": "Extract styles from a codebase path and generate a shareable reference-style package with preview."
++  },
++  "artifacts": {
++    "reads": ["<path> (source code path)", ".workflow/reference_style/** (existence/overwrite checks)"],
++    "writes": [
++      ".workflow/reference_style/<package-name>/",
++      ".workflow/codify-temp-<timestamp>/ (temporary workspace; cleaned up)"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 1,
++    "time_budget_seconds": 600,
++    "must_not": [
++      "do not overwrite existing output package unless --overwrite is set",
++      "do not delete anything outside .workflow/",
++      "do not stop between phases (auto-continue)"
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "frontmatter valid (name/description/allowed-tools)",
++      "allowed-tools correct for orchestrator (Skill,Bash,Read,TodoWrite)",
++      "core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
++      "evidence tables: each pointer row includes docs + TS anchors"
++    ]
++  }
++}
++
+
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..0aa430e85f07036cd8b1069641aaa4a8017f6ca9
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md
+@@ -0,0 +1,20 @@
++# Fix Plan: workflow:workflow:ui-design:codify-style
++
++## P0 (Must)
++
++- No P0 fixes required for the generated outline artifacts (sections + evidence tables are present).
++
++## P1 (Should)
++
++1. Command identity verification
++   - Decide canonical invocation string for this command in the runtime.
++   - Update `/workflow:...` usage strings and any cross-references to match the canonical resolution.
++2. Bash runtime prerequisites
++   - Document required utilities used by the orchestrator (`mkdir`, `rm`, `date`; `jq` optional).
++   - Add explicit recovery notes for when prerequisites are missing.
++
++## P2 (Optional)
++
++1. Tighten verification output
++   - Provide a stable completion report format (absolute package path, key file list, component count if available).
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..217a09debae41f37fa64c13d9f1192dc34bc61f8
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md
+@@ -0,0 +1,37 @@
++# Gap Report: workflow:workflow:ui-design:codify-style
++
++## Reference
++
++- Selected reference: /workflow:ui-design:codify-style (`.claude/commands/workflow/ui-design/codify-style.md`)
++
++## P0 Gaps (Must Fix)
++
++- None identified for the outline scaffolding (core sections present + evidence table included).
++
++## P1 Gaps (Should Fix)
++
++- Command identity consistency: oracle doc usage strings show `/workflow:ui-design:codify-style`, while the frontmatter-derived slash format for this cycle spec is `/workflow:workflow:ui-design:codify-style`. Verify how the runtime resolves nested command paths vs `name:` frontmatter, and align the outline/usage accordingly.
++- Cross-platform Bash assumptions: the orchestrator uses `mkdir -p`, `rm -rf`, `date`, and optional `jq`; confirm availability in the target execution environment and document prerequisites/recovery.
++
++## P2 Gaps (Optional)
++
++- Expand quick verification reporting (component count, absolute paths) into a small, stable checklist to reduce operator uncertainty.
++
++## Implementation Pointers (Evidence)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/workflow/ui-design/codify-style.md` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Overview & Execution Model ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/codify-style.md` | Primary orchestrator doc; defines 4-phase flow and delegate calls |
++| `.claude/commands/workflow/ui-design/import-from-code.md` | Existing | docs: .claude/commands/workflow/ui-design/import-from-code.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/import-from-code.md` | Delegate for extraction outputs consumed by Phase 2 |
++| `.claude/commands/workflow/ui-design/reference-page-generator.md` | Existing | docs: .claude/commands/workflow/ui-design/reference-page-generator.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/reference-page-generator.md` | Delegate for reference package + preview generation |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Architecture ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path ccw/src/core/routes/commands-routes.ts; rg \"function scanCommandsRecursive\\(\" ccw/src/core/routes/commands-routes.ts` | Confirms how commands are discovered and grouped in CCW tooling/server |
++
++## Implementation Hints (Tooling/Server)
++
++- Command discovery/grouping is implemented in `ccw/src/core/routes/commands-routes.ts` (recursive scan + group inference). This impacts how nested `.claude/commands/workflow/ui-design/*.md` commands are surfaced and may explain the frontmatter vs invocation mismatch.
++
++## Proposed Fix Plan (Minimal)
++
++1. Verify command resolution: confirm whether invocation is derived from relative path (e.g. `workflow/ui-design/codify-style.md`) or from `name:` frontmatter, then update usage strings to a single canonical form.
++2. Add a short prerequisites note for Bash utilities used (`rm`, `mkdir`, `date`, optional `jq`), with fallback behavior when missing.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..d13dffe8aca8c88a1a0eecc593512cfd43bc98dc
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,36 @@
++# Agent Outline: workflow:workflow:ui-design:codify-style
++
++## Purpose
++
++Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
++
++## Execution Model
++
++- Default: incremental, testable changes; keep edits small and phase-scoped.
++- Before changes: inspect 3+ similar commands (orchestrators + ui-design pipeline delegates).
++
++## State & Artifacts
++
++- Session folder: `.workflow/codify-temp-<timestamp>/` (temporary; must be cleaned up)
++- Required outputs:
++  - `.claude/commands/workflow/ui-design/codify-style.md` (orchestrator command doc)
++  - Delegate command docs: `import-from-code`, `reference-page-generator` (already present; verify anchors)
++  - Final package: `.workflow/reference_style/<package-name>/`
++
++## Tooling
++
++- Allowed tools: Skill,Bash,Read,TodoWrite
++- Non-negotiables:
++  - no unrelated changes outside the command’s scope
++  - preserve auto-continue behavior across phases
++  - verify evidence tables (docs + TS anchors) when updating pointers
++
++## Validation Strategy
++
++- P0 gates:
++  - frontmatter has `name`, `description`, `allowed-tools`
++  - core sections exist: `Overview`, `Usage`, `Execution Process`, `Outputs / Artifacts`, `Error Handling`
++  - artifact paths are consistent with `.workflow/reference_style` and temp workspace cleanup rules
++- Deterministic evidence gate:
++  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<outline_or_gap_report.md>`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..1d2fed852c1f4aeffe26c39ef091a6ceddb17ef3
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,91 @@
++---
++name: workflow:ui-design:codify-style
++description: Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)
++argument-hint: "<path> [--package-name <name>] [--output-dir <path>] [--overwrite]"
++allowed-tools: Skill,Bash,Read,TodoWrite
++group: workflow
++---
++
++# UI Design: Codify Style (Orchestrator)
++
++## Overview
++
++- Goal: Extract styles from a codebase path and generate a shareable reference-style package with preview.
++- Command: `/workflow:workflow:ui-design:codify-style`
++- Execution model: fully autonomous orchestrator; delegates work to sub-commands via `Skill(...)` and tracks phases via `TodoWrite`.
++
++## Usage
++
++```bash
++/workflow:workflow:ui-design:codify-style <path> [--package-name <name>] [--output-dir <path>] [--overwrite]
++```
++
++## Inputs
++
++- Required inputs:
++  - `<path>`: source path to analyze (directory or file, repo-relative or absolute)
++- Optional inputs:
++  - `--package-name <name>`: output package name (default: derived from source path or timestamp)
++  - `--output-dir <path>`: output base directory (default: `.workflow/reference_style`)
++  - `--overwrite`: allow overwriting an existing package directory
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/reference_style/<package-name>/` (final package + preview)
++  - `.workflow/codify-temp-<timestamp>/` (temporary workspace; cleaned up after completion)
++- Reads:
++  - `<path>` (source code)
++  - `.workflow/reference_style/**` (existence/overwrite checks)
++
++## Implementation Pointers
++
++- Command doc: `.claude/commands/workflow/ui-design/codify-style.md`
++- Likely code locations:
++  - `.claude/commands/workflow/ui-design/import-from-code.md` (Phase 1 delegate)
++  - `.claude/commands/workflow/ui-design/reference-page-generator.md` (Phase 2 delegate)
++  - `ccw/src/core/routes/commands-routes.ts` (command discovery + metadata used by CCW UI/tooling)
++
++### Evidence (Existing vs Planned)
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/workflow/ui-design/codify-style.md` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Overview & Execution Model ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/codify-style.md` | Primary orchestrator command doc |
++| `.claude/commands/workflow/ui-design/import-from-code.md` | Existing | docs: .claude/commands/workflow/ui-design/import-from-code.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/import-from-code.md` | Phase 1 delegate (style extraction + file discovery) |
++| `.claude/commands/workflow/ui-design/reference-page-generator.md` | Existing | docs: .claude/commands/workflow/ui-design/reference-page-generator.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/reference-page-generator.md` | Phase 2 delegate (package + preview generation) |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Architecture ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path ccw/src/core/routes/commands-routes.ts; rg \"function scanCommandsRecursive\\(\" ccw/src/core/routes/commands-routes.ts` | Ground-truth TS location for command scanning/grouping behavior |
++
++## Execution Process
++
++1. Phase 0: Parameter validation & session preparation
++   - Parse positional `<path>` (first non-flag argument); reject missing/empty.
++   - Validate source path exists; normalize to absolute for reporting.
++   - Determine `package_name` (flag or auto-generated) and `output_dir` (flag or default).
++   - Create temporary workspace `.workflow/codify-temp-<timestamp>/`; store `temp_id` and absolute `design_run_path`.
++   - Initialize `TodoWrite` with 4 high-level phases; auto-continue.
++2. Phase 1: Style extraction from source code (delegate)
++   - Build delegate command with required parameters only (use `temp_id` as `--design-id`).
++   - Invoke `Skill(...)` to attach delegate tasks and execute them; verify required outputs exist in temp workspace.
++3. Phase 2: Reference package generation (delegate)
++   - Build delegate command with `--design-run <design_run_path>`, `--package-name`, `--output-dir`.
++   - Invoke `Skill(...)` to attach and execute tasks; verify expected package files exist under `<output_dir>/<package_name>/`.
++4. Phase 3: Cleanup & verification
++   - Remove temporary workspace directory under `.workflow/`.
++   - Quick verification: report absolute final package path + component count when available.
++   - Emit completion message and final `TodoWrite` update.
++
++## Error Handling
++
++- Missing required `<path>`: print usage + examples; exit non-zero.
++- Invalid/non-existent source path: report error; exit non-zero (no partial outputs).
++- Temp workspace create failure: abort early; do not proceed to delegates.
++- Delegate failure (Phase 1/2): report phase-specific failure, attempt `.workflow/` cleanup, keep temp path for inspection if relevant.
++- Overwrite protection: if output package path exists and `--overwrite` is not set, abort with a clear remediation.
++
++## Examples
++
++```bash
++/workflow:workflow:ui-design:codify-style ./src
++/workflow:workflow:ui-design:codify-style ./app --package-name design-system-v2 --output-dir .workflow/reference_style --overwrite
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..8b76645c5cc66d602704240aefecf3d50a88430f
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json
+@@ -0,0 +1,40 @@
++{
++  "candidates": [
++    {
++      "slash": "/workflow:ui-design:codify-style",
++      "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
++      "score": 1.0,
++      "why": "Exact oracle for the orchestrator: 4-phase flow, Skill delegation, temp workspace, reference_style output."
++    },
++    {
++      "slash": "/workflow:ui-design:import-from-code",
++      "file_path": ".claude/commands/workflow/ui-design/import-from-code.md",
++      "score": 0.86,
++      "why": "Phase 1 dependency; establishes file discovery + parallel agents + extraction outputs used by codify-style."
++    },
++    {
++      "slash": "/workflow:ui-design:reference-page-generator",
++      "file_path": ".claude/commands/workflow/ui-design/reference-page-generator.md",
++      "score": 0.82,
++      "why": "Phase 2 dependency; generates versioned package + preview structure under reference_style."
++    },
++    {
++      "slash": "/workflow:ui-design:explore-auto",
++      "file_path": ".claude/commands/workflow/ui-design/explore-auto.md",
++      "score": 0.74,
++      "why": "Similar orchestrator mechanics (Skill attaches tasks + auto-continue + TodoWrite patterns) with a longer phase pipeline."
++    },
++    {
++      "slash": "/workflow:lite-plan",
++      "file_path": ".claude/commands/workflow/lite-plan.md",
++      "score": 0.6,
++      "why": "Reference for CCW command doc conventions: frontmatter, core sections, TodoWrite lifecycle, and orchestrator-style control flow."
++    }
++  ],
++  "selected": {
++    "slash": "/workflow:ui-design:codify-style",
++    "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
++    "reason": "Oracle command doc for CMD-068; use for gap-check and wording alignment without leaking full content."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..66c4d47c5bf8b6885245663c931f73d8bc4ad1a4
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json
+@@ -0,0 +1,39 @@
++{
++  "command": {
++    "group": "workflow",
++    "name": "workflow:ui-design:codify-style",
++    "description": "Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)",
++    "argument_hint": "<path> [--package-name <name>] [--output-dir <path>] [--overwrite]",
++    "allowed_tools": ["Skill", "Bash", "Read", "TodoWrite"]
++  },
++  "intent": {
++    "type": "execute",
++    "interaction": "single-shot",
++    "primary_user_value": "Extract styles from a codebase path and generate a shareable reference-style package with preview."
++  },
++  "artifacts": {
++    "reads": ["<path> (source code path)", ".workflow/reference_style/** (existence/overwrite checks)"],
++    "writes": [
++      ".workflow/reference_style/<package-name>/",
++      ".workflow/codify-temp-<timestamp>/ (temporary workspace; cleaned up)"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 1,
++    "time_budget_seconds": 600,
++    "must_not": [
++      "do not overwrite existing output package unless --overwrite is set",
++      "do not delete anything outside .workflow/",
++      "do not stop between phases (auto-continue)"
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "frontmatter valid (name/description/allowed-tools)",
++      "allowed-tools correct for orchestrator (Skill,Bash,Read,TodoWrite)",
++      "core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
++      "evidence tables: each pointer row includes docs + TS anchors"
++    ]
++  }
++}
++
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md
+node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md' in C:\Project\Claude-Code-Workflow succeeded in 373ms:
+OK: evidence verification passed
+OK: evidence verification passed
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..0aa430e85f07036cd8b1069641aaa4a8017f6ca9
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md
+@@ -0,0 +1,20 @@
++# Fix Plan: workflow:workflow:ui-design:codify-style
++
++## P0 (Must)
++
++- No P0 fixes required for the generated outline artifacts (sections + evidence tables are present).
++
++## P1 (Should)
++
++1. Command identity verification
++   - Decide canonical invocation string for this command in the runtime.
++   - Update `/workflow:...` usage strings and any cross-references to match the canonical resolution.
++2. Bash runtime prerequisites
++   - Document required utilities used by the orchestrator (`mkdir`, `rm`, `date`; `jq` optional).
++   - Add explicit recovery notes for when prerequisites are missing.
++
++## P2 (Optional)
++
++1. Tighten verification output
++   - Provide a stable completion report format (absolute package path, key file list, component count if available).
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..217a09debae41f37fa64c13d9f1192dc34bc61f8
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md
+@@ -0,0 +1,37 @@
++# Gap Report: workflow:workflow:ui-design:codify-style
++
++## Reference
++
++- Selected reference: /workflow:ui-design:codify-style (`.claude/commands/workflow/ui-design/codify-style.md`)
++
++## P0 Gaps (Must Fix)
++
++- None identified for the outline scaffolding (core sections present + evidence table included).
++
++## P1 Gaps (Should Fix)
++
++- Command identity consistency: oracle doc usage strings show `/workflow:ui-design:codify-style`, while the frontmatter-derived slash format for this cycle spec is `/workflow:workflow:ui-design:codify-style`. Verify how the runtime resolves nested command paths vs `name:` frontmatter, and align the outline/usage accordingly.
++- Cross-platform Bash assumptions: the orchestrator uses `mkdir -p`, `rm -rf`, `date`, and optional `jq`; confirm availability in the target execution environment and document prerequisites/recovery.
++
++## P2 Gaps (Optional)
++
++- Expand quick verification reporting (component count, absolute paths) into a small, stable checklist to reduce operator uncertainty.
++
++## Implementation Pointers (Evidence)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/workflow/ui-design/codify-style.md` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Overview & Execution Model ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/codify-style.md` | Primary orchestrator doc; defines 4-phase flow and delegate calls |
++| `.claude/commands/workflow/ui-design/import-from-code.md` | Existing | docs: .claude/commands/workflow/ui-design/import-from-code.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/import-from-code.md` | Delegate for extraction outputs consumed by Phase 2 |
++| `.claude/commands/workflow/ui-design/reference-page-generator.md` | Existing | docs: .claude/commands/workflow/ui-design/reference-page-generator.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/reference-page-generator.md` | Delegate for reference package + preview generation |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Architecture ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path ccw/src/core/routes/commands-routes.ts; rg \"function scanCommandsRecursive\\(\" ccw/src/core/routes/commands-routes.ts` | Confirms how commands are discovered and grouped in CCW tooling/server |
++
++## Implementation Hints (Tooling/Server)
++
++- Command discovery/grouping is implemented in `ccw/src/core/routes/commands-routes.ts` (recursive scan + group inference). This impacts how nested `.claude/commands/workflow/ui-design/*.md` commands are surfaced and may explain the frontmatter vs invocation mismatch.
++
++## Proposed Fix Plan (Minimal)
++
++1. Verify command resolution: confirm whether invocation is derived from relative path (e.g. `workflow/ui-design/codify-style.md`) or from `name:` frontmatter, then update usage strings to a single canonical form.
++2. Add a short prerequisites note for Bash utilities used (`rm`, `mkdir`, `date`, optional `jq`), with fallback behavior when missing.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..d13dffe8aca8c88a1a0eecc593512cfd43bc98dc
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,36 @@
++# Agent Outline: workflow:workflow:ui-design:codify-style
++
++## Purpose
++
++Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
++
++## Execution Model
++
++- Default: incremental, testable changes; keep edits small and phase-scoped.
++- Before changes: inspect 3+ similar commands (orchestrators + ui-design pipeline delegates).
++
++## State & Artifacts
++
++- Session folder: `.workflow/codify-temp-<timestamp>/` (temporary; must be cleaned up)
++- Required outputs:
++  - `.claude/commands/workflow/ui-design/codify-style.md` (orchestrator command doc)
++  - Delegate command docs: `import-from-code`, `reference-page-generator` (already present; verify anchors)
++  - Final package: `.workflow/reference_style/<package-name>/`
++
++## Tooling
++
++- Allowed tools: Skill,Bash,Read,TodoWrite
++- Non-negotiables:
++  - no unrelated changes outside the command’s scope
++  - preserve auto-continue behavior across phases
++  - verify evidence tables (docs + TS anchors) when updating pointers
++
++## Validation Strategy
++
++- P0 gates:
++  - frontmatter has `name`, `description`, `allowed-tools`
++  - core sections exist: `Overview`, `Usage`, `Execution Process`, `Outputs / Artifacts`, `Error Handling`
++  - artifact paths are consistent with `.workflow/reference_style` and temp workspace cleanup rules
++- Deterministic evidence gate:
++  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<outline_or_gap_report.md>`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..1d2fed852c1f4aeffe26c39ef091a6ceddb17ef3
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,91 @@
++---
++name: workflow:ui-design:codify-style
++description: Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)
++argument-hint: "<path> [--package-name <name>] [--output-dir <path>] [--overwrite]"
++allowed-tools: Skill,Bash,Read,TodoWrite
++group: workflow
++---
++
++# UI Design: Codify Style (Orchestrator)
++
++## Overview
++
++- Goal: Extract styles from a codebase path and generate a shareable reference-style package with preview.
++- Command: `/workflow:workflow:ui-design:codify-style`
++- Execution model: fully autonomous orchestrator; delegates work to sub-commands via `Skill(...)` and tracks phases via `TodoWrite`.
++
++## Usage
++
++```bash
++/workflow:workflow:ui-design:codify-style <path> [--package-name <name>] [--output-dir <path>] [--overwrite]
++```
++
++## Inputs
++
++- Required inputs:
++  - `<path>`: source path to analyze (directory or file, repo-relative or absolute)
++- Optional inputs:
++  - `--package-name <name>`: output package name (default: derived from source path or timestamp)
++  - `--output-dir <path>`: output base directory (default: `.workflow/reference_style`)
++  - `--overwrite`: allow overwriting an existing package directory
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/reference_style/<package-name>/` (final package + preview)
++  - `.workflow/codify-temp-<timestamp>/` (temporary workspace; cleaned up after completion)
++- Reads:
++  - `<path>` (source code)
++  - `.workflow/reference_style/**` (existence/overwrite checks)
++
++## Implementation Pointers
++
++- Command doc: `.claude/commands/workflow/ui-design/codify-style.md`
++- Likely code locations:
++  - `.claude/commands/workflow/ui-design/import-from-code.md` (Phase 1 delegate)
++  - `.claude/commands/workflow/ui-design/reference-page-generator.md` (Phase 2 delegate)
++  - `ccw/src/core/routes/commands-routes.ts` (command discovery + metadata used by CCW UI/tooling)
++
++### Evidence (Existing vs Planned)
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/workflow/ui-design/codify-style.md` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Overview & Execution Model ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/codify-style.md` | Primary orchestrator command doc |
++| `.claude/commands/workflow/ui-design/import-from-code.md` | Existing | docs: .claude/commands/workflow/ui-design/import-from-code.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/import-from-code.md` | Phase 1 delegate (style extraction + file discovery) |
++| `.claude/commands/workflow/ui-design/reference-page-generator.md` | Existing | docs: .claude/commands/workflow/ui-design/reference-page-generator.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/reference-page-generator.md` | Phase 2 delegate (package + preview generation) |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Architecture ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path ccw/src/core/routes/commands-routes.ts; rg \"function scanCommandsRecursive\\(\" ccw/src/core/routes/commands-routes.ts` | Ground-truth TS location for command scanning/grouping behavior |
++
++## Execution Process
++
++1. Phase 0: Parameter validation & session preparation
++   - Parse positional `<path>` (first non-flag argument); reject missing/empty.
++   - Validate source path exists; normalize to absolute for reporting.
++   - Determine `package_name` (flag or auto-generated) and `output_dir` (flag or default).
++   - Create temporary workspace `.workflow/codify-temp-<timestamp>/`; store `temp_id` and absolute `design_run_path`.
++   - Initialize `TodoWrite` with 4 high-level phases; auto-continue.
++2. Phase 1: Style extraction from source code (delegate)
++   - Build delegate command with required parameters only (use `temp_id` as `--design-id`).
++   - Invoke `Skill(...)` to attach delegate tasks and execute them; verify required outputs exist in temp workspace.
++3. Phase 2: Reference package generation (delegate)
++   - Build delegate command with `--design-run <design_run_path>`, `--package-name`, `--output-dir`.
++   - Invoke `Skill(...)` to attach and execute tasks; verify expected package files exist under `<output_dir>/<package_name>/`.
++4. Phase 3: Cleanup & verification
++   - Remove temporary workspace directory under `.workflow/`.
++   - Quick verification: report absolute final package path + component count when available.
++   - Emit completion message and final `TodoWrite` update.
++
++## Error Handling
++
++- Missing required `<path>`: print usage + examples; exit non-zero.
++- Invalid/non-existent source path: report error; exit non-zero (no partial outputs).
++- Temp workspace create failure: abort early; do not proceed to delegates.
++- Delegate failure (Phase 1/2): report phase-specific failure, attempt `.workflow/` cleanup, keep temp path for inspection if relevant.
++- Overwrite protection: if output package path exists and `--overwrite` is not set, abort with a clear remediation.
++
++## Examples
++
++```bash
++/workflow:workflow:ui-design:codify-style ./src
++/workflow:workflow:ui-design:codify-style ./app --package-name design-system-v2 --output-dir .workflow/reference_style --overwrite
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..8b76645c5cc66d602704240aefecf3d50a88430f
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json
+@@ -0,0 +1,40 @@
++{
++  "candidates": [
++    {
++      "slash": "/workflow:ui-design:codify-style",
++      "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
++      "score": 1.0,
++      "why": "Exact oracle for the orchestrator: 4-phase flow, Skill delegation, temp workspace, reference_style output."
++    },
++    {
++      "slash": "/workflow:ui-design:import-from-code",
++      "file_path": ".claude/commands/workflow/ui-design/import-from-code.md",
++      "score": 0.86,
++      "why": "Phase 1 dependency; establishes file discovery + parallel agents + extraction outputs used by codify-style."
++    },
++    {
++      "slash": "/workflow:ui-design:reference-page-generator",
++      "file_path": ".claude/commands/workflow/ui-design/reference-page-generator.md",
++      "score": 0.82,
++      "why": "Phase 2 dependency; generates versioned package + preview structure under reference_style."
++    },
++    {
++      "slash": "/workflow:ui-design:explore-auto",
++      "file_path": ".claude/commands/workflow/ui-design/explore-auto.md",
++      "score": 0.74,
++      "why": "Similar orchestrator mechanics (Skill attaches tasks + auto-continue + TodoWrite patterns) with a longer phase pipeline."
++    },
++    {
++      "slash": "/workflow:lite-plan",
++      "file_path": ".claude/commands/workflow/lite-plan.md",
++      "score": 0.6,
++      "why": "Reference for CCW command doc conventions: frontmatter, core sections, TodoWrite lifecycle, and orchestrator-style control flow."
++    }
++  ],
++  "selected": {
++    "slash": "/workflow:ui-design:codify-style",
++    "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
++    "reason": "Oracle command doc for CMD-068; use for gap-check and wording alignment without leaking full content."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..66c4d47c5bf8b6885245663c931f73d8bc4ad1a4
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json
+@@ -0,0 +1,39 @@
++{
++  "command": {
++    "group": "workflow",
++    "name": "workflow:ui-design:codify-style",
++    "description": "Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)",
++    "argument_hint": "<path> [--package-name <name>] [--output-dir <path>] [--overwrite]",
++    "allowed_tools": ["Skill", "Bash", "Read", "TodoWrite"]
++  },
++  "intent": {
++    "type": "execute",
++    "interaction": "single-shot",
++    "primary_user_value": "Extract styles from a codebase path and generate a shareable reference-style package with preview."
++  },
++  "artifacts": {
++    "reads": ["<path> (source code path)", ".workflow/reference_style/** (existence/overwrite checks)"],
++    "writes": [
++      ".workflow/reference_style/<package-name>/",
++      ".workflow/codify-temp-<timestamp>/ (temporary workspace; cleaned up)"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 1,
++    "time_budget_seconds": 600,
++    "must_not": [
++      "do not overwrite existing output package unless --overwrite is set",
++      "do not delete anything outside .workflow/",
++      "do not stop between phases (auto-continue)"
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "frontmatter valid (name/description/allowed-tools)",
++      "allowed-tools correct for orchestrator (Skill,Bash,Read,TodoWrite)",
++      "core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
++      "evidence tables: each pointer row includes docs + TS anchors"
++    ]
++  }
++}
++
+
+codex
+Wrote CMD-068 outputs to:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md`
+
+Evidence gates passed:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md`
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md`
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..0aa430e85f07036cd8b1069641aaa4a8017f6ca9
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/fix-plan.md
+@@ -0,0 +1,20 @@
++# Fix Plan: workflow:workflow:ui-design:codify-style
++
++## P0 (Must)
++
++- No P0 fixes required for the generated outline artifacts (sections + evidence tables are present).
++
++## P1 (Should)
++
++1. Command identity verification
++   - Decide canonical invocation string for this command in the runtime.
++   - Update `/workflow:...` usage strings and any cross-references to match the canonical resolution.
++2. Bash runtime prerequisites
++   - Document required utilities used by the orchestrator (`mkdir`, `rm`, `date`; `jq` optional).
++   - Add explicit recovery notes for when prerequisites are missing.
++
++## P2 (Optional)
++
++1. Tighten verification output
++   - Provide a stable completion report format (absolute package path, key file list, component count if available).
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..217a09debae41f37fa64c13d9f1192dc34bc61f8
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/gap-report.md
+@@ -0,0 +1,37 @@
++# Gap Report: workflow:workflow:ui-design:codify-style
++
++## Reference
++
++- Selected reference: /workflow:ui-design:codify-style (`.claude/commands/workflow/ui-design/codify-style.md`)
++
++## P0 Gaps (Must Fix)
++
++- None identified for the outline scaffolding (core sections present + evidence table included).
++
++## P1 Gaps (Should Fix)
++
++- Command identity consistency: oracle doc usage strings show `/workflow:ui-design:codify-style`, while the frontmatter-derived slash format for this cycle spec is `/workflow:workflow:ui-design:codify-style`. Verify how the runtime resolves nested command paths vs `name:` frontmatter, and align the outline/usage accordingly.
++- Cross-platform Bash assumptions: the orchestrator uses `mkdir -p`, `rm -rf`, `date`, and optional `jq`; confirm availability in the target execution environment and document prerequisites/recovery.
++
++## P2 Gaps (Optional)
++
++- Expand quick verification reporting (component count, absolute paths) into a small, stable checklist to reduce operator uncertainty.
++
++## Implementation Pointers (Evidence)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/workflow/ui-design/codify-style.md` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Overview & Execution Model ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/codify-style.md` | Primary orchestrator doc; defines 4-phase flow and delegate calls |
++| `.claude/commands/workflow/ui-design/import-from-code.md` | Existing | docs: .claude/commands/workflow/ui-design/import-from-code.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/import-from-code.md` | Delegate for extraction outputs consumed by Phase 2 |
++| `.claude/commands/workflow/ui-design/reference-page-generator.md` | Existing | docs: .claude/commands/workflow/ui-design/reference-page-generator.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/reference-page-generator.md` | Delegate for reference package + preview generation |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Architecture ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path ccw/src/core/routes/commands-routes.ts; rg \"function scanCommandsRecursive\\(\" ccw/src/core/routes/commands-routes.ts` | Confirms how commands are discovered and grouped in CCW tooling/server |
++
++## Implementation Hints (Tooling/Server)
++
++- Command discovery/grouping is implemented in `ccw/src/core/routes/commands-routes.ts` (recursive scan + group inference). This impacts how nested `.claude/commands/workflow/ui-design/*.md` commands are surfaced and may explain the frontmatter vs invocation mismatch.
++
++## Proposed Fix Plan (Minimal)
++
++1. Verify command resolution: confirm whether invocation is derived from relative path (e.g. `workflow/ui-design/codify-style.md`) or from `name:` frontmatter, then update usage strings to a single canonical form.
++2. Add a short prerequisites note for Bash utilities used (`rm`, `mkdir`, `date`, optional `jq`), with fallback behavior when missing.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..d13dffe8aca8c88a1a0eecc593512cfd43bc98dc
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,36 @@
++# Agent Outline: workflow:workflow:ui-design:codify-style
++
++## Purpose
++
++Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
++
++## Execution Model
++
++- Default: incremental, testable changes; keep edits small and phase-scoped.
++- Before changes: inspect 3+ similar commands (orchestrators + ui-design pipeline delegates).
++
++## State & Artifacts
++
++- Session folder: `.workflow/codify-temp-<timestamp>/` (temporary; must be cleaned up)
++- Required outputs:
++  - `.claude/commands/workflow/ui-design/codify-style.md` (orchestrator command doc)
++  - Delegate command docs: `import-from-code`, `reference-page-generator` (already present; verify anchors)
++  - Final package: `.workflow/reference_style/<package-name>/`
++
++## Tooling
++
++- Allowed tools: Skill,Bash,Read,TodoWrite
++- Non-negotiables:
++  - no unrelated changes outside the command’s scope
++  - preserve auto-continue behavior across phases
++  - verify evidence tables (docs + TS anchors) when updating pointers
++
++## Validation Strategy
++
++- P0 gates:
++  - frontmatter has `name`, `description`, `allowed-tools`
++  - core sections exist: `Overview`, `Usage`, `Execution Process`, `Outputs / Artifacts`, `Error Handling`
++  - artifact paths are consistent with `.workflow/reference_style` and temp workspace cleanup rules
++- Deterministic evidence gate:
++  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<outline_or_gap_report.md>`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..1d2fed852c1f4aeffe26c39ef091a6ceddb17ef3
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,91 @@
++---
++name: workflow:ui-design:codify-style
++description: Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)
++argument-hint: "<path> [--package-name <name>] [--output-dir <path>] [--overwrite]"
++allowed-tools: Skill,Bash,Read,TodoWrite
++group: workflow
++---
++
++# UI Design: Codify Style (Orchestrator)
++
++## Overview
++
++- Goal: Extract styles from a codebase path and generate a shareable reference-style package with preview.
++- Command: `/workflow:workflow:ui-design:codify-style`
++- Execution model: fully autonomous orchestrator; delegates work to sub-commands via `Skill(...)` and tracks phases via `TodoWrite`.
++
++## Usage
++
++```bash
++/workflow:workflow:ui-design:codify-style <path> [--package-name <name>] [--output-dir <path>] [--overwrite]
++```
++
++## Inputs
++
++- Required inputs:
++  - `<path>`: source path to analyze (directory or file, repo-relative or absolute)
++- Optional inputs:
++  - `--package-name <name>`: output package name (default: derived from source path or timestamp)
++  - `--output-dir <path>`: output base directory (default: `.workflow/reference_style`)
++  - `--overwrite`: allow overwriting an existing package directory
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/reference_style/<package-name>/` (final package + preview)
++  - `.workflow/codify-temp-<timestamp>/` (temporary workspace; cleaned up after completion)
++- Reads:
++  - `<path>` (source code)
++  - `.workflow/reference_style/**` (existence/overwrite checks)
++
++## Implementation Pointers
++
++- Command doc: `.claude/commands/workflow/ui-design/codify-style.md`
++- Likely code locations:
++  - `.claude/commands/workflow/ui-design/import-from-code.md` (Phase 1 delegate)
++  - `.claude/commands/workflow/ui-design/reference-page-generator.md` (Phase 2 delegate)
++  - `ccw/src/core/routes/commands-routes.ts` (command discovery + metadata used by CCW UI/tooling)
++
++### Evidence (Existing vs Planned)
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/workflow/ui-design/codify-style.md` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Overview & Execution Model ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/codify-style.md` | Primary orchestrator command doc |
++| `.claude/commands/workflow/ui-design/import-from-code.md` | Existing | docs: .claude/commands/workflow/ui-design/import-from-code.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/import-from-code.md` | Phase 1 delegate (style extraction + file discovery) |
++| `.claude/commands/workflow/ui-design/reference-page-generator.md` | Existing | docs: .claude/commands/workflow/ui-design/reference-page-generator.md / Execution Process ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path .claude/commands/workflow/ui-design/reference-page-generator.md` | Phase 2 delegate (package + preview generation) |
++| `ccw/src/core/routes/commands-routes.ts` | Existing | docs: .claude/commands/workflow/ui-design/codify-style.md / Architecture ; ts: ccw/src/core/routes/commands-routes.ts / function scanCommandsRecursive( | `Test-Path ccw/src/core/routes/commands-routes.ts; rg \"function scanCommandsRecursive\\(\" ccw/src/core/routes/commands-routes.ts` | Ground-truth TS location for command scanning/grouping behavior |
++
++## Execution Process
++
++1. Phase 0: Parameter validation & session preparation
++   - Parse positional `<path>` (first non-flag argument); reject missing/empty.
++   - Validate source path exists; normalize to absolute for reporting.
++   - Determine `package_name` (flag or auto-generated) and `output_dir` (flag or default).
++   - Create temporary workspace `.workflow/codify-temp-<timestamp>/`; store `temp_id` and absolute `design_run_path`.
++   - Initialize `TodoWrite` with 4 high-level phases; auto-continue.
++2. Phase 1: Style extraction from source code (delegate)
++   - Build delegate command with required parameters only (use `temp_id` as `--design-id`).
++   - Invoke `Skill(...)` to attach delegate tasks and execute them; verify required outputs exist in temp workspace.
++3. Phase 2: Reference package generation (delegate)
++   - Build delegate command with `--design-run <design_run_path>`, `--package-name`, `--output-dir`.
++   - Invoke `Skill(...)` to attach and execute tasks; verify expected package files exist under `<output_dir>/<package_name>/`.
++4. Phase 3: Cleanup & verification
++   - Remove temporary workspace directory under `.workflow/`.
++   - Quick verification: report absolute final package path + component count when available.
++   - Emit completion message and final `TodoWrite` update.
++
++## Error Handling
++
++- Missing required `<path>`: print usage + examples; exit non-zero.
++- Invalid/non-existent source path: report error; exit non-zero (no partial outputs).
++- Temp workspace create failure: abort early; do not proceed to delegates.
++- Delegate failure (Phase 1/2): report phase-specific failure, attempt `.workflow/` cleanup, keep temp path for inspection if relevant.
++- Overwrite protection: if output package path exists and `--overwrite` is not set, abort with a clear remediation.
++
++## Examples
++
++```bash
++/workflow:workflow:ui-design:codify-style ./src
++/workflow:workflow:ui-design:codify-style ./app --package-name design-system-v2 --output-dir .workflow/reference_style --overwrite
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..8b76645c5cc66d602704240aefecf3d50a88430f
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/references.json
+@@ -0,0 +1,40 @@
++{
++  "candidates": [
++    {
++      "slash": "/workflow:ui-design:codify-style",
++      "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
++      "score": 1.0,
++      "why": "Exact oracle for the orchestrator: 4-phase flow, Skill delegation, temp workspace, reference_style output."
++    },
++    {
++      "slash": "/workflow:ui-design:import-from-code",
++      "file_path": ".claude/commands/workflow/ui-design/import-from-code.md",
++      "score": 0.86,
++      "why": "Phase 1 dependency; establishes file discovery + parallel agents + extraction outputs used by codify-style."
++    },
++    {
++      "slash": "/workflow:ui-design:reference-page-generator",
++      "file_path": ".claude/commands/workflow/ui-design/reference-page-generator.md",
++      "score": 0.82,
++      "why": "Phase 2 dependency; generates versioned package + preview structure under reference_style."
++    },
++    {
++      "slash": "/workflow:ui-design:explore-auto",
++      "file_path": ".claude/commands/workflow/ui-design/explore-auto.md",
++      "score": 0.74,
++      "why": "Similar orchestrator mechanics (Skill attaches tasks + auto-continue + TodoWrite patterns) with a longer phase pipeline."
++    },
++    {
++      "slash": "/workflow:lite-plan",
++      "file_path": ".claude/commands/workflow/lite-plan.md",
++      "score": 0.6,
++      "why": "Reference for CCW command doc conventions: frontmatter, core sections, TodoWrite lifecycle, and orchestrator-style control flow."
++    }
++  ],
++  "selected": {
++    "slash": "/workflow:ui-design:codify-style",
++    "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
++    "reason": "Oracle command doc for CMD-068; use for gap-check and wording alignment without leaking full content."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..66c4d47c5bf8b6885245663c931f73d8bc4ad1a4
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-068/specs/outputs/spec.json
+@@ -0,0 +1,39 @@
++{
++  "command": {
++    "group": "workflow",
++    "name": "workflow:ui-design:codify-style",
++    "description": "Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)",
++    "argument_hint": "<path> [--package-name <name>] [--output-dir <path>] [--overwrite]",
++    "allowed_tools": ["Skill", "Bash", "Read", "TodoWrite"]
++  },
++  "intent": {
++    "type": "execute",
++    "interaction": "single-shot",
++    "primary_user_value": "Extract styles from a codebase path and generate a shareable reference-style package with preview."
++  },
++  "artifacts": {
++    "reads": ["<path> (source code path)", ".workflow/reference_style/** (existence/overwrite checks)"],
++    "writes": [
++      ".workflow/reference_style/<package-name>/",
++      ".workflow/codify-temp-<timestamp>/ (temporary workspace; cleaned up)"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 1,
++    "time_budget_seconds": 600,
++    "must_not": [
++      "do not overwrite existing output package unless --overwrite is set",
++      "do not delete anything outside .workflow/",
++      "do not stop between phases (auto-continue)"
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "frontmatter valid (name/description/allowed-tools)",
++      "allowed-tools correct for orchestrator (Skill,Bash,Read,TodoWrite)",
++      "core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
++      "evidence tables: each pointer row includes docs + TS anchors"
++    ]
++  }
++}
++
+
+tokens used
+106,042

@@ -1,0 +1,45 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "style-extract",
+    "description": "Extract design style from reference images or text prompts using Claude analysis with variant generation or refinement mode",
+    "argument_hint": "[-y|--yes] [--design-id <id>] [--session <id>] [--images <glob>] [--prompt <desc>] [--variants <count>] [--interactive] [--refine]",
+    "allowed_tools": ["TodoWrite(*)", "Read(*)", "Write(*)", "Glob(*)", "AskUserQuestion(*)"]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "iterative",
+    "primary_user_value": "Generate one or more production-ready design token sets (design-tokens.json) by extracting style direction from images and/or a text prompt."
+  },
+  "artifacts": {
+    "reads": [
+      ".claude/commands/workflow/ui-design/style-extract.md",
+      ".workflow/**/design-run-*/**",
+      "<images from --images glob>",
+      "<base_path>/style-extraction/style-1/design-tokens.json (refine mode, if exists)",
+      "<base_path>/.brainstorming/** (optional)"
+    ],
+    "writes": [
+      "<base_path>/.intermediates/style-analysis/analysis-options.json",
+      "<base_path>/style-extraction/style-*/design-tokens.json"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 3,
+    "time_budget_seconds": 1200,
+    "must_not": [
+      "Do not claim pointers are Existing unless verifiable in the repo now",
+      "Do not use tools outside allowed-tools in the command frontmatter",
+      "In refinement mode, force variants_count = 1 (ignore --variants)",
+      "In exploration mode, variants_count must be within 1..5"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter valid: name/description/allowed-tools present and correct",
+      "Input mode detection: images|text|hybrid; prompt must be non-empty when provided",
+      "Base path selection priority: --design-id > --session > auto-detect latest design-run",
+      "Outputs written under <base_path> as documented and verified (existence + non-empty files)"
+    ]
+  }
+}

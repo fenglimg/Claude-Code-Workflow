@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/memory:docs-related-cli",
+      "file_path": ".claude/commands/memory/docs-related-cli.md",
+      "score": 0.96,
+      "why": "Same group (memory), same CLI-driven documentation generation, same batching + gemini->qwen->codex fallback pattern; differs mainly by scope (changed modules vs full project)."
+    },
+    {
+      "slash": "/memory:update-full",
+      "file_path": ".claude/commands/memory/update-full.md",
+      "score": 0.82,
+      "why": "Same layer-based (deep->shallow) execution model, batching threshold, and tool fallback; targets CLAUDE.md updates rather than API/README docs."
+    },
+    {
+      "slash": "/memory:update-related",
+      "file_path": ".claude/commands/memory/update-related.md",
+      "score": 0.74,
+      "why": "Similar change-scoped orchestration, approval gate, batching, and fallback; targets CLAUDE.md and uses git-change detection."
+    },
+    {
+      "slash": "/memory:load",
+      "file_path": ".claude/commands/memory/load.md",
+      "score": 0.56,
+      "why": "Good reference for Task-based delegation patterns and minimal allowed-tools surface; not focused on docs generation."
+    },
+    {
+      "slash": "/workflow:lite-plan",
+      "file_path": ".claude/commands/workflow/lite-plan.md",
+      "score": 0.48,
+      "why": "Strong reference for plan presentation + AskUserQuestion confirmation gates; different group and purpose."
+    }
+  ],
+  "selected": {
+    "slash": "/memory:docs-related-cli",
+    "file_path": ".claude/commands/memory/docs-related-cli.md",
+    "why": "Closest interaction model and tooling surface; reuse CLI + batching + fallback patterns while extending from related-scope to full-scope + multi-strategy (full/single) by layer."
+  }
+}
+

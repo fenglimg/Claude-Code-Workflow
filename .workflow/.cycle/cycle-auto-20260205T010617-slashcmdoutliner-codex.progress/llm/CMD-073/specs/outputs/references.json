@@ -1,0 +1,39 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:ui-design:import-from-code",
+      "file_path": ".claude/commands/workflow/ui-design/import-from-code.md",
+      "score": 100,
+      "why": "Exact oracle command doc for this requirement (same command identity, parallel agent analysis, file discovery tool call)."
+    },
+    {
+      "slash": "/workflow:ui-design:style-extract",
+      "file_path": ".claude/commands/workflow/ui-design/style-extract.md",
+      "score": 86,
+      "why": "Same UI-design family; uses design-run base path resolution patterns and writes design artifacts into a design-run folder."
+    },
+    {
+      "slash": "/workflow:ui-design:animation-extract",
+      "file_path": ".claude/commands/workflow/ui-design/animation-extract.md",
+      "score": 82,
+      "why": "Same domain; produces animation tokens and completeness reporting patterns relevant to the animation agent output."
+    },
+    {
+      "slash": "/workflow:ui-design:layout-extract",
+      "file_path": ".claude/commands/workflow/ui-design/layout-extract.md",
+      "score": 80,
+      "why": "Same domain; produces layout templates and extraction metadata patterns relevant to the layout agent output."
+    },
+    {
+      "slash": "/workflow:ui-design:generate",
+      "file_path": ".claude/commands/workflow/ui-design/generate.md",
+      "score": 74,
+      "why": "Same design-run artifact conventions and output directory structure; useful for consistent artifact naming/paths."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:ui-design:import-from-code",
+    "file_path": ".claude/commands/workflow/ui-design/import-from-code.md",
+    "why": "Best match (exact command oracle)."
+  }
+}

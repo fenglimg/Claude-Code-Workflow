@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:tools:tdd-coverage-analysis",
+      "file_path": ".claude/commands/workflow/tools/tdd-coverage-analysis.md",
+      "score": 0.92,
+      "why": "Session-scoped command that runs CLI validations via Bash, parses outputs, and writes reports under .workflow/active/{session}/.process."
+    },
+    {
+      "slash": "/workflow:tools:test-context-gather",
+      "file_path": ".claude/commands/workflow/tools/test-context-gather.md",
+      "score": 0.78,
+      "why": "Shares the same session folder conventions and context-package inputs used to discover target files."
+    },
+    {
+      "slash": "/workflow:tools:context-gather",
+      "file_path": ".claude/commands/workflow/tools/context-gather.md",
+      "score": 0.74,
+      "why": "Defines the standard context-package contract and .process placement that this validation gate reads."
+    },
+    {
+      "slash": "/workflow:tools:test-task-generate",
+      "file_path": ".claude/commands/workflow/tools/test-task-generate.md",
+      "score": 0.62,
+      "why": "Uses the same workflow/test session patterns and integrates with downstream test/execute commands that should be gated."
+    },
+    {
+      "slash": "/workflow:tools:conflict-resolution",
+      "file_path": ".claude/commands/workflow/tools/conflict-resolution.md",
+      "score": 0.48,
+      "why": "Illustrates flag parsing and auto-mode patterns (--yes) and decision reporting patterns that can be reused for gate decisions."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:tools:tdd-coverage-analysis",
+    "file_path": ".claude/commands/workflow/tools/tdd-coverage-analysis.md",
+    "why": "Best match for a deterministic, session-scoped CLI validation step that produces structured report artifacts."
+  }
+}
+

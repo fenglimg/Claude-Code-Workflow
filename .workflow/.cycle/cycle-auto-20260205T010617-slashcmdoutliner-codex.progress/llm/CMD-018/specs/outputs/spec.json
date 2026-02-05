@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-02-04T20:54:33.1192021Z",
+  "command": {
+    "group": "memory",
+    "name": "compact",
+    "description": "Compact current session memory into structured text for session recovery, extracting objective/plan/files/decisions/constraints/state, and save via MCP core_memory tool",
+    "argument_hint": "[optional: session description]",
+    "allowed_tools": [
+      "mcp__ccw-tools__core_memory(*)",
+      "Read(*)"
+    ]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "single-shot",
+    "primary_user_value": "Generate a structured, recovery-ready snapshot of the current session (objective/plan/files/decisions/constraints/state) and persist it as a Core Memory entry for later restoration."
+  },
+  "artifacts": {
+    "reads": [
+      ".claude/commands/memory/compact.md",
+      ".workflow/IMPL_PLAN.md (if present)",
+      "user-specified files for context (via Read tool)"
+    ],
+    "writes": [
+      "Core Memory entry (via mcp__ccw-tools__core_memory operation=\"import\")"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 240,
+    "must_not": [
+      "Do not claim any implementation pointer is Existing unless it is verifiable in the repo now.",
+      "Do not expose secrets or sensitive content; keep structured output focused on recovery context.",
+      "Do not require tools beyond: mcp__ccw-tools__core_memory(*), Read(*)."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter includes name, description, allowed-tools (and argument-hint for non-trivial commands)",
+      "Core sections present: Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling",
+      "Implementation pointers evidence table uses Existing vs Planned correctly with dual-source evidence (docs + TS)",
+      "Evidence tables pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      "Memory Compact Command (/memory:compact)",
+      "1. Overview",
+      "2. Parameters",
+      "3. Structured Output Format",
+      "Session ID",
+      "Project Root",
+      "Objective",
+      "Execution Plan",
+      "Source: [workflow | todo | user-stated | inferred]",
+      "Phase 1: Setup",
+      "Phase 2: Implementation",
+      "Working Files (Modified)",
+      "Reference Files (Read-Only)",
+      "Last Action",
+      "Decisions",
+      "Constraints",
+      "Dependencies",
+      "Known Issues",
+      "Changes Made",
+      "Pending",
+      "Notes",
+      "4. Field Definitions",
+      "5. Execution Flow",
+      "Step 1: Analyze Current Session",
+      "Step 2: Generate Structured Text",
+      "Step 3: Import to Core Memory via MCP",
+      "Step 4: Report Recovery ID",
+      "6. Quality Checklist",
+      "7. Path Resolution Rules",
+      "Project Root Detection",
+      "Absolute Path Conversion",
+      "Reference File Categories",
+      "8. Plan Detection (Priority Order)",
+      "Priority 1: Workflow Session (IMPL_PLAN.md)",
+      "Priority 2: TodoWrite (Current Session Todos)",
+      "Priority 3: User-Stated Plan",
+      "Priority 4: Inferred Plan",
+      "9. Notes"
+    ]
+  },
+  "implementation": {
+    "command_doc": ".claude/commands/memory/compact.md",
+    "code_pointers": [
+      "ccw/src/tools/core-memory.ts",
+      "ccw/src/mcp-server/index.ts",
+      "ccw/src/core/core-memory-store.ts",
+      "ccw/src/commands/session-path-resolver.ts"
+    ]
+  }
+}
+

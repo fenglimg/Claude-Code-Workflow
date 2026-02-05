@@ -1,0 +1,48 @@
+{
+  "command": {
+    "group": "issue",
+    "name": "new",
+    "description": "Create structured issue from GitHub URL or text description",
+    "argument_hint": "[-y|--yes] <github-url | text-description> [--priority 1-5]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Bash(*)",
+      "Read(*)",
+      "AskUserQuestion(*)",
+      "mcp__ace-tool__search_context(*)"
+    ]
+  },
+  "intent": {
+    "type": "manage",
+    "interaction": "iterative",
+    "primary_user_value": "Turn GitHub URL or text description into a tracked issue with structured fields (title, description, priority, labels, acceptance criteria)"
+  },
+  "artifacts": {
+    "reads": [
+      "repo files as needed for context",
+      ".workflow/issue/* (existing issues for ID generation)"
+    ],
+    "writes": [
+      ".workflow/issue/{issue-id}.json",
+      ".workflow/issue/{issue-id}.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 5,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "expose secrets or credentials",
+      "claim paths exist unless verified",
+      "create duplicate issues without user confirmation"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name, description, allowed-tools present)",
+      "allowed-tools correct (no missing/extra tools)",
+      "core sections present (Overview, Usage, Execution Process, Output/Artifacts, Error Handling)",
+      "no broken artifact references",
+      "implementation pointers evidence-based (Existing vs Planned with verification)"
+    ]
+  }
+}

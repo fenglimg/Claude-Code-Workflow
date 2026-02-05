@@ -1,0 +1,41 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:analyze-with-file",
+      "file_path": ".claude/commands/workflow/analyze-with-file.md",
+      "score": 92,
+      "why": "Same group + with-file + multi-phase exploration with durable artifacts; closest match for 'document understanding evolution' pattern"
+    },
+    {
+      "slash": "/workflow:brainstorm-with-file",
+      "file_path": ".claude/commands/workflow/brainstorm-with-file.md",
+      "score": 86,
+      "why": "Same group + with-file + session artifacts + multi-round interaction; useful for session init + structured output patterns"
+    },
+    {
+      "slash": "/workflow:unified-execute-with-file",
+      "file_path": ".claude/commands/workflow/unified-execute-with-file.md",
+      "score": 80,
+      "why": "Same group + with-file + strong session validation + recovery/error-handling patterns"
+    },
+    {
+      "slash": "/workflow:lite-fix",
+      "file_path": ".claude/commands/workflow/lite-fix.md",
+      "score": 74,
+      "why": "Debug/fix oriented, phase-based; useful for hypothesis/diagnosis structuring and success-criteria style"
+    },
+    {
+      "slash": "/workflow:test-fix-gen",
+      "file_path": ".claude/commands/workflow/test-fix-gen.md",
+      "score": 70,
+      "why": "Fix generation + verification emphasis; useful for 'fix then verify then cleanup' sequencing"
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:analyze-with-file",
+    "file_path": ".claude/commands/workflow/analyze-with-file.md",
+    "score": 92,
+    "why": "Highest overlap in interaction model and artifact-driven learning loop"
+  }
+}
+

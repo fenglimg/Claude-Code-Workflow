@@ -1,0 +1,1090 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-02-05T13:47:33.618Z",
+  "corpus": {
+    "schema_version": "1.0.0",
+    "generated_at": "2026-02-05T13:47:33.618Z",
+    "slash_commands_root": ".claude/commands",
+    "total_commands": 77,
+    "commands": [
+      {
+        "ordinal": 1,
+        "name": "ccw-coordinator",
+        "group": "",
+        "slash": "/ccw-coordinator",
+        "description": "Command orchestration tool - analyze requirements, recommend chain, execute sequentially with state persistence",
+        "file_path": ".claude/commands/ccw-coordinator.md",
+        "argument_hint": "[task description]",
+        "allowed_tools_csv": "Task(*), AskUserQuestion(*), Read(*), Write(*), Bash(*), Glob(*), Grep(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "ccw-debug",
+        "group": "",
+        "slash": "/ccw-debug",
+        "description": "Debug coordinator - analyze issue, select debug strategy, execute debug workflow in main process",
+        "file_path": ".claude/commands/ccw-debug.md",
+        "argument_hint": "[--mode cli|debug|test|bidirectional] [--yes|-y] \\\"bug description\\\"",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), AskUserQuestion(*), Read(*), Bash(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "ccw-plan",
+        "group": "",
+        "slash": "/ccw-plan",
+        "description": "Planning coordinator - analyze requirements, select planning strategy, execute planning workflow in main process",
+        "file_path": ".claude/commands/ccw-plan.md",
+        "argument_hint": "[--mode lite|multi-cli|full|plan-verify|replan|cli|issue|rapid-to-issue|brainstorm-with-file|analyze-with-file] [--yes|-y] \\\"task description\\\"",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), AskUserQuestion(*), Read(*), Grep(*), Glob(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "ccw-test",
+        "group": "",
+        "slash": "/ccw-test",
+        "description": "Test coordinator - analyze testing needs, select test strategy, execute test workflow in main process",
+        "file_path": ".claude/commands/ccw-test.md",
+        "argument_hint": "[--mode gen|fix|verify|tdd] [--yes|-y] \\\"test description\\\"",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), AskUserQuestion(*), Read(*), Bash(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "ccw",
+        "group": "",
+        "slash": "/ccw",
+        "description": "Main workflow orchestrator - analyze intent, select workflow, execute command chain in main process",
+        "file_path": ".claude/commands/ccw.md",
+        "argument_hint": "\\\"task description\\\"",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), AskUserQuestion(*), Read(*), Grep(*), Glob(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "cli-init",
+        "group": "cli",
+        "slash": "/cli:cli-init",
+        "description": "Generate .gemini/ and .qwen/ config directories with settings.json and ignore files based on workspace technology detection",
+        "file_path": ".claude/commands/cli/cli-init.md",
+        "argument_hint": "[--tool gemini|qwen|all] [--output path] [--preview]",
+        "allowed_tools_csv": "Bash(*), Read(*), Write(*), Glob(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "codex-review",
+        "group": "cli",
+        "slash": "/cli:codex-review",
+        "description": "Interactive code review using Codex CLI via ccw endpoint with configurable review target, model, and custom instructions",
+        "file_path": ".claude/commands/cli/codex-review.md",
+        "argument_hint": "[--uncommitted|--base <branch>|--commit <sha>] [--model <model>] [--title <title>] [prompt]",
+        "allowed_tools_csv": "Bash(*), AskUserQuestion(*), Read(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "codex-coordinator",
+        "group": "",
+        "slash": "/codex-coordinator",
+        "description": "Command orchestration tool for Codex - analyze requirements, recommend command chain, execute sequentially with state persistence",
+        "file_path": ".claude/commands/codex-coordinator.md",
+        "argument_hint": "TASK=\\\"<task description>\\\" [--depth=standard|deep] [--auto-confirm] [--verbose]",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "flow-create",
+        "group": "",
+        "slash": "/flow-create",
+        "description": "",
+        "file_path": ".claude/commands/flow-create.md",
+        "argument_hint": "",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "convert-to-plan",
+        "group": "issue",
+        "slash": "/issue:convert-to-plan",
+        "description": "Convert planning artifacts (lite-plan, workflow session, markdown) to issue solutions",
+        "file_path": ".claude/commands/issue/convert-to-plan.md",
+        "argument_hint": "[-y|--yes] [--issue <id>] [--supplement] <SOURCE>",
+        "allowed_tools_csv": "TodoWrite(*), Bash(*), Read(*), Write(*), Glob(*), AskUserQuestion(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "issue:discover-by-prompt",
+        "group": "issue",
+        "slash": "/issue:issue:discover-by-prompt",
+        "description": "Discover issues from user prompt with Gemini-planned iterative multi-agent exploration. Uses ACE semantic search for context gathering and supports cross-module comparison (e.g., frontend vs backend API contracts).",
+        "file_path": ".claude/commands/issue/discover-by-prompt.md",
+        "argument_hint": "[-y|--yes] <prompt> [--scope=src/**] [--depth=standard|deep] [--max-iterations=5]",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*), AskUserQuestion(*), Glob(*), Grep(*), mcp__ace-tool__search_context(*), mcp__exa__search(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "issue:discover",
+        "group": "issue",
+        "slash": "/issue:issue:discover",
+        "description": "Discover potential issues from multiple perspectives (bug, UX, test, quality, security, performance, maintainability, best-practices) using CLI explore. Supports Exa external research for security and best-practices perspectives.",
+        "file_path": ".claude/commands/issue/discover.md",
+        "argument_hint": "[-y|--yes] <path-pattern> [--perspectives=bug,ux,...] [--external]",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*), AskUserQuestion(*), Glob(*), Grep(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "execute",
+        "group": "issue",
+        "slash": "/issue:execute",
+        "description": "Execute queue with DAG-based parallel orchestration (one commit per solution)",
+        "file_path": ".claude/commands/issue/execute.md",
+        "argument_hint": "[-y|--yes] --queue <queue-id> [--worktree [<existing-path>]]",
+        "allowed_tools_csv": "TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "from-brainstorm",
+        "group": "issue",
+        "slash": "/issue:from-brainstorm",
+        "description": "Convert brainstorm session ideas into issue with executable solution for parallel-dev-cycle",
+        "file_path": ".claude/commands/issue/from-brainstorm.md",
+        "argument_hint": "SESSION=\\\"<session-id>\\\" [--idea=<index>] [--auto] [-y|--yes]",
+        "allowed_tools_csv": "TodoWrite(*), Bash(*), Read(*), Write(*), Glob(*), AskUserQuestion(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "new",
+        "group": "issue",
+        "slash": "/issue:new",
+        "description": "Create structured issue from GitHub URL or text description",
+        "file_path": ".claude/commands/issue/new.md",
+        "argument_hint": "[-y|--yes] <github-url | text-description> [--priority 1-5]",
+        "allowed_tools_csv": "TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*), mcp__ace-tool__search_context(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 16,
+        "name": "plan",
+        "group": "issue",
+        "slash": "/issue:plan",
+        "description": "Batch plan issue resolution using issue-plan-agent (explore + plan closed-loop)",
+        "file_path": ".claude/commands/issue/plan.md",
+        "argument_hint": "[-y|--yes] --all-pending <issue-id>[,<issue-id>,...] [--batch-size 3]",
+        "allowed_tools_csv": "TodoWrite(*), Task(*), Skill(*), AskUserQuestion(*), Bash(*), Read(*), Write(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 17,
+        "name": "queue",
+        "group": "issue",
+        "slash": "/issue:queue",
+        "description": "Form execution queue from bound solutions using issue-queue-agent (solution-level)",
+        "file_path": ".claude/commands/issue/queue.md",
+        "argument_hint": "[-y|--yes] [--queues <n>] [--issue <id>]",
+        "allowed_tools_csv": "TodoWrite(*), Task(*), Bash(*), Read(*), Write(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 18,
+        "name": "compact",
+        "group": "memory",
+        "slash": "/memory:compact",
+        "description": "Compact current session memory into structured text for session recovery, extracting objective/plan/files/decisions/constraints/state, and save via MCP core_memory tool",
+        "file_path": ".claude/commands/memory/compact.md",
+        "argument_hint": "[optional: session description]",
+        "allowed_tools_csv": "mcp__ccw-tools__core_memory(*), Read(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 19,
+        "name": "docs-full-cli",
+        "group": "memory",
+        "slash": "/memory:docs-full-cli",
+        "description": "Generate full project documentation using CLI execution (Layer 3→1) with batched agents (4 modules/agent) and gemini→qwen→codex fallback, <20 modules uses direct parallel",
+        "file_path": ".claude/commands/memory/docs-full-cli.md",
+        "argument_hint": "[path] [--tool <gemini|qwen|codex>]",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 20,
+        "name": "docs-related-cli",
+        "group": "memory",
+        "slash": "/memory:docs-related-cli",
+        "description": "Generate/update documentation for git-changed modules using CLI execution with batched agents (4 modules/agent) and gemini→qwen→codex fallback, <15 modules uses direct parallel",
+        "file_path": ".claude/commands/memory/docs-related-cli.md",
+        "argument_hint": "[--tool <gemini|qwen|codex>]",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 21,
+        "name": "load",
+        "group": "memory",
+        "slash": "/memory:load",
+        "description": "Delegate to universal-executor agent to analyze project via Gemini/Qwen CLI and return JSON core content package for task context",
+        "file_path": ".claude/commands/memory/load.md",
+        "argument_hint": "[--tool gemini|qwen] \\\"task context description\\\"",
+        "allowed_tools_csv": "Task(*), Bash(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 22,
+        "name": "style-skill-memory",
+        "group": "memory",
+        "slash": "/memory:style-skill-memory",
+        "description": "Generate SKILL memory package from style reference for easy loading and consistent design system usage",
+        "file_path": ".claude/commands/memory/style-skill-memory.md",
+        "argument_hint": "[package-name] [--regenerate]",
+        "allowed_tools_csv": "Bash,Read,Write,TodoWrite",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 23,
+        "name": "tips",
+        "group": "memory",
+        "slash": "/memory:tips",
+        "description": "Quick note-taking command to capture ideas, snippets, reminders, and insights for later reference",
+        "file_path": ".claude/commands/memory/tips.md",
+        "argument_hint": "<note content> [--tag <tag1,tag2>] [--context <context>]",
+        "allowed_tools_csv": "mcp__ccw-tools__core_memory(*), Read(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 24,
+        "name": "update-full",
+        "group": "memory",
+        "slash": "/memory:update-full",
+        "description": "Update all CLAUDE.md files using layer-based execution (Layer 3→1) with batched agents (4 modules/agent) and gemini→qwen→codex fallback, <20 modules uses direct parallel",
+        "file_path": ".claude/commands/memory/update-full.md",
+        "argument_hint": "[--tool gemini|qwen|codex] [--path <directory>]",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 25,
+        "name": "update-related",
+        "group": "memory",
+        "slash": "/memory:update-related",
+        "description": "Update CLAUDE.md for git-changed modules using batched agent execution (4 modules/agent) with gemini→qwen→codex fallback, <15 modules uses direct execution",
+        "file_path": ".claude/commands/memory/update-related.md",
+        "argument_hint": "[--tool gemini|qwen|codex]",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 26,
+        "name": "analyze-with-file",
+        "group": "workflow",
+        "slash": "/workflow:analyze-with-file",
+        "description": "Interactive collaborative analysis with documented discussions, CLI-assisted exploration, and evolving understanding",
+        "file_path": ".claude/commands/workflow/analyze-with-file.md",
+        "argument_hint": "[-y|--yes] [-c|--continue] \\\"topic or question\\\"",
+        "allowed_tools_csv": "TodoWrite(*), Task(*), AskUserQuestion(*), Read(*), Grep(*), Glob(*), Bash(*), Edit(*), Write(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 27,
+        "name": "brainstorm-with-file",
+        "group": "workflow",
+        "slash": "/workflow:brainstorm-with-file",
+        "description": "Interactive brainstorming with multi-CLI collaboration, idea expansion, and documented thought evolution",
+        "file_path": ".claude/commands/workflow/brainstorm-with-file.md",
+        "argument_hint": "[-y|--yes] [-c|--continue] [-m|--mode creative|structured] \\\"idea or topic\\\"",
+        "allowed_tools_csv": "TodoWrite(*), Task(*), AskUserQuestion(*), Read(*), Grep(*), Glob(*), Bash(*), Edit(*), Write(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 28,
+        "name": "artifacts",
+        "group": "workflow",
+        "slash": "/workflow:artifacts",
+        "description": "Interactive clarification generating confirmed guidance specification through role-based analysis and synthesis",
+        "file_path": ".claude/commands/workflow/brainstorm/artifacts.md",
+        "argument_hint": "[-y|--yes] topic or challenge description [--count N]",
+        "allowed_tools_csv": "TodoWrite(*), Read(*), Write(*), Glob(*), AskUserQuestion(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 29,
+        "name": "auto-parallel",
+        "group": "workflow",
+        "slash": "/workflow:auto-parallel",
+        "description": "Parallel brainstorming automation with dynamic role selection and concurrent execution across multiple perspectives",
+        "file_path": ".claude/commands/workflow/brainstorm/auto-parallel.md",
+        "argument_hint": "[-y|--yes] topic or challenge description [--count N]",
+        "allowed_tools_csv": "Skill(*), Task(*), TodoWrite(*), Read(*), Write(*), Bash(*), Glob(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 30,
+        "name": "role-analysis",
+        "group": "workflow",
+        "slash": "/workflow:role-analysis",
+        "description": "Unified role-specific analysis generation with interactive context gathering and incremental updates",
+        "file_path": ".claude/commands/workflow/brainstorm/role-analysis.md",
+        "argument_hint": "[role-name] [--session session-id] [--update] [--include-questions] [--skip-questions]",
+        "allowed_tools_csv": "Task(conceptual-planning-agent), AskUserQuestion(*), TodoWrite(*), Read(*), Write(*), Edit(*), Glob(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 31,
+        "name": "synthesis",
+        "group": "workflow",
+        "slash": "/workflow:synthesis",
+        "description": "Clarify and refine role analyses through intelligent Q&A and targeted updates with synthesis agent",
+        "file_path": ".claude/commands/workflow/brainstorm/synthesis.md",
+        "argument_hint": "[-y|--yes] [optional: --session session-id]",
+        "allowed_tools_csv": "Task(conceptual-planning-agent), TodoWrite(*), Read(*), Write(*), Edit(*), Glob(*), AskUserQuestion(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 32,
+        "name": "clean",
+        "group": "workflow",
+        "slash": "/workflow:clean",
+        "description": "Intelligent code cleanup with mainline detection, stale artifact discovery, and safe execution",
+        "file_path": ".claude/commands/workflow/clean.md",
+        "argument_hint": "[-y|--yes] [--dry-run] [\\\"focus area\\\"]",
+        "allowed_tools_csv": "TodoWrite(*), Task(*), AskUserQuestion(*), Read(*), Glob(*), Bash(*), Write(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 33,
+        "name": "workflow:collaborative-plan-with-file",
+        "group": "workflow",
+        "slash": "/workflow:workflow:collaborative-plan-with-file",
+        "description": "Collaborative planning with Plan Note - Understanding agent creates shared plan-note.md template, parallel agents fill pre-allocated sections, conflict detection without merge. Outputs executable plan-note.md.",
+        "file_path": ".claude/commands/workflow/collaborative-plan-with-file.md",
+        "argument_hint": "[-y|--yes] <task description> [--max-agents=5]",
+        "allowed_tools_csv": "TodoWrite(*), Task(*), AskUserQuestion(*), Read(*), Bash(*), Write(*), Glob(*), Grep(*), mcp__ace-tool__search_context(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 34,
+        "name": "debug-with-file",
+        "group": "workflow",
+        "slash": "/workflow:debug-with-file",
+        "description": "Interactive hypothesis-driven debugging with documented exploration, understanding evolution, and Gemini-assisted correction",
+        "file_path": ".claude/commands/workflow/debug-with-file.md",
+        "argument_hint": "[-y|--yes] \\\"bug description or error message\\\"",
+        "allowed_tools_csv": "TodoWrite(*), Task(*), AskUserQuestion(*), Read(*), Grep(*), Glob(*), Bash(*), Edit(*), Write(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 35,
+        "name": "execute",
+        "group": "workflow",
+        "slash": "/workflow:execute",
+        "description": "Coordinate agent execution for workflow tasks with automatic session discovery, parallel task processing, and status tracking",
+        "file_path": ".claude/commands/workflow/execute.md",
+        "argument_hint": "[-y|--yes] [--resume-session=\\\"session-id\\\"] [--with-commit]",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 36,
+        "name": "init-guidelines",
+        "group": "workflow",
+        "slash": "/workflow:init-guidelines",
+        "description": "Interactive wizard to fill project-guidelines.json based on project analysis",
+        "file_path": ".claude/commands/workflow/init-guidelines.md",
+        "argument_hint": "[--reset]",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 37,
+        "name": "init",
+        "group": "workflow",
+        "slash": "/workflow:init",
+        "description": "Initialize project-level state with intelligent project analysis using cli-explore-agent",
+        "file_path": ".claude/commands/workflow/init.md",
+        "argument_hint": "[--regenerate]",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 38,
+        "name": "lite-execute",
+        "group": "workflow",
+        "slash": "/workflow:lite-execute",
+        "description": "Execute tasks based on in-memory plan, prompt description, or file content",
+        "file_path": ".claude/commands/workflow/lite-execute.md",
+        "argument_hint": "[-y|--yes] [--in-memory] [\\\"task description\\\"|file-path]",
+        "allowed_tools_csv": "TodoWrite(*), Task(*), Bash(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 39,
+        "name": "lite-fix",
+        "group": "workflow",
+        "slash": "/workflow:lite-fix",
+        "description": "Lightweight bug diagnosis and fix workflow with intelligent severity assessment and optional hotfix mode for production incidents",
+        "file_path": ".claude/commands/workflow/lite-fix.md",
+        "argument_hint": "[-y|--yes] [--hotfix] \\\"bug description or issue reference\\\"",
+        "allowed_tools_csv": "TodoWrite(*), Task(*), Skill(*), AskUserQuestion(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 40,
+        "name": "lite-plan",
+        "group": "workflow",
+        "slash": "/workflow:lite-plan",
+        "description": "Lightweight interactive planning workflow with in-memory planning, code exploration, and execution execute to lite-execute after user confirmation",
+        "file_path": ".claude/commands/workflow/lite-plan.md",
+        "argument_hint": "[-y|--yes] [-e|--explore] \\\"task description\\\"|file.md",
+        "allowed_tools_csv": "TodoWrite(*), Task(*), Skill(*), AskUserQuestion(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 41,
+        "name": "workflow:multi-cli-plan",
+        "group": "workflow",
+        "slash": "/workflow:workflow:multi-cli-plan",
+        "description": "Multi-CLI collaborative planning workflow with ACE context gathering and iterative cross-verification. Uses cli-discuss-agent for Gemini+Codex+Claude analysis to converge on optimal execution plan.",
+        "file_path": ".claude/commands/workflow/multi-cli-plan.md",
+        "argument_hint": "[-y|--yes] <task description> [--max-rounds=3] [--tools=gemini,codex] [--mode=parallel|serial]",
+        "allowed_tools_csv": "TodoWrite(*), Task(*), AskUserQuestion(*), Read(*), Bash(*), Write(*), mcp__ace-tool__search_context(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 42,
+        "name": "plan-verify",
+        "group": "workflow",
+        "slash": "/workflow:plan-verify",
+        "description": "Perform READ-ONLY verification analysis between IMPL_PLAN.md, task JSONs, and brainstorming artifacts. Generates structured report with quality gate recommendation. Does NOT modify any files.",
+        "file_path": ".claude/commands/workflow/plan-verify.md",
+        "argument_hint": "[optional: --session session-id]",
+        "allowed_tools_csv": "Read(*), Write(*), Glob(*), Bash(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 43,
+        "name": "plan",
+        "group": "workflow",
+        "slash": "/workflow:plan",
+        "description": "5-phase planning workflow with action-planning-agent task generation, outputs IMPL_PLAN.md and task JSONs",
+        "file_path": ".claude/commands/workflow/plan.md",
+        "argument_hint": "[-y|--yes] \\\"text description\\\"|file.md",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), Read(*), Bash(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 44,
+        "name": "replan",
+        "group": "workflow",
+        "slash": "/workflow:replan",
+        "description": "Interactive workflow replanning with session-level artifact updates and boundary clarification through guided questioning",
+        "file_path": ".claude/commands/workflow/replan.md",
+        "argument_hint": "[-y|--yes] [--session session-id] [task-id] \\\"requirements\\\"|file.md [--interactive]",
+        "allowed_tools_csv": "Read(*), Write(*), Edit(*), TodoWrite(*), Glob(*), Bash(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 45,
+        "name": "review-cycle-fix",
+        "group": "workflow",
+        "slash": "/workflow:review-cycle-fix",
+        "description": "Automated fixing of code review findings with AI-powered planning and coordinated execution. Uses intelligent grouping, multi-stage timeline coordination, and test-driven verification.",
+        "file_path": ".claude/commands/workflow/review-cycle-fix.md",
+        "argument_hint": "<export-file|review-dir> [--resume] [--max-iterations=N] [--batch-size=N]",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*), Edit(*), Write(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 46,
+        "name": "review-module-cycle",
+        "group": "workflow",
+        "slash": "/workflow:review-module-cycle",
+        "description": "Independent multi-dimensional code review for specified modules/files. Analyzes specific code paths across 7 dimensions with hybrid parallel-iterative execution, independent of workflow sessions.",
+        "file_path": ".claude/commands/workflow/review-module-cycle.md",
+        "argument_hint": "<path-pattern> [--dimensions=security,architecture,...] [--max-iterations=N]",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 47,
+        "name": "review-session-cycle",
+        "group": "workflow",
+        "slash": "/workflow:review-session-cycle",
+        "description": "Session-based comprehensive multi-dimensional code review. Analyzes git changes from workflow session across 7 dimensions with hybrid parallel-iterative execution, aggregates findings, and performs focused deep-dives on critical issues until quality gates met.",
+        "file_path": ".claude/commands/workflow/review-session-cycle.md",
+        "argument_hint": "[session-id] [--dimensions=security,architecture,...] [--max-iterations=N]",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 48,
+        "name": "review",
+        "group": "workflow",
+        "slash": "/workflow:review",
+        "description": "Post-implementation review with specialized types (security/architecture/action-items/quality) using analysis agents and Gemini",
+        "file_path": ".claude/commands/workflow/review.md",
+        "argument_hint": "[--type=security|architecture|action-items|quality] [--archived] [optional: session-id]",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 49,
+        "name": "complete",
+        "group": "workflow",
+        "slash": "/workflow:complete",
+        "description": "Mark active workflow session as complete, archive with lessons learned, update manifest, remove active flag",
+        "file_path": ".claude/commands/workflow/session/complete.md",
+        "argument_hint": "[-y|--yes] [--detailed]",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 50,
+        "name": "list",
+        "group": "workflow",
+        "slash": "/workflow:list",
+        "description": "List all workflow sessions with status filtering, shows session metadata and progress information",
+        "file_path": ".claude/commands/workflow/session/list.md",
+        "argument_hint": "",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 51,
+        "name": "resume",
+        "group": "workflow",
+        "slash": "/workflow:resume",
+        "description": "Resume the most recently paused workflow session with automatic session discovery and status update",
+        "file_path": ".claude/commands/workflow/session/resume.md",
+        "argument_hint": "",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 52,
+        "name": "solidify",
+        "group": "workflow",
+        "slash": "/workflow:solidify",
+        "description": "Crystallize session learnings and user-defined constraints into permanent project guidelines",
+        "file_path": ".claude/commands/workflow/session/solidify.md",
+        "argument_hint": "[-y|--yes] [--type <convention|constraint|learning>] [--category <category>] \\\"rule or insight\\\"",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 53,
+        "name": "start",
+        "group": "workflow",
+        "slash": "/workflow:start",
+        "description": "Discover existing sessions or start new workflow session with intelligent session management and conflict detection",
+        "file_path": ".claude/commands/workflow/session/start.md",
+        "argument_hint": "[--type <workflow|review|tdd|test|docs>] [--auto|--new] [optional: task description for new session]",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 54,
+        "name": "tdd-plan",
+        "group": "workflow",
+        "slash": "/workflow:tdd-plan",
+        "description": "TDD workflow planning with Red-Green-Refactor task chain generation, test-first development structure, and cycle tracking",
+        "file_path": ".claude/commands/workflow/tdd-plan.md",
+        "argument_hint": "\\\"feature description\\\"|file.md",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), Read(*), Bash(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 55,
+        "name": "tdd-verify",
+        "group": "workflow",
+        "slash": "/workflow:tdd-verify",
+        "description": "Verify TDD workflow compliance against Red-Green-Refactor cycles. Generates quality report with coverage analysis and quality gate recommendation. Orchestrates sub-commands for comprehensive validation.",
+        "file_path": ".claude/commands/workflow/tdd-verify.md",
+        "argument_hint": "[optional: --session WFS-session-id]",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), Read(*), Write(*), Bash(*), Glob(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 56,
+        "name": "test-cycle-execute",
+        "group": "workflow",
+        "slash": "/workflow:test-cycle-execute",
+        "description": "Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.",
+        "file_path": ".claude/commands/workflow/test-cycle-execute.md",
+        "argument_hint": "[--resume-session=\\\"session-id\\\"] [--max-iterations=N]",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 57,
+        "name": "test-fix-gen",
+        "group": "workflow",
+        "slash": "/workflow:test-fix-gen",
+        "description": "Create test-fix workflow session with progressive test layers (L0-L3), AI code validation, and test task generation",
+        "file_path": ".claude/commands/workflow/test-fix-gen.md",
+        "argument_hint": "(source-session-id | \\\"feature description\\\" | /path/to/file.md)",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), Read(*), Bash(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 58,
+        "name": "code-validation-gate",
+        "group": "workflow",
+        "slash": "/workflow:code-validation-gate",
+        "description": "Validate AI-generated code for common errors (imports, variables, types) before test execution",
+        "file_path": ".claude/commands/workflow/tools/code-validation-gate.md",
+        "argument_hint": "--session WFS-test-session-id [--fix] [--strict]",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 59,
+        "name": "conflict-resolution",
+        "group": "workflow",
+        "slash": "/workflow:conflict-resolution",
+        "description": "Detect and resolve conflicts between plan and existing codebase using CLI-powered analysis with Gemini/Qwen",
+        "file_path": ".claude/commands/workflow/tools/conflict-resolution.md",
+        "argument_hint": "[-y|--yes] --session WFS-session-id --context path/to/context-package.json",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 60,
+        "name": "gather",
+        "group": "workflow",
+        "slash": "/workflow:gather",
+        "description": "Intelligently collect project context using context-search-agent based on task description, packages into standardized JSON",
+        "file_path": ".claude/commands/workflow/tools/context-gather.md",
+        "argument_hint": "--session WFS-session-id \\\"task description\\\"",
+        "allowed_tools_csv": "Task(*), Read(*), Glob(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 61,
+        "name": "task-generate-agent",
+        "group": "workflow",
+        "slash": "/workflow:task-generate-agent",
+        "description": "Generate implementation plan documents (IMPL_PLAN.md, task JSONs, TODO_LIST.md) using action-planning-agent - produces planning artifacts, does NOT execute code implementation",
+        "file_path": ".claude/commands/workflow/tools/task-generate-agent.md",
+        "argument_hint": "[-y|--yes] --session WFS-session-id",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 62,
+        "name": "task-generate-tdd",
+        "group": "workflow",
+        "slash": "/workflow:task-generate-tdd",
+        "description": "Autonomous TDD task generation using action-planning-agent with Red-Green-Refactor cycles, test-first structure, and cycle validation",
+        "file_path": ".claude/commands/workflow/tools/task-generate-tdd.md",
+        "argument_hint": "[-y|--yes] --session WFS-session-id",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 63,
+        "name": "tdd-coverage-analysis",
+        "group": "workflow",
+        "slash": "/workflow:tdd-coverage-analysis",
+        "description": "Analyze test coverage and TDD cycle execution with Red-Green-Refactor compliance verification",
+        "file_path": ".claude/commands/workflow/tools/tdd-coverage-analysis.md",
+        "argument_hint": "--session WFS-session-id",
+        "allowed_tools_csv": "Read(*), Write(*), Bash(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 64,
+        "name": "test-concept-enhanced",
+        "group": "workflow",
+        "slash": "/workflow:test-concept-enhanced",
+        "description": "Coordinate test analysis workflow using cli-execution-agent to generate test strategy via Gemini",
+        "file_path": ".claude/commands/workflow/tools/test-concept-enhanced.md",
+        "argument_hint": "--session WFS-test-session-id --context path/to/test-context-package.json",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 65,
+        "name": "test-context-gather",
+        "group": "workflow",
+        "slash": "/workflow:test-context-gather",
+        "description": "Collect test coverage context using test-context-search-agent and package into standardized test-context JSON",
+        "file_path": ".claude/commands/workflow/tools/test-context-gather.md",
+        "argument_hint": "--session WFS-test-session-id",
+        "allowed_tools_csv": "Task(*), Read(*), Glob(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 66,
+        "name": "test-task-generate",
+        "group": "workflow",
+        "slash": "/workflow:test-task-generate",
+        "description": "Generate test planning documents (IMPL_PLAN.md, test task JSONs, TODO_LIST.md) by invoking test-action-planning-agent",
+        "file_path": ".claude/commands/workflow/tools/test-task-generate.md",
+        "argument_hint": "--session WFS-test-session-id",
+        "allowed_tools_csv": "",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 67,
+        "name": "animation-extract",
+        "group": "workflow",
+        "slash": "/workflow:animation-extract",
+        "description": "Extract animation and transition patterns from prompt inference and image references for design system documentation",
+        "file_path": ".claude/commands/workflow/ui-design/animation-extract.md",
+        "argument_hint": "[-y|--yes] [--design-id <id>] [--session <id>] [--images \"<glob>\"] [--focus \"<types>\"] [--interactive] [--refine]",
+        "allowed_tools_csv": "TodoWrite(*), Read(*), Write(*), Glob(*), Bash(*), AskUserQuestion(*), Task(ui-design-agent)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 68,
+        "name": "workflow:ui-design:codify-style",
+        "group": "workflow",
+        "slash": "/workflow:workflow:ui-design:codify-style",
+        "description": "Orchestrator to extract styles from code and generate shareable reference package with preview (automatic file discovery)",
+        "file_path": ".claude/commands/workflow/ui-design/codify-style.md",
+        "argument_hint": "<path> [--package-name <name>] [--output-dir <path>] [--overwrite]",
+        "allowed_tools_csv": "Skill,Bash,Read,TodoWrite",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 69,
+        "name": "design-sync",
+        "group": "workflow",
+        "slash": "/workflow:design-sync",
+        "description": "Synchronize finalized design system references to brainstorming artifacts, preparing them for /workflow:plan consumption",
+        "file_path": ".claude/commands/workflow/ui-design/design-sync.md",
+        "argument_hint": "--session <session_id> [--selected-prototypes \"<list>\"]",
+        "allowed_tools_csv": "Read(*), Write(*), Edit(*), TodoWrite(*), Glob(*), Bash(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 70,
+        "name": "explore-auto",
+        "group": "workflow",
+        "slash": "/workflow:explore-auto",
+        "description": "Interactive exploratory UI design workflow with style-centric batch generation, creates design variants from prompts/images with parallel execution and user selection",
+        "file_path": ".claude/commands/workflow/ui-design/explore-auto.md",
+        "argument_hint": "[--input \"<value>\"] [--targets \"<list>\"] [--target-type \"page|component\"] [--session <id>] [--style-variants <count>] [--layout-variants <count>]",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), Read(*), Bash(*), Glob(*), Write(*), Task(conceptual-planning-agent)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 71,
+        "name": "generate",
+        "group": "workflow",
+        "slash": "/workflow:generate",
+        "description": "Assemble UI prototypes by combining layout templates with design tokens (default animation support), pure assembler without new content generation",
+        "file_path": ".claude/commands/workflow/ui-design/generate.md",
+        "argument_hint": "[--design-id <id>] [--session <id>]",
+        "allowed_tools_csv": "TodoWrite(*), Read(*), Write(*), Task(ui-design-agent), Bash(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 72,
+        "name": "imitate-auto",
+        "group": "workflow",
+        "slash": "/workflow:imitate-auto",
+        "description": "UI design workflow with direct code/image input for design token extraction and prototype generation",
+        "file_path": ".claude/commands/workflow/ui-design/imitate-auto.md",
+        "argument_hint": "[--input \"<value>\"] [--session <id>]",
+        "allowed_tools_csv": "Skill(*), TodoWrite(*), Read(*), Write(*), Bash(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 73,
+        "name": "workflow:ui-design:import-from-code",
+        "group": "workflow",
+        "slash": "/workflow:workflow:ui-design:import-from-code",
+        "description": "Import design system from code files (CSS/JS/HTML/SCSS) with automatic file discovery and parallel agent analysis",
+        "file_path": ".claude/commands/workflow/ui-design/import-from-code.md",
+        "argument_hint": "[--design-id <id>] [--session <id>] [--source <path>]",
+        "allowed_tools_csv": "Read,Write,Bash,Glob,Grep,Task,TodoWrite",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 74,
+        "name": "layout-extract",
+        "group": "workflow",
+        "slash": "/workflow:layout-extract",
+        "description": "Extract structural layout information from reference images or text prompts using Claude analysis with variant generation or refinement mode",
+        "file_path": ".claude/commands/workflow/ui-design/layout-extract.md",
+        "argument_hint": "[-y|--yes] [--design-id <id>] [--session <id>] [--images \"<glob>\"] [--prompt \"<desc>\"] [--targets \"<list>\"] [--variants <count>] [--device-type <desktop|mobile|tablet|responsive>] [--interactive] [--refine]",
+        "allowed_tools_csv": "TodoWrite(*), Read(*), Write(*), Glob(*), Bash(*), AskUserQuestion(*), Task(ui-design-agent), mcp__exa__web_search_exa(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 75,
+        "name": "workflow:ui-design:reference-page-generator",
+        "group": "workflow",
+        "slash": "/workflow:workflow:ui-design:reference-page-generator",
+        "description": "Generate multi-component reference pages and documentation from design run extraction",
+        "file_path": ".claude/commands/workflow/ui-design/reference-page-generator.md",
+        "argument_hint": "[--design-run <path>] [--package-name <name>] [--output-dir <path>]",
+        "allowed_tools_csv": "Read,Write,Bash,Task,TodoWrite",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 76,
+        "name": "style-extract",
+        "group": "workflow",
+        "slash": "/workflow:style-extract",
+        "description": "Extract design style from reference images or text prompts using Claude analysis with variant generation or refinement mode",
+        "file_path": ".claude/commands/workflow/ui-design/style-extract.md",
+        "argument_hint": "[-y|--yes] [--design-id <id>] [--session <id>] [--images \"<glob>\"] [--prompt \"<desc>\"] [--variants <count>] [--interactive] [--refine]",
+        "allowed_tools_csv": "TodoWrite(*), Read(*), Write(*), Glob(*), AskUserQuestion(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      },
+      {
+        "ordinal": 77,
+        "name": "unified-execute-with-file",
+        "group": "workflow",
+        "slash": "/workflow:unified-execute-with-file",
+        "description": "Universal execution engine for consuming any planning/brainstorm/analysis output with minimal progress tracking, multi-agent coordination, and incremental execution",
+        "file_path": ".claude/commands/workflow/unified-execute-with-file.md",
+        "argument_hint": "[-y|--yes] [<path>[,<path2>] | -p|--plan <path>[,<path2>]] [--auto-commit] [--commit-prefix \\\"prefix\\\"] [\\\"execution context or task name\\\"]",
+        "allowed_tools_csv": "TodoWrite(*), Task(*), AskUserQuestion(*), Read(*), Grep(*), Glob(*), Bash(*), Edit(*), Write(*)",
+        "status": "pending",
+        "llm": {
+          "status": "pending"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "command": {
+    "group": "issue",
+    "name": "plan",
+    "description": "Batch plan issue resolution using issue-plan-agent (explore + plan closed-loop)",
+    "argument_hint": "[-y|--yes] --all-pending <issue-id>[,<issue-id>,...] [--batch-size 3]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "Skill(*)",
+      "AskUserQuestion(*)",
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)"
+    ]
+  },
+  "intent": {
+    "type": "plan",
+    "interaction": "iterative",
+    "primary_user_value": "Batch plan one or more issues by running issue-plan-agent (explore + plan) and binding a solution when unambiguous."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/project-tech.json",
+      ".workflow/project-guidelines.json",
+      ".claude/workflows/cli-templates/schemas/solution-schema.json"
+    ],
+    "writes": [
+      ".workflow/issues/solutions/{issue-id}.jsonl",
+      ".workflow/issues/issues.jsonl"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 0,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not claim a pointer is Existing unless it is verifiable in the repo now",
+      "Do not read issues.jsonl or solutions/*.jsonl directly; use ccw issue CLI commands",
+      "No destructive operations unless explicitly requested"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid",
+      "allowed-tools correct",
+      "core sections present",
+      "evidence tables pass verify-evidence.js"
+    ]
+  }
+}

@@ -1,0 +1,2851 @@
+Reading prompt from stdin...
+OpenAI Codex v0.93.0 (research preview)
+--------
+workdir: C:\Project\Claude-Code-Workflow
+model: gpt-5.2
+provider: codex
+approval: never
+sandbox: danger-full-access
+reasoning effort: high
+reasoning summaries: auto
+session id: 019c2cde-2678-7d82-8318-f465796c538f
+--------
+user
+Use the repo skill: slash-command-outliner (path: .codex/skills/slash-command-outliner).
+
+Cycle: cycle-auto-20260205T010617-slashcmdoutliner-codex
+Command: CMD-056
+
+Input requirement doc (non-leaky): `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-056.requirements.md`
+
+Write the following output files (create directories as needed) under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs`:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md`
+
+Hard rules (P0):
+- Follow templates: .codex/skills/slash-command-outliner/templates/*
+- Follow gates: .codex/skills/slash-command-outliner/specs/quality-gates.md
+- Evidence tables MUST pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js
+- Never label a pointer as Existing unless it is verifiable in the repo now.
+- For ANY pointer row, provide dual-source evidence:
+  - docs: .claude/commands/**.md / <real heading text>
+  - ts: ccw/src/** / <literal anchor string present in file>
+- Avoid placeholders like TBD/N/A in evidence rows; if unsure, mark as Planned and add Verify steps.
+
+Keep the written files concise; do not write extra files unless necessary.
+
+deprecated: `[features].web_search_request` is deprecated. Use `web_search` instead.
+  Set `web_search` to `"live"`, `"cached"`, or `"disabled"` in config.toml.
+mcp: exa starting
+mcp: ace-tool starting
+mcp: ccw-tools starting
+mcp: ccw-tools ready
+mcp: ace-tool ready
+mcp: exa ready
+mcp startup: ready: ccw-tools, ace-tool, exa
+
+
+thinking
+**Considering file access methods**
+
+I think the simplest option is to use a shell command with `Get-Content` since the read_file tool isn't available. However, I'm reminded that it's generally advised to avoid shell commands when MCP tools are accessible, but here we might need to make an exception. 
+
+It would be good to gather requirements from documentation, including templates and quality gates, and then generate the necessary output files like spec.json. I want to make sure I'm following the correct encoding guidelines, like using Windows UTF-8 before executing commands.
+thinking
+**Exploring the skill process**
+
+I want to follow the skill process for "slash-command-outliner," which probably guides me on building outlines and creating evidence pointers to existing docs and code anchors. It's crucial that the pointer rows contain dual-source evidence, including the document path with the heading and the TypeScript path alongside the literal string present. I'll need to search the repository for these elements and make sure to cite the existing command documentation and TypeScript anchors. Let's inspect these details further!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem -Force .codex/skills/slash-command-outliner | Select-Object -ExpandProperty FullName' in C:\Project\Claude-Code-Workflow succeeded in 323ms:
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\phases
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\scripts
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\specs
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\templates
+C:\Project\Claude-Code-Workflow\.codex\skills\slash-command-outliner\SKILL.md
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/SKILL.md' in C:\Project\Claude-Code-Workflow succeeded in 308ms:
+---
+name: slash-command-outliner
+description: Codex version of slash-command-outliner. Generate CCW-aligned slash command development outlines from a requirement/spec doc, validated via corpus-wide iteration and non-regression. Triggers on "slash command outliner", "slash 命令大纲", "slash 命令生成器", "命令大纲".
+allowed-tools: Read, Write, AskUserQuestion, Task, Bash, TodoWrite, mcp__ace-tool__search_context
+---
+
+# Slash Command Outliner (Codex)
+
+Input a **slash command requirement/spec document**. Output a **CCW-aligned, end-to-end development outline** (Slash MD outline + Agent MD outline) plus a **gap-report** that compares against reference implementations and CCW server/tooling corpus. Improve quality by iterating across **all** existing commands with **non-regression snapshots**.
+
+This skill is designed to be **precise** (no fluff) and **stable** (non-regression gate).
+
+## Canonical Workflow (Phases)
+
+1) `phases/01-collect-spec.md`  
+2) `phases/02-retrieve-and-rank-references.md`  
+3) `phases/03-generate-outlines.md`  
+4) `phases/04-gap-report-and-iterate.md`  
+5) `phases/05-regression-and-closure.md`
+
+
+thinking
+**Reviewing implementation phases**
+
+I need to follow the project phases closely. I'll read the phase documentation and the specifications or templates that are available. It seems like I’ll likely implement things manually while adhering to those templates. Since producing a spec.json isn’t mentioned in the templates, I suspect it might use JSON as an intermediate format for the skill. So, I'll take some time to inspect both the templates and the phase documentation to clarify further.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem -Force .codex/skills/slash-command-outliner/phases | Sort-Object Name | Select-Object -ExpandProperty Name' in C:\Project\Claude-Code-Workflow succeeded in 329ms:
+01-collect-spec.md
+02-retrieve-and-rank-references.md
+03-generate-outlines.md
+04-gap-report-and-iterate.md
+05-regression-and-closure.md
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/01-collect-spec.md' in C:\Project\Claude-Code-Workflow succeeded in 322ms:
+# Phase 01: Collect Spec (No Leakage)
+
+## Goal
+
+Turn a human requirement/rules document into a **minimal, structured spec** that is sufficient to generate:
+
+- Slash command outline (CCW command MD skeleton)
+- Agent outline (execution + tools + state)
+
+Do **not** copy/paste existing implementation docs as input; treat them as oracle only during gap analysis.
+
+## Required Inputs (ask if missing)
+
+1. Command identity:
+   - `group` (workflow|issue|learn|cli|other)
+   - `name` (kebab-case)
+   - `description` (one sentence)
+   - `argument-hint` (optional)
+2. Allowed tools:
+   - exact list for frontmatter `allowed-tools`
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/02-retrieve-and-rank-references.md' in C:\Project\Claude-Code-Workflow succeeded in 305ms:
+# Phase 02: Retrieve + Rank References
+
+## Goal
+
+Find the closest existing commands and extract **reusable patterns** without copying full content.
+
+## Steps
+
+1) Use `mcp__ace-tool__search_context` to recall similar commands and relevant tooling code.
+2) Produce Top N candidates (default N=5) with deterministic scoring:
+   - same `group` / command family
+   - similar interaction model (AskUserQuestion, multi-round loop, etc.)
+   - similar artifacts (writes to `.workflow/*`, `.claude/*`, etc.)
+   - similar allowed-tools surface
+3) Require user confirmation for Top 1 (high-confidence can be preselected but must be overridable).
+
+## Output
+
+Write:
+- `specs/outputs/references.json`
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/03-generate-outlines.md' in C:\Project\Claude-Code-Workflow succeeded in 309ms:
+# Phase 03: Generate Outlines (Slash MD + Agent MD)
+
+## Goal
+
+Generate:
+- a **Slash command MD outline** that matches CCW conventions (frontmatter + required sections)
+- an **Agent outline** that explains execution model, state, and validation strategy
+
+Use templates; keep output concise and implementation-oriented.
+
+## Inputs
+
+- `specs/outputs/spec.json`
+- `specs/outputs/references.json` (selected reference)
+- Rules: `../specs/quality-gates.md`
+
+## Output Files
+
+- `specs/outputs/generated-slash-outline.md` (based on `../templates/slash-command-outline.md`)
+- `specs/outputs/generated-agent-outline.md` (based on `../templates/agent-outline.md`)
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/04-gap-report-and-iterate.md' in C:\Project\Claude-Code-Workflow succeeded in 303ms:
+# Phase 04: Gap Report + Iterate
+
+## Goal
+
+Compare the generated outlines against:
+1) The selected reference command implementation (oracle)
+2) The CCW server/tooling corpus (routes, mcp tools, cli internals)
+
+Then propose the smallest set of changes to close gaps.
+
+## Inputs
+
+- `specs/outputs/generated-slash-outline.md`
+- `specs/outputs/generated-agent-outline.md`
+- `specs/outputs/references.json`
+- Tooling scope: `../specs/corpus-scope.md`
+
+## Output
+
+Write:
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/05-regression-and-closure.md' in C:\Project\Claude-Code-Workflow succeeded in 302ms:
+# Phase 05: Regression + Closure
+
+## Goal
+
+Make sure improvements do not regress previously-validated commands (non-regression).
+
+## What to Update (Cycle Mode)
+
+When iterating against the full corpus:
+- Update per-command status in `corpus-manifest.json`
+- Check off `TODO_LIST.md` items
+- Save snapshots in `regression/expected/` for commands marked completed
+- Write snapshot diffs into `regression/diff/` and block on unexpected changes
+
+## Non-regression Policy
+
+See `../specs/quality-gates.md`.
+
+## Completion Criteria
+
+
+thinking
+**Producing outputs**
+
+I really think we just need to focus on generating outputs. A full corpus regression doesn't seem necessary. However, we do need to run the evidence gate on the files created in our output directory. I'll run the node verify-evidence command with the --file option pointing at these outputs. But wait, the script might expect evidence tables in those files, so I should definitely check the template documentation to make sure I'm following the guidelines correctly.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem -Force .codex/skills/slash-command-outliner/templates | Sort-Object Name | Select-Object -ExpandProperty Name' in C:\Project\Claude-Code-Workflow succeeded in 323ms:
+agent-outline.md
+gap-report.md
+slash-command-outline.md
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/slash-command-outline.md' in C:\Project\Claude-Code-Workflow succeeded in 306ms:
+---
+name: {{command.name}}
+description: {{command.description}}
+argument-hint: "{{command.argument_hint}}"
+allowed-tools: {{command.allowed_tools_csv}}
+group: {{command.group}}
+---
+
+# {{command.title}}
+
+## Overview
+
+- Goal: {{intent.primary_user_value}}
+- Command: `/{{command.group}}:{{command.name}}`
+
+## Usage
+
+```bash
+/{{command.group}}:{{command.name}} {{command.usage_args}}
+```
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/agent-outline.md' in C:\Project\Claude-Code-Workflow succeeded in 299ms:
+# Agent Outline: {{command.group}}:{{command.name}}
+
+## Purpose
+
+Implement and/or evolve the slash command according to CCW conventions with minimal regressions.
+
+## Execution Model
+
+- Default: incremental, testable changes
+- Use ACE-tool to find existing patterns before adding new abstractions
+
+## State & Artifacts
+
+- Session folder (if used): `.workflow/...`
+- Required outputs:
+  - Slash MD (command doc)
+  - Any scripts/modules referenced by the command
+  - Validation notes / regression snapshots
+
+## Tooling
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/gap-report.md' in C:\Project\Claude-Code-Workflow succeeded in 302ms:
+# Gap Report: {{command.group}}:{{command.name}}
+
+## Reference
+
+- Selected reference: {{reference.slash}} (`{{reference.file_path}}`)
+
+## P0 Gaps (Must Fix)
+
+{{gaps.p0}}
+
+## P1 Gaps (Should Fix)
+
+{{gaps.p1}}
+
+## P2 Gaps (Optional)
+
+{{gaps.p2}}
+
+## Implementation Pointers (Evidence)
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem -Force .codex/skills/slash-command-outliner/specs | Sort-Object Name | Select-Object -ExpandProperty Name' in C:\Project\Claude-Code-Workflow succeeded in 321ms:
+corpus-scope.md
+quality-gates.md
+spec-input.md
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/spec-input.md' in C:\Project\Claude-Code-Workflow succeeded in 321ms:
+# Spec Input (Schema + Rules)
+
+The spec is the only “source input” for outline generation. It must be **minimal** and **non-leaky**.
+
+## Minimal JSON Schema (informal)
+
+```json
+{
+  "command": {
+    "group": "workflow|issue|learn|cli|other",
+    "name": "kebab-case",
+    "description": "one sentence",
+    "argument_hint": "[--flag] \"args\"",
+    "allowed_tools": ["Read(*)", "Write(*)"]
+  },
+  "intent": {
+    "type": "analyze|plan|execute|brainstorm|manage|utility",
+    "interaction": "single-shot|iterative|loop",
+    "primary_user_value": "what this command accomplishes"
+  },
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/quality-gates.md' in C:\Project\Claude-Code-Workflow succeeded in 305ms:
+# Quality Gates (Non-regression First)
+
+## P0 Gates (Must Pass)
+
+P0 failure means “not CCW-aligned” and blocks completion.
+
+1) **Frontmatter completeness**
+   - `name`, `description`, `allowed-tools` must exist
+   - `argument-hint` optional but recommended for non-trivial commands
+2) **Allowed-tools correctness**
+   - no tools outside the supported CCW set for the intended workflow
+   - no missing tools required by the described behavior
+3) **Core sections present**
+   - at least: `Overview`, `Usage`, `Execution Process`, `Output/Artifacts`, `Error Handling`
+4) **No broken artifact references**
+   - referenced paths must be either created by the command or explicitly documented as pre-existing
+
+5) **Implementation pointers must be evidence-based (Existing vs Planned)**
+   - Every implementation pointer (file/module/CLI subcommand/tool entry) MUST be labeled:
+     - `Existing`: verifiable in repo now
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/corpus-scope.md' in C:\Project\Claude-Code-Workflow succeeded in 298ms:
+# Corpus Scope (All Commands + Tooling)
+
+## Slash Command Corpus (Must Cover 100%)
+
+- `.claude/commands/**/*.md`
+  - exclude: `node_modules/`
+  - exclude: `_disabled/`
+
+## Server/Tooling Capability Corpus (Must Be Referenced in Gap Analysis)
+
+These are not “slash command targets”, but are required to detect hidden dependencies:
+
+- `ccw/src/server/routes/**/*`
+- `ccw/src/mcp-server/**/*`
+- `ccw/src/tools/**/*`
+- `ccw/src/commands/**/*`
+
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-056.requirements.md' in C:\Project\Claude-Code-Workflow succeeded in 328ms:
+# Requirement (non-leaky): /workflow:test-cycle-execute
+
+## Source
+
+- Command doc (oracle, do not paste full contents into spec): `.claude/commands/workflow/test-cycle-execute.md`
+
+## Command Identity
+
+- group: workflow
+- name: test-cycle-execute
+- description: Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.
+- argument-hint: [--resume-session=\"session-id\"] [--max-iterations=N]
+- allowed-tools: Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)
+
+## Structure Hints (Headings Only)
+
+- Workflow Test-Cycle-Execute Command
+  - Quick Start
+- Execute test-fix workflow (auto-discovers active session)
+- Resume interrupted session
+
+thinking
+**Organizing agent outline**
+
+I’m planning to incorporate the agent outline and gather reference candidates from existing `.claude/commands`. I might look into similar ones in the `workflow` group and test/loop to ensure efficiency. For this, I’ll utilize the ACE search_context for “test cycle execute,” which is a requirement for the skill. The tool I’ll use for this is mcp__ace-tool__search_context. Let’s get started on that!
+tool ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Find existing slash command docs and TypeScript implementation related to test cycle execute, iterative test-fix workflows, resume sessions, max iterations, planning agent, test-fix agent. Keywords: test-cycle, test fix, workflow, resume-session, max-iterations, cli-planning-agent, TodoWrite structure, session file structure."})
+ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Find existing slash command docs and TypeScript implementation related to test cycle execute, iterative test-fix workflows, resume sessions, max iterations, planning agent, test-fix agent. Keywords: test-cycle, test fix, workflow, resume-session, max-iterations, cli-planning-agent, TodoWrite structure, session file structure."}) success in 7.84s:
+{
+  "content": [
+    {
+      "text": "The following code sections were retrieved:\nPath: .claude\\commands\\workflow\\test-cycle-execute.md\n     1\t---\r\n     2\tname: test-cycle-execute\r\n     3\tdescription: Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.\r\n     4\targument-hint: \"[--resume-session=\\\"session-id\\\"] [--max-iterations=N]\"\r\n     5\tallowed-tools: Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)\r\n     6\t---\r\n     7\t\r\n     8\t# Workflow Test-Cycle-Execute Command\r\n     9\t\r\n    10\t## Quick Start\r\n    11\t\r\n    12\t```bash\r\n    13\t# Execute test-fix workflow (auto-discovers active session)\r\n    14\t/workflow:test-cycle-execute\r\n    15\t\r\n    16\t# Resume interrupted session\r\n    17\t/workflow:test-cycle-execute --resume-session=\"WFS-test-user-auth\"\r\n    18\t\r\n    19\t# Custom iteration limit (default: 10)\r\n    20\t/workflow:test-cycle-execute --max-iterations=15\r\n    21\t```\r\n...\n   102\t\r\n   103\t**Runs affected tests during iterations, full suite only for final validation.**\r\n   104\t\r\n   105\t**How It Works**:\r\n   106\t1. @cli-planning-agent analyzes fix_strategy.modification_points\r\n   107\t2. Maps modified files to test files (via imports + integration patterns)\r\n   108\t3. Returns `affected_tests[]` in task JSON\r\n   109\t4. @test-fix-agent runs: `npm test -- ${affected_tests.join(' ')}`\r\n   110\t5. Final validation: `npm test` (full suite)\r\n   111\t\r\n   112\t\r\n   113\t**Benefits**: 70-90% iteration speed improvement, instant feedback on fix effectiveness.\r\n   114\t\r\n   115\t## Core Responsibilities\r\n...\n   131\t\r\n   132\t### @cli-planning-agent\r\n   133\t- Execute CLI analysis with bug diagnosis template\r\n   134\t- Parse output for root causes and fix strategy\r\n   135\t- Generate IMPL-fix-N.json task definition\r\n   136\t- Detect affected tests for progressive testing\r\n   137\t- Save: analysis.md, cli-output.txt\r\n   138\t\r\n   139\t### @test-fix-agent\r\n   140\t- Execute tests, save results to test-results.json\r\n   141\t- Apply fixes from task.context.fix_strategy\r\n   142\t- Assign criticality to failures\r\n   143\t- Update task status\r\n   144\t\r\n   145\t## Reference\r\n   146\t\r\n   147\t### CLI Tool Configuration\r\n   148\t\r\n   149\t**Fallback Chain**: Gemini → Qwen → Codex\r\n   150\t**Template**: `~/.claude/workflows/cli-templates/prompts/analysis/01-diagnose-bug-root-cause.txt`\r\n   151\t**Timeout**: 40min (2400000ms)\r\n...\n   270\t\r\n   271\t**@test-fix-agent** (execution):\r\n   272\t```javascript\r\n   273\tTask(\r\n   274\t  subagent_type=\"test-fix-agent\",\r\n   275\t  run_in_background=false,\r\n   276\t  description=`Execute ${task.meta.type}: ${task.title}`,\r\n   277\t  prompt=`\r\n   278\t    ## Task Objective\r\n   279\t    ${taskTypeObjective[task.meta.type]}\r\n   280\t\r\n   281\t    ## MANDATORY FIRST STEPS\r\n   282\t    1. Read task JSON: ${session.task_json_path}\r\n   283\t    2. Read iteration state: ${session.iteration_state_path}\r\n   284\t    3. ${taskTypeSpecificReads[task.meta.type]}\r\n   285\t\r\n   286\t    ## CRITICAL: Syntax Check Priority\r\n   287\t    **Before any code modification or test execution:**\r\n   288\t    - Run project syntax checker (TypeScript: tsc --noEmit, ESLint, etc.)\r\n   289\t    - Verify zero syntax errors before proceeding\r\n   290\t    - If syntax errors found: Fix immediately before other work\r\n   291\t    - Syntax validation is MANDATORY gate - no exceptions\r\n...\n   313\t\r\n   314\t// Task Type Configurations\r\n   315\tconst taskTypeObjective = {\r\n   316\t  \"test-gen\": \"Generate comprehensive tests based on requirements\",\r\n   317\t  \"test-fix\": \"Execute test suite and report results with criticality assessment\",\r\n   318\t  \"test-fix-iteration\": \"Apply fixes from strategy and validate with tests\"\r\n   319\t};\r\n   320\t\r\n   321\tconst taskTypeSpecificReads = {\r\n   322\t  \"test-gen\": \"Read test context: ${session.test_context_path}\",\r\n   323\t  \"test-fix\": \"Read previous results (if exists): ${session.test_results_path}\",\r\n   324\t  \"test-fix-iteration\": \"Read fix strategy: ${session.analysis_path}, fix history: ${session.fix_history_path}\"\r\n   325\t};\r\n...\n   480\t\r\n   481\t**Commit Content**:\r\n   482\t- Modified source files from fix application\r\n   483\t- Updated test-results.json, iteration-state.json\r\n   484\t- Excludes: temporary files, logs\r\n   485\t\r\n   486\t**Benefits**:\r\n   487\t- **Rollback Safety**: Each iteration is a revert point\r\n   488\t- **Progress Tracking**: Git history shows iteration evolution\r\n   489\t- **Audit Trail**: Clear record of which strategy/iteration caused issues\r\n   490\t- **Resume Capability**: Can resume from any checkpoint\r\n   491\t\r\n   492\t**Note**: Final session completion creates additional commit with full summary.\r\n   493\t\r\n   494\t## Post-Completion Expansion\r\n   495\t\r\n   496\t完成后询问用户是否扩展为issue(test/enhance/refactor/doc)，选中项调用 `/issue:new \"{summary} - {dimension}\"`\r\n   497\t\r\n   498\t## Best Practices\r\n...\n\nPath: .claude\\commands\\workflow\\test-fix-gen.md\n...\n    76\t\r\n    77\tPhase 1: Create Test Session\r\n    78\t   └─ /workflow:session:start --type test --new \"structured-description\"\r\n    79\t      └─ Output: testSessionId (WFS-test-xxx)\r\n    80\t\r\n    81\tPhase 2: Gather Test Context\r\n    82\t   ├─ MODE=session → /workflow:tools:test-context-gather --session testSessionId\r\n    83\t   └─ MODE=prompt  → /workflow:tools:context-gather --session testSessionId \"description\"\r\n    84\t      └─ Output: contextPath (context-package.json)\r\n    85\t\r\n    86\tPhase 3: Test Generation Analysis\r\n    87\t   └─ /workflow:tools:test-concept-enhanced --session testSessionId --context contextPath\r\n    88\t      └─ Output: TEST_ANALYSIS_RESULTS.md (L0-L3 requirements)\r\n    89\t\r\n    90\tPhase 4: Generate Test Tasks\r\n    91\t   └─ /workflow:tools:test-task-generate --session testSessionId\r\n    92\t      └─ Output: IMPL_PLAN.md, IMPL-*.json (4+ tasks), TODO_LIST.md\r\n...\n   295\t\r\n   296\t---\r\n   297\t\r\n   298\t## Data Flow\r\n   299\t\r\n   300\t```\r\n   301\tUser Input (session ID | description | file path)\r\n   302\t    ↓\r\n   303\t[Detect Mode: session | prompt]\r\n   304\t    ↓\r\n   305\tPhase 1: session:start --type test --new \"description\"\r\n   306\t    ↓ Output: testSessionId\r\n   307\t    ↓\r\n   308\tPhase 2: test-context-gather | context-gather\r\n   309\t    ↓ Input: testSessionId\r\n   310\t    ↓ Output: contextPath (context-package.json)\r\n   311\t    ↓\r\n   312\tPhase 3: test-concept-enhanced\r\n   313\t    ↓ Input: testSessionId + contextPath\r\n   314\t    ↓ Output: TEST_ANALYSIS_RESULTS.md (L0-L3 requirements + AI issues)\r\n   315\t    ↓\r\n   316\tPhase 4: test-task-generate\r\n   317\t    ↓ Input: testSessionId + TEST_ANALYSIS_RESULTS.md\r\n   318\t    ↓ Output: IMPL_PLAN.md, IMPL-*.json (4+), TODO_LIST.md\r\n   319\t    ↓\r\n   320\tPhase 5: Return summary to user\r\n   321\t    ↓\r\n   322\tNext: /workflow:test-cycle-execute\r\n   323\t```\r\n   324\t\r\n   325\t---\r\n   326\t\r\n   327\t## Execution Flow Diagram\r\n...\n   427\t\r\n   428\t- Detect input type (session ID / description / file path)\r\n   429\t- Initialize TodoWrite before any command\r\n   430\t- Execute Phase 1 immediately with structured description\r\n   431\t- Parse test session ID from Phase 1 output, store in memory\r\n   432\t- Execute Phase 2 with appropriate context-gather command based on mode\r\n   433\t- Parse context path from Phase 2 output, store in memory\r\n   434\t- Execute Phase 3 test-concept-enhanced with session and context\r\n   435\t- Verify TEST_ANALYSIS_RESULTS.md created with L0-L3 requirements\r\n   436\t- Execute Phase 4 test-task-generate with session ID\r\n   437\t- Verify all Phase 4 outputs (4 task JSONs, IMPL_PLAN.md, TODO_LIST.md)\r\n   438\t- Return summary with next step: `/workflow:test-cycle-execute`\r\n   439\t- Update TodoWrite after each phase\r\n   440\t\r\n   441\t---\r\n   442\t\r\n   443\t## Usage Examples\r\n...\n   466\t\r\n   467\t**Called by This Command** (5 phases):\r\n   468\t- `/workflow:session:start` - Phase 1: Create test workflow session\r\n   469\t- `/workflow:tools:test-context-gather` - Phase 2 (Session Mode): Analyze test coverage\r\n   470\t- `/workflow:tools:context-gather` - Phase 2 (Prompt Mode): Analyze codebase\r\n   471\t- `/workflow:tools:test-concept-enhanced` - Phase 3: Generate test requirements with Gemini\r\n   472\t- `/workflow:tools:test-task-generate` - Phase 4: Generate test task JSONs via action-planning-agent\r\n   473\t\r\n   474\t**Follow-up Commands**:\r\n   475\t- `/workflow:status` - Review generated tasks\r\n   476\t- `/workflow:test-cycle-execute` - Execute test workflow (REQUIRED next step)\r\n   477\t- `/workflow:execute` - Alternative: Standard task execution\r\n...\n\nPath: .claude\\commands\\workflow\\tools\\test-task-generate.md\n     1\t---\r\n     2\tname: test-task-generate\r\n     3\tdescription: Generate test planning documents (IMPL_PLAN.md, test task JSONs, TODO_LIST.md) by invoking test-action-planning-agent\r\n     4\targument-hint: \"--session WFS-test-session-id\"\r\n     5\texamples:\r\n     6\t  - /workflow:tools:test-task-generate --session WFS-test-auth\r\n     7\t---\r\n     8\t\r\n     9\t# Generate Test Planning Documents Command\r\n    10\t\r\n    11\t## Overview\r\n    12\t\r\n    13\tGenerate test planning documents (IMPL_PLAN.md, test task JSONs, TODO_LIST.md) by invoking **test-action-planning-agent**.\r\n    14\t\r\n    15\tThis command produces **test planning artifacts only** - it does NOT execute tests or implement code. Actual test execution requires separate execution command (e.g., /workflow:test-cycle-execute).\r\n    16\t\r\n    17\t### Agent Specialization\r\n...\n\nPath: .claude\\commands\\workflow\\review-cycle-fix.md\n     1\t---\r\n     2\tname: review-cycle-fix\r\n     3\tdescription: Automated fixing of code review findings with AI-powered planning and coordinated execution. Uses intelligent grouping, multi-stage timeline coordination, and test-driven verification.\r\n     4\targument-hint: \"<export-file|review-dir> [--resume] [--max-iterations=N] [--batch-size=N]\"\r\n     5\tallowed-tools: Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*), Edit(*), Write(*)\r\n     6\t---\r\n     7\t\r\n     8\t# Workflow Review-Cycle-Fix Command\r\n     9\t\r\n    10\t## Quick Start\r\n    11\t\r\n    12\t```bash\r\n    13\t# Fix from exported findings file (session-based path)\r\n    14\t/workflow:review-cycle-fix .workflow/active/WFS-123/.review/fix-export-1706184622000.json\r\n    15\t\r\n    16\t# Fix from review directory (auto-discovers latest export)\r\n    17\t/workflow:review-cycle-fix .workflow/active/WFS-123/.review/\r\n...\n\nPath: docs\\COMMAND_SPEC.md\n...\n   440\t\r\n   441\t### **/workflow:test-cycle-execute**\r\n   442\t- **Syntax**: `/workflow:test-cycle-execute [--resume-session=\"session-id\"] [--max-iterations=N]`\r\n   443\t- **Responsibilities**: Executes a test-fix workflow by delegating to `/workflow:execute`. Generates test tasks dynamically and creates intermediate fix tasks based on test results.\r\n   444\t- **Agent Calls**: Delegates to `/workflow:execute` which invokes `@test-fix-agent` for task execution.\r\n   445\t- **Note**: This command generates tasks; actual execution is performed by `/workflow:execute`.\r\n   446\t- **Example**:\r\n   447\t  ```bash\r\n   448\t  /workflow:test-cycle-execute --resume-session=\"WFS-test-user-auth\"\r\n   449\t  ```\r\n...\n\nPath: .claude\\commands\\workflow\\tdd-plan.md\n...\n    72\t\r\n    73\t**Why Order Matters**:\r\n    74\t- Tests written after code pass immediately → proves nothing\r\n    75\t- Test-first forces edge case discovery before implementation\r\n    76\t- Tests-after verify what was built, not what's required\r\n    77\t\r\n    78\t## 6-Phase Execution (with Conflict Resolution)\r\n    79\t\r\n    80\t### Phase 1: Session Discovery\r\n    81\t\r\n    82\t**Step 1.1: Execute** - Session discovery and initialization\r\n    83\t\r\n    84\t```javascript\r\n    85\tSkill(skill=\"workflow:session:start\", args=\"--type tdd --auto \\\"TDD: [structured-description]\\\"\")\r\n    86\t```\r\n    87\t\r\n    88\t**TDD Structured Format**:\r\n    89\t```\r\n    90\tTDD: [Feature Name]\r\n    91\tGOAL: [Objective]\r\n    92\tSCOPE: [Included/excluded]\r\n    93\tCONTEXT: [Background]\r\n    94\tTEST_FOCUS: [Test scenarios]\r\n    95\t```\r\n    96\t\r\n    97\t**Parse**: Extract sessionId\r\n    98\t\r\n    99\t**TodoWrite**: Mark phase 1 completed, phase 2 in_progress\r\n...\n\nPath: .claude\\agents\\cli-planning-agent.md\n     1\t---\r\n     2\tname: cli-planning-agent\r\n     3\tdescription: |\r\n     4\t  Specialized agent for executing CLI analysis tools (Gemini/Qwen) and dynamically generating task JSON files based on analysis results. Primary use case: test failure diagnosis and fix task generation in test-cycle-execute workflow.\r\n     5\t\r\n     6\t  Examples:\r\n     7\t  - Context: Test failures detected (pass rate < 95%)\r\n     8\t    user: \"Analyze test failures and generate fix task for iteration 1\"\r\n     9\t    assistant: \"Executing Gemini CLI analysis → Parsing fix strategy → Generating IMPL-fix-1.json\"\r\n    10\t    commentary: Agent encapsulates CLI execution + result parsing + task generation\r\n...\n    59\t  \"cli_config\": {\r\n    60\t    \"tool\": \"gemini|qwen\",\r\n    61\t    \"model\": \"gemini-3-pro-preview-11-2025|qwen-coder-model\",\r\n    62\t    \"template\": \"01-diagnose-bug-root-cause.txt\",\r\n    63\t    \"timeout\": 2400000,  // 40 minutes for analysis\r\n    64\t    \"fallback\": \"qwen\"\r\n    65\t  },\r\n    66\t  \"task_config\": {\r\n    67\t    \"agent\": \"@test-fix-agent\",\r\n    68\t    \"type\": \"test-fix-iteration\",\r\n    69\t    \"max_iterations\": 5\r\n    70\t  }\r\n    71\t}\r\n    72\t```\r\n    73\t\r\n    74\t### Execution Flow (Three-Phase)\r\n    75\t\r\n    76\t```\r\n    77\tPhase 1: CLI Analysis Execution\r\n    78\t1. Validate context package and extract failure context\r\n    79\t2. Construct CLI command with appropriate template\r\n    80\t3. Execute Gemini/Qwen CLI tool with layer-specific guidance\r\n    81\t4. Handle errors and fallback to alternative tool if needed\r\n    82\t5. Save raw CLI output to .process/iteration-N-cli-output.txt\r\n...\n\nPath: ccw\\src\\tools\\session-manager.ts#chunk1of2\n...\n   142\t\r\n   143\t/**\r\n   144\t * Content type to file path routing\r\n   145\t * {base} is replaced with session base path\r\n   146\t * Dynamic params: {task_id}, {filename}, {dimension}, {iteration}\r\n   147\t */\r\n   148\tconst PATH_ROUTES: Record<ContentType, string> = {\r\n   149\t  // Standard WFS content types\r\n   150\t  session: '{base}/workflow-session.json',\r\n   151\t  plan: '{base}/IMPL_PLAN.md',\r\n   152\t  task: '{base}/.task/{task_id}.json',\r\n   153\t  summary: '{base}/.summaries/{task_id}-summary.md',\r\n   154\t  process: '{base}/.process/{filename}',\r\n   155\t  chat: '{base}/.chat/{filename}',\r\n   156\t  brainstorm: '{base}/.brainstorming/{filename}',\r\n   157\t  'review-dim': '{base}/.review/dimensions/{dimension}.json',\r\n   158\t  'review-iter': '{base}/.review/iterations/{iteration}.json',\r\n   159\t  'review-fix': '{base}/.review/fixes/{filename}',\r\n   160\t  todo: '{base}/TODO_LIST.md',\r\n   161\t  context: '{base}/context-package.json',\r\n...\n   389\t\r\n   390\t  // Create session metadata file if provided\r\n   391\t  let sessionMetadata = null;\r\n   392\t  if (metadata) {\r\n   393\t    const sessionFile = sessionLocation.startsWith('lite-')\r\n   394\t      ? join(sessionPath, 'session-metadata.json')  // Lite sessions\r\n   395\t      : join(sessionPath, 'workflow-session.json'); // WFS sessions\r\n   396\t\r\n   397\t    const sessionData = {\r\n   398\t      session_id,\r\n   399\t      type: metadata?.type || sessionLocation,  // Preserve user-specified type if provided\r\n   400\t      status: 'initialized',\r\n   401\t      created_at: new Date().toISOString(),\r\n   402\t      ...metadata,\r\n   403\t    };\r\n   404\t    writeJsonFile(sessionFile, sessionData);\r\n   405\t    sessionMetadata = sessionData;\r\n   406\t  }\r\n...\n   566\t\r\n   567\t  const filePath = resolvePath(session.path, content_type, path_params as Record<string, string>);\r\n   568\t  const isJson = filePath.endsWith('.json');\r\n   569\t\r\n   570\t  // Write content\r\n   571\t  if (isJson) {\r\n   572\t    writeJsonFile(filePath, content);\r\n   573\t  } else {\r\n   574\t    writeTextFile(filePath, typeof content === 'string' ? content : JSON.stringify(content, null, 2));\r\n   575\t  }\r\n   576\t\r\n   577\t  // Return written content for task/summary types\r\n   578\t  const returnContent =\r\n   579\t    content_type === 'task' || content_type === 'summary' ? content : undefined;\r\n   580\t\r\n   581\t  return {\r\n   582\t    operation: 'write',\r\n   583\t    session_id,\r\n   584\t    content_type,\r\n   585\t    written_content: returnContent,\r\n   586\t    path: filePath,\r\n   587\t    location: session.location,\r\n   588\t    message: `File written successfully`,\r\n   589\t  };\r\n   590\t}\r\n...\n\nPath: .claude\\agents\\test-action-planning-agent.md\n     1\t---\r\n     2\tname: test-action-planning-agent\r\n     3\tdescription: |\r\n     4\t  Specialized agent extending action-planning-agent for test planning documents. Generates test task JSONs (IMPL-001, IMPL-001.3, IMPL-001.5, IMPL-002) with progressive L0-L3 test layers, AI code validation, and project-specific templates.\r\n     5\t\r\n     6\t  Inherits from: @action-planning-agent\r\n     7\t  See: d:\\Claude_dms3\\.claude\\agents\\action-planning-agent.md for base JSON schema and execution flow\r\n...\n    23\t\r\n    24\t**Reference Documents**:\r\n    25\t- Base specifications: `d:\\Claude_dms3\\.claude\\agents\\action-planning-agent.md`\r\n    26\t- Test command: `d:\\Claude_dms3\\.claude\\commands\\workflow\\tools\\test-task-generate.md`\r\n    27\t\r\n    28\t---\r\n    29\t\r\n    30\t## Overview\r\n    31\t\r\n    32\t**Agent Role**: Specialized execution agent that transforms test requirements from TEST_ANALYSIS_RESULTS.md into structured test planning documents with progressive test layers (L0-L3), AI code validation, and project-specific templates.\r\n...\n   443\t  \"flow_control\": {\r\n   444\t    \"pre_analysis\": [],\r\n   445\t    \"implementation_approach\": [\r\n   446\t      {\r\n   447\t        \"phase\": \"L0.1 Compilation Check\",\r\n   448\t        \"validation\": \"tsc --noEmit tests/\"\r\n   449\t      },\r\n   450\t      {\r\n   451\t        \"phase\": \"L0.2 Import Validity\",\r\n   452\t        \"validation\": \"Check all imports against package.json and node_modules\"\r\n   453\t      },\r\n   454\t      {\r\n   455\t        \"phase\": \"L0.5 AI Issue Detection\",\r\n   456\t        \"validation\": \"Scan for all 7 AI issue categories with severity levels\"\r\n   457\t      }\r\n   458\t    ],\r\n   459\t    \"target_files\": [],\r\n   460\t    \"ai_issue_scan\": {\r\n   461\t      \"categories\": [\r\n   462\t        \"hallucinated_imports\",\r\n   463\t        \"placeholder_code\",\r\n   464\t        \"mock_leakage\",\r\n   465\t        \"type_abuse\",\r\n   466\t        \"naming_issues\",\r\n   467\t        \"control_flow\",\r\n   468\t        \"resource_leaks\",\r\n   469\t        \"security_issues\"\r\n   470\t      ],\r\n   471\t      \"severity_levels\": [\"CRITICAL\", \"ERROR\", \"WARNING\"],\r\n   472\t      \"auto_fix_enabled\": true,\r\n   473\t      \"max_retries\": 2,\r\n   474\t      \"thresholds\": {\r\n   475\t        \"critical\": 0,\r\n   476\t        \"error\": 3,\r\n   477\t        \"warning\": 10\r\n   478\t      }\r\n   479\t    }\r\n   480\t  }\r\n   481\t}\r\n   482\t```\r\n...\n\nPath: .claude\\commands\\ccw-plan.md\n...\n   128\t\r\n   129\t```\r\n   130\tPlanning Chain → Show Strategy → Ask User → User Decision:\r\n   131\t- ✓ Confirm → Continue to Phase 4\r\n   132\t- ⚙ Adjust → Change Mode (back to Phase 2)\r\n   133\t- ✗ Cancel → Abort\r\n   134\t```\r\n   135\t\r\n   136\t---\r\n   137\t\r\n   138\t### Phase 4: Setup TODO Tracking & Status File\r\n   139\t\r\n   140\t```\r\n   141\tPlanning Chain → Create Session Dir → Initialize Tracking → Tracking State\r\n   142\t```\r\n   143\t\r\n   144\t**Session Structure**:\r\n   145\t```\r\n   146\tSession ID: CCWP-{goal-slug}-{date}\r\n   147\tSession Dir: .workflow/.ccw-plan/{session_id}/\r\n   148\t\r\n   149\tTodoWrite:\r\n   150\t  CCWP:{mode}: [1/n] /command1  [in_progress]\r\n   151\t  CCWP:{mode}: [2/n] /command2  [pending]\r\n   152\t  ...\r\n   153\t\r\n   154\tstatus.json:\r\n   155\t  {\r\n   156\t    \"session_id\": \"CCWP-...\",\r\n   157\t    \"mode\": \"plan-verify\",\r\n   158\t    \"status\": \"running\",\r\n   159\t    \"command_chain\": [...],\r\n   160\t    \"quality_gate\": \"pending\"  // plan-verify mode only\r\n   161\t  }\r\n   162\t```\r\n...\n\n",
+      "type": "text"
+    }
+  ]
+}
+
+
+
+thinking
+**Clarifying documentation tasks**
+
+I noticed that the ACE output included snippets from command docs and a TypeScript snippet, but there's no specific path for that snippet; it seems to come from a file in ccw/src. I need to refine my search. My tasks include producing spec.json, references.json, outlines, and a gap report, as well as a fix plan. I should ensure to replace placeholders like TBD with actual details and make sure each pointer row contains verified paths and headings, including dual-source evidence for any pointer rows.
+thinking
+**Understanding evidence requirements**
+
+I need to provide dual-source evidence for any pointer row, even for planned items, which means I should cite relevant existing documents and TypeScript sources. It could be challenging for a new file since I can't reference a TS anchor that doesn't exist yet, but I can indicate where it should be integrated. I also can't label a pointer as existing unless it's verifiable in the repository, so I'll use `Test-Path` and `rg` commands for verification. Additionally, I'll gather command doc headings from relevant markdown files to support my evidence table.
+thinking
+**Finding TypeScript file anchor**
+
+I need to locate the TS file anchor, which might involve finding the command router or CLI command mapping related to slash commands. To do this efficiently, I’ll search within ccw/src for the "test-cycle-execute" string. Using the `mcp__ccw-tools__smart_search` function with that specific query should help me pinpoint the file and the relevant snippet. Let's go ahead and perform that search!
+tool ccw-tools.smart_search({"action":"search","query":"test-cycle-execute","path":"C:/Project/Claude-Code-Workflow","maxResults":20,"mode":"fuzzy"})
+2026-02-05T08:17:12.378922Z ERROR rmcp::transport::async_rw: Error reading from stream: serde error expected value at line 1 column 2
+ccw-tools.smart_search({"action":"search","query":"test-cycle-execute","path":"C:/Project/Claude-Code-Workflow","maxResults":20,"mode":"fuzzy"}) failed in 3.03s:
+
+thinking
+It seems there’s been a tool crash, possibly due to a server issue. I plan to retry it once more, and if it doesn’t work, I’ll consider using a shell command with `rg`. However, I recall that the instructions advise avoiding the shell when MCP tools are available. Still, since the tool is failing, I’ll have to make an exception and use the shell if necessary. Let's see if the retry works first!
+tool ccw-tools.smart_search({"action":"search","query":"test-cycle-execute","path":"C:/Project/Claude-Code-Workflow","maxResults":20,"mode":"fuzzy"})
+ccw-tools.smart_search({"action":"search","query":"test-cycle-execute","path":"C:/Project/Claude-Code-Workflow","maxResults":20,"mode":"fuzzy"}) failed in 0ms:
+
+thinking
+**Using alternative search method**
+
+The Smart_search tool isn’t working right now, so I’m thinking it’s best to use the shell command with `rg`, which is ripgrep. That should do the job since I can use it directly and it’s quite efficient. I want to make sure I’m still getting accurate results even without the original tool. I'm feeling confident about this backup option! It’s always great to have alternatives.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "test-cycle-execute" -S ccw/src .claude/commands | Select-Object -First 50' in C:\Project\Claude-Code-Workflow succeeded in 346ms:
+.claude/commands\workflow\tools\test-task-generate.md:15:This command produces **test planning artifacts only** - it does NOT execute tests or implement code. Actual test execution requires separate execution command (e.g., /workflow:test-cycle-execute).
+.claude/commands\workflow\tools\test-task-generate.md:382:- **Followed By**: `/workflow:test-cycle-execute` or `/workflow:execute` (user-triggered)
+.claude/commands\workflow\tools\test-task-generate.md:415:- `/workflow:test-cycle-execute` - Execute generated test tasks
+.claude/commands\workflow\tools\code-validation-gate.md:391:- `/workflow:test-cycle-execute` - Execute tests after validation passes
+.claude/commands\flow-create.md:90:        { label: "Testing", description: "test-fix-gen, test-cycle-execute, test-gen, tdd-verify" },
+.claude/commands\flow-create.md:126:      { label: "/workflow:test-cycle-execute", description: "Execute iterative test-fix cycle (>=95% pass)" },
+.claude/commands\flow-create.md:192:        { label: "test-validation", description: "【test-fix-gen → test-cycle-execute】" },
+.claude/commands\flow-create.md:310:    { "cmd": "/workflow:test-cycle-execute", "unit": "test-validation", "execution": { "type": "slash-command", "mode": "async" }, "contextHint": "Execute test-fix cycle until pass rate >= 95%" }
+.claude/commands\flow-create.md:328:    { "cmd": "/workflow:test-cycle-execute", "unit": "test-validation", "execution": { "type": "slash-command", "mode": "async" }, "contextHint": "Execute test-fix cycle" }
+.claude/commands\flow-create.md:343:    { "cmd": "/workflow:test-cycle-execute", "unit": "test-validation", "execution": { "type": "slash-command", "mode": "async" }, "contextHint": "Verify fix with tests" }
+.claude/commands\flow-create.md:384:    { "cmd": "/workflow:test-cycle-execute", "unit": "test-validation", "execution": { "type": "slash-command", "mode": "async" }, "contextHint": "Verify fixes pass tests" }
+.claude/commands\flow-create.md:397:    { "cmd": "/workflow:test-cycle-execute", "unit": "test-validation", "execution": { "type": "slash-command", "mode": "async" }, "contextHint": "Execute test-fix cycle" }
+.claude/commands\flow-create.md:494:    { "cmd": "/workflow:test-cycle-execute", "unit": "test-validation", "execution": { "type": "slash-command", "mode": "async" }, "contextHint": "Execute test cycle" }
+.claude/commands\flow-create.md:509:    { "cmd": "/workflow:test-cycle-execute", "unit": "test-validation", "execution": { "type": "slash-command", "mode": "async" }, "contextHint": "Execute test cycle" }
+.claude/commands\flow-create.md:546:| test-cycle-execute | test-tasks | test-passed | test-validation |
+.claude/commands\flow-create.md:582:| **test-validation** | test-fix-gen → test-cycle-execute | Test generation and fix cycle |
+.claude/commands\workflow\test-fix-gen.md:95:   └─ Summary with next steps → /workflow:test-cycle-execute
+.claude/commands\workflow\test-fix-gen.md:293:  /workflow:test-cycle-execute --session [testSessionId]
+.claude/commands\workflow\test-fix-gen.md:322:Next: /workflow:test-cycle-execute
+.claude/commands\workflow\test-fix-gen.md:438:- Return summary with next step: `/workflow:test-cycle-execute`
+
+thinking
+**Searching for file paths**
+
+I didn’t find anything in rg for `ccw/src`, so it looks like the TS might not mention any command string. That could mean it’s just for documentation. However, I need to cite the TS related to session management and file operations in the workflow. The command probably relates to `ccw/src/tools/workflow-session` or uses mcp tools. I should also look for "File written successfully" or "resolvePath(session.path)" to find the relevant file path. Let's proceed with rg!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "File written successfully" ccw/src | Select-Object -First 20' in C:\Project\Claude-Code-Workflow succeeded in 347ms:
+ccw/src\tools\session-manager.ts:588:    message: `File written successfully`,
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "resolvePath'"\\(session\\.path\" ccw/src/tools/session-manager.ts" in C:\Project\Claude-Code-Workflow succeeded in 318ms:
+517:  const filePath = resolvePath(session.path, content_type, path_params as Record<string, string>);
+567:  const filePath = resolvePath(session.path, content_type, path_params as Record<string, string>);
+614:  const filePath = resolvePath(session.path, content_type, path_params as Record<string, string>);
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .claude/commands/workflow/test-cycle-execute.md' in C:\Project\Claude-Code-Workflow succeeded in 317ms:
+---
+name: test-cycle-execute
+description: Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.
+argument-hint: "[--resume-session=\"session-id\"] [--max-iterations=N]"
+allowed-tools: Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)
+---
+
+# Workflow Test-Cycle-Execute Command
+
+## Quick Start
+
+```bash
+# Execute test-fix workflow (auto-discovers active session)
+/workflow:test-cycle-execute
+
+# Resume interrupted session
+/workflow:test-cycle-execute --resume-session="WFS-test-user-auth"
+
+# Custom iteration limit (default: 10)
+/workflow:test-cycle-execute --max-iterations=15
+
+thinking
+**Extracting document details**
+
+I see that the file is long, but I only need the minimal specs. I can extract key artifacts like `.process/iteration-N-analysis.md`, `test-results.json`, and others. There’s also a mention of a session ID that might be something like `WFS-test-...`. I will look for the path in the document under `.workflow/.sessions/{id}/`. To navigate this, I'll search for the "Session File Structure" section and capture details around that heading.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "Session File Structure" .claude/commands/workflow/test-cycle-execute.md' in C:\Project\Claude-Code-Workflow succeeded in 320ms:
+160:### Session File Structure
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$lines = Get-Content .claude/commands/workflow/test-cycle-execute.md; $start=150; $end=230; $lines[$start..$end] -join "`n"' in C:\Project\Claude-Code-Workflow succeeded in 320ms:
+**Timeout**: 40min (2400000ms)
+
+**Tool Details**:
+1. **Gemini** (primary): `gemini-2.5-pro`
+2. **Qwen** (fallback): `coder-model`
+3. **Codex** (fallback): `gpt-5.1-codex`
+
+**When to Fallback**: HTTP 429, timeout, analysis quality degraded
+
+### Session File Structure
+
+```
+.workflow/active/WFS-test-{session}/
+├── workflow-session.json           # Session metadata
+├── IMPL_PLAN.md, TODO_LIST.md
+├── .task/
+│   ├── IMPL-{001,002}.json         # Initial tasks
+│   └── IMPL-fix-{N}.json           # Generated fix tasks
+├── .process/
+│   ├── iteration-state.json        # Current iteration + strategy + stuck tests
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "resume-session" .claude/commands/workflow -S | Select-Object -First 20' in C:\Project\Claude-Code-Workflow succeeded in 337ms:
+.claude/commands/workflow\plan-verify.md:325:Execute: \`/workflow:execute --resume-session="${session_id}"\`
+.claude/commands/workflow\plan-verify.md:342:    Skill(skill="workflow:execute", args="--yes --resume-session=\"${session_id}\"")
+.claude/commands/workflow\plan-verify.md:373:  Skill(skill="workflow:execute", args="--resume-session=\"${session_id}\"")
+.claude/commands/workflow\execute.md:4:argument-hint: "[-y|--yes] [--resume-session=\"session-id\"] [--with-commit]"
+.claude/commands/workflow\execute.md:12:**Resume Mode**: When called with `--resume-session` flag, skips discovery phase and directly enters TodoWrite generation and agent execution for the specified session.
+.claude/commands/workflow\execute.md:19:/workflow:execute --resume-session="WFS-auth"
+.claude/commands/workflow\execute.md:24:/workflow:execute -y --resume-session="WFS-auth"
+.claude/commands/workflow\execute.md:29:/workflow:execute -y --with-commit --resume-session="WFS-auth"
+.claude/commands/workflow\execute.md:123:Resume Mode (--resume-session):
+.claude/commands/workflow\execute.md:214:**Resume Mode**: This entire phase is skipped when `--resume-session="session-id"` flag is provided.
+.claude/commands/workflow\execute.md:228:**Resume Mode**: This phase is skipped when `--resume-session` flag is provided. Resume mode entry point is Phase 3.
+.claude/commands/workflow\test-cycle-execute.md:4:argument-hint: "[--resume-session=\"session-id\"] [--max-iterations=N]"
+.claude/commands/workflow\test-cycle-execute.md:17:/workflow:test-cycle-execute --resume-session="WFS-test-user-auth"
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "resume-session" ccw/src -S | Select-Object -First 50' in C:\Project\Claude-Code-Workflow succeeded in 368ms:
+ccw/src\tools\command-registry.test.ts:43:argument-hint: "--resume-session=\"WFS-xxx\""
+
+thinking
+**Searching for command evidence**
+
+I’m checking the test file for “argument-hint.” It looks like slash commands might only be in the documentation rather than actually implemented in TypeScript, but I need concrete evidence. The requirements talk about needing TypeScript sources, so I should search the `ccw/src/tools/command-registry.ts` file for command definitions. Let's see what I can find there! It's important to ensure I gather accurate information.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "command-registry" ccw/src/tools -S' in C:\Project\Claude-Code-Workflow succeeded in 319ms:
+ccw/src/tools\command-registry.test.ts:14:import { CommandRegistry, createCommandRegistry, getAllCommandsSync, getCommandSync } from './command-registry';
+ccw/src/tools\index.ts:385:export { CommandRegistry, createCommandRegistry, getAllCommandsSync, getCommandSync } from './command-registry.js';
+ccw/src/tools\index.ts:386:export type { CommandMetadata, CommandSummary } from './command-registry.js';
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Test-Path ccw/src/tools/command-registry.ts; if (Test-Path ccw/src/tools/command-registry.ts) { rg -n "resume-session" ccw/src/tools/command-registry.ts -S }' in C:\Project\Claude-Code-Workflow exited 1 in 342ms:
+True
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw ccw/src/tools/command-registry.ts' in C:\Project\Claude-Code-Workflow succeeded in 308ms:
+/**
+ * Command Registry Tool
+ *
+ * Features:
+ * 1. Scan and parse YAML headers from command files
+ * 2. Read from global ~/.claude/commands/workflow directory
+ * 3. Support on-demand extraction (not full scan)
+ * 4. Cache parsed metadata for performance
+ */
+
+import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
+
+export interface CommandMetadata {
+  name: string;
+  command: string;
+  description: string;
+  argumentHint: string;
+  allowedTools: string[];
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "'"\\.workflow/active\" ccw/src -S | Select-Object -First 50" in C:\Project\Claude-Code-Workflow succeeded in 341ms:
+ccw/src\tools\session-manager.ts:23:const ACTIVE_BASE = '.workflow/active';
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "'"\\.task\" ccw/src/tools/session-manager.ts ccw/src -S | Select-Object -First 50" in C:\Project\Claude-Code-Workflow succeeded in 348ms:
+ccw/src/tools/session-manager.ts:152:  task: '{base}/.task/{task_id}.json',
+ccw/src/tools/session-manager.ts:384:    ensureDir(join(sessionPath, '.task'));
+ccw/src/tools/session-manager.ts:387:    directoriesCreated = ['.task', '.summaries', '.process'];
+ccw/src/tools/session-manager.ts:701:    const taskDir = join(session.path, '.task');
+ccw/src/tools/session-manager.ts:859:  const taskDir = join(session.path, '.task');
+ccw/src\templates\dashboard.html:202:    .task-detail-drawer {
+ccw/src\templates\dashboard.html:206:    .task-detail-drawer.open { transform: translateX(0); }
+ccw/src\templates\dashboard.html:795:        <h3 class="text-lg font-semibold text-foreground" id="drawerTaskTitle" data-i18n="tab.tasks">Task Details</h3>
+ccw/src\templates\workflow-dashboard.html:105:        .task-checkbox.completed::after { content: '✓'; }
+ccw/src\templates\workflow-dashboard.html:106:        .task-checkbox.in_progress::after { content: '⟳'; }
+ccw/src\templates\workflow-dashboard.html:221:                stats.totalTasks += session.tasks.length;
+ccw/src\templates\workflow-dashboard.html:222:                stats.completedTasks += session.tasks.filter(t => t.status === 'completed').length;
+ccw/src\templates\workflow-dashboard.html:226:                stats.totalTasks += session.taskCount || 0;
+ccw/src\templates\workflow-dashboard.html:227:                stats.completedTasks += session.taskCount || 0;
+ccw/src\templates\workflow-dashboard.html:243:                ? session.tasks.filter(t => t.status === 'completed').length
+ccw/src\templates\workflow-dashboard.html:244:                : (session.taskCount || 0);
+ccw/src\templates\workflow-dashboard.html:245:            const totalTasks = isActive ? session.tasks.length : (session.taskCount || 0);
+ccw/src\templates\workflow-dashboard.html:249:            if (isActive && session.tasks.length > 0) {
+ccw/src\templates\workflow-dashboard.html:252:                        ${session.tasks.map(task => {
+ccw/src\templates\workflow-dashboard.html:267:                                    <span class="text-xs font-mono text-muted-foreground">${task.task_id || ''}</span>
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/verify-evidence.js' in C:\Project\Claude-Code-Workflow succeeded in 312ms:
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+export function usage() {
+  console.log(
+    [
+      'Usage:',
+      '  node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<path.md> [--file=<path2.md> ...]',
+      '',
+      'Behavior:',
+      '  - Extracts evidence tables from markdown (gap-report and/or outline)',
+      '  - Enforces evidence-based gates:',
+      '    - Each row must label Status as Existing or Planned',
+      '    - Evidence must include BOTH docs and ts anchors:',
+      '      - docs: .claude/commands/**.md / <section heading>',
+      '      - ts: ccw/src/** / <function|case|pattern>',
+      '    - Existing rows must point to verifiable pointers (paths must exist when pointer looks like a path)',
+      '',
+      'Notes:',
+
+thinking
+**Finding evidence tables**
+
+I need to gather evidence tables with specific columns like "Pointer," "Status," "Evidence," and "Verify." I think I might find these tables by looking at the headers. It’s also important to locate the definition of the findEvidenceTables function, which was earlier truncated. I should check that out. I’ll look for the table find function within the script file and utilize rg to get the line numbers.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "function findEvidenceTables" .codex/skills/slash-command-outliner/scripts/verify-evidence.js' in C:\Project\Claude-Code-Workflow succeeded in 319ms:
+166:export function findEvidenceTables(lines) {
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$lines=Get-Content .codex/skills/slash-command-outliner/scripts/verify-evidence.js; $lines[150..250] -join "`n"' in C:\Project\Claude-Code-Workflow succeeded in 318ms:
+  const parts = raw.split('|');
+  // Support both forms:
+  // - with trailing pipe: "| a | b |"
+  // - without trailing pipe: "| a | b"
+  const sliceEnd = raw.endsWith('|') ? -1 : undefined;
+  const cells = parts
+    .slice(1, sliceEnd)
+    .map((c) => String(c).trim());
+  return cells;
+}
+
+export function isSeparatorRow(cells) {
+  return cells.every((c) => /^:?-{3,}:?$/.test(c));
+}
+
+export function findEvidenceTables(lines) {
+  const tables = [];
+  for (let i = 0; i < lines.length; i++) {
+    const cells = splitTableRow(lines[i]);
+    if (!cells) continue;
+
+
+
+
+
+thinking
+**Clarifying parser requirements**
+
+I need to ensure that the evidence cell includes both the `docs:` and `ts:` parts, separated by a semicolon or newline. The parser is designed to split on these characters. For the command document evidence, the heading in the `docs:` part has to be from the actual heading in the document file, like "Quick Start." It’s crucial to use the precise heading text without the ## symbol. I also need to provide exact substrings for the `ts:` anchor.
+thinking
+**Reviewing path validations**
+
+I need to ensure that we're using valid file paths, especially with commands like `ensureDir(join(sessionPath, '.task'));`. The script must check if a file exists. For pointer paths, if they look like paths or end with .md or start with .workflow, then checking if the path exists is crucial. 
+
+For pointers that are templated, they should be marked as "Planned" since they won’t exist. However, there shouldn't be placeholders like `{{` or `TBD`. The evidence script only validates pointers for "Existing" status, which is good to note. It’s also important that the docs evidence files are correctly placed under `.claude/commands/**.md` and not `.claude/agents/...`.
+thinking
+**Establishing documentation requirements**
+
+I need to ensure that the evidence referencing for agents can't be done, and we must use command documentation for evidence rows always under `.claude/commands/...`. I'll look at using the test-cycle-execute documentation or other related command docs like test-fix-gen. 
+
+For pointers about agents, we can reference headings within the command docs, including the Agent Roles section. The generated slash outline must have an evidence table, along with the gap report. Each evidence table should include the pointer, status, evidence, and verify columns, without any placeholders like "TBD." I’ll make sure to fill in all required fields while keeping it minimal yet covering the key pointers as needed. I’ll also follow the relevant templates for the different outlines.
+thinking
+**Detailing implementation phases**
+
+I need to be careful not to use "TBD" in the evidence rows, as the user prefers avoiding any placeholders there. The requirement states that I shouldn't label a pointer as "Existing" unless it's verifiable in the repository, so I’ll keep that in mind. 
+
+For our implementation, we’re breaking it down into phases: 
+
+1) Create a minimal `spec.json`.
+2) Compile a `references.json` with top candidates and selected items.
+3) Generate outlines using templates, but filled in.
+4) Prepare a gap report and a fix plan, comparing the outlines to existing references. 
+
+I realize that while the outlines should align with existing documentation, I need to focus on creating a skeleton that's essential without copying content verbatim.
+thinking
+**Formulating the gap report and fix plan**
+
+In the gap report, I'll compare the generated outlines against the reference commands and tooling to propose necessary fixes. Since the command exists, the focus will be on ensuring our outline aligns with sessions and iteration states. I should aim to keep this report concise, noting no critical gaps except ensuring the evidence table has specific pointers. 
+
+We can use the requirement document for headings and the oracle document for additional context. The fix-plan.md will be separate from the gap report, listing minimal fixes. I have to ensure our outputs, like spec.json and references.json, are stored in the specified output directory. For writing these files, I’ll prefer using the apply_patch tool for consistency, while also ensuring the required directories are created beforehand. Lastly, I'll gather relevant headings and ensure I confirm specific strings from the code for pointers.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$lines = Get-Content ccw/src/tools/session-manager.ts; $lines[1..80] -join "`n"' in C:\Project\Claude-Code-Workflow succeeded in 322ms:
+ * Session Manager Tool - Workflow session lifecycle management
+ * Operations: init, list, read, write, update, archive, mkdir, delete, stats
+ * Content routing via content_type + path_params
+ */
+
+import { z } from 'zod';
+import type { ToolSchema, ToolResult } from '../types/tool.js';
+import {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  readdirSync,
+  mkdirSync,
+  renameSync,
+  rmSync,
+  statSync,
+} from 'fs';
+import { resolve, join, dirname } from 'path';
+
+// Base paths for session storage
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$lines=Get-Content ccw/src/tools/session-manager.ts; $lines[120..175] -join "`n"' in C:\Project\Claude-Code-Workflow succeeded in 317ms:
+  if (!SESSION_ID_PATTERN.test(sessionId)) {
+    throw new Error(
+      `Invalid session_id format: "${sessionId}". Only alphanumeric, hyphen, and underscore allowed.`
+    );
+  }
+  if (sessionId.length > 100) {
+    throw new Error('session_id must be 100 characters or less');
+  }
+}
+
+/**
+ * Validate path params to prevent path traversal
+ */
+function validatePathParams(pathParams: Record<string, unknown>): void {
+  for (const [key, value] of Object.entries(pathParams)) {
+    if (typeof value !== 'string') continue;
+    if (value.includes('..') || value.includes('/') || value.includes('\\')) {
+      throw new Error(`Invalid path_params.${key}: path traversal characters not allowed`);
+    }
+  }
+
+thinking
+**Exploring command execution**
+
+I'm thinking about using `rg` for "execute" under ccw/src/commands. It sounds like a sensible approach, but I first need to check the directory. Listing the directory could give me a better understanding of the options available and help ensure I’m on the right track. It's essential to have clarity before proceeding, so I'll dive into that first step! Hopefully, this will align my command execution with what I need.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem -Force ccw/src/commands | Select-Object Name' in C:\Project\Claude-Code-Workflow succeeded in 328ms:
+
+[32;1mName[0m
+[32;1m----[0m
+cli.ts
+core-memory.ts
+hook.ts
+install.ts
+issue.ts
+list.ts
+loop.ts
+memory.ts
+serve.ts
+session-path-resolver.ts
+session.ts
+stop.ts
+tool.ts
+uninstall.ts
+upgrade.ts
+view.ts
+workflow.ts
+
+thinking
+**Evaluating workflow patterns**
+
+I need to take a closer look at `workflow.ts` to find any relevant patterns. I'm thinking about searching for `test-cycle`, but it might not yield anything useful. However, I definitely want to check out session management and task running. I’m curious about how these elements interact and what insights I can gather from them! Let's dive in and see what we can uncover from this file.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "test" ccw/src/commands/workflow.ts | Select-Object -First 50' in C:\Project\Claude-Code-Workflow exited 1 in 338ms:
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw ccw/src/commands/workflow.ts' in C:\Project\Claude-Code-Workflow succeeded in 319ms:
+import { existsSync, mkdirSync, readdirSync, statSync, copyFileSync, readFileSync, writeFileSync } from 'fs';
+import { join, basename, dirname } from 'path';
+import { homedir } from 'os';
+import inquirer from 'inquirer';
+import chalk from 'chalk';
+import { showHeader, createSpinner, info, warning, error, summaryBox, divider } from '../utils/ui.js';
+import { getPackageRoot as findPackageRoot, getPackageVersion } from '../utils/project-root.js';
+
+// Workflow source directories (relative to package root)
+const WORKFLOW_SOURCES = [
+  { name: '.claude/workflows', description: 'Claude workflows' },
+  { name: '.claude/scripts', description: 'Claude scripts' },
+  { name: '.claude/templates', description: 'Claude templates' },
+  { name: '.codex/prompts', description: 'Codex prompts' },
+  { name: '.gemini', description: 'Gemini configuration' },
+  { name: '.qwen', description: 'Qwen configuration' }
+];
+
+interface WorkflowOptions {
+  force?: boolean;
+
+thinking
+**Exploring CLI tool functionality**
+
+I’m realizing that this is a CLI tool meant for installing workflows, not for executing slash commands. The evidence script looks for TS evidence in the ccw/src directory, so I should focus on using the command-registry and session-manager primarily. I wonder if there’s a tool available for running shell commands. I should search for the implementation of a “Bash tool” and I’ve spotted `bash.ts` in the ccw/src/tools directory that could be useful.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-ChildItem -Force ccw/src/tools | Sort-Object Name | Select-Object -First 50 Name' in C:\Project\Claude-Code-Workflow succeeded in 334ms:
+
+[32;1mName[0m
+[32;1m----[0m
+__tests__
+.gitignore
+ask-question.ts
+classify-folders.ts
+claude-cli-tools.ts
+cli-config-manager.ts
+cli-executor-core.ts
+cli-executor-state.ts
+cli-executor-utils.ts
+cli-executor.ts
+cli-history-store.ts
+cli-output-converter.ts
+cli-prompt-builder.ts
+codex-lens-lsp.ts
+codex-lens.ts
+command-registry.test.ts
+command-registry.ts
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+rg -n "Gemini" ccw/src/tools -S | Select-Object -First 50' in C:\Project\Claude-Code-Workflow succeeded in 343ms:
+ccw/src/tools\cli-executor-utils.ts:391:  // - Gemini: -o stream-json
+ccw/src/tools\cli-executor-core.ts:3: * Supports Gemini, Qwen, and Codex with streaming output
+ccw/src/tools\cli-output-converter.ts:23:  | 'tool_call'      // Tool invocation/result (Gemini tool_use/tool_result)
+ccw/src/tools\cli-output-converter.ts:118:      /^Loaded cached credentials\.?$/i,        // Gemini auth message
+ccw/src/tools\cli-output-converter.ts:266:   * - Gemini CLI: stream-json format (init, message, result)
+ccw/src/tools\cli-output-converter.ts:277:    // ========== Gemini CLI stream-json format ==========
+ccw/src/tools\cli-output-converter.ts:295:      // Gemini assistant/user message
+ccw/src/tools\cli-output-converter.ts:323:    // Gemini tool_use: {"type":"tool_use","timestamp":"...","tool_name":"...","tool_id":"...","parameters":{...}}
+ccw/src/tools\cli-output-converter.ts:339:    // Gemini tool_result: {"type":"tool_result","timestamp":"...","tool_id":"...","status":"...","output":"..."}
+ccw/src/tools\cli-output-converter.ts:685:    // Check for Gemini/Qwen message format (role-based)
+ccw/src/tools\cli-output-converter.ts:688:        type: 'agent_message',  // Use dedicated type for Gemini/Qwen assistant response
+ccw/src/tools\cli-output-converter.ts:1140:  // Gemini delta messages are incremental (each contains partial content to append)
+ccw/src/tools\cli-history-store.ts:84:  project_hash?: string;       // Project hash (Gemini/Qwen)
+ccw/src/tools\native-session-discovery.ts:3: * Supports Gemini, Qwen, and Codex session formats
+ccw/src/tools\native-session-discovery.ts:17:  projectHash?: string;        // Project directory hash (Gemini/Qwen)
+ccw/src/tools\native-session-discovery.ts:29: * Calculate project hash (same algorithm as Gemini/Qwen)
+ccw/src/tools\native-session-discovery.ts:30: * Note: Gemini/Qwen use the absolute path AS-IS without normalization
+ccw/src/tools\native-session-discovery.ts:179: * Gemini Session Discoverer
+ccw/src/tools\native-session-discovery.ts:182:class GeminiSessionDiscoverer extends SessionDiscoverer {
+ccw/src/tools\native-session-discovery.ts:253:   * Extract first user message from Gemini session file
+
+thinking
+**Finding TS modules**
+
+I’m looking into TypeScript modules for CLI executors that support Gemini, Qwen, and Codex, which sounds great! I plan to utilize the TS evidence anchors found in `ccw/src/tools/cli-executor-core.ts`. Next, I’ll open it up to locate a stable literal string. It seems like a straightforward task, but I want to ensure everything is properly aligned for smooth functionality! I'm curious about how it will all come together.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+Get-Content -Raw ccw/src/tools/cli-executor-core.ts | Select-Object -First 200' in C:\Project\Claude-Code-Workflow succeeded in 328ms:
+/**
+ * CLI Executor Tool - Unified execution for external CLI tools
+ * Supports Gemini, Qwen, and Codex with streaming output
+ */
+
+import { z } from 'zod';
+import type { ToolSchema, ToolResult } from '../types/tool.js';
+import { spawn, ChildProcess } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import { validatePath, resolvePath } from '../utils/path-resolver.js';
+import { escapeWindowsArg } from '../utils/shell-escape.js';
+import { buildCommand, checkToolAvailability, clearToolCache, debugLog, errorLog, type NativeResumeConfig, type ToolAvailability } from './cli-executor-utils.js';
+import type { ConversationRecord, ConversationTurn, ExecutionOutput, ExecutionRecord } from './cli-executor-state.js';
+import {
+  createOutputParser,
+  type CliOutputUnit,
+  type IOutputParser,
+  flattenOutputUnits
+
+
+
+
+
+thinking
+**Evaluating commit strategy**
+
+The requirement document doesn’t specify everything, but it seems the Oracle documentation's commit strategy uses `git add .`, which might clash with our repo guidelines. We could propose either removing or adding an opt-in flag. That sounds like a P0 risk, though it's not part of the quality gates. The general command guidelines mention avoiding `git add .`, so I’ll note in the gap report that it conflicts with our git operations rule. We should suggest using `git add <specific-files>` instead.
+thinking
+**Creating command documentation**
+
+I’m thinking about providing a pointer to `.claude/commands/workflow/tools/test-task-generate.md` and maybe the TypeScript anchor in the session manager. I need to keep the outlines concise and at a skeleton level, avoiding long documents. So, I’ll create `generated-slash-outline.md` similar to a command doc skeleton. 
+
+It'll have sections for Overview, Usage, Inputs, Outputs/Artifacts, Implementation Pointers, Execution Process, Error Handling, and Examples. I'll also add a frontmatter with details like name and description. The implementation pointers will reference the command doc and relevant code locations. Let’s keep it clear and organized!
+thinking
+**Defining input arguments**
+
+I need to mention the input arguments: `--resume-session` and `--max-iterations`. In the template, I’ll specify the required inputs, like "Active workflow session with test tasks (e.g., WFS-test-*)" or "auto-discovery from .workflow/active/". The optional inputs will include `resume-session` and `max-iterations`. 
+
+For the artifact references, I’ll include `.workflow/active/<session>/...`. 
+
+Regarding the gap report, it should list gaps P0 through P2 against the existing command doc. It seems our outline matches, but I’ll look for discrepancies related to quality gates and evidence!
+thinking
+**Clarifying TS references**
+
+I need to refer to TypeScript to confirm that both the session manager and CLI executor exist, which I'll include as hints. I should also mention the orchestrator boundary, noting that the orchestrator is indicated in the slash command documentation but isn't yet implemented in TypeScript. If we plan to implement the orchestrator in the CCW server, that's still unknown. 
+
+The requirement specifies dynamic task generation and iterative fix cycles, but it appears no TypeScript changes are necessary. In the gap report, I can point out that there is no TypeScript handler for `/workflow:test-cycle-execute`, as the registry only scans documents.
+thinking
+**Addressing command documentation and references**
+
+I see we’ll treat this as a document-only slash command that orchestrates by using the Task tool to call agents, which means TypeScript isn’t required aside from the session-manager and CLI executor. In the gap report, I should note that we need to ensure the documentation references the session-manager content types. Also, there’s a potential mismatch regarding file paths in the documentation versus the session-manager. 
+
+I’ll propose a fix to map artifact filenames to session-manager content types and confirm with RG without adding new content. The evidence table must reference key pointers in the outlines. For candidates, I’ll include the top five command documentation files and clarify base paths using a shell command.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$outDir = ".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs"; New-Item -ItemType Directory -Force -Path $outDir | Out-Null; Write-Output $outDir' in C:\Project\Claude-Code-Workflow succeeded in 331ms:
+.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+$base = ".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs";
+@("spec.json","references.json","generated-slash-outline.md","generated-agent-outline.md","gap-report.md","fix-plan.md") | ForEach-Object { $_ + ":" + (Test-Path (Join-Path $base $_)) }' in C:\Project\Claude-Code-Workflow succeeded in 346ms:
+spec.json:False
+references.json:False
+generated-slash-outline.md:False
+generated-agent-outline.md:False
+gap-report.md:False
+fix-plan.md:False
+
+
+
+
+
+
+
+thinking
+**Crafting a JSON spec**
+
+I’m focusing on creating a new JSON spec for a command. I need to include files using ASCII only and avoid characters like checkmarks or arrows since the documentation has those, but they aren’t necessary for my needs.
+
+I’ll make sure to use `>=` and maintain proper newline endings. As I work through the structure, I’ll take care to keep it minimal while making sure it aligns with the template variables.
+thinking
+**Defining generator specifications**
+
+I’ll include a title for our generator, which should work out fine. 
+
+My intent here is to focus on executing an interaction loop to provide primary user value. The artifacts will read and write to arrays. I’m considering a max of 10 rounds with an unclear time budget.
+
+I need to note constraints, including not marking pointers as existing unless verified and avoiding destructive operations unless explicitly requested.  
+
+In references.json, I’ll list candidates with numeric scores from 0-100. The generated outline will include necessary front matter and follow the allowed tools listed: Skill, TodoWrite, Read, Bash, and Task.
+thinking
+**Validating documentation and evidence**
+
+Even though the script will validate docs and TypeScript evidence, I need to remember that a pointer may look like a path but doesn't guarantee existence. I want to avoid using placeholders.
+
+I'll outline specific rows to check: 
+
+1) The file `.claude/commands/workflow/test-cycle-execute.md` is marked as existing, supported by evidence in the same file heading and the TypeScript file path noted. I’ll verify it with a test command. 
+   
+2) For `ccw/src/tools/command-registry.ts`, it's existing too, with matching documentation. I'll check using exact strings to ensure accuracy and ensure no trailing spaces. The presence of `|` in the TypeScript code might cause issues in the markdown table.
+thinking
+**Choosing documentation anchors**
+
+I realized that if we include a `|` in any table cell, it will split columns and break the table. So, I must avoid using `|`. Many TypeScript types, like `| null`, could cause problems too. 
+
+Instead, I’ll choose anchors without pipe characters. Maybe `public getCommand(commandName: string): CommandMetadata` won't work since it includes `|`, but `const relativePath = join('.claude', 'commands', 'workflow');` is cleaner without any pipes. I'll also use `export class CommandRegistry {` as another anchor. 
+
+For the documentation reference, I’ll stick with `.claude/commands/workflow/test-cycle-execute.md` and check for the existing heading `Reference`. I’ll verify this with a test command.
+thinking
+**Verifying evidence and outlining gaps**
+
+I'm evaluating several files and their evidence for existing documentation and TypeScript references. For `ccw/src/tools/session-manager.ts`, I'll check if it references `.claude/commands/workflow/test-cycle-execute.md` under the heading `Session File Structure`. 
+
+I also need to ensure that references don’t contain any pipe characters, as they could break the Markdown table format. Additionally, I want to include necessary evidence and address gaps in the documentation, such as ensuring safety in git operations and matching flags with session discovery.
+
+My gap report should compare our outline with existing documentation and outline any missing sections, which might be crucial for alignment with required headings. This could lead me to add important elements while keeping everything manageable and consistent with templates.
+thinking
+**Organizing document structure**
+
+I'm thinking about how to incorporate additional headings into the outline while maintaining the structure from the template. I want to ensure that elements align with the requirement document without adding too much length. 
+
+After the Quick Overview and Usage, I plan to add sections like "What & Why," "How It Works," and others as bullet placeholders, but they'll also align with the required document headings. My goal is certainly to keep it concise and clear.
+
+A new section titled "Oracle Heading Checklist" will include these required headings, ensuring that the details of the outline match expectations and facilitate future documentation tasks. I’ll also address gaps, like safe git operations and verifying evidence table pointers, to ensure compliance with overall guidelines.
+thinking
+**Creating a gap report**
+
+I'm planning to include an Implementation hints section in the gap report. This will cover content types from the session manager, highlight CLI executor support for various tools like Gemini, Qwen, and Codex, and touch on scanning command docs with the command registry.
+
+To keep it concise, I’ll make a minimal bullet list with appropriate scope tags, mainly focusing on documentation fixes for now. After drafting the outputs, I'll run the verify-evidence script on the relevant files. I think creating all six files in one patch using apply_patch is a good approach since it supports multiple hunks. I'll also make sure to add separate sections for adding files.
+file update
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md
+# Gap Report: workflow:test-cycle-execute
+
+## Reference
+
+- Selected reference: /workflow:test-cycle-execute (`.claude/commands/workflow/test-cycle-execute.md`)
+
+## P0 Gaps (Must Fix)
+
+- Git safety in commit strategy: the reference describes broad staging (`git add .`). Align with repo git safety rules by staging only files produced by the iteration (or require explicit opt-in before any commit/revert behavior).
+- Evidence-based pointers: ensure any "Existing" pointer in the command doc (and any derivative outline) is verifiable and has dual-source evidence (docs + TS).
+
+## P1 Gaps (Should Fix)
+
+- Artifact-to-tool mapping clarity: make explicit which files are managed via session-manager routing (task/process/todo) so the workflow stays consistent with CCW tooling.
+- Resume semantics: document exactly which files are required vs optional on resume (e.g., missing iteration-state.json should initialize safely).
+
+## P2 Gaps (Optional)
+
+- Cross-links: add links to upstream/downstream workflow commands (e.g., `/workflow:test-fix-gen`, `/workflow:tools:test-task-generate`, `/workflow:execute`) to reduce user confusion.
+- Progressive testing explanation: clarify when affected-tests are used vs full suite.
+
+## Implementation Pointers (Evidence)
+
+| Pointer | Status | Evidence | Verify | Notes |
+|---|---|---|---|---|
+| `.claude/commands/workflow/test-cycle-execute.md` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Workflow Test-Cycle-Execute Command` ; ts: `ccw/src/tools/command-registry.ts` / `const relativePath = join('.claude', 'commands', 'workflow')` | `Test-Path .claude/commands/workflow/test-cycle-execute.md` | Command doc target (oracle) |
+| `ccw/src/tools/command-registry.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Reference` ; ts: `ccw/src/tools/command-registry.ts` / `export class CommandRegistry {` | `Test-Path ccw/src/tools/command-registry.ts; rg \"export class CommandRegistry\" ccw/src/tools/command-registry.ts` | Verifies how command docs are discovered/parsed |
+| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Session File Structure` ; ts: `ccw/src/tools/session-manager.ts` / `const ACTIVE_BASE = '.workflow/active'` | `Test-Path ccw/src/tools/session-manager.ts; rg \"const ACTIVE_BASE = '\\.workflow/active'\" ccw/src/tools/session-manager.ts` | Verifies session layout + artifact routing |
+| `ccw/src/tools/cli-executor-core.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `CLI Tool Configuration` ; ts: `ccw/src/tools/cli-executor-core.ts` / `Supports Gemini, Qwen, and Codex with streaming output` | `Test-Path ccw/src/tools/cli-executor-core.ts; rg \"Supports Gemini, Qwen, and Codex with streaming output\" ccw/src/tools/cli-executor-core.ts` | Verifies the CLI surface for analysis/generation steps |
+| `.workflow/active/<session>/.process/iteration-state.json` | Planned | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Iteration State JSON` ; ts: `ccw/src/tools/session-manager.ts` / `process: '{base}/.process/{filename}'` | `rg \"process: '\\{base\\}/\\.process/\\{filename\\}'\" ccw/src/tools/session-manager.ts` | Runtime state file must be created/updated by the workflow loop |
+
+## Implementation Hints (Tooling/Server)
+
+- Prefer session-manager conventions for all session artifacts:
+  - tasks: `{base}/.task/{task_id}.json`
+  - process files: `{base}/.process/{filename}`
+  - todo: `{base}/TODO_LIST.md`
+- CLI execution and fallback can be grounded on the existing CLI executor tooling (Gemini/Qwen/Codex).
+
+## Proposed Fix Plan (Minimal)
+
+See `fix-plan.md`.
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json
+{
+  "command": {
+    "group": "workflow",
+    "name": "test-cycle-execute",
+    "description": "Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.",
+    "argument_hint": "[--resume-session=\"session-id\"] [--max-iterations=N]",
+    "allowed_tools": ["Skill(*)", "TodoWrite(*)", "Read(*)", "Bash(*)", "Task(*)"]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "loop",
+    "primary_user_value": "Run an iterative test-and-fix cycle that resumes safely, tracks iteration state, and stops when pass rate reaches threshold or max iterations is reached."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/<session>/workflow-session.json",
+      ".workflow/active/<session>/IMPL_PLAN.md",
+      ".workflow/active/<session>/TODO_LIST.md",
+      ".workflow/active/<session>/.task/IMPL-*.json",
+      ".workflow/active/<session>/.process/iteration-state.json",
+      ".workflow/active/<session>/.process/test-results.json",
+      ".workflow/active/<session>/.process/fix-history.json"
+    ],
+    "writes": [
+      ".workflow/active/<session>/.task/IMPL-fix-<N>.json",
+      ".workflow/active/<session>/.process/iteration-state.json",
+      ".workflow/active/<session>/.process/test-results.json",
+      ".workflow/active/<session>/.process/test-output.log",
+      ".workflow/active/<session>/.process/iteration-<N>-analysis.md",
+      ".workflow/active/<session>/.process/iteration-<N>-cli-output.txt",
+      ".workflow/active/<session>/TODO_LIST.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 10,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not label pointers as Existing unless verifiable in the repo now.",
+      "Do not describe Planned work as validated/exists.",
+      "Do not perform destructive git operations (reset/revert) without explicit user request/opt-in.",
+      "Stop the iteration loop once pass rate >= 95% (criticality-aware) or max iterations is reached."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter: name/description/argument-hint/allowed-tools/group present and correct",
+      "Core sections present (Overview, Usage, Inputs, Outputs/Artifacts, Execution Process, Error Handling, Examples)",
+      "Evidence tables pass verify-evidence.js (dual-source docs + ts; no false Existing claims)",
+      "Resume flag behavior documented (load session state and continue without rediscovery)",
+      "Max-iterations documented with default (10) and hard stop behavior"
+    ]
+  }
+}
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md
+---
+name: test-cycle-execute
+description: Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.
+argument-hint: "[--resume-session=\"session-id\"] [--max-iterations=N]"
+allowed-tools: Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)
+group: workflow
+---
+
+# Workflow Test-Cycle-Execute
+
+## Overview
+
+- Goal: Iteratively run tests, analyze failures, generate fix tasks, apply fixes, and re-test until pass rate >= 95% (criticality-aware) or max iterations reached.
+- Command: `/workflow:test-cycle-execute`
+
+## Usage
+
+```bash
+/workflow:test-cycle-execute [--resume-session="session-id"] [--max-iterations=N]
+```
+
+## Inputs
+
+- Required inputs:
+  - An active workflow test session (auto-discovered under `.workflow/active/`) containing initial `IMPL-*.json` tasks.
+- Optional inputs:
+  - `--resume-session="session-id"`: Skip discovery and load the specified session state to continue.
+  - `--max-iterations=N`: Override default max iterations (default: 10).
+
+## Outputs / Artifacts
+
+- Writes:
+  - `.workflow/active/<session>/.task/IMPL-fix-<N>.json` (generated fix tasks)
+  - `.workflow/active/<session>/.process/iteration-state.json`
+  - `.workflow/active/<session>/.process/test-results.json`
+  - `.workflow/active/<session>/.process/iteration-<N>-analysis.md`
+  - `.workflow/active/<session>/.process/iteration-<N>-cli-output.txt`
+  - `.workflow/active/<session>/TODO_LIST.md` (TodoWrite updates)
+- Reads:
+  - `.workflow/active/<session>/.task/IMPL-*.json`
+  - `.workflow/active/<session>/.process/iteration-state.json` (resume + trend checks)
+  - `.workflow/active/<session>/.process/test-results.json` (pass rate + criticality)
+
+## Implementation Pointers
+
+- Command doc: `.claude/commands/workflow/test-cycle-execute.md`
+- Likely code locations:
+  - `ccw/src/tools/command-registry.ts` (command doc discovery/metadata)
+  - `ccw/src/tools/session-manager.ts` (session path conventions + file routing)
+  - `ccw/src/tools/cli-executor-core.ts` (Gemini/Qwen/Codex CLI execution + resume)
+
+### Evidence (Existing vs Planned)
+
+| Pointer | Status | Evidence (docs + TS) | Verify | Why |
+|---|---|---|---|---|
+| `.claude/commands/workflow/test-cycle-execute.md` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Workflow Test-Cycle-Execute Command` ; ts: `ccw/src/tools/command-registry.ts` / `const relativePath = join('.claude', 'commands', 'workflow')` | `Test-Path .claude/commands/workflow/test-cycle-execute.md; rg "name: test-cycle-execute" .claude/commands/workflow/test-cycle-execute.md` | Primary command doc to implement/evolve |
+| `ccw/src/tools/command-registry.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Quick Start` ; ts: `ccw/src/tools/command-registry.ts` / `export class CommandRegistry {` | `Test-Path ccw/src/tools/command-registry.ts; rg "export class CommandRegistry" ccw/src/tools/command-registry.ts` | Registry used to scan/parse command frontmatter |
+| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Session File Structure` ; ts: `ccw/src/tools/session-manager.ts` / `const ACTIVE_BASE = '.workflow/active'` | `Test-Path ccw/src/tools/session-manager.ts; rg \"const ACTIVE_BASE = '\\.workflow/active'\" ccw/src/tools/session-manager.ts` | Canonical location + routing for workflow session artifacts |
+| `ccw/src/tools/cli-executor-core.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `CLI Tool Configuration` ; ts: `ccw/src/tools/cli-executor-core.ts` / `Supports Gemini, Qwen, and Codex with streaming output` | `Test-Path ccw/src/tools/cli-executor-core.ts; rg \"Supports Gemini, Qwen, and Codex with streaming output\" ccw/src/tools/cli-executor-core.ts` | Provides deterministic CLI execution surface for analysis/generation steps |
+| `.workflow/active/<session>/.process/iteration-state.json` | Planned | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Iteration State JSON` ; ts: `ccw/src/tools/session-manager.ts` / `process: '{base}/.process/{filename}'` | `rg \"process: '\\{base\\}/\\.process/\\{filename\\}'\" ccw/src/tools/session-manager.ts` | Runtime state file for resume, trends, and strategy selection |
+
+## Execution Process
+
+1. Discover or resume session
+   - If `--resume-session` present: load that session id, then load `.process/iteration-state.json` (if present) and current task queue.
+   - Else: auto-discover active test session under `.workflow/active/`.
+2. Main loop (until completion or iteration cap)
+   - For each active task:
+     - Run tests (progressive/affected-tests when available; full suite on final validation).
+     - Compute pass rate and assess failure criticality.
+     - If pass rate >= 95% and failures are low criticality: proceed; else enter fix loop.
+3. Fix loop (bounded by max iterations)
+   - Ask `@cli-planning-agent` (via `Task`) to analyze failures and generate `IMPL-fix-<N>.json` (including modification points + affected tests).
+   - Ask `@test-fix-agent` (via `Task`) to apply fixes and rerun tests, writing updated results/state.
+4. Completion
+   - Success: pass rate reaches threshold and tasks complete; write summary notes and close out TodoWrite state.
+   - Failure: max iterations reached without threshold; produce a failure report and stop.
+
+## Error Handling
+
+- Session not found: explain discovery rules and ask for explicit `--resume-session`.
+- Invalid iteration/task JSON: stop and request regeneration (do not proceed with partial/invalid state).
+- CLI execution failure: follow the configured fallback chain; persist logs/artifacts before retry.
+- Test runner failure (non-test errors): capture output, retry once with reduced scope, then stop with actionable message.
+- Safety: do not run destructive git operations (reset/revert) unless explicitly requested/opted-in.
+
+## Examples
+
+```bash
+# Execute test-fix workflow (auto-discovers active session)
+/workflow:test-cycle-execute
+
+# Resume interrupted session
+/workflow:test-cycle-execute --resume-session="WFS-test-user-auth"
+
+# Custom iteration limit (default: 10)
+/workflow:test-cycle-execute --max-iterations=15
+```
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md
+# Fix Plan: workflow:test-cycle-execute
+
+## P0 (Must)
+
+1. [docs] Replace broad git staging examples (avoid `git add .`); document staging of only files produced by the iteration, and require explicit opt-in before any commit/revert automation.
+2. [docs] Ensure all implementation pointer tables use only verifiable Existing rows; downgrade uncertain pointers to Planned and add concrete `Test-Path`/`rg` verify steps.
+
+## P1 (Should)
+
+3. [docs] Add a short "artifact routing" note that aligns file paths with session-manager content types (`task`, `process`, `todo`) to avoid divergence.
+4. [docs] Clarify resume requirements: which files must exist and which are optional (and how to initialize safely when missing).
+
+## P2 (Optional)
+
+5. [docs] Add cross-links to related commands for the upstream task generation and downstream execution flow.
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json
+{
+  "candidates": [
+    {
+      "slash": "/workflow:test-cycle-execute",
+      "file_path": ".claude/commands/workflow/test-cycle-execute.md",
+      "score": 100,
+      "why": [
+        "Exact command match (same group/name/args/allowed-tools).",
+        "Defines session file structure, iteration state, and agent-role split for the loop."
+      ]
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 86,
+      "why": [
+        "Same group and execution-oriented interaction model.",
+        "Has resume-session semantics and workflow session discovery patterns."
+      ]
+    },
+    {
+      "slash": "/workflow:test-fix-gen",
+      "file_path": ".claude/commands/workflow/test-fix-gen.md",
+      "score": 80,
+      "why": [
+        "Testing workflow family; upstream of test-cycle execution.",
+        "Uses workflow sessions and produces artifacts consumed by test-cycle execution."
+      ]
+    },
+    {
+      "slash": "/workflow:tools:test-task-generate",
+      "file_path": ".claude/commands/workflow/tools/test-task-generate.md",
+      "score": 72,
+      "why": [
+        "Closest tooling-oriented reference for generating task JSON artifacts in sessions.",
+        "Helps align task naming and file placement with session conventions."
+      ]
+    },
+    {
+      "slash": "/workflow:plan-verify",
+      "file_path": ".claude/commands/workflow/plan-verify.md",
+      "score": 65,
+      "why": [
+        "Provides a multi-phase workflow template and calls /workflow:execute with resume-session.",
+        "Useful for TodoWrite/status tracking conventions."
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:test-cycle-execute",
+    "file_path": ".claude/commands/workflow/test-cycle-execute.md",
+    "why": "Highest-confidence reference (exact match) to validate headings, artifacts, and loop semantics."
+  }
+}
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md
+# Agent Outline: workflow:test-cycle-execute
+
+## Purpose
+
+Implement and/or evolve the `/workflow:test-cycle-execute` command doc so it reliably orchestrates an iterative test-and-fix loop (>= 95% pass rate or max iterations) while preserving resume-ability and evidence-based pointers.
+
+## Execution Model
+
+- Iterative loop with explicit stop conditions:
+  - Stop on pass rate >= 95% (criticality-aware) or pass rate === 100%
+  - Stop on max iterations (default: 10; override via `--max-iterations`)
+- Orchestrator boundary:
+  - The slash command doc is the only orchestrator for test failure handling
+  - Delegate analysis/generation to `@cli-planning-agent` via `Task`
+  - Delegate fix execution/testing to `@test-fix-agent` via `Task`
+
+## State & Artifacts
+
+- Session root: `.workflow/active/<session>/`
+- Key files:
+  - Session metadata: `workflow-session.json`
+  - Tasks: `.task/IMPL-*.json` and `.task/IMPL-fix-<N>.json`
+  - Process state: `.process/iteration-state.json`, `.process/test-results.json`, `.process/test-output.log`
+  - Logs: `.process/iteration-<N>-analysis.md`, `.process/iteration-<N>-cli-output.txt`
+  - Tracking: `TODO_LIST.md` (TodoWrite updates)
+
+## Tooling
+
+- Allowed tools (frontmatter): Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)
+- Critical conventions:
+  - Keep changes incremental and testable
+  - Do not touch unrelated repo changes
+  - Do not mark pointers as Existing without verification; downgrade to Planned with verify steps
+
+## Validation Strategy
+
+- P0 gates (must pass):
+  - Frontmatter correctness
+  - Core sections present
+  - Evidence tables pass the deterministic gate:
+    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<md>`
+- Behavioral validation (doc-driven):
+  - Resume path explains how iteration-state/test-results are loaded and continued
+  - Max-iteration behavior explains hard stop and failure-report output
+
+apply_patch(auto_approved=true) exited 0 in 125ms:
+Success. Updated the following files:
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..fab41762bdfb433ae73bedf6663037b1692a3569
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md
+@@ -0,0 +1,16 @@
++# Fix Plan: workflow:test-cycle-execute
++
++## P0 (Must)
++
++1. [docs] Replace broad git staging examples (avoid `git add .`); document staging of only files produced by the iteration, and require explicit opt-in before any commit/revert automation.
++2. [docs] Ensure all implementation pointer tables use only verifiable Existing rows; downgrade uncertain pointers to Planned and add concrete `Test-Path`/`rg` verify steps.
++
++## P1 (Should)
++
++3. [docs] Add a short "artifact routing" note that aligns file paths with session-manager content types (`task`, `process`, `todo`) to avoid divergence.
++4. [docs] Clarify resume requirements: which files must exist and which are optional (and how to initialize safely when missing).
++
++## P2 (Optional)
++
++5. [docs] Add cross-links to related commands for the upstream task generation and downstream execution flow.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..12c1117a922879d5b302bbe4bbbee7fa13e4bcd8
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md
+@@ -0,0 +1,43 @@
++# Gap Report: workflow:test-cycle-execute
++
++## Reference
++
++- Selected reference: /workflow:test-cycle-execute (`.claude/commands/workflow/test-cycle-execute.md`)
++
++## P0 Gaps (Must Fix)
++
++- Git safety in commit strategy: the reference describes broad staging (`git add .`). Align with repo git safety rules by staging only files produced by the iteration (or require explicit opt-in before any commit/revert behavior).
++- Evidence-based pointers: ensure any "Existing" pointer in the command doc (and any derivative outline) is verifiable and has dual-source evidence (docs + TS).
++
++## P1 Gaps (Should Fix)
++
++- Artifact-to-tool mapping clarity: make explicit which files are managed via session-manager routing (task/process/todo) so the workflow stays consistent with CCW tooling.
++- Resume semantics: document exactly which files are required vs optional on resume (e.g., missing iteration-state.json should initialize safely).
++
++## P2 Gaps (Optional)
++
++- Cross-links: add links to upstream/downstream workflow commands (e.g., `/workflow:test-fix-gen`, `/workflow:tools:test-task-generate`, `/workflow:execute`) to reduce user confusion.
++- Progressive testing explanation: clarify when affected-tests are used vs full suite.
++
++## Implementation Pointers (Evidence)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/workflow/test-cycle-execute.md` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Workflow Test-Cycle-Execute Command` ; ts: `ccw/src/tools/command-registry.ts` / `const relativePath = join('.claude', 'commands', 'workflow')` | `Test-Path .claude/commands/workflow/test-cycle-execute.md` | Command doc target (oracle) |
++| `ccw/src/tools/command-registry.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Reference` ; ts: `ccw/src/tools/command-registry.ts` / `export class CommandRegistry {` | `Test-Path ccw/src/tools/command-registry.ts; rg \"export class CommandRegistry\" ccw/src/tools/command-registry.ts` | Verifies how command docs are discovered/parsed |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Session File Structure` ; ts: `ccw/src/tools/session-manager.ts` / `const ACTIVE_BASE = '.workflow/active'` | `Test-Path ccw/src/tools/session-manager.ts; rg \"const ACTIVE_BASE = '\\.workflow/active'\" ccw/src/tools/session-manager.ts` | Verifies session layout + artifact routing |
++| `ccw/src/tools/cli-executor-core.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `CLI Tool Configuration` ; ts: `ccw/src/tools/cli-executor-core.ts` / `Supports Gemini, Qwen, and Codex with streaming output` | `Test-Path ccw/src/tools/cli-executor-core.ts; rg \"Supports Gemini, Qwen, and Codex with streaming output\" ccw/src/tools/cli-executor-core.ts` | Verifies the CLI surface for analysis/generation steps |
++| `.workflow/active/<session>/.process/iteration-state.json` | Planned | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Iteration State JSON` ; ts: `ccw/src/tools/session-manager.ts` / `process: '{base}/.process/{filename}'` | `rg \"process: '\\{base\\}/\\.process/\\{filename\\}'\" ccw/src/tools/session-manager.ts` | Runtime state file must be created/updated by the workflow loop |
++
++## Implementation Hints (Tooling/Server)
++
++- Prefer session-manager conventions for all session artifacts:
++  - tasks: `{base}/.task/{task_id}.json`
++  - process files: `{base}/.process/{filename}`
++  - todo: `{base}/TODO_LIST.md`
++- CLI execution and fallback can be grounded on the existing CLI executor tooling (Gemini/Qwen/Codex).
++
++## Proposed Fix Plan (Minimal)
++
++See `fix-plan.md`.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..e881c68286dfe4bae89a25c6fb86b6da955bc222
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,45 @@
++# Agent Outline: workflow:test-cycle-execute
++
++## Purpose
++
++Implement and/or evolve the `/workflow:test-cycle-execute` command doc so it reliably orchestrates an iterative test-and-fix loop (>= 95% pass rate or max iterations) while preserving resume-ability and evidence-based pointers.
++
++## Execution Model
++
++- Iterative loop with explicit stop conditions:
++  - Stop on pass rate >= 95% (criticality-aware) or pass rate === 100%
++  - Stop on max iterations (default: 10; override via `--max-iterations`)
++- Orchestrator boundary:
++  - The slash command doc is the only orchestrator for test failure handling
++  - Delegate analysis/generation to `@cli-planning-agent` via `Task`
++  - Delegate fix execution/testing to `@test-fix-agent` via `Task`
++
++## State & Artifacts
++
++- Session root: `.workflow/active/<session>/`
++- Key files:
++  - Session metadata: `workflow-session.json`
++  - Tasks: `.task/IMPL-*.json` and `.task/IMPL-fix-<N>.json`
++  - Process state: `.process/iteration-state.json`, `.process/test-results.json`, `.process/test-output.log`
++  - Logs: `.process/iteration-<N>-analysis.md`, `.process/iteration-<N>-cli-output.txt`
++  - Tracking: `TODO_LIST.md` (TodoWrite updates)
++
++## Tooling
++
++- Allowed tools (frontmatter): Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)
++- Critical conventions:
++  - Keep changes incremental and testable
++  - Do not touch unrelated repo changes
++  - Do not mark pointers as Existing without verification; downgrade to Planned with verify steps
++
++## Validation Strategy
++
++- P0 gates (must pass):
++  - Frontmatter correctness
++  - Core sections present
++  - Evidence tables pass the deterministic gate:
++    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<md>`
++- Behavioral validation (doc-driven):
++  - Resume path explains how iteration-state/test-results are loaded and continued
++  - Max-iteration behavior explains hard stop and failure-report output
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..42f403fc6a20945449c219671fa7a2c5b518feba
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,99 @@
++---
++name: test-cycle-execute
++description: Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.
++argument-hint: "[--resume-session=\"session-id\"] [--max-iterations=N]"
++allowed-tools: Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)
++group: workflow
++---
++
++# Workflow Test-Cycle-Execute
++
++## Overview
++
++- Goal: Iteratively run tests, analyze failures, generate fix tasks, apply fixes, and re-test until pass rate >= 95% (criticality-aware) or max iterations reached.
++- Command: `/workflow:test-cycle-execute`
++
++## Usage
++
++```bash
++/workflow:test-cycle-execute [--resume-session="session-id"] [--max-iterations=N]
++```
++
++## Inputs
++
++- Required inputs:
++  - An active workflow test session (auto-discovered under `.workflow/active/`) containing initial `IMPL-*.json` tasks.
++- Optional inputs:
++  - `--resume-session="session-id"`: Skip discovery and load the specified session state to continue.
++  - `--max-iterations=N`: Override default max iterations (default: 10).
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/active/<session>/.task/IMPL-fix-<N>.json` (generated fix tasks)
++  - `.workflow/active/<session>/.process/iteration-state.json`
++  - `.workflow/active/<session>/.process/test-results.json`
++  - `.workflow/active/<session>/.process/iteration-<N>-analysis.md`
++  - `.workflow/active/<session>/.process/iteration-<N>-cli-output.txt`
++  - `.workflow/active/<session>/TODO_LIST.md` (TodoWrite updates)
++- Reads:
++  - `.workflow/active/<session>/.task/IMPL-*.json`
++  - `.workflow/active/<session>/.process/iteration-state.json` (resume + trend checks)
++  - `.workflow/active/<session>/.process/test-results.json` (pass rate + criticality)
++
++## Implementation Pointers
++
++- Command doc: `.claude/commands/workflow/test-cycle-execute.md`
++- Likely code locations:
++  - `ccw/src/tools/command-registry.ts` (command doc discovery/metadata)
++  - `ccw/src/tools/session-manager.ts` (session path conventions + file routing)
++  - `ccw/src/tools/cli-executor-core.ts` (Gemini/Qwen/Codex CLI execution + resume)
++
++### Evidence (Existing vs Planned)
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/workflow/test-cycle-execute.md` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Workflow Test-Cycle-Execute Command` ; ts: `ccw/src/tools/command-registry.ts` / `const relativePath = join('.claude', 'commands', 'workflow')` | `Test-Path .claude/commands/workflow/test-cycle-execute.md; rg "name: test-cycle-execute" .claude/commands/workflow/test-cycle-execute.md` | Primary command doc to implement/evolve |
++| `ccw/src/tools/command-registry.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Quick Start` ; ts: `ccw/src/tools/command-registry.ts` / `export class CommandRegistry {` | `Test-Path ccw/src/tools/command-registry.ts; rg "export class CommandRegistry" ccw/src/tools/command-registry.ts` | Registry used to scan/parse command frontmatter |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Session File Structure` ; ts: `ccw/src/tools/session-manager.ts` / `const ACTIVE_BASE = '.workflow/active'` | `Test-Path ccw/src/tools/session-manager.ts; rg \"const ACTIVE_BASE = '\\.workflow/active'\" ccw/src/tools/session-manager.ts` | Canonical location + routing for workflow session artifacts |
++| `ccw/src/tools/cli-executor-core.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `CLI Tool Configuration` ; ts: `ccw/src/tools/cli-executor-core.ts` / `Supports Gemini, Qwen, and Codex with streaming output` | `Test-Path ccw/src/tools/cli-executor-core.ts; rg \"Supports Gemini, Qwen, and Codex with streaming output\" ccw/src/tools/cli-executor-core.ts` | Provides deterministic CLI execution surface for analysis/generation steps |
++| `.workflow/active/<session>/.process/iteration-state.json` | Planned | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Iteration State JSON` ; ts: `ccw/src/tools/session-manager.ts` / `process: '{base}/.process/{filename}'` | `rg \"process: '\\{base\\}/\\.process/\\{filename\\}'\" ccw/src/tools/session-manager.ts` | Runtime state file for resume, trends, and strategy selection |
++
++## Execution Process
++
++1. Discover or resume session
++   - If `--resume-session` present: load that session id, then load `.process/iteration-state.json` (if present) and current task queue.
++   - Else: auto-discover active test session under `.workflow/active/`.
++2. Main loop (until completion or iteration cap)
++   - For each active task:
++     - Run tests (progressive/affected-tests when available; full suite on final validation).
++     - Compute pass rate and assess failure criticality.
++     - If pass rate >= 95% and failures are low criticality: proceed; else enter fix loop.
++3. Fix loop (bounded by max iterations)
++   - Ask `@cli-planning-agent` (via `Task`) to analyze failures and generate `IMPL-fix-<N>.json` (including modification points + affected tests).
++   - Ask `@test-fix-agent` (via `Task`) to apply fixes and rerun tests, writing updated results/state.
++4. Completion
++   - Success: pass rate reaches threshold and tasks complete; write summary notes and close out TodoWrite state.
++   - Failure: max iterations reached without threshold; produce a failure report and stop.
++
++## Error Handling
++
++- Session not found: explain discovery rules and ask for explicit `--resume-session`.
++- Invalid iteration/task JSON: stop and request regeneration (do not proceed with partial/invalid state).
++- CLI execution failure: follow the configured fallback chain; persist logs/artifacts before retry.
++- Test runner failure (non-test errors): capture output, retry once with reduced scope, then stop with actionable message.
++- Safety: do not run destructive git operations (reset/revert) unless explicitly requested/opted-in.
++
++## Examples
++
++```bash
++# Execute test-fix workflow (auto-discovers active session)
++/workflow:test-cycle-execute
++
++# Resume interrupted session
++/workflow:test-cycle-execute --resume-session="WFS-test-user-auth"
++
++# Custom iteration limit (default: 10)
++/workflow:test-cycle-execute --max-iterations=15
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..9908dda216cb521ab90707fd87369cd8f60e8a0e
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json
+@@ -0,0 +1,55 @@
++{
++  "candidates": [
++    {
++      "slash": "/workflow:test-cycle-execute",
++      "file_path": ".claude/commands/workflow/test-cycle-execute.md",
++      "score": 100,
++      "why": [
++        "Exact command match (same group/name/args/allowed-tools).",
++        "Defines session file structure, iteration state, and agent-role split for the loop."
++      ]
++    },
++    {
++      "slash": "/workflow:execute",
++      "file_path": ".claude/commands/workflow/execute.md",
++      "score": 86,
++      "why": [
++        "Same group and execution-oriented interaction model.",
++        "Has resume-session semantics and workflow session discovery patterns."
++      ]
++    },
++    {
++      "slash": "/workflow:test-fix-gen",
++      "file_path": ".claude/commands/workflow/test-fix-gen.md",
++      "score": 80,
++      "why": [
++        "Testing workflow family; upstream of test-cycle execution.",
++        "Uses workflow sessions and produces artifacts consumed by test-cycle execution."
++      ]
++    },
++    {
++      "slash": "/workflow:tools:test-task-generate",
++      "file_path": ".claude/commands/workflow/tools/test-task-generate.md",
++      "score": 72,
++      "why": [
++        "Closest tooling-oriented reference for generating task JSON artifacts in sessions.",
++        "Helps align task naming and file placement with session conventions."
++      ]
++    },
++    {
++      "slash": "/workflow:plan-verify",
++      "file_path": ".claude/commands/workflow/plan-verify.md",
++      "score": 65,
++      "why": [
++        "Provides a multi-phase workflow template and calls /workflow:execute with resume-session.",
++        "Useful for TodoWrite/status tracking conventions."
++      ]
++    }
++  ],
++  "selected": {
++    "slash": "/workflow:test-cycle-execute",
++    "file_path": ".claude/commands/workflow/test-cycle-execute.md",
++    "why": "Highest-confidence reference (exact match) to validate headings, artifacts, and loop semantics."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..82e2c3f0367748587e900231616c0bcdeb6b90e8
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json
+@@ -0,0 +1,54 @@
++{
++  "command": {
++    "group": "workflow",
++    "name": "test-cycle-execute",
++    "description": "Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.",
++    "argument_hint": "[--resume-session=\"session-id\"] [--max-iterations=N]",
++    "allowed_tools": ["Skill(*)", "TodoWrite(*)", "Read(*)", "Bash(*)", "Task(*)"]
++  },
++  "intent": {
++    "type": "execute",
++    "interaction": "loop",
++    "primary_user_value": "Run an iterative test-and-fix cycle that resumes safely, tracks iteration state, and stops when pass rate reaches threshold or max iterations is reached."
++  },
++  "artifacts": {
++    "reads": [
++      ".workflow/active/<session>/workflow-session.json",
++      ".workflow/active/<session>/IMPL_PLAN.md",
++      ".workflow/active/<session>/TODO_LIST.md",
++      ".workflow/active/<session>/.task/IMPL-*.json",
++      ".workflow/active/<session>/.process/iteration-state.json",
++      ".workflow/active/<session>/.process/test-results.json",
++      ".workflow/active/<session>/.process/fix-history.json"
++    ],
++    "writes": [
++      ".workflow/active/<session>/.task/IMPL-fix-<N>.json",
++      ".workflow/active/<session>/.process/iteration-state.json",
++      ".workflow/active/<session>/.process/test-results.json",
++      ".workflow/active/<session>/.process/test-output.log",
++      ".workflow/active/<session>/.process/iteration-<N>-analysis.md",
++      ".workflow/active/<session>/.process/iteration-<N>-cli-output.txt",
++      ".workflow/active/<session>/TODO_LIST.md"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 10,
++    "time_budget_seconds": 0,
++    "must_not": [
++      "Do not label pointers as Existing unless verifiable in the repo now.",
++      "Do not describe Planned work as validated/exists.",
++      "Do not perform destructive git operations (reset/revert) without explicit user request/opt-in.",
++      "Stop the iteration loop once pass rate >= 95% (criticality-aware) or max iterations is reached."
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "Frontmatter: name/description/argument-hint/allowed-tools/group present and correct",
++      "Core sections present (Overview, Usage, Inputs, Outputs/Artifacts, Execution Process, Error Handling, Examples)",
++      "Evidence tables pass verify-evidence.js (dual-source docs + ts; no false Existing claims)",
++      "Resume flag behavior documented (load session state and continue without rediscovery)",
++      "Max-iterations documented with default (10) and hard stop behavior"
++    ]
++  }
++}
++
+
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..fab41762bdfb433ae73bedf6663037b1692a3569
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md
+@@ -0,0 +1,16 @@
++# Fix Plan: workflow:test-cycle-execute
++
++## P0 (Must)
++
++1. [docs] Replace broad git staging examples (avoid `git add .`); document staging of only files produced by the iteration, and require explicit opt-in before any commit/revert automation.
++2. [docs] Ensure all implementation pointer tables use only verifiable Existing rows; downgrade uncertain pointers to Planned and add concrete `Test-Path`/`rg` verify steps.
++
++## P1 (Should)
++
++3. [docs] Add a short "artifact routing" note that aligns file paths with session-manager content types (`task`, `process`, `todo`) to avoid divergence.
++4. [docs] Clarify resume requirements: which files must exist and which are optional (and how to initialize safely when missing).
++
++## P2 (Optional)
++
++5. [docs] Add cross-links to related commands for the upstream task generation and downstream execution flow.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..12c1117a922879d5b302bbe4bbbee7fa13e4bcd8
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md
+@@ -0,0 +1,43 @@
++# Gap Report: workflow:test-cycle-execute
++
++## Reference
++
++- Selected reference: /workflow:test-cycle-execute (`.claude/commands/workflow/test-cycle-execute.md`)
++
++## P0 Gaps (Must Fix)
++
++- Git safety in commit strategy: the reference describes broad staging (`git add .`). Align with repo git safety rules by staging only files produced by the iteration (or require explicit opt-in before any commit/revert behavior).
++- Evidence-based pointers: ensure any "Existing" pointer in the command doc (and any derivative outline) is verifiable and has dual-source evidence (docs + TS).
++
++## P1 Gaps (Should Fix)
++
++- Artifact-to-tool mapping clarity: make explicit which files are managed via session-manager routing (task/process/todo) so the workflow stays consistent with CCW tooling.
++- Resume semantics: document exactly which files are required vs optional on resume (e.g., missing iteration-state.json should initialize safely).
++
++## P2 Gaps (Optional)
++
++- Cross-links: add links to upstream/downstream workflow commands (e.g., `/workflow:test-fix-gen`, `/workflow:tools:test-task-generate`, `/workflow:execute`) to reduce user confusion.
++- Progressive testing explanation: clarify when affected-tests are used vs full suite.
++
++## Implementation Pointers (Evidence)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/workflow/test-cycle-execute.md` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Workflow Test-Cycle-Execute Command` ; ts: `ccw/src/tools/command-registry.ts` / `const relativePath = join('.claude', 'commands', 'workflow')` | `Test-Path .claude/commands/workflow/test-cycle-execute.md` | Command doc target (oracle) |
++| `ccw/src/tools/command-registry.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Reference` ; ts: `ccw/src/tools/command-registry.ts` / `export class CommandRegistry {` | `Test-Path ccw/src/tools/command-registry.ts; rg \"export class CommandRegistry\" ccw/src/tools/command-registry.ts` | Verifies how command docs are discovered/parsed |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Session File Structure` ; ts: `ccw/src/tools/session-manager.ts` / `const ACTIVE_BASE = '.workflow/active'` | `Test-Path ccw/src/tools/session-manager.ts; rg \"const ACTIVE_BASE = '\\.workflow/active'\" ccw/src/tools/session-manager.ts` | Verifies session layout + artifact routing |
++| `ccw/src/tools/cli-executor-core.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `CLI Tool Configuration` ; ts: `ccw/src/tools/cli-executor-core.ts` / `Supports Gemini, Qwen, and Codex with streaming output` | `Test-Path ccw/src/tools/cli-executor-core.ts; rg \"Supports Gemini, Qwen, and Codex with streaming output\" ccw/src/tools/cli-executor-core.ts` | Verifies the CLI surface for analysis/generation steps |
++| `.workflow/active/<session>/.process/iteration-state.json` | Planned | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Iteration State JSON` ; ts: `ccw/src/tools/session-manager.ts` / `process: '{base}/.process/{filename}'` | `rg \"process: '\\{base\\}/\\.process/\\{filename\\}'\" ccw/src/tools/session-manager.ts` | Runtime state file must be created/updated by the workflow loop |
++
++## Implementation Hints (Tooling/Server)
++
++- Prefer session-manager conventions for all session artifacts:
++  - tasks: `{base}/.task/{task_id}.json`
++  - process files: `{base}/.process/{filename}`
++  - todo: `{base}/TODO_LIST.md`
++- CLI execution and fallback can be grounded on the existing CLI executor tooling (Gemini/Qwen/Codex).
++
++## Proposed Fix Plan (Minimal)
++
++See `fix-plan.md`.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..e881c68286dfe4bae89a25c6fb86b6da955bc222
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,45 @@
++# Agent Outline: workflow:test-cycle-execute
++
++## Purpose
++
++Implement and/or evolve the `/workflow:test-cycle-execute` command doc so it reliably orchestrates an iterative test-and-fix loop (>= 95% pass rate or max iterations) while preserving resume-ability and evidence-based pointers.
++
++## Execution Model
++
++- Iterative loop with explicit stop conditions:
++  - Stop on pass rate >= 95% (criticality-aware) or pass rate === 100%
++  - Stop on max iterations (default: 10; override via `--max-iterations`)
++- Orchestrator boundary:
++  - The slash command doc is the only orchestrator for test failure handling
++  - Delegate analysis/generation to `@cli-planning-agent` via `Task`
++  - Delegate fix execution/testing to `@test-fix-agent` via `Task`
++
++## State & Artifacts
++
++- Session root: `.workflow/active/<session>/`
++- Key files:
++  - Session metadata: `workflow-session.json`
++  - Tasks: `.task/IMPL-*.json` and `.task/IMPL-fix-<N>.json`
++  - Process state: `.process/iteration-state.json`, `.process/test-results.json`, `.process/test-output.log`
++  - Logs: `.process/iteration-<N>-analysis.md`, `.process/iteration-<N>-cli-output.txt`
++  - Tracking: `TODO_LIST.md` (TodoWrite updates)
++
++## Tooling
++
++- Allowed tools (frontmatter): Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)
++- Critical conventions:
++  - Keep changes incremental and testable
++  - Do not touch unrelated repo changes
++  - Do not mark pointers as Existing without verification; downgrade to Planned with verify steps
++
++## Validation Strategy
++
++- P0 gates (must pass):
++  - Frontmatter correctness
++  - Core sections present
++  - Evidence tables pass the deterministic gate:
++    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<md>`
++- Behavioral validation (doc-driven):
++  - Resume path explains how iteration-state/test-results are loaded and continued
++  - Max-iteration behavior explains hard stop and failure-report output
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..42f403fc6a20945449c219671fa7a2c5b518feba
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,99 @@
++---
++name: test-cycle-execute
++description: Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.
++argument-hint: "[--resume-session=\"session-id\"] [--max-iterations=N]"
++allowed-tools: Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)
++group: workflow
++---
++
++# Workflow Test-Cycle-Execute
++
++## Overview
++
++- Goal: Iteratively run tests, analyze failures, generate fix tasks, apply fixes, and re-test until pass rate >= 95% (criticality-aware) or max iterations reached.
++- Command: `/workflow:test-cycle-execute`
++
++## Usage
++
++```bash
++/workflow:test-cycle-execute [--resume-session="session-id"] [--max-iterations=N]
++```
++
++## Inputs
++
++- Required inputs:
++  - An active workflow test session (auto-discovered under `.workflow/active/`) containing initial `IMPL-*.json` tasks.
++- Optional inputs:
++  - `--resume-session="session-id"`: Skip discovery and load the specified session state to continue.
++  - `--max-iterations=N`: Override default max iterations (default: 10).
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/active/<session>/.task/IMPL-fix-<N>.json` (generated fix tasks)
++  - `.workflow/active/<session>/.process/iteration-state.json`
++  - `.workflow/active/<session>/.process/test-results.json`
++  - `.workflow/active/<session>/.process/iteration-<N>-analysis.md`
++  - `.workflow/active/<session>/.process/iteration-<N>-cli-output.txt`
++  - `.workflow/active/<session>/TODO_LIST.md` (TodoWrite updates)
++- Reads:
++  - `.workflow/active/<session>/.task/IMPL-*.json`
++  - `.workflow/active/<session>/.process/iteration-state.json` (resume + trend checks)
++  - `.workflow/active/<session>/.process/test-results.json` (pass rate + criticality)
++
++## Implementation Pointers
++
++- Command doc: `.claude/commands/workflow/test-cycle-execute.md`
++- Likely code locations:
++  - `ccw/src/tools/command-registry.ts` (command doc discovery/metadata)
++  - `ccw/src/tools/session-manager.ts` (session path conventions + file routing)
++  - `ccw/src/tools/cli-executor-core.ts` (Gemini/Qwen/Codex CLI execution + resume)
++
++### Evidence (Existing vs Planned)
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/workflow/test-cycle-execute.md` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Workflow Test-Cycle-Execute Command` ; ts: `ccw/src/tools/command-registry.ts` / `const relativePath = join('.claude', 'commands', 'workflow')` | `Test-Path .claude/commands/workflow/test-cycle-execute.md; rg "name: test-cycle-execute" .claude/commands/workflow/test-cycle-execute.md` | Primary command doc to implement/evolve |
++| `ccw/src/tools/command-registry.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Quick Start` ; ts: `ccw/src/tools/command-registry.ts` / `export class CommandRegistry {` | `Test-Path ccw/src/tools/command-registry.ts; rg "export class CommandRegistry" ccw/src/tools/command-registry.ts` | Registry used to scan/parse command frontmatter |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Session File Structure` ; ts: `ccw/src/tools/session-manager.ts` / `const ACTIVE_BASE = '.workflow/active'` | `Test-Path ccw/src/tools/session-manager.ts; rg \"const ACTIVE_BASE = '\\.workflow/active'\" ccw/src/tools/session-manager.ts` | Canonical location + routing for workflow session artifacts |
++| `ccw/src/tools/cli-executor-core.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `CLI Tool Configuration` ; ts: `ccw/src/tools/cli-executor-core.ts` / `Supports Gemini, Qwen, and Codex with streaming output` | `Test-Path ccw/src/tools/cli-executor-core.ts; rg \"Supports Gemini, Qwen, and Codex with streaming output\" ccw/src/tools/cli-executor-core.ts` | Provides deterministic CLI execution surface for analysis/generation steps |
++| `.workflow/active/<session>/.process/iteration-state.json` | Planned | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Iteration State JSON` ; ts: `ccw/src/tools/session-manager.ts` / `process: '{base}/.process/{filename}'` | `rg \"process: '\\{base\\}/\\.process/\\{filename\\}'\" ccw/src/tools/session-manager.ts` | Runtime state file for resume, trends, and strategy selection |
++
++## Execution Process
++
++1. Discover or resume session
++   - If `--resume-session` present: load that session id, then load `.process/iteration-state.json` (if present) and current task queue.
++   - Else: auto-discover active test session under `.workflow/active/`.
++2. Main loop (until completion or iteration cap)
++   - For each active task:
++     - Run tests (progressive/affected-tests when available; full suite on final validation).
++     - Compute pass rate and assess failure criticality.
++     - If pass rate >= 95% and failures are low criticality: proceed; else enter fix loop.
++3. Fix loop (bounded by max iterations)
++   - Ask `@cli-planning-agent` (via `Task`) to analyze failures and generate `IMPL-fix-<N>.json` (including modification points + affected tests).
++   - Ask `@test-fix-agent` (via `Task`) to apply fixes and rerun tests, writing updated results/state.
++4. Completion
++   - Success: pass rate reaches threshold and tasks complete; write summary notes and close out TodoWrite state.
++   - Failure: max iterations reached without threshold; produce a failure report and stop.
++
++## Error Handling
++
++- Session not found: explain discovery rules and ask for explicit `--resume-session`.
++- Invalid iteration/task JSON: stop and request regeneration (do not proceed with partial/invalid state).
++- CLI execution failure: follow the configured fallback chain; persist logs/artifacts before retry.
++- Test runner failure (non-test errors): capture output, retry once with reduced scope, then stop with actionable message.
++- Safety: do not run destructive git operations (reset/revert) unless explicitly requested/opted-in.
++
++## Examples
++
++```bash
++# Execute test-fix workflow (auto-discovers active session)
++/workflow:test-cycle-execute
++
++# Resume interrupted session
++/workflow:test-cycle-execute --resume-session="WFS-test-user-auth"
++
++# Custom iteration limit (default: 10)
++/workflow:test-cycle-execute --max-iterations=15
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..9908dda216cb521ab90707fd87369cd8f60e8a0e
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json
+@@ -0,0 +1,55 @@
++{
++  "candidates": [
++    {
++      "slash": "/workflow:test-cycle-execute",
++      "file_path": ".claude/commands/workflow/test-cycle-execute.md",
++      "score": 100,
++      "why": [
++        "Exact command match (same group/name/args/allowed-tools).",
++        "Defines session file structure, iteration state, and agent-role split for the loop."
++      ]
++    },
++    {
++      "slash": "/workflow:execute",
++      "file_path": ".claude/commands/workflow/execute.md",
++      "score": 86,
++      "why": [
++        "Same group and execution-oriented interaction model.",
++        "Has resume-session semantics and workflow session discovery patterns."
++      ]
++    },
++    {
++      "slash": "/workflow:test-fix-gen",
++      "file_path": ".claude/commands/workflow/test-fix-gen.md",
++      "score": 80,
++      "why": [
++        "Testing workflow family; upstream of test-cycle execution.",
++        "Uses workflow sessions and produces artifacts consumed by test-cycle execution."
++      ]
++    },
++    {
++      "slash": "/workflow:tools:test-task-generate",
++      "file_path": ".claude/commands/workflow/tools/test-task-generate.md",
++      "score": 72,
++      "why": [
++        "Closest tooling-oriented reference for generating task JSON artifacts in sessions.",
++        "Helps align task naming and file placement with session conventions."
++      ]
++    },
++    {
++      "slash": "/workflow:plan-verify",
++      "file_path": ".claude/commands/workflow/plan-verify.md",
++      "score": 65,
++      "why": [
++        "Provides a multi-phase workflow template and calls /workflow:execute with resume-session.",
++        "Useful for TodoWrite/status tracking conventions."
++      ]
++    }
++  ],
++  "selected": {
++    "slash": "/workflow:test-cycle-execute",
++    "file_path": ".claude/commands/workflow/test-cycle-execute.md",
++    "why": "Highest-confidence reference (exact match) to validate headings, artifacts, and loop semantics."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..82e2c3f0367748587e900231616c0bcdeb6b90e8
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json
+@@ -0,0 +1,54 @@
++{
++  "command": {
++    "group": "workflow",
++    "name": "test-cycle-execute",
++    "description": "Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.",
++    "argument_hint": "[--resume-session=\"session-id\"] [--max-iterations=N]",
++    "allowed_tools": ["Skill(*)", "TodoWrite(*)", "Read(*)", "Bash(*)", "Task(*)"]
++  },
++  "intent": {
++    "type": "execute",
++    "interaction": "loop",
++    "primary_user_value": "Run an iterative test-and-fix cycle that resumes safely, tracks iteration state, and stops when pass rate reaches threshold or max iterations is reached."
++  },
++  "artifacts": {
++    "reads": [
++      ".workflow/active/<session>/workflow-session.json",
++      ".workflow/active/<session>/IMPL_PLAN.md",
++      ".workflow/active/<session>/TODO_LIST.md",
++      ".workflow/active/<session>/.task/IMPL-*.json",
++      ".workflow/active/<session>/.process/iteration-state.json",
++      ".workflow/active/<session>/.process/test-results.json",
++      ".workflow/active/<session>/.process/fix-history.json"
++    ],
++    "writes": [
++      ".workflow/active/<session>/.task/IMPL-fix-<N>.json",
++      ".workflow/active/<session>/.process/iteration-state.json",
++      ".workflow/active/<session>/.process/test-results.json",
++      ".workflow/active/<session>/.process/test-output.log",
++      ".workflow/active/<session>/.process/iteration-<N>-analysis.md",
++      ".workflow/active/<session>/.process/iteration-<N>-cli-output.txt",
++      ".workflow/active/<session>/TODO_LIST.md"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 10,
++    "time_budget_seconds": 0,
++    "must_not": [
++      "Do not label pointers as Existing unless verifiable in the repo now.",
++      "Do not describe Planned work as validated/exists.",
++      "Do not perform destructive git operations (reset/revert) without explicit user request/opt-in.",
++      "Stop the iteration loop once pass rate >= 95% (criticality-aware) or max iterations is reached."
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "Frontmatter: name/description/argument-hint/allowed-tools/group present and correct",
++      "Core sections present (Overview, Usage, Inputs, Outputs/Artifacts, Execution Process, Error Handling, Examples)",
++      "Evidence tables pass verify-evidence.js (dual-source docs + ts; no false Existing claims)",
++      "Resume flag behavior documented (load session state and continue without rediscovery)",
++      "Max-iterations documented with default (10) and hard stop behavior"
++    ]
++  }
++}
++
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md' in C:\Project\Claude-Code-Workflow succeeded in 342ms:
+OK: evidence verification passed
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..fab41762bdfb433ae73bedf6663037b1692a3569
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md
+@@ -0,0 +1,16 @@
++# Fix Plan: workflow:test-cycle-execute
++
++## P0 (Must)
++
++1. [docs] Replace broad git staging examples (avoid `git add .`); document staging of only files produced by the iteration, and require explicit opt-in before any commit/revert automation.
++2. [docs] Ensure all implementation pointer tables use only verifiable Existing rows; downgrade uncertain pointers to Planned and add concrete `Test-Path`/`rg` verify steps.
++
++## P1 (Should)
++
++3. [docs] Add a short "artifact routing" note that aligns file paths with session-manager content types (`task`, `process`, `todo`) to avoid divergence.
++4. [docs] Clarify resume requirements: which files must exist and which are optional (and how to initialize safely when missing).
++
++## P2 (Optional)
++
++5. [docs] Add cross-links to related commands for the upstream task generation and downstream execution flow.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..12c1117a922879d5b302bbe4bbbee7fa13e4bcd8
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md
+@@ -0,0 +1,43 @@
++# Gap Report: workflow:test-cycle-execute
++
++## Reference
++
++- Selected reference: /workflow:test-cycle-execute (`.claude/commands/workflow/test-cycle-execute.md`)
++
++## P0 Gaps (Must Fix)
++
++- Git safety in commit strategy: the reference describes broad staging (`git add .`). Align with repo git safety rules by staging only files produced by the iteration (or require explicit opt-in before any commit/revert behavior).
++- Evidence-based pointers: ensure any "Existing" pointer in the command doc (and any derivative outline) is verifiable and has dual-source evidence (docs + TS).
++
++## P1 Gaps (Should Fix)
++
++- Artifact-to-tool mapping clarity: make explicit which files are managed via session-manager routing (task/process/todo) so the workflow stays consistent with CCW tooling.
++- Resume semantics: document exactly which files are required vs optional on resume (e.g., missing iteration-state.json should initialize safely).
++
++## P2 Gaps (Optional)
++
++- Cross-links: add links to upstream/downstream workflow commands (e.g., `/workflow:test-fix-gen`, `/workflow:tools:test-task-generate`, `/workflow:execute`) to reduce user confusion.
++- Progressive testing explanation: clarify when affected-tests are used vs full suite.
++
++## Implementation Pointers (Evidence)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/workflow/test-cycle-execute.md` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Workflow Test-Cycle-Execute Command` ; ts: `ccw/src/tools/command-registry.ts` / `const relativePath = join('.claude', 'commands', 'workflow')` | `Test-Path .claude/commands/workflow/test-cycle-execute.md` | Command doc target (oracle) |
++| `ccw/src/tools/command-registry.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Reference` ; ts: `ccw/src/tools/command-registry.ts` / `export class CommandRegistry {` | `Test-Path ccw/src/tools/command-registry.ts; rg \"export class CommandRegistry\" ccw/src/tools/command-registry.ts` | Verifies how command docs are discovered/parsed |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Session File Structure` ; ts: `ccw/src/tools/session-manager.ts` / `const ACTIVE_BASE = '.workflow/active'` | `Test-Path ccw/src/tools/session-manager.ts; rg \"const ACTIVE_BASE = '\\.workflow/active'\" ccw/src/tools/session-manager.ts` | Verifies session layout + artifact routing |
++| `ccw/src/tools/cli-executor-core.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `CLI Tool Configuration` ; ts: `ccw/src/tools/cli-executor-core.ts` / `Supports Gemini, Qwen, and Codex with streaming output` | `Test-Path ccw/src/tools/cli-executor-core.ts; rg \"Supports Gemini, Qwen, and Codex with streaming output\" ccw/src/tools/cli-executor-core.ts` | Verifies the CLI surface for analysis/generation steps |
++| `.workflow/active/<session>/.process/iteration-state.json` | Planned | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Iteration State JSON` ; ts: `ccw/src/tools/session-manager.ts` / `process: '{base}/.process/{filename}'` | `rg \"process: '\\{base\\}/\\.process/\\{filename\\}'\" ccw/src/tools/session-manager.ts` | Runtime state file must be created/updated by the workflow loop |
++
++## Implementation Hints (Tooling/Server)
++
++- Prefer session-manager conventions for all session artifacts:
++  - tasks: `{base}/.task/{task_id}.json`
++  - process files: `{base}/.process/{filename}`
++  - todo: `{base}/TODO_LIST.md`
++- CLI execution and fallback can be grounded on the existing CLI executor tooling (Gemini/Qwen/Codex).
++
++## Proposed Fix Plan (Minimal)
++
++See `fix-plan.md`.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..e881c68286dfe4bae89a25c6fb86b6da955bc222
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,45 @@
++# Agent Outline: workflow:test-cycle-execute
++
++## Purpose
++
++Implement and/or evolve the `/workflow:test-cycle-execute` command doc so it reliably orchestrates an iterative test-and-fix loop (>= 95% pass rate or max iterations) while preserving resume-ability and evidence-based pointers.
++
++## Execution Model
++
++- Iterative loop with explicit stop conditions:
++  - Stop on pass rate >= 95% (criticality-aware) or pass rate === 100%
++  - Stop on max iterations (default: 10; override via `--max-iterations`)
++- Orchestrator boundary:
++  - The slash command doc is the only orchestrator for test failure handling
++  - Delegate analysis/generation to `@cli-planning-agent` via `Task`
++  - Delegate fix execution/testing to `@test-fix-agent` via `Task`
++
++## State & Artifacts
++
++- Session root: `.workflow/active/<session>/`
++- Key files:
++  - Session metadata: `workflow-session.json`
++  - Tasks: `.task/IMPL-*.json` and `.task/IMPL-fix-<N>.json`
++  - Process state: `.process/iteration-state.json`, `.process/test-results.json`, `.process/test-output.log`
++  - Logs: `.process/iteration-<N>-analysis.md`, `.process/iteration-<N>-cli-output.txt`
++  - Tracking: `TODO_LIST.md` (TodoWrite updates)
++
++## Tooling
++
++- Allowed tools (frontmatter): Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)
++- Critical conventions:
++  - Keep changes incremental and testable
++  - Do not touch unrelated repo changes
++  - Do not mark pointers as Existing without verification; downgrade to Planned with verify steps
++
++## Validation Strategy
++
++- P0 gates (must pass):
++  - Frontmatter correctness
++  - Core sections present
++  - Evidence tables pass the deterministic gate:
++    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<md>`
++- Behavioral validation (doc-driven):
++  - Resume path explains how iteration-state/test-results are loaded and continued
++  - Max-iteration behavior explains hard stop and failure-report output
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..42f403fc6a20945449c219671fa7a2c5b518feba
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,99 @@
++---
++name: test-cycle-execute
++description: Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.
++argument-hint: "[--resume-session=\"session-id\"] [--max-iterations=N]"
++allowed-tools: Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)
++group: workflow
++---
++
++# Workflow Test-Cycle-Execute
++
++## Overview
++
++- Goal: Iteratively run tests, analyze failures, generate fix tasks, apply fixes, and re-test until pass rate >= 95% (criticality-aware) or max iterations reached.
++- Command: `/workflow:test-cycle-execute`
++
++## Usage
++
++```bash
++/workflow:test-cycle-execute [--resume-session="session-id"] [--max-iterations=N]
++```
++
++## Inputs
++
++- Required inputs:
++  - An active workflow test session (auto-discovered under `.workflow/active/`) containing initial `IMPL-*.json` tasks.
++- Optional inputs:
++  - `--resume-session="session-id"`: Skip discovery and load the specified session state to continue.
++  - `--max-iterations=N`: Override default max iterations (default: 10).
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/active/<session>/.task/IMPL-fix-<N>.json` (generated fix tasks)
++  - `.workflow/active/<session>/.process/iteration-state.json`
++  - `.workflow/active/<session>/.process/test-results.json`
++  - `.workflow/active/<session>/.process/iteration-<N>-analysis.md`
++  - `.workflow/active/<session>/.process/iteration-<N>-cli-output.txt`
++  - `.workflow/active/<session>/TODO_LIST.md` (TodoWrite updates)
++- Reads:
++  - `.workflow/active/<session>/.task/IMPL-*.json`
++  - `.workflow/active/<session>/.process/iteration-state.json` (resume + trend checks)
++  - `.workflow/active/<session>/.process/test-results.json` (pass rate + criticality)
++
++## Implementation Pointers
++
++- Command doc: `.claude/commands/workflow/test-cycle-execute.md`
++- Likely code locations:
++  - `ccw/src/tools/command-registry.ts` (command doc discovery/metadata)
++  - `ccw/src/tools/session-manager.ts` (session path conventions + file routing)
++  - `ccw/src/tools/cli-executor-core.ts` (Gemini/Qwen/Codex CLI execution + resume)
++
++### Evidence (Existing vs Planned)
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/workflow/test-cycle-execute.md` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Workflow Test-Cycle-Execute Command` ; ts: `ccw/src/tools/command-registry.ts` / `const relativePath = join('.claude', 'commands', 'workflow')` | `Test-Path .claude/commands/workflow/test-cycle-execute.md; rg "name: test-cycle-execute" .claude/commands/workflow/test-cycle-execute.md` | Primary command doc to implement/evolve |
++| `ccw/src/tools/command-registry.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Quick Start` ; ts: `ccw/src/tools/command-registry.ts` / `export class CommandRegistry {` | `Test-Path ccw/src/tools/command-registry.ts; rg "export class CommandRegistry" ccw/src/tools/command-registry.ts` | Registry used to scan/parse command frontmatter |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Session File Structure` ; ts: `ccw/src/tools/session-manager.ts` / `const ACTIVE_BASE = '.workflow/active'` | `Test-Path ccw/src/tools/session-manager.ts; rg \"const ACTIVE_BASE = '\\.workflow/active'\" ccw/src/tools/session-manager.ts` | Canonical location + routing for workflow session artifacts |
++| `ccw/src/tools/cli-executor-core.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `CLI Tool Configuration` ; ts: `ccw/src/tools/cli-executor-core.ts` / `Supports Gemini, Qwen, and Codex with streaming output` | `Test-Path ccw/src/tools/cli-executor-core.ts; rg \"Supports Gemini, Qwen, and Codex with streaming output\" ccw/src/tools/cli-executor-core.ts` | Provides deterministic CLI execution surface for analysis/generation steps |
++| `.workflow/active/<session>/.process/iteration-state.json` | Planned | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Iteration State JSON` ; ts: `ccw/src/tools/session-manager.ts` / `process: '{base}/.process/{filename}'` | `rg \"process: '\\{base\\}/\\.process/\\{filename\\}'\" ccw/src/tools/session-manager.ts` | Runtime state file for resume, trends, and strategy selection |
++
++## Execution Process
++
++1. Discover or resume session
++   - If `--resume-session` present: load that session id, then load `.process/iteration-state.json` (if present) and current task queue.
++   - Else: auto-discover active test session under `.workflow/active/`.
++2. Main loop (until completion or iteration cap)
++   - For each active task:
++     - Run tests (progressive/affected-tests when available; full suite on final validation).
++     - Compute pass rate and assess failure criticality.
++     - If pass rate >= 95% and failures are low criticality: proceed; else enter fix loop.
++3. Fix loop (bounded by max iterations)
++   - Ask `@cli-planning-agent` (via `Task`) to analyze failures and generate `IMPL-fix-<N>.json` (including modification points + affected tests).
++   - Ask `@test-fix-agent` (via `Task`) to apply fixes and rerun tests, writing updated results/state.
++4. Completion
++   - Success: pass rate reaches threshold and tasks complete; write summary notes and close out TodoWrite state.
++   - Failure: max iterations reached without threshold; produce a failure report and stop.
++
++## Error Handling
++
++- Session not found: explain discovery rules and ask for explicit `--resume-session`.
++- Invalid iteration/task JSON: stop and request regeneration (do not proceed with partial/invalid state).
++- CLI execution failure: follow the configured fallback chain; persist logs/artifacts before retry.
++- Test runner failure (non-test errors): capture output, retry once with reduced scope, then stop with actionable message.
++- Safety: do not run destructive git operations (reset/revert) unless explicitly requested/opted-in.
++
++## Examples
++
++```bash
++# Execute test-fix workflow (auto-discovers active session)
++/workflow:test-cycle-execute
++
++# Resume interrupted session
++/workflow:test-cycle-execute --resume-session="WFS-test-user-auth"
++
++# Custom iteration limit (default: 10)
++/workflow:test-cycle-execute --max-iterations=15
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..9908dda216cb521ab90707fd87369cd8f60e8a0e
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json
+@@ -0,0 +1,55 @@
++{
++  "candidates": [
++    {
++      "slash": "/workflow:test-cycle-execute",
++      "file_path": ".claude/commands/workflow/test-cycle-execute.md",
++      "score": 100,
++      "why": [
++        "Exact command match (same group/name/args/allowed-tools).",
++        "Defines session file structure, iteration state, and agent-role split for the loop."
++      ]
++    },
++    {
++      "slash": "/workflow:execute",
++      "file_path": ".claude/commands/workflow/execute.md",
++      "score": 86,
++      "why": [
++        "Same group and execution-oriented interaction model.",
++        "Has resume-session semantics and workflow session discovery patterns."
++      ]
++    },
++    {
++      "slash": "/workflow:test-fix-gen",
++      "file_path": ".claude/commands/workflow/test-fix-gen.md",
++      "score": 80,
++      "why": [
++        "Testing workflow family; upstream of test-cycle execution.",
++        "Uses workflow sessions and produces artifacts consumed by test-cycle execution."
++      ]
++    },
++    {
++      "slash": "/workflow:tools:test-task-generate",
++      "file_path": ".claude/commands/workflow/tools/test-task-generate.md",
++      "score": 72,
++      "why": [
++        "Closest tooling-oriented reference for generating task JSON artifacts in sessions.",
++        "Helps align task naming and file placement with session conventions."
++      ]
++    },
++    {
++      "slash": "/workflow:plan-verify",
++      "file_path": ".claude/commands/workflow/plan-verify.md",
++      "score": 65,
++      "why": [
++        "Provides a multi-phase workflow template and calls /workflow:execute with resume-session.",
++        "Useful for TodoWrite/status tracking conventions."
++      ]
++    }
++  ],
++  "selected": {
++    "slash": "/workflow:test-cycle-execute",
++    "file_path": ".claude/commands/workflow/test-cycle-execute.md",
++    "why": "Highest-confidence reference (exact match) to validate headings, artifacts, and loop semantics."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..82e2c3f0367748587e900231616c0bcdeb6b90e8
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json
+@@ -0,0 +1,54 @@
++{
++  "command": {
++    "group": "workflow",
++    "name": "test-cycle-execute",
++    "description": "Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.",
++    "argument_hint": "[--resume-session=\"session-id\"] [--max-iterations=N]",
++    "allowed_tools": ["Skill(*)", "TodoWrite(*)", "Read(*)", "Bash(*)", "Task(*)"]
++  },
++  "intent": {
++    "type": "execute",
++    "interaction": "loop",
++    "primary_user_value": "Run an iterative test-and-fix cycle that resumes safely, tracks iteration state, and stops when pass rate reaches threshold or max iterations is reached."
++  },
++  "artifacts": {
++    "reads": [
++      ".workflow/active/<session>/workflow-session.json",
++      ".workflow/active/<session>/IMPL_PLAN.md",
++      ".workflow/active/<session>/TODO_LIST.md",
++      ".workflow/active/<session>/.task/IMPL-*.json",
++      ".workflow/active/<session>/.process/iteration-state.json",
++      ".workflow/active/<session>/.process/test-results.json",
++      ".workflow/active/<session>/.process/fix-history.json"
++    ],
++    "writes": [
++      ".workflow/active/<session>/.task/IMPL-fix-<N>.json",
++      ".workflow/active/<session>/.process/iteration-state.json",
++      ".workflow/active/<session>/.process/test-results.json",
++      ".workflow/active/<session>/.process/test-output.log",
++      ".workflow/active/<session>/.process/iteration-<N>-analysis.md",
++      ".workflow/active/<session>/.process/iteration-<N>-cli-output.txt",
++      ".workflow/active/<session>/TODO_LIST.md"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 10,
++    "time_budget_seconds": 0,
++    "must_not": [
++      "Do not label pointers as Existing unless verifiable in the repo now.",
++      "Do not describe Planned work as validated/exists.",
++      "Do not perform destructive git operations (reset/revert) without explicit user request/opt-in.",
++      "Stop the iteration loop once pass rate >= 95% (criticality-aware) or max iterations is reached."
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "Frontmatter: name/description/argument-hint/allowed-tools/group present and correct",
++      "Core sections present (Overview, Usage, Inputs, Outputs/Artifacts, Execution Process, Error Handling, Examples)",
++      "Evidence tables pass verify-evidence.js (dual-source docs + ts; no false Existing claims)",
++      "Resume flag behavior documented (load session state and continue without rediscovery)",
++      "Max-iterations documented with default (10) and hard stop behavior"
++    ]
++  }
++}
++
+
+
+
+thinking
+**Ensuring output quality**
+
+I want to make sure the output files are correct and concise since the user didn't ask for anything additional. It’s important to check if we’ve followed the necessary templates, including sections and evidence tables. The agent outline is based on a template but with some expansion, while the gap report also uses template elements. I wonder if I need to update the plan tool—probably not, but it's good to check that there are no placeholders in evidence rows and that everything matches up correctly!
+thinking
+**Finalizing output details**
+
+I’ve checked the existing pointer and confirmed that it looks like a valid path and the file exists—great! For all pointer rows, we provided dual-source evidence as required. Now, I need to prepare the final response, including file paths and possibly next steps. While referencing other documents isn't necessary, it could be useful to mention that the evidence gate passed. Although the smart_search tool failed due to a transport issue, that's not critical. I’ll keep the formatting minimal and ensure the information is clear for the user.
+codex
+Wrote CMD-056 outliner outputs under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/`:
+
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md`
+
+Evidence gate: `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js` passed for both `gap-report.md` and `generated-slash-outline.md`.
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..fab41762bdfb433ae73bedf6663037b1692a3569
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/fix-plan.md
+@@ -0,0 +1,16 @@
++# Fix Plan: workflow:test-cycle-execute
++
++## P0 (Must)
++
++1. [docs] Replace broad git staging examples (avoid `git add .`); document staging of only files produced by the iteration, and require explicit opt-in before any commit/revert automation.
++2. [docs] Ensure all implementation pointer tables use only verifiable Existing rows; downgrade uncertain pointers to Planned and add concrete `Test-Path`/`rg` verify steps.
++
++## P1 (Should)
++
++3. [docs] Add a short "artifact routing" note that aligns file paths with session-manager content types (`task`, `process`, `todo`) to avoid divergence.
++4. [docs] Clarify resume requirements: which files must exist and which are optional (and how to initialize safely when missing).
++
++## P2 (Optional)
++
++5. [docs] Add cross-links to related commands for the upstream task generation and downstream execution flow.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..12c1117a922879d5b302bbe4bbbee7fa13e4bcd8
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/gap-report.md
+@@ -0,0 +1,43 @@
++# Gap Report: workflow:test-cycle-execute
++
++## Reference
++
++- Selected reference: /workflow:test-cycle-execute (`.claude/commands/workflow/test-cycle-execute.md`)
++
++## P0 Gaps (Must Fix)
++
++- Git safety in commit strategy: the reference describes broad staging (`git add .`). Align with repo git safety rules by staging only files produced by the iteration (or require explicit opt-in before any commit/revert behavior).
++- Evidence-based pointers: ensure any "Existing" pointer in the command doc (and any derivative outline) is verifiable and has dual-source evidence (docs + TS).
++
++## P1 Gaps (Should Fix)
++
++- Artifact-to-tool mapping clarity: make explicit which files are managed via session-manager routing (task/process/todo) so the workflow stays consistent with CCW tooling.
++- Resume semantics: document exactly which files are required vs optional on resume (e.g., missing iteration-state.json should initialize safely).
++
++## P2 Gaps (Optional)
++
++- Cross-links: add links to upstream/downstream workflow commands (e.g., `/workflow:test-fix-gen`, `/workflow:tools:test-task-generate`, `/workflow:execute`) to reduce user confusion.
++- Progressive testing explanation: clarify when affected-tests are used vs full suite.
++
++## Implementation Pointers (Evidence)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/workflow/test-cycle-execute.md` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Workflow Test-Cycle-Execute Command` ; ts: `ccw/src/tools/command-registry.ts` / `const relativePath = join('.claude', 'commands', 'workflow')` | `Test-Path .claude/commands/workflow/test-cycle-execute.md` | Command doc target (oracle) |
++| `ccw/src/tools/command-registry.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Reference` ; ts: `ccw/src/tools/command-registry.ts` / `export class CommandRegistry {` | `Test-Path ccw/src/tools/command-registry.ts; rg \"export class CommandRegistry\" ccw/src/tools/command-registry.ts` | Verifies how command docs are discovered/parsed |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Session File Structure` ; ts: `ccw/src/tools/session-manager.ts` / `const ACTIVE_BASE = '.workflow/active'` | `Test-Path ccw/src/tools/session-manager.ts; rg \"const ACTIVE_BASE = '\\.workflow/active'\" ccw/src/tools/session-manager.ts` | Verifies session layout + artifact routing |
++| `ccw/src/tools/cli-executor-core.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `CLI Tool Configuration` ; ts: `ccw/src/tools/cli-executor-core.ts` / `Supports Gemini, Qwen, and Codex with streaming output` | `Test-Path ccw/src/tools/cli-executor-core.ts; rg \"Supports Gemini, Qwen, and Codex with streaming output\" ccw/src/tools/cli-executor-core.ts` | Verifies the CLI surface for analysis/generation steps |
++| `.workflow/active/<session>/.process/iteration-state.json` | Planned | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Iteration State JSON` ; ts: `ccw/src/tools/session-manager.ts` / `process: '{base}/.process/{filename}'` | `rg \"process: '\\{base\\}/\\.process/\\{filename\\}'\" ccw/src/tools/session-manager.ts` | Runtime state file must be created/updated by the workflow loop |
++
++## Implementation Hints (Tooling/Server)
++
++- Prefer session-manager conventions for all session artifacts:
++  - tasks: `{base}/.task/{task_id}.json`
++  - process files: `{base}/.process/{filename}`
++  - todo: `{base}/TODO_LIST.md`
++- CLI execution and fallback can be grounded on the existing CLI executor tooling (Gemini/Qwen/Codex).
++
++## Proposed Fix Plan (Minimal)
++
++See `fix-plan.md`.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..e881c68286dfe4bae89a25c6fb86b6da955bc222
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,45 @@
++# Agent Outline: workflow:test-cycle-execute
++
++## Purpose
++
++Implement and/or evolve the `/workflow:test-cycle-execute` command doc so it reliably orchestrates an iterative test-and-fix loop (>= 95% pass rate or max iterations) while preserving resume-ability and evidence-based pointers.
++
++## Execution Model
++
++- Iterative loop with explicit stop conditions:
++  - Stop on pass rate >= 95% (criticality-aware) or pass rate === 100%
++  - Stop on max iterations (default: 10; override via `--max-iterations`)
++- Orchestrator boundary:
++  - The slash command doc is the only orchestrator for test failure handling
++  - Delegate analysis/generation to `@cli-planning-agent` via `Task`
++  - Delegate fix execution/testing to `@test-fix-agent` via `Task`
++
++## State & Artifacts
++
++- Session root: `.workflow/active/<session>/`
++- Key files:
++  - Session metadata: `workflow-session.json`
++  - Tasks: `.task/IMPL-*.json` and `.task/IMPL-fix-<N>.json`
++  - Process state: `.process/iteration-state.json`, `.process/test-results.json`, `.process/test-output.log`
++  - Logs: `.process/iteration-<N>-analysis.md`, `.process/iteration-<N>-cli-output.txt`
++  - Tracking: `TODO_LIST.md` (TodoWrite updates)
++
++## Tooling
++
++- Allowed tools (frontmatter): Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)
++- Critical conventions:
++  - Keep changes incremental and testable
++  - Do not touch unrelated repo changes
++  - Do not mark pointers as Existing without verification; downgrade to Planned with verify steps
++
++## Validation Strategy
++
++- P0 gates (must pass):
++  - Frontmatter correctness
++  - Core sections present
++  - Evidence tables pass the deterministic gate:
++    - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<md>`
++- Behavioral validation (doc-driven):
++  - Resume path explains how iteration-state/test-results are loaded and continued
++  - Max-iteration behavior explains hard stop and failure-report output
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..42f403fc6a20945449c219671fa7a2c5b518feba
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,99 @@
++---
++name: test-cycle-execute
++description: Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.
++argument-hint: "[--resume-session=\"session-id\"] [--max-iterations=N]"
++allowed-tools: Skill(*), TodoWrite(*), Read(*), Bash(*), Task(*)
++group: workflow
++---
++
++# Workflow Test-Cycle-Execute
++
++## Overview
++
++- Goal: Iteratively run tests, analyze failures, generate fix tasks, apply fixes, and re-test until pass rate >= 95% (criticality-aware) or max iterations reached.
++- Command: `/workflow:test-cycle-execute`
++
++## Usage
++
++```bash
++/workflow:test-cycle-execute [--resume-session="session-id"] [--max-iterations=N]
++```
++
++## Inputs
++
++- Required inputs:
++  - An active workflow test session (auto-discovered under `.workflow/active/`) containing initial `IMPL-*.json` tasks.
++- Optional inputs:
++  - `--resume-session="session-id"`: Skip discovery and load the specified session state to continue.
++  - `--max-iterations=N`: Override default max iterations (default: 10).
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/active/<session>/.task/IMPL-fix-<N>.json` (generated fix tasks)
++  - `.workflow/active/<session>/.process/iteration-state.json`
++  - `.workflow/active/<session>/.process/test-results.json`
++  - `.workflow/active/<session>/.process/iteration-<N>-analysis.md`
++  - `.workflow/active/<session>/.process/iteration-<N>-cli-output.txt`
++  - `.workflow/active/<session>/TODO_LIST.md` (TodoWrite updates)
++- Reads:
++  - `.workflow/active/<session>/.task/IMPL-*.json`
++  - `.workflow/active/<session>/.process/iteration-state.json` (resume + trend checks)
++  - `.workflow/active/<session>/.process/test-results.json` (pass rate + criticality)
++
++## Implementation Pointers
++
++- Command doc: `.claude/commands/workflow/test-cycle-execute.md`
++- Likely code locations:
++  - `ccw/src/tools/command-registry.ts` (command doc discovery/metadata)
++  - `ccw/src/tools/session-manager.ts` (session path conventions + file routing)
++  - `ccw/src/tools/cli-executor-core.ts` (Gemini/Qwen/Codex CLI execution + resume)
++
++### Evidence (Existing vs Planned)
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/workflow/test-cycle-execute.md` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Workflow Test-Cycle-Execute Command` ; ts: `ccw/src/tools/command-registry.ts` / `const relativePath = join('.claude', 'commands', 'workflow')` | `Test-Path .claude/commands/workflow/test-cycle-execute.md; rg "name: test-cycle-execute" .claude/commands/workflow/test-cycle-execute.md` | Primary command doc to implement/evolve |
++| `ccw/src/tools/command-registry.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Quick Start` ; ts: `ccw/src/tools/command-registry.ts` / `export class CommandRegistry {` | `Test-Path ccw/src/tools/command-registry.ts; rg "export class CommandRegistry" ccw/src/tools/command-registry.ts` | Registry used to scan/parse command frontmatter |
++| `ccw/src/tools/session-manager.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Session File Structure` ; ts: `ccw/src/tools/session-manager.ts` / `const ACTIVE_BASE = '.workflow/active'` | `Test-Path ccw/src/tools/session-manager.ts; rg \"const ACTIVE_BASE = '\\.workflow/active'\" ccw/src/tools/session-manager.ts` | Canonical location + routing for workflow session artifacts |
++| `ccw/src/tools/cli-executor-core.ts` | Existing | docs: `.claude/commands/workflow/test-cycle-execute.md` / `CLI Tool Configuration` ; ts: `ccw/src/tools/cli-executor-core.ts` / `Supports Gemini, Qwen, and Codex with streaming output` | `Test-Path ccw/src/tools/cli-executor-core.ts; rg \"Supports Gemini, Qwen, and Codex with streaming output\" ccw/src/tools/cli-executor-core.ts` | Provides deterministic CLI execution surface for analysis/generation steps |
++| `.workflow/active/<session>/.process/iteration-state.json` | Planned | docs: `.claude/commands/workflow/test-cycle-execute.md` / `Iteration State JSON` ; ts: `ccw/src/tools/session-manager.ts` / `process: '{base}/.process/{filename}'` | `rg \"process: '\\{base\\}/\\.process/\\{filename\\}'\" ccw/src/tools/session-manager.ts` | Runtime state file for resume, trends, and strategy selection |
++
++## Execution Process
++
++1. Discover or resume session
++   - If `--resume-session` present: load that session id, then load `.process/iteration-state.json` (if present) and current task queue.
++   - Else: auto-discover active test session under `.workflow/active/`.
++2. Main loop (until completion or iteration cap)
++   - For each active task:
++     - Run tests (progressive/affected-tests when available; full suite on final validation).
++     - Compute pass rate and assess failure criticality.
++     - If pass rate >= 95% and failures are low criticality: proceed; else enter fix loop.
++3. Fix loop (bounded by max iterations)
++   - Ask `@cli-planning-agent` (via `Task`) to analyze failures and generate `IMPL-fix-<N>.json` (including modification points + affected tests).
++   - Ask `@test-fix-agent` (via `Task`) to apply fixes and rerun tests, writing updated results/state.
++4. Completion
++   - Success: pass rate reaches threshold and tasks complete; write summary notes and close out TodoWrite state.
++   - Failure: max iterations reached without threshold; produce a failure report and stop.
++
++## Error Handling
++
++- Session not found: explain discovery rules and ask for explicit `--resume-session`.
++- Invalid iteration/task JSON: stop and request regeneration (do not proceed with partial/invalid state).
++- CLI execution failure: follow the configured fallback chain; persist logs/artifacts before retry.
++- Test runner failure (non-test errors): capture output, retry once with reduced scope, then stop with actionable message.
++- Safety: do not run destructive git operations (reset/revert) unless explicitly requested/opted-in.
++
++## Examples
++
++```bash
++# Execute test-fix workflow (auto-discovers active session)
++/workflow:test-cycle-execute
++
++# Resume interrupted session
++/workflow:test-cycle-execute --resume-session="WFS-test-user-auth"
++
++# Custom iteration limit (default: 10)
++/workflow:test-cycle-execute --max-iterations=15
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..9908dda216cb521ab90707fd87369cd8f60e8a0e
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/references.json
+@@ -0,0 +1,55 @@
++{
++  "candidates": [
++    {
++      "slash": "/workflow:test-cycle-execute",
++      "file_path": ".claude/commands/workflow/test-cycle-execute.md",
++      "score": 100,
++      "why": [
++        "Exact command match (same group/name/args/allowed-tools).",
++        "Defines session file structure, iteration state, and agent-role split for the loop."
++      ]
++    },
++    {
++      "slash": "/workflow:execute",
++      "file_path": ".claude/commands/workflow/execute.md",
++      "score": 86,
++      "why": [
++        "Same group and execution-oriented interaction model.",
++        "Has resume-session semantics and workflow session discovery patterns."
++      ]
++    },
++    {
++      "slash": "/workflow:test-fix-gen",
++      "file_path": ".claude/commands/workflow/test-fix-gen.md",
++      "score": 80,
++      "why": [
++        "Testing workflow family; upstream of test-cycle execution.",
++        "Uses workflow sessions and produces artifacts consumed by test-cycle execution."
++      ]
++    },
++    {
++      "slash": "/workflow:tools:test-task-generate",
++      "file_path": ".claude/commands/workflow/tools/test-task-generate.md",
++      "score": 72,
++      "why": [
++        "Closest tooling-oriented reference for generating task JSON artifacts in sessions.",
++        "Helps align task naming and file placement with session conventions."
++      ]
++    },
++    {
++      "slash": "/workflow:plan-verify",
++      "file_path": ".claude/commands/workflow/plan-verify.md",
++      "score": 65,
++      "why": [
++        "Provides a multi-phase workflow template and calls /workflow:execute with resume-session.",
++        "Useful for TodoWrite/status tracking conventions."
++      ]
++    }
++  ],
++  "selected": {
++    "slash": "/workflow:test-cycle-execute",
++    "file_path": ".claude/commands/workflow/test-cycle-execute.md",
++    "why": "Highest-confidence reference (exact match) to validate headings, artifacts, and loop semantics."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..82e2c3f0367748587e900231616c0bcdeb6b90e8
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-056/specs/outputs/spec.json
+@@ -0,0 +1,54 @@
++{
++  "command": {
++    "group": "workflow",
++    "name": "test-cycle-execute",
++    "description": "Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.",
++    "argument_hint": "[--resume-session=\"session-id\"] [--max-iterations=N]",
++    "allowed_tools": ["Skill(*)", "TodoWrite(*)", "Read(*)", "Bash(*)", "Task(*)"]
++  },
++  "intent": {
++    "type": "execute",
++    "interaction": "loop",
++    "primary_user_value": "Run an iterative test-and-fix cycle that resumes safely, tracks iteration state, and stops when pass rate reaches threshold or max iterations is reached."
++  },
++  "artifacts": {
++    "reads": [
++      ".workflow/active/<session>/workflow-session.json",
++      ".workflow/active/<session>/IMPL_PLAN.md",
++      ".workflow/active/<session>/TODO_LIST.md",
++      ".workflow/active/<session>/.task/IMPL-*.json",
++      ".workflow/active/<session>/.process/iteration-state.json",
++      ".workflow/active/<session>/.process/test-results.json",
++      ".workflow/active/<session>/.process/fix-history.json"
++    ],
++    "writes": [
++      ".workflow/active/<session>/.task/IMPL-fix-<N>.json",
++      ".workflow/active/<session>/.process/iteration-state.json",
++      ".workflow/active/<session>/.process/test-results.json",
++      ".workflow/active/<session>/.process/test-output.log",
++      ".workflow/active/<session>/.process/iteration-<N>-analysis.md",
++      ".workflow/active/<session>/.process/iteration-<N>-cli-output.txt",
++      ".workflow/active/<session>/TODO_LIST.md"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 10,
++    "time_budget_seconds": 0,
++    "must_not": [
++      "Do not label pointers as Existing unless verifiable in the repo now.",
++      "Do not describe Planned work as validated/exists.",
++      "Do not perform destructive git operations (reset/revert) without explicit user request/opt-in.",
++      "Stop the iteration loop once pass rate >= 95% (criticality-aware) or max iterations is reached."
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "Frontmatter: name/description/argument-hint/allowed-tools/group present and correct",
++      "Core sections present (Overview, Usage, Inputs, Outputs/Artifacts, Execution Process, Error Handling, Examples)",
++      "Evidence tables pass verify-evidence.js (dual-source docs + ts; no false Existing claims)",
++      "Resume flag behavior documented (load session state and continue without rediscovery)",
++      "Max-iterations documented with default (10) and hard stop behavior"
++    ]
++  }
++}
++
+
+tokens used
+164,301

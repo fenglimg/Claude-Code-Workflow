@@ -1,0 +1,53 @@
+{
+  "command": {
+    "group": "memory",
+    "name": "tips",
+    "title": "Memory Tips Command",
+    "description": "Quick note-taking command to capture ideas, snippets, reminders, and insights for later reference",
+    "argument_hint": "<note content> [--tag <tag1,tag2>] [--context <context>]",
+    "allowed_tools": ["mcp__ccw-tools__core_memory(*)", "Read(*)"],
+    "usage_args": "\"<note content>\" [--tag <tag1,tag2>] [--context <context>]"
+  },
+  "intent": {
+    "type": "utility",
+    "interaction": "single-shot",
+    "primary_user_value": "Capture a small, searchable note as structured text in core memory so it can be retrieved later by keyword/tag/context"
+  },
+  "inputs": {
+    "required": ["note content (string)"],
+    "optional": ["--tag <comma-separated tags>", "--context <context string>"]
+  },
+  "artifacts": {
+    "reads": ["Current conversation context (implicit)", "Project root (workspace)"],
+    "writes": ["Core memory entry via mcp__ccw-tools__core_memory(operation=\"import\")"]
+  },
+  "output_format": {
+    "sections": [
+      "Tip ID",
+      "Timestamp",
+      "Project Root",
+      "Content",
+      "Tags",
+      "Context",
+      "Session Link",
+      "Auto-Detected Context"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not claim pointers are Existing unless verifiable in the repo now",
+      "Do not require tools beyond mcp__ccw-tools__core_memory(*) and Read(*)",
+      "Do not leak or paste full oracle command doc content into generated spec"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Slash outline frontmatter includes name/description/allowed-tools/group",
+      "Core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
+      "Evidence tables include docs + TS anchors and pass verify-evidence.js"
+    ]
+  }
+}
+

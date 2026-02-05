@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-02-05T06:15:37.266Z",
+  "command": {
+    "slash": "/workflow:review-cycle-fix",
+    "group": "workflow",
+    "name": "review-cycle-fix"
+  },
+  "candidates": [
+    {
+      "slash": "/workflow:test-cycle-execute",
+      "file_path": ".claude/commands/workflow/test-cycle-execute.md",
+      "score": 95,
+      "why": "Closest orchestrator: multi-phase loop, explicit orchestrator boundary, agent roles, session artifacts, parallel planning via @cli-planning-agent, conservative verification."
+    },
+    {
+      "slash": "/workflow:review-module-cycle",
+      "file_path": ".claude/commands/workflow/review-module-cycle.md",
+      "score": 90,
+      "why": "Review-cycle family with parallel sub-agents + aggregation and structured TodoWrite progress tracking (similar to Phase 1.5+2+3 coordination)."
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 85,
+      "why": "General workflow orchestrator with resume, execution models (parallel/serial/phased), TodoWrite coordination, and error recovery patterns."
+    },
+    {
+      "slash": "/workflow:test-fix-gen",
+      "file_path": ".claude/commands/workflow/test-fix-gen.md",
+      "score": 75,
+      "why": "Produces fix-related artifacts and integrates with testing/fix workflows; useful for artifact naming and conservative verification conventions."
+    },
+    {
+      "slash": "/workflow:review-session-cycle",
+      "file_path": ".claude/commands/workflow/review-session-cycle.md",
+      "score": 70,
+      "why": "Adjacent command chain; references /workflow:review-cycle-fix as the automated fixing step after review findings export."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:test-cycle-execute",
+    "file_path": ".claude/commands/workflow/test-cycle-execute.md",
+    "reason": "Max overlap in execution model (parallel planning + stage-based execution), artifacts (session folder + per-unit outputs), and agent/tool surface."
+  }
+}
+

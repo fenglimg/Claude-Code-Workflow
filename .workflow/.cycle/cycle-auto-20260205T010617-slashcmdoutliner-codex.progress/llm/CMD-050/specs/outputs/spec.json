@@ -1,0 +1,39 @@
+{
+  "command": {
+    "group": "workflow:session",
+    "name": "list",
+    "description": "List workflow sessions with status/progress metadata from .workflow storage.",
+    "argument_hint": "",
+    "allowed_tools": ["Bash(*)"]
+  },
+  "intent": {
+    "type": "utility",
+    "interaction": "single-shot",
+    "primary_user_value": "See all workflow sessions (active/archived) with key metadata and quick progress counts."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/WFS-*/workflow-session.json",
+      ".workflow/archives/WFS-*/workflow-session.json",
+      ".workflow/active/WFS-*/.task/*.json",
+      ".workflow/active/WFS-*/.summaries/*.md"
+    ],
+    "writes": []
+  },
+  "constraints": {
+    "max_rounds": 1,
+    "time_budget_seconds": 60,
+    "must_not": [
+      "no destructive operations (rm/mv) in this command",
+      "no writes to .workflow/* session state",
+      "no unverifiable Existing pointers (use Planned + Verify when unsure)"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter includes name/description/allowed-tools",
+      "core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
+      "evidence tables pass verify-evidence.js (dual-source docs + TS anchors)"
+    ]
+  }
+}

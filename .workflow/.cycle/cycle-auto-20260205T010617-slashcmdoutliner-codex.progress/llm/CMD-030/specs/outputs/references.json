@@ -1,0 +1,55 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:brainstorm:role-analysis",
+      "file_path": ".claude/commands/workflow/brainstorm/role-analysis.md",
+      "score": 100,
+      "why": [
+        "Exact target command (oracle).",
+        "Matches flags, phases, artifacts, and allowed-tools surface."
+      ]
+    },
+    {
+      "slash": "/workflow:brainstorm:artifacts",
+      "file_path": ".claude/commands/workflow/brainstorm/artifacts.md",
+      "score": 92,
+      "why": [
+        "Same workflow family (brainstorm).",
+        "Interactive AskUserQuestion phases + session/artifact layout under .workflow/active/*/.brainstorming/."
+      ]
+    },
+    {
+      "slash": "/workflow:brainstorm:synthesis",
+      "file_path": ".claude/commands/workflow/brainstorm/synthesis.md",
+      "score": 88,
+      "why": [
+        "Same workflow family (brainstorm).",
+        "Uses conceptual-planning-agent + incremental updates to existing docs."
+      ]
+    },
+    {
+      "slash": "/workflow:brainstorm:auto-parallel",
+      "file_path": ".claude/commands/workflow/brainstorm/auto-parallel.md",
+      "score": 84,
+      "why": [
+        "Coordinator pattern for multi-role brainstorming.",
+        "Shows how role-analysis is invoked as a sub-skill for each selected role."
+      ]
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 70,
+      "why": [
+        "Reusable session detection/selection and validation conventions.",
+        "General-purpose TodoWrite coordination patterns."
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:brainstorm:role-analysis",
+    "file_path": ".claude/commands/workflow/brainstorm/role-analysis.md",
+    "why": "Oracle for the exact target command; use for structure/flags/artifacts and for gap analysis."
+  }
+}
+

@@ -1,0 +1,47 @@
+{
+  "scoring_rubric": {
+    "same_group": 0.4,
+    "similar_artifacts": 0.3,
+    "similar_interaction_model": 0.2,
+    "similar_tool_surface": 0.1
+  },
+  "candidates": [
+    {
+      "slash": "/workflow:init",
+      "file_path": ".claude/commands/workflow/init.md",
+      "score": 1,
+      "why": "Exact command oracle; defines artifacts (.workflow/project-tech.json + project-guidelines.json) and the cli-explore-agent delegation flow."
+    },
+    {
+      "slash": "/workflow:init-guidelines",
+      "file_path": ".claude/commands/workflow/init-guidelines.md",
+      "score": 0.85,
+      "why": "Directly coupled follow-up wizard; shares project-guidelines.json artifact and interactive AskUserQuestion-driven flow."
+    },
+    {
+      "slash": "/workflow:multi-cli-plan",
+      "file_path": ".claude/commands/workflow/multi-cli-plan.md",
+      "score": 0.62,
+      "why": "Workflow command with structured analysis + Task delegation patterns and explicit artifact handling under .workflow/."
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 0.5,
+      "why": "Workflow group baseline for CCW-style command structure and safety constraints."
+    },
+    {
+      "slash": "/workflow:plan-verify",
+      "file_path": ".claude/commands/workflow/plan-verify.md",
+      "score": 0.4,
+      "why": "Validation-style workflow command with explicit artifact checks and error handling patterns."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:init",
+    "file_path": ".claude/commands/workflow/init.md",
+    "score": 1,
+    "why": "Use the exact oracle as the primary reference; additional candidates provide style and validation patterns."
+  }
+}
+

@@ -1,0 +1,46 @@
+{
+  "command": {
+    "group": "memory",
+    "name": "docs-related-cli",
+    "description": "Generate/update documentation for git-changed modules using CLI execution with batched agents (4 modules/agent) and gemini->qwen->codex fallback, <15 modules uses direct parallel",
+    "argument_hint": "[--tool <gemini|qwen|codex>]",
+    "allowed_tools": [
+      "Bash(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Write(*)",
+      "Task(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "single-shot",
+    "primary_user_value": "Generate/update docs for only git-changed modules (and parent contexts) using CLI execution with batching and tool fallback."
+  },
+  "artifacts": {
+    "reads": [
+      "git diff (changed files)",
+      "repo source files for affected modules"
+    ],
+    "writes": [
+      ".workflow/docs/<project_name>/**"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 2,
+    "time_budget_seconds": 1800,
+    "must_not": [
+      "no execution without explicit user confirmation",
+      "no destructive operations unless explicitly requested",
+      "do not modify unrelated modules"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name/description/allowed-tools/group)",
+      "core sections present (Overview/Usage/Execution Process/Outputs/Error Handling)",
+      "evidence tables pass verify-evidence gate"
+    ]
+  }
+}
+

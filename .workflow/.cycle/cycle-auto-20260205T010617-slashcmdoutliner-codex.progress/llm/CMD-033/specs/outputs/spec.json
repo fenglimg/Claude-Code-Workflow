@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-033.requirements.md",
+  "oracle_command_doc": ".claude/commands/workflow/collaborative-plan-with-file.md",
+  "created_at": "2026-02-05T11:59:43.8480953+08:00",
+  "command": {
+    "group": "workflow",
+    "name": "collaborative-plan-with-file",
+    "description": "Collaborative planning with Plan Note - Understanding agent creates shared plan-note.md template, parallel agents fill pre-allocated sections, conflict detection without merge. Outputs executable plan-note.md.",
+    "argument_hint": "[-y|--yes] <task description> [--max-agents=5]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Bash(*)",
+      "Write(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "mcp__ace-tool__search_context(*)"
+    ]
+  },
+  "intent": {
+    "type": "plan",
+    "interaction": "iterative",
+    "primary_user_value": "Create a shared plan-note.md with pre-allocated sections, have parallel sub-agents fill in plans, detect conflicts without merges, and output an executable plan-note.md plus plan.md."
+  },
+  "inputs": {
+    "required": [
+      "task description (string)"
+    ],
+    "optional": [
+      "-y|--yes (auto mode)",
+      "--max-agents=N (default 5)"
+    ]
+  },
+  "artifacts": {
+    "reads": [
+      "repo docs (README/design docs/architecture guides)",
+      ".workflow/.planning/{session-id}/requirement-analysis.json",
+      ".workflow/.planning/{session-id}/plan-note.md"
+    ],
+    "writes": [
+      ".workflow/.planning/{session-id}/plan-note.md",
+      ".workflow/.planning/{session-id}/requirement-analysis.json",
+      ".workflow/.planning/{session-id}/agents/{focus-area}/planning-context.md",
+      ".workflow/.planning/{session-id}/agents/{focus-area}/plan.json",
+      ".workflow/.planning/{session-id}/conflicts.json",
+      ".workflow/.planning/{session-id}/plan.md"
+    ]
+  },
+  "constraints": {
+    "defaults": {
+      "max_agents": 5,
+      "auto_mode_flag": "-y|--yes"
+    },
+    "must_not": [
+      "claim files exist unless verified",
+      "merge agent outputs; agents must write only to pre-allocated sections",
+      "overlap TASK ID ranges across agents"
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "frontmatter valid (name/description/allowed-tools)",
+      "core sections present (Overview/Usage/Execution Process/Outputs/Error Handling)",
+      "artifact paths are consistent under .workflow/.planning/{session-id}",
+      "implementation pointers labeled Existing vs Planned with dual-source evidence"
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      { "level": 2, "text": "Auto Mode" },
+      { "level": 1, "text": "Collaborative Planning Command" },
+      { "level": 2, "text": "Quick Start" },
+      { "level": 1, "text": "Basic usage" },
+      { "level": 1, "text": "With options" },
+      { "level": 2, "text": "Output Artifacts" },
+      { "level": 3, "text": "Phase 1: Understanding Agent" },
+      { "level": 3, "text": "Phase 2: Per Sub-Agent" },
+      { "level": 3, "text": "Phase 3: Final Output" },
+      { "level": 2, "text": "Overview" },
+      { "level": 2, "text": "Output Structure" },
+      { "level": 2, "text": "Implementation" },
+      { "level": 3, "text": "Session Initialization" },
+      { "level": 3, "text": "Phase 1: Understanding & Template Creation" },
+      { "level": 2, "text": "Mission: Create Plan Note Template" },
+      { "level": 3, "text": "Key Guidelines" },
+      { "level": 3, "text": "Input Requirements" },
+      { "level": 3, "text": "Tasks" },
+      { "level": 3, "text": "Output Files" },
+      { "level": 3, "text": "Success Criteria" },
+      { "level": 3, "text": "Phase 2: Parallel Sub-Agent Execution" },
+      { "level": 2, "text": "Sub-Agent Context" },
+      { "level": 2, "text": "Dual Output Tasks" },
+      { "level": 3, "text": "Task 1: Generate Complete plan.json" },
+      { "level": 3, "text": "Task 2: Sync Summary to plan-note.md" },
+      { "level": 2, "text": "Execution Steps" },
+      { "level": 2, "text": "Important" },
+      { "level": 3, "text": "Phase 3: Conflict Detection" },
+      { "level": 3, "text": "Phase 4: Completion" },
+      { "level": 2, "text": "Configuration" },
+      { "level": 2, "text": "Error Handling" },
+      { "level": 2, "text": "Best Practices" }
+    ]
+  }
+}
+

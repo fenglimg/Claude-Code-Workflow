@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0.0",
+  "derived_from": ".claude/commands/workflow/ui-design/animation-extract.md",
+  "command": {
+    "group": "workflow",
+    "name": "animation-extract",
+    "description": "Extract animation and transition patterns from prompt inference and image references for design system documentation",
+    "argument_hint": "[-y|--yes] [--design-id <id>] [--session <id>] [--images \"<glob>\"] [--focus \"<types>\"] [--interactive] [--refine]",
+    "usage_args": "[-y|--yes] [--design-id <id>] [--session <id>] [--images \"<glob>\"] [--focus \"<types>\"] [--interactive] [--refine]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Read(*)",
+      "Write(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "AskUserQuestion(*)",
+      "Task(ui-design-agent)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "iterative",
+    "primary_user_value": "Extract a consistent motion system (durations, easings, transitions, interaction animations) and output animation tokens ready for design system documentation."
+  },
+  "inputs": {
+    "required": [
+      "Base path (resolved via --design-id, --session, or auto-detect from current workspace)"
+    ],
+    "optional": [
+      "--images \"<glob>\" (visual references)",
+      "--focus \"<types>\" (scope filter, e.g. all/transitions/timing/easing/interactions)",
+      "--interactive (user confirms/chooses options)",
+      "--refine (update an existing animation-tokens.json)",
+      "-y|--yes (auto mode; skip clarifying questions)"
+    ]
+  },
+  "artifacts": {
+    "reads": [
+      "{base_path}/.intermediates/animation-analysis/image-references.json (if --images and prepared)",
+      "{base_path}/style-extraction/style-1/design-tokens.json (optional; duration/easing alignment)",
+      "{base_path}/.intermediates/animation-analysis/analysis-options.json (if --interactive and explore mode)",
+      "{base_path}/.intermediates/animation-analysis/refinement-options.json (if --interactive and refine mode)",
+      "{base_path}/animation-extraction/animation-tokens.json (refine mode input)"
+    ],
+    "writes": [
+      "{base_path}/.intermediates/animation-analysis/image-references.json",
+      "{base_path}/.intermediates/animation-analysis/analysis-options.json",
+      "{base_path}/.intermediates/animation-analysis/refinement-options.json",
+      "{base_path}/animation-extraction/animation-tokens.json"
+    ]
+  },
+  "constraints": {
+    "must_not": [
+      "Do not overwrite {base_path}/animation-extraction/animation-tokens.json unless explicitly in refine mode or user confirms in interactive mode.",
+      "Do not require images; support prompt-only mode when --images is absent or empty."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter aligned (name/description/argument-hint/allowed-tools/group).",
+      "Creates/updates {base_path}/animation-extraction/animation-tokens.json with durations/easings and per-animation specs.",
+      "In explore mode, writes {base_path}/.intermediates/animation-analysis/analysis-options.json; in refine mode, writes refinement-options.json.",
+      "If --interactive, persists a user_selection into the options JSON and uses it for token generation.",
+      "Verifies output file existence and basic JSON sanity (at minimum: readable JSON and expected top-level keys)."
+    ]
+  },
+  "structure_hints": {
+    "headings": [
+      { "level": 2, "text": "Auto Mode" },
+      { "level": 1, "text": "Animation Extraction Command" },
+      { "level": 2, "text": "Overview" },
+      { "level": 2, "text": "Execution Process" },
+      { "level": 2, "text": "Phase 0: Setup & Input Validation" },
+      { "level": 2, "text": "Phase 1: Animation Specification Generation" },
+      { "level": 2, "text": "Phase 1.5: User Confirmation (Optional - Triggered by --interactive)" },
+      { "level": 2, "text": "Phase 2: Animation System Generation (Agent Task 2)" },
+      { "level": 2, "text": "Phase 3: Verify Output" },
+      { "level": 2, "text": "Output Structure" },
+      { "level": 2, "text": "animation-tokens.json Format" },
+      { "level": 2, "text": "Error Handling" }
+    ]
+  }
+}
+

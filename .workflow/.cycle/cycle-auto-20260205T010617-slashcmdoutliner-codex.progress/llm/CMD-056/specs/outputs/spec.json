@@ -1,0 +1,54 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "test-cycle-execute",
+    "description": "Execute test-fix workflow with dynamic task generation and iterative fix cycles until test pass rate >= 95% or max iterations reached. Uses @cli-planning-agent for failure analysis and task generation.",
+    "argument_hint": "[--resume-session=\"session-id\"] [--max-iterations=N]",
+    "allowed_tools": ["Skill(*)", "TodoWrite(*)", "Read(*)", "Bash(*)", "Task(*)"]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "loop",
+    "primary_user_value": "Run an iterative test-and-fix cycle that resumes safely, tracks iteration state, and stops when pass rate reaches threshold or max iterations is reached."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/active/<session>/workflow-session.json",
+      ".workflow/active/<session>/IMPL_PLAN.md",
+      ".workflow/active/<session>/TODO_LIST.md",
+      ".workflow/active/<session>/.task/IMPL-*.json",
+      ".workflow/active/<session>/.process/iteration-state.json",
+      ".workflow/active/<session>/.process/test-results.json",
+      ".workflow/active/<session>/.process/fix-history.json"
+    ],
+    "writes": [
+      ".workflow/active/<session>/.task/IMPL-fix-<N>.json",
+      ".workflow/active/<session>/.process/iteration-state.json",
+      ".workflow/active/<session>/.process/test-results.json",
+      ".workflow/active/<session>/.process/test-output.log",
+      ".workflow/active/<session>/.process/iteration-<N>-analysis.md",
+      ".workflow/active/<session>/.process/iteration-<N>-cli-output.txt",
+      ".workflow/active/<session>/TODO_LIST.md"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 10,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not label pointers as Existing unless verifiable in the repo now.",
+      "Do not describe Planned work as validated/exists.",
+      "Do not perform destructive git operations (reset/revert) without explicit user request/opt-in.",
+      "Stop the iteration loop once pass rate >= 95% (criticality-aware) or max iterations is reached."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter: name/description/argument-hint/allowed-tools/group present and correct",
+      "Core sections present (Overview, Usage, Inputs, Outputs/Artifacts, Execution Process, Error Handling, Examples)",
+      "Evidence tables pass verify-evidence.js (dual-source docs + ts; no false Existing claims)",
+      "Resume flag behavior documented (load session state and continue without rediscovery)",
+      "Max-iterations documented with default (10) and hard stop behavior"
+    ]
+  }
+}
+

@@ -1,0 +1,41 @@
+{
+  "command": "/workflow:clean",
+  "candidates": [
+    {
+      "slash": "/workflow:clean",
+      "file_path": ".claude/commands/workflow/clean.md",
+      "score": 1.0,
+      "why": "Oracle for CMD-032; exact identity, phases, artifacts, and tool surface."
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 0.72,
+      "why": "Shows CCW frontmatter conventions (group/allowed-tools) and multi-phase execution + confirmations."
+    },
+    {
+      "slash": "/workflow:review-session-cycle",
+      "file_path": ".claude/commands/workflow/review-session-cycle.md",
+      "score": 0.66,
+      "why": "Session-oriented workflow patterns; likely overlaps with session hygiene and reporting structure."
+    },
+    {
+      "slash": "/workflow:debug-with-file",
+      "file_path": ".claude/commands/workflow/debug-with-file.md",
+      "score": 0.58,
+      "why": "File-focused discovery + safe iteration patterns; useful for drifted-document discovery sections."
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 0.55,
+      "why": "Execution + confirmation conventions; useful for --dry-run vs execute separation."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:clean",
+    "file_path": ".claude/commands/workflow/clean.md",
+    "why": "Use the oracle command doc as the primary reference; expand/normalize outline without leaking full content into spec."
+  }
+}
+

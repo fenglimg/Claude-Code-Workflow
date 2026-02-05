@@ -1,0 +1,56 @@
+{
+  "candidates": [
+    {
+      "slash": "/workflow:replan",
+      "file_path": ".claude/commands/workflow/replan.md",
+      "score": 100,
+      "why": [
+        "Target command doc (oracle) with the exact modes/phases to mirror",
+        "Defines backup + rollback expectations for session artifacts"
+      ]
+    },
+    {
+      "slash": "/workflow:plan",
+      "file_path": ".claude/commands/workflow/plan.md",
+      "score": 78,
+      "why": [
+        "Same workflow session artifact surface (.workflow/active/*)",
+        "Similar multi-phase, interactive planning structure"
+      ]
+    },
+    {
+      "slash": "/workflow:plan-verify",
+      "file_path": ".claude/commands/workflow/plan-verify.md",
+      "score": 74,
+      "why": [
+        "Shares verification and safety gates expectations",
+        "Aligns with task/session consistency checks"
+      ]
+    },
+    {
+      "slash": "/workflow:execute",
+      "file_path": ".claude/commands/workflow/execute.md",
+      "score": 63,
+      "why": [
+        "Uses the same session/task artifact model",
+        "Provides patterns for summarizing changes and outputs"
+      ]
+    },
+    {
+      "slash": "/workflow:review-session-cycle",
+      "file_path": ".claude/commands/workflow/review-session-cycle.md",
+      "score": 58,
+      "why": [
+        "Session-scoped iteration patterns and lifecycle reporting",
+        "Similar expectation for concise progress output"
+      ]
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:replan",
+    "file_path": ".claude/commands/workflow/replan.md",
+    "score": 100,
+    "why": "Use the existing replan command doc as the oracle reference while keeping the generated spec non-leaky and minimal."
+  }
+}
+

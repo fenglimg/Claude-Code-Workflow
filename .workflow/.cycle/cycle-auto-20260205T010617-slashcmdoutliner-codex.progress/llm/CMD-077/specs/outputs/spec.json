@@ -1,0 +1,55 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "unified-execute-with-file",
+    "description": "Universal execution engine for consuming any planning/brainstorm/analysis output with minimal progress tracking, multi-agent coordination, and incremental execution",
+    "argument_hint": "[-y|--yes] [<path>[,<path2>] | -p|--plan <path>[,<path2>]] [--auto-commit] [--commit-prefix \"prefix\"] [\"execution context or task name\"]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Task(*)",
+      "AskUserQuestion(*)",
+      "Read(*)",
+      "Grep(*)",
+      "Glob(*)",
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "loop",
+    "primary_user_value": "Execute one or more plan files (auto-detected or explicit) with structured, resumable progress tracking and optional git auto-commit."
+  },
+  "artifacts": {
+    "reads": [
+      "<plan paths from args or auto-detect under .workflow/>",
+      ".workflow/.execution/**/execution-events.md (resume/state)",
+      "repo files referenced by tasks"
+    ],
+    "writes": [
+      ".workflow/.execution/{sessionId}/execution.md",
+      ".workflow/.execution/{sessionId}/execution-events.md",
+      "optional: git commits when --auto-commit enabled"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 0,
+    "time_budget_seconds": 0,
+    "must_not": [
+      "Do not claim a pointer is Existing unless verifiable in the repo now.",
+      "Do not auto-commit unless --auto-commit is explicitly enabled.",
+      "Avoid destructive git operations without explicit user request/confirmation (unless -y/--yes semantics explicitly cover it)."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter complete: name/description/allowed-tools (+ group recommended)",
+      "Allowed-tools matches described behavior",
+      "Core sections present: Overview/Usage/Execution Process/Outputs/Error Handling",
+      "No broken artifact references (writes are created by command; reads are existing inputs)",
+      "Evidence tables pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js"
+    ]
+  }
+}
+

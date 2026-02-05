@@ -1,0 +1,46 @@
+{
+  "command": {
+    "group": "workflow",
+    "name": "test-task-generate",
+    "slash": "/workflow:tools:test-task-generate"
+  },
+  "candidates": [
+    {
+      "slash": "/workflow:tools:task-generate-agent",
+      "file_path": ".claude/commands/workflow/tools/task-generate-agent.md",
+      "score": 92,
+      "why": "Same planning-only intent and same artifact family (IMPL_PLAN.md + IMPL-*.json + TODO_LIST.md) generated via (test-)action-planning-agent."
+    },
+    {
+      "slash": "/workflow:tools:task-generate-tdd",
+      "file_path": ".claude/commands/workflow/tools/task-generate-tdd.md",
+      "score": 86,
+      "why": "Action-planning-agent driven task generation with strict test-focused structure; useful for task JSON conventions and validation language."
+    },
+    {
+      "slash": "/workflow:tools:test-concept-enhanced",
+      "file_path": ".claude/commands/workflow/tools/test-concept-enhanced.md",
+      "score": 84,
+      "why": "Upstream test analysis stage; establishes required input (TEST_ANALYSIS_RESULTS.md) and Gemini-driven analysis patterns."
+    },
+    {
+      "slash": "/workflow:tools:test-context-gather",
+      "file_path": ".claude/commands/workflow/tools/test-context-gather.md",
+      "score": 78,
+      "why": "Provides test-context-package.json input contract; shows allowed-tools and agent delegation style for test workflows."
+    },
+    {
+      "slash": "/workflow:test-fix-gen",
+      "file_path": ".claude/commands/workflow/test-fix-gen.md",
+      "score": 72,
+      "why": "Top-level orchestrator that calls test-task-generate; good for end-to-end chaining and user-facing expectations."
+    }
+  ],
+  "selected": {
+    "slash": "/workflow:tools:task-generate-agent",
+    "file_path": ".claude/commands/workflow/tools/task-generate-agent.md",
+    "score": 92,
+    "why": "Closest match for planning-only task/doc generation behavior and artifact outputs."
+  }
+}
+

@@ -1,0 +1,23 @@
+{
+  "command": "workflow:analyze-with-file",
+  "oracle": {
+    "doc": ".claude/commands/workflow/analyze-with-file.md",
+    "note": "Oracle doc referenced for headings/evidence only; spec.json remains minimal (non-leaky)."
+  },
+  "selected_reference": {
+    "command": "workflow:brainstorm-with-file",
+    "doc": ".claude/commands/workflow/brainstorm-with-file.md",
+    "why": "Closest sibling in the workflow/*-with-file family: interactive, multi-round, documented evolution, and CLI-assisted exploration patterns."
+  },
+  "evidence_sources": {
+    "docs": [
+      ".claude/commands/workflow/analyze-with-file.md",
+      ".claude/commands/workflow/brainstorm-with-file.md"
+    ],
+    "ts": [
+      "ccw/src/tools/cli-executor-core.ts",
+      "ccw/src/core/routes/cli-routes.ts"
+    ]
+  }
+}
+

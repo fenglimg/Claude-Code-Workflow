@@ -1,0 +1,44 @@
+{
+  "command": {
+    "group": "issue",
+    "name": "from-brainstorm"
+  },
+  "candidates": [
+    {
+      "slash": "/issue:from-brainstorm",
+      "file_path": ".claude/commands/issue/from-brainstorm.md",
+      "score": 100,
+      "why": "Oracle for this command; exact behavior match and correct section structure."
+    },
+    {
+      "slash": "/issue:convert-to-plan",
+      "file_path": ".claude/commands/issue/convert-to-plan.md",
+      "score": 92,
+      "why": "Similar bridge command: resolves inputs, creates issue/solution, binds + updates status."
+    },
+    {
+      "slash": "/issue:plan",
+      "file_path": ".claude/commands/issue/plan.md",
+      "score": 86,
+      "why": "Similar solution/task generation and writes to solutions JSONL."
+    },
+    {
+      "slash": "/issue:queue",
+      "file_path": ".claude/commands/issue/queue.md",
+      "score": 80,
+      "why": "Direct downstream command; shares issue lifecycle + status update mechanics."
+    },
+    {
+      "slash": "/workflow:brainstorm-with-file",
+      "file_path": ".claude/commands/workflow/brainstorm-with-file.md",
+      "score": 74,
+      "why": "Upstream producer of the brainstorm session artifacts consumed by from-brainstorm."
+    }
+  ],
+  "selected": {
+    "slash": "/issue:from-brainstorm",
+    "file_path": ".claude/commands/issue/from-brainstorm.md",
+    "why": "Use the oracle command doc as the reference for outline alignment and gap comparison."
+  }
+}
+

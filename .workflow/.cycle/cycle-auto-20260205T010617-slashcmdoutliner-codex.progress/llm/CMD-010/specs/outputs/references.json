@@ -1,0 +1,40 @@
+{
+  "candidates": [
+    {
+      "slash": "/issue:from-brainstorm",
+      "file_path": ".claude/commands/issue/from-brainstorm.md",
+      "score": 0.95,
+      "why": "Same group (issue). Produces Solution schema, supports auto-mode, and performs CLI-based issue creation + solution binding."
+    },
+    {
+      "slash": "/issue:plan",
+      "file_path": ".claude/commands/issue/plan.md",
+      "score": 0.78,
+      "why": "Issue planning workflow; overlaps in solution lifecycle and binding semantics."
+    },
+    {
+      "slash": "/issue:discover-by-prompt",
+      "file_path": ".claude/commands/issue/discover-by-prompt.md",
+      "score": 0.72,
+      "why": "Converts free-form input into structured issue artifacts; similar interaction model (confirm/persist) and Gemini usage patterns."
+    },
+    {
+      "slash": "/workflow:lite-execute",
+      "file_path": ".claude/commands/workflow/lite-execute.md",
+      "score": 0.62,
+      "why": "Reads lite-plan plan.json and follows task/acceptance structure; useful for plan.json shape and validations."
+    },
+    {
+      "slash": "/workflow:plan-verify",
+      "file_path": ".claude/commands/workflow/plan-verify.md",
+      "score": 0.55,
+      "why": "Validates plan/task artifacts and provides a verification checklist; useful for conversion sanity checks."
+    }
+  ],
+  "selected": {
+    "slash": "/issue:from-brainstorm",
+    "file_path": ".claude/commands/issue/from-brainstorm.md",
+    "why": "Closest match: turns an upstream artifact into issue + bound solution with auto/interactive modes and CLI integration."
+  }
+}
+

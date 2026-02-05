@@ -1,0 +1,2341 @@
+Reading prompt from stdin...
+OpenAI Codex v0.93.0 (research preview)
+--------
+workdir: C:\Project\Claude-Code-Workflow
+model: gpt-5.2
+provider: codex
+approval: never
+sandbox: danger-full-access
+reasoning effort: high
+reasoning summaries: auto
+session id: 019c2a48-d39a-71e2-b013-fea0855d5bf3
+--------
+user
+Use the repo skill: slash-command-outliner (path: .codex/skills/slash-command-outliner).
+
+Cycle: cycle-auto-20260205T010617-slashcmdoutliner-codex
+Command: CMD-015
+
+Input requirement doc (non-leaky): `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-015.requirements.md`
+
+Write the following output files (create directories as needed) under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs`:
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md`
+
+Hard rules (P0):
+- Follow templates: .codex/skills/slash-command-outliner/templates/*
+- Follow gates: .codex/skills/slash-command-outliner/specs/quality-gates.md
+- Evidence tables MUST pass: node .codex/skills/slash-command-outliner/scripts/verify-evidence.js
+- Never label a pointer as Existing unless it is verifiable in the repo now.
+- For ANY pointer row, provide dual-source evidence:
+  - docs: .claude/commands/**.md / <real heading text>
+  - ts: ccw/src/** / <literal anchor string present in file>
+- Avoid placeholders like TBD/N/A in evidence rows; if unsure, mark as Planned and add Verify steps.
+
+Keep the written files concise; do not write extra files unless necessary.
+
+deprecated: `[features].web_search_request` is deprecated. Use `web_search` instead.
+  Set `web_search` to `"live"`, `"cached"`, or `"disabled"` in config.toml.
+mcp: ace-tool starting
+mcp: ccw-tools starting
+mcp: exa starting
+mcp: ccw-tools ready
+mcp: ace-tool ready
+mcp: exa ready
+mcp startup: ready: ccw-tools, ace-tool, exa
+
+
+thinking
+**Analyzing tool usage**
+
+I need to use the skill slash-command-outliner and open the SKILL.md file. There are some tools available, but it seems like we don't have a dedicated read_file tool in the list. The guidelines mention preferring MCP, but since we don't have that, maybe I can use the shell command `Get-Content`. I should also utilize the smart_search feature for discovery. I just want to ensure I have everything ready for generating outputs according to the templates and quality gates documentation.
+thinking
+**Verifying evidence setup**
+
+I need to ensure that verify-evidence.js passes, which means I have to supply an evidence table for pointer rows that correspond to existing pointers in the documentation and TS files. I’ll need to find matching documentation and TS anchors, but since I don’t know the command content yet, I’ll have to parse the requirement document to get a clear understanding of the slash command or outliner specifications. After that, I’ll structure references and generated outlines while checking the repo structure. I’ll use PowerShell commands to accomplish this while setting the correct encoding!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-ChildItem -Force .
+' in C:\Project\Claude-Code-Workflow succeeded in 342ms:
+
+    Directory: C:\Project\Claude-Code-Workflow
+
+[32;1mMode   [0m[32;1m              LastWriteTime[0m [32;1;3m        Length[0m[32;1m Name[0m
+[32;1m----   [0m [32;1m             -------------[0m [32;1m        ------[0m [32;1m----[0m
+d----           2026/1/23    21:35                [44;1m.ace-tool[0m
+d----           2026/1/23    22:39                [44;1m.ccf[0m
+d----           2026/1/24     1:10                [44;1m.ccw[0m
+d----            2026/2/4    23:35                [44;1m.claude[0m
+d----           2026/1/29    21:16                [44;1m.codex[0m
+d----           2026/1/23    21:26                [44;1m.gemini[0m
+d--h-            2026/2/5     1:00                [44;1m.git[0m
+d----           2026/1/23    21:26                [44;1m.github[0m
+d----           2026/1/23    21:26                [44;1m.qwen[0m
+d----           2026/1/24    15:51                [44;1m.vscode[0m
+d----            2026/2/4    23:35                [44;1m.workflow[0m
+d----           2026/1/25    21:54                [44;1marchive[0m
+d----           2026/1/29    21:16                [44;1massets[0m
+d----            2026/2/4    23:35                [44;1mccw[0m
+d----           2026/1/23    21:26                [44;1mccw-litellm[0m
+
+thinking
+**Preparing for skill development**
+
+I need to get skilled at using the `.codex/skills/slash-command-outliner`. First, I’ll read through the SKILL.md and the templates in the gates directory. It seems like using the shell will be necessary for this task. I wonder what kind of information and insights I can glean from those documents. There’s a lot to consider, and I hope to understand the processes clearly to enhance my skills effectively!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/SKILL.md
+' in C:\Project\Claude-Code-Workflow succeeded in 315ms:
+---
+name: slash-command-outliner
+description: Codex version of slash-command-outliner. Generate CCW-aligned slash command development outlines from a requirement/spec doc, validated via corpus-wide iteration and non-regression. Triggers on "slash command outliner", "slash 命令大纲", "slash 命令生成器", "命令大纲".
+allowed-tools: Read, Write, AskUserQuestion, Task, Bash, TodoWrite, mcp__ace-tool__search_context
+---
+
+# Slash Command Outliner (Codex)
+
+Input a **slash command requirement/spec document**. Output a **CCW-aligned, end-to-end development outline** (Slash MD outline + Agent MD outline) plus a **gap-report** that compares against reference implementations and CCW server/tooling corpus. Improve quality by iterating across **all** existing commands with **non-regression snapshots**.
+
+This skill is designed to be **precise** (no fluff) and **stable** (non-regression gate).
+
+## Canonical Workflow (Phases)
+
+1) `phases/01-collect-spec.md`  
+2) `phases/02-retrieve-and-rank-references.md`  
+3) `phases/03-generate-outlines.md`  
+4) `phases/04-gap-report-and-iterate.md`  
+5) `phases/05-regression-and-closure.md`
+
+
+thinking
+**Following workflow phases**
+
+I'm considering that we definitely need to follow the skill workflow phases. I'll start by reviewing the documentation on the phases, as well as the templates and quality gates. It sounds like a good idea to use the shell to help me read through everything efficiently. Keeping everything organized and ensuring that I understand the phases is important for success. Let's make sure to keep things clear as we move forward!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-ChildItem -Force .codex/skills/slash-command-outliner/phases | Select-Object Name
+
+'"'--- quality-gates.md ---'
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/quality-gates.md
+
+'--- templates ---'
+Get-ChildItem -Force .codex/skills/slash-command-outliner/templates | Select-Object Name
+" in C:\Project\Claude-Code-Workflow succeeded in 333ms:
+
+[32;1mName[0m
+[32;1m----[0m
+01-collect-spec.md
+02-retrieve-and-rank-references.md
+03-generate-outlines.md
+04-gap-report-and-iterate.md
+05-regression-and-closure.md
+--- quality-gates.md ---
+# Quality Gates (Non-regression First)
+
+## P0 Gates (Must Pass)
+
+P0 failure means “not CCW-aligned” and blocks completion.
+
+1) **Frontmatter completeness**
+   - `name`, `description`, `allowed-tools` must exist
+   - `argument-hint` optional but recommended for non-trivial commands
+2) **Allowed-tools correctness**
+   - no tools outside the supported CCW set for the intended workflow
+
+thinking
+**Gathering templates and scripts**
+
+I need to find content for templates and check the scripts related to "verify-evidence.js" in the skill scripts. It sounds like I’ll be inspecting both the templates and the phases to ensure they meet the required structure. This seems like an important step to ensure everything is set up correctly. I'll dive in and look for what I need! Hopefully, this will all come together smoothly.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+'"'--- phase 01 ---'
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/01-collect-spec.md
+
+'--- phase 02 ---'
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/02-retrieve-and-rank-references.md
+
+'--- phase 03 ---'
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/03-generate-outlines.md
+
+'--- phase 04 ---'
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/04-gap-report-and-iterate.md
+
+'--- phase 05 ---'
+Get-Content -Raw .codex/skills/slash-command-outliner/phases/05-regression-and-closure.md
+
+'--- template slash ---'
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/slash-command-outline.md
+
+'--- template agent ---'
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/agent-outline.md
+
+'--- template gap ---'
+Get-Content -Raw .codex/skills/slash-command-outliner/templates/gap-report.md
+" in C:\Project\Claude-Code-Workflow succeeded in 339ms:
+--- phase 01 ---
+# Phase 01: Collect Spec (No Leakage)
+
+## Goal
+
+Turn a human requirement/rules document into a **minimal, structured spec** that is sufficient to generate:
+
+- Slash command outline (CCW command MD skeleton)
+- Agent outline (execution + tools + state)
+
+Do **not** copy/paste existing implementation docs as input; treat them as oracle only during gap analysis.
+
+## Required Inputs (ask if missing)
+
+1. Command identity:
+   - `group` (workflow|issue|learn|cli|other)
+   - `name` (kebab-case)
+   - `description` (one sentence)
+   - `argument-hint` (optional)
+2. Allowed tools:
+
+thinking
+**Inspecting verification scripts**
+
+I need to make sure that the evidence I’m gathering for the planned pointer includes a similar command document heading and a TS anchor from a comparable implementation. It's essential to verify that the verify-evidence script passes, which probably checks if the format is correct, whether the referenced files exist, and if the headings and anchors are in place. So, I’ll take a closer look at the verify-evidence script to understand its workings.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/scripts/verify-evidence.js
+' in C:\Project\Claude-Code-Workflow succeeded in 302ms:
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+export function usage() {
+  console.log(
+    [
+      'Usage:',
+      '  node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=<path.md> [--file=<path2.md> ...]',
+      '',
+      'Behavior:',
+      '  - Extracts evidence tables from markdown (gap-report and/or outline)',
+      '  - Enforces evidence-based gates:',
+      '    - Each row must label Status as Existing or Planned',
+      '    - Evidence must include BOTH docs and ts anchors:',
+      '      - docs: .claude/commands/**.md / <section heading>',
+      '      - ts: ccw/src/** / <function|case|pattern>',
+      '    - Existing rows must point to verifiable pointers (paths must exist when pointer looks like a path)',
+      '',
+      'Notes:',
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/requirements/CMD-015.requirements.md
+' in C:\Project\Claude-Code-Workflow succeeded in 331ms:
+# Requirement (non-leaky): /issue:new
+
+## Source
+
+- Command doc (oracle, do not paste full contents into spec): `.claude/commands/issue/new.md`
+
+## Command Identity
+
+- group: issue
+- name: new
+- description: Create structured issue from GitHub URL or text description
+- argument-hint: [-y|--yes] <github-url | text-description> [--priority 1-5]
+- allowed-tools: TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*), mcp__ace-tool__search_context(*)
+
+## Structure Hints (Headings Only)
+
+  - Auto Mode
+- Issue New Command (/issue:new)
+  - Core Principle
+  - Issue Structure
+tool ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Find implementation of slash command /issue:new and related issue creation workflow. Keywords: \"/issue:new\" issue new command, create issue JSON, GitHub URL parse, publish to GitHub, issue plan"})
+ace-tool.search_context({"project_root_path":"C:/Project/Claude-Code-Workflow","query":"Find implementation of slash command /issue:new and related issue creation workflow. Keywords: \"/issue:new\" issue new command, create issue JSON, GitHub URL parse, publish to GitHub, issue plan"}) success in 5.79s:
+{
+  "content": [
+    {
+      "text": "The following code sections were retrieved:\nPath: .claude\\commands\\issue\\new.md\n...\n    60\t```\r\n    61\t\r\n    62\t## Quick Reference\r\n    63\t\r\n    64\t```bash\r\n    65\t# Clear inputs - direct creation\r\n    66\t/issue:new https://github.com/owner/repo/issues/123\r\n    67\t/issue:new \"Login fails with special chars. Expected: success. Actual: 500 error\"\r\n    68\t\r\n    69\t# Vague input - will ask clarifying questions\r\n    70\t/issue:new \"something wrong with auth\"\r\n    71\t```\r\n    72\t\r\n    73\t## Implementation\r\n    74\t\r\n    75\t### Phase 1: Input Analysis & Clarity Detection\r\n    76\t\r\n    77\t```javascript\r\n    78\tconst input = userInput.trim();\r\n    79\tconst flags = parseFlags(userInput);  // --priority\r\n    80\t\r\n    81\t// Detect input type and clarity\r\n    82\tconst isGitHubUrl = input.match(/github\\.com\\/[\\w-]+\\/[\\w-]+\\/issues\\/\\d+/);\r\n    83\tconst isGitHubShort = input.match(/^#(\\d+)$/);\r\n    84\tconst hasStructure = input.match(/(expected|actual|affects|steps):/i);\r\n...\n    97\t\r\n    98\t```javascript\r\n    99\tif (isGitHubUrl || isGitHubShort) {\r\n   100\t  // GitHub - fetch via gh CLI\r\n   101\t  const result = Bash(`gh issue view ${extractIssueRef(input)} --json number,title,body,labels,url`);\r\n   102\t  const gh = JSON.parse(result);\r\n   103\t  issueData = {\r\n   104\t    id: `GH-${gh.number}`,\r\n   105\t    title: gh.title,\r\n   106\t    source: 'github',\r\n   107\t    source_url: gh.url,\r\n   108\t    labels: gh.labels.map(l => l.name),\r\n   109\t    context: gh.body?.substring(0, 500) || gh.title,\r\n   110\t    ...parseMarkdownBody(gh.body)\r\n   111\t  };\r\n   112\t} else {\r\n   113\t  // Text description\r\n   114\t  issueData = {\r\n   115\t    id: `ISS-${new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14)}`,\r\n   116\t    source: 'text',\r\n   117\t    ...parseTextDescription(input)\r\n   118\t  };\r\n   119\t}\r\n...\n   197\t```\r\n   198\t\r\n   199\t### Phase 6: Create Issue\r\n   200\t\r\n   201\t**Summary Display:**\r\n   202\t- Show ID, title, source, affected files (if any)\r\n   203\t\r\n   204\t**Confirmation** (only for vague inputs, clarityScore < 2):\r\n   205\t- Use `AskUserQuestion` to confirm before creation\r\n   206\t\r\n   207\t**Issue Creation** (via CLI endpoint):\r\n   208\t```bash\r\n   209\t# Option 1: Pipe input (recommended for complex JSON - avoids shell escaping)\r\n   210\techo '{\"title\":\"...\", \"context\":\"...\", \"priority\":3}' | ccw issue create\r\n   211\t\r\n   212\t# Option 2: Heredoc (for multi-line JSON)\r\n   213\tccw issue create << 'EOF'\r\n   214\t{\"title\":\"...\", \"context\":\"含\\\"引号\\\"的内容\", \"priority\":3}\r\n   215\tEOF\r\n   216\t\r\n   217\t# Option 3: --data parameter (simple cases only)\r\n   218\tccw issue create --data '{\"title\":\"...\", \"priority\":3}'\r\n   219\t```\r\n   220\t\r\n   221\t**CLI Endpoint Features:**\r\n   222\t| Feature | Description |\r\n   223\t|---------|-------------|\r\n   224\t| Auto-increment ID | `ISS-YYYYMMDD-NNN` (e.g., `ISS-20251229-001`) |\r\n   225\t| Trailing newline | Proper JSONL format, no corruption |\r\n   226\t| JSON output | Returns created issue with all fields |\r\n   227\t\r\n   228\t**Example:**\r\n   229\t```bash\r\n   230\t# Create issue via pipe (recommended)\r\n   231\techo '{\"title\": \"Login fails with special chars\", \"context\": \"500 error when password contains quotes\", \"priority\": 2}' | ccw issue create\r\n   232\t\r\n   233\t# Or with heredoc for complex JSON\r\n   234\tccw issue create << 'EOF'\r\n   235\t{\r\n   236\t  \"title\": \"Login fails with special chars\",\r\n   237\t  \"context\": \"500 error when password contains \\\"quotes\\\"\",\r\n   238\t  \"priority\": 2,\r\n   239\t  \"source\": \"text\",\r\n   240\t  \"expected_behavior\": \"Login succeeds\",\r\n   241\t  \"actual_behavior\": \"500 Internal Server Error\"\r\n   242\t}\r\n...\n   258\t\r\n   259\t// Step 2: Publish to GitHub if requested\r\n   260\tif (publishToGitHub) {\r\n   261\t  const ghResult = Bash(`gh issue create --title \"${issueData.title}\" --body \"${issueData.context}\"`);\r\n   262\t  // Parse GitHub URL from output\r\n   263\t  const ghUrl = ghResult.match(/https:\\/\\/github\\.com\\/[\\w-]+\\/[\\w-]+\\/issues\\/\\d+/)?.[0];\r\n   264\t  const ghNumber = parseInt(ghUrl?.match(/\\/issues\\/(\\d+)/)?.[1]);\r\n   265\t\r\n   266\t  if (ghNumber) {\r\n   267\t    // Step 3: Update local issue with GitHub binding\r\n   268\t    Bash(`ccw issue update ${localIssue.id} --github-url \"${ghUrl}\" --github-number ${ghNumber}`);\r\n   269\t    // Or via pipe:\r\n   270\t    // echo '{\"github_url\":\"${ghUrl}\",\"github_number\":${ghNumber}}' | ccw issue update ${localIssue.id}\r\n   271\t  }\r\n   272\t}\r\n   273\t```\r\n   274\t\r\n   275\t**Workflow:**\r\n   276\t```\r\n   277\t1. Create local issue (ISS-YYYYMMDD-NNN) → stored in .workflow/issues.jsonl\r\n   278\t2. If publishToGitHub:\r\n   279\t   a. gh issue create → returns GitHub URL\r\n   280\t   b. Update local issue with github_url + github_number binding\r\n   281\t3. Both local and GitHub issues exist, linked together\r\n   282\t```\r\n   283\t\r\n   284\t**Example with GitHub Publishing:**\r\n   285\t```bash\r\n   286\t# User creates text issue\r\n   287\t/issue:new \"Login fails with special chars. Expected: success. Actual: 500\"\r\n   288\t\r\n   289\t# System asks: \"Would you like to publish this issue to GitHub?\"\r\n   290\t# User selects: \"Yes, publish to GitHub\"\r\n   291\t\r\n   292\t# Output:\r\n   293\t# ✓ Local issue created: ISS-20251229-001\r\n   294\t# ✓ Published to GitHub: https://github.com/org/repo/issues/123\r\n   295\t# ✓ GitHub binding saved to local issue\r\n   296\t# → Next step: /issue:plan ISS-20251229-001\r\n   297\t\r\n   298\t# Resulting issue JSON:\r\n   299\t{\r\n   300\t  \"id\": \"ISS-20251229-001\",\r\n   301\t  \"title\": \"Login fails with special chars\",\r\n   302\t  \"source\": \"text\",\r\n   303\t  \"github_url\": \"https://github.com/org/repo/issues/123\",\r\n   304\t  \"github_number\": 123,\r\n   305\t  ...\r\n   306\t}\r\n   307\t```\r\n   308\t\r\n   309\t**Completion:**\r\n   310\t- Display created issue ID\r\n   311\t- Show GitHub URL (if published)\r\n   312\t- Show next step: `/issue:plan <id>`\r\n   313\t\r\n   314\t## Execution Flow\r\n   315\t\r\n   316\t```\r\n   317\tPhase 1: Input Analysis\r\n   318\t   └─ Detect clarity score (GitHub URL? Structured text? Keywords?)\r\n...\n   391\t```\r\n   392\t\r\n   393\t## Examples\r\n   394\t\r\n   395\t### Clear Input (No Questions)\r\n   396\t\r\n   397\t```bash\r\n   398\t/issue:new https://github.com/org/repo/issues/42\r\n   399\t# → Fetches, parses, creates immediately\r\n   400\t\r\n   401\t/issue:new \"Login fails with special chars. Expected: success. Actual: 500\"\r\n   402\t# → Parses structure, creates immediately\r\n   403\t```\r\n   404\t\r\n   405\t### Vague Input (1 Question)\r\n   406\t\r\n   407\t```bash\r\n   408\t/issue:new \"auth broken\"\r\n   409\t# → Asks: \"Input unclear. What is the issue about?\"\r\n   410\t# → User provides details → saved to feedback[]\r\n   411\t# → Creates issue\r\n   412\t```\r\n   413\t\r\n   414\t## Related Commands\r\n   415\t\r\n   416\t- `/issue:plan` - Plan solution for issue...\n\nPath: ccw\\docs-site\\docs\\commands\\issue\\issue-new.md\n...\n    17\t\r\n    18\t- **Multi-source input**: GitHub URLs, text descriptions, structured input\r\n    19\t- **Clarity detection**: Asks questions only for vague inputs\r\n    20\t- **GitHub integration**: Optional publishing to GitHub with bidirectional sync\r\n    21\t- **Smart categorization**: Automatic tag and priority detection\r\n    22\t- **ACE integration**: Lightweight codebase context for affected components\r\n    23\t\r\n    24\t## Usage\r\n    25\t\r\n    26\t```bash\r\n    27\t# Clear inputs - direct creation (no questions)\r\n    28\t/issue:new https://github.com/owner/repo/issues/123\r\n    29\t/issue:new \"Login fails with special chars. Expected: success. Actual: 500\"\r\n    30\t\r\n    31\t# Vague input - will ask 1 clarifying question\r\n    32\t/issue:new \"something wrong with auth\"\r\n    33\t\r\n    34\t# With priority override\r\n    35\t/issue:new \"Database connection times out\" --priority 2\r\n    36\t\r\n    37\t# Auto mode - skip confirmations\r\n    38\t/issue:new \"Fix navigation bug\" -y\r\n    39\t```\r\n    40\t\r\n    41\t### Arguments\r\n    42\t\r\n    43\t| Argument | Required | Description |\r\n    44\t|----------|----------|-------------|\r\n    45\t| `input` | Yes | GitHub URL, issue description, or structured text |\r\n    46\t| `-y, --yes` | No | Skip confirmation questions |\r\n    47\t| `--priority <1-5>` | No | Override priority (1=critical, 5=low) |\r\n    48\t\r\n    49\t## Examples\r\n    50\t\r\n    51\t### Create from GitHub URL\r\n    52\t\r\n    53\t```bash\r\n    54\t/issue:new https://github.com/owner/repo/issues/42\r\n    55\t# Output: Fetches issue details via gh CLI, creates immediately\r\n    56\t```\r\n    57\t\r\n    58\t### Create with Structured Text\r\n    59\t\r\n    60\t```bash\r\n    61\t/issue:new \"Login fails with special chars. Expected: success. Actual: 500 error\"\r\n    62\t# Output: Parses structure, creates issue with extracted fields\r\n    63\t```\r\n    64\t\r\n    65\t### Create with Clarification\r\n...\n   180\t\r\n   181\t## Related Commands\r\n   182\t\r\n   183\t- **[issue:plan](./issue-plan.md)** - Generate solution for issue\r\n   184\t- **[issue:queue](./issue-queue.md)** - Form execution queue\r\n   185\t- **[issue:discover](./issue-discover.md)** - Discover issues from codebase\r\n   186\t- **[issue:from-brainstorm](./issue-from-brainstorm.md)** - Convert brainstorm to issue\r\n   187\t- **[issue:convert-to-plan](./issue-convert-to-plan.md)** - Convert plans to issues\r\n   188\t- **[issue:execute](./issue-execute.md)** - Execute issue queue\r\n   189\t\r\n   190\t## CLI Endpoints\r\n   191\t\r\n   192\tThe command uses these CLI endpoints:\r\n   193\t\r\n   194\t```bash\r\n   195\t# Create issue\r\n   196\techo '{\"title\":\"...\",\"context\":\"...\",\"priority\":3}' | ccw issue create\r\n   197\t\r\n   198\t# Update with GitHub binding\r\n   199\tccw issue update <id> --github-url \"<url>\" --github-number <num>\r\n   200\t\r\n   201\t# View issue\r\n   202\tccw issue status <id> --json\r\n   203\t```\r\n...\n\nPath: ccw\\frontend\\src\\hooks\\useIssues.ts\n...\n   214\t\r\n   215\texport function useCreateIssue(): UseCreateIssueReturn {\r\n   216\t  const queryClient = useQueryClient();\r\n   217\t  const projectPath = useWorkflowStore(selectProjectPath);\r\n   218\t\r\n   219\t  const mutation = useMutation({\r\n   220\t    mutationFn: createIssue,\r\n   221\t    onSuccess: () => {\r\n   222\t      // Invalidate issues cache to trigger refetch\r\n   223\t      queryClient.invalidateQueries({ queryKey: projectPath ? workspaceQueryKeys.issues(projectPath) : ['issues'] });\r\n   224\t    },\r\n   225\t  });\r\n   226\t\r\n   227\t  return {\r\n   228\t    createIssue: mutation.mutateAsync,\r\n   229\t    isCreating: mutation.isPending,\r\n   230\t    error: mutation.error,\r\n   231\t  };\r\n   232\t}\r\n   233\t\r\n   234\texport interface UseUpdateIssueReturn {\r\n   235\t  updateIssue: (issueId: string, input: Partial<Issue>) => Promise<Issue>;\r\n   236\t  isUpdating: boolean;\r\n   237\t  error: Error | null;\r\n   238\t}\r\n...\n\nPath: ccw\\src\\core\\routes\\issue-routes.ts#chunk2of2\n...\n   259\t\r\n   260\t  // POST /api/issues - Create issue\r\n   261\t  if (pathname === '/api/issues' && req.method === 'POST') {\r\n   262\t    handlePostRequest(req, res, async (body: any) => {\r\n   263\t      if (!body.id || !body.title) return { error: 'id and title required' };\r\n   264\t\r\n   265\t      const issues = readIssuesJsonl(issuesDir);\r\n   266\t      if (issues.find(i => i.id === body.id)) return { error: `Issue ${body.id} exists` };\r\n   267\t\r\n   268\t      const newIssue = {\r\n   269\t        id: body.id,\r\n   270\t        title: body.title,\r\n   271\t        status: body.status || 'registered',\r\n   272\t        priority: body.priority || 3,\r\n   273\t        context: body.context || '',\r\n   274\t        source: body.source || 'text',\r\n   275\t        source_url: body.source_url || null,\r\n   276\t        tags: body.tags || [],\r\n   277\t        created_at: new Date().toISOString(),\r\n   278\t        updated_at: new Date().toISOString()\r\n   279\t      };\r\n...\n   308\t\r\n   309\t      // Build gh command\r\n   310\t      let ghCommand = `gh issue list --state ${state} --limit ${limit} --json number,title,body,labels,url,state`;\r\n   311\t      if (labels) ghCommand += ` --label \"${labels}\"`;\r\n   312\t\r\n   313\t      // Execute gh command from project root\r\n   314\t      const ghOutput = execSync(ghCommand, {\r\n   315\t        encoding: 'utf-8',\r\n   316\t        stdio: ['pipe', 'pipe', 'pipe'],\r\n   317\t        timeout: 60000,\r\n   318\t        cwd: issuesDir.replace(/[\\\\/]\\.workflow[\\\\/]issues$/, '')\r\n   319\t      }).trim();\r\n   320\t\r\n   321\t      if (!ghOutput) {\r\n   322\t        res.writeHead(200, { 'Content-Type': 'application/json' });\r\n   323\t        res.end(JSON.stringify({ imported: 0, updated: 0, skipped: 0, images_downloaded: 0 }));\r\n   324\t        return true;\r\n   325\t      }\r\n...\n   594\t\r\n   595\t    handlePostRequest(req, res, async (body: any) => {\r\n   596\t      if (!body.id || !body.tasks) return { error: 'id and tasks required' };\r\n   597\t\r\n   598\t      const solutions = readSolutionsJsonl(issuesDir, issueId);\r\n   599\t      if (solutions.find(s => s.id === body.id)) return { error: `Solution ${body.id} exists` };\r\n   600\t\r\n   601\t      const newSolution = {\r\n   602\t        id: body.id,\r\n   603\t        description: body.description || '',\r\n   604\t        tasks: body.tasks,\r\n   605\t        exploration_context: body.exploration_context || {},\r\n   606\t        analysis: body.analysis || {},\r\n   607\t        score: body.score || 0,\r\n   608\t        is_bound: false,\r\n   609\t        created_at: new Date().toISOString()\r\n   610\t      };\r\n...\n\nPath: ccw\\src\\cli.ts\n...\n   280\t\r\n   281\t  // Issue command - Issue lifecycle management with JSONL task tracking\r\n   282\t  program\r\n   283\t    .command('issue [subcommand] [args...]')\r\n   284\t    .description('Issue lifecycle management with JSONL task tracking')\r\n   285\t    .option('--title <title>', 'Task title')\r\n   286\t    .option('--type <type>', 'Task type: feature, bug, refactor, test, chore, docs')\r\n   287\t    .option('--status <status>', 'Task status')\r\n   288\t    .option('--phase <phase>', 'Execution phase')\r\n   289\t    .option('--description <desc>', 'Task description')\r\n   290\t    .option('--depends-on <ids>', 'Comma-separated dependency task IDs')\r\n   291\t    .option('--delivery-criteria <items>', 'Pipe-separated delivery criteria')\r\n   292\t    .option('--pause-criteria <items>', 'Pipe-separated pause criteria')\r\n   293\t    .option('--executor <type>', 'Executor: agent, codex, gemini, auto')\r\n...\n\nPath: ccw\\src\\core\\routes\\commands-routes.ts\n...\n   498\t\r\n   499\t  // POST /api/commands/:name/toggle - Toggle single command\r\n   500\t  if (pathname.match(/^\\/api\\/commands\\/[^/]+\\/toggle$/) && req.method === 'POST') {\r\n   501\t    const pathParts = pathname.split('/');\r\n   502\t    const commandName = decodeURIComponent(pathParts[3]);\r\n   503\t\r\n   504\t    handlePostRequest(req, res, async (body) => {\r\n   505\t      if (!isRecord(body)) {\r\n   506\t        return { error: 'Invalid request body', status: 400 };\r\n   507\t      }\r\n   508\t\r\n   509\t      const locationValue = body.location;\r\n   510\t      const projectPathParam = typeof body.projectPath === 'string' ? body.projectPath : undefined;\r\n   511\t\r\n   512\t      if (locationValue !== 'project' && locationValue !== 'user') {\r\n   513\t        return { error: 'Location is required (project or user)' };\r\n   514\t      }\r\n   515\t\r\n   516\t      const projectPath = projectPathParam || initialPath;\r\n   517\t      return toggleCommand(commandName, locationValue, projectPath, initialPath);\r\n   518\t    });\r\n...\n\nPath: ccw\\src\\commands\\issue.ts#chunk1of4\n...\n   585\t\r\n   586\t  const newIssue: Issue = {\r\n   587\t    id: issueId,\r\n   588\t    title: data.title || issueId,\r\n   589\t    status: data.status || 'registered',\r\n   590\t    priority: data.priority || 3,\r\n   591\t    context: data.context || '',\r\n   592\t    source: data.source,\r\n   593\t    source_url: data.source_url,\r\n   594\t    tags: data.tags,\r\n   595\t    expected_behavior: data.expected_behavior,\r\n   596\t    actual_behavior: data.actual_behavior,\r\n   597\t    affected_components: data.affected_components,\r\n   598\t    feedback: data.feedback,\r\n   599\t    bound_solution_id: data.bound_solution_id || null,\r\n   600\t    created_at: new Date().toISOString(),\r\n   601\t    updated_at: new Date().toISOString()\r\n   602\t  };\r\n   603\t\r\n   604\t  issues.push(newIssue);\r\n   605\t  writeIssues(issues);\r\n   606\t  return newIssue;\r\n   607\t}\r\n   608\t\r\n   609\t// ============ Solutions JSONL ============\r\n   610\t\r\n   611\tfunction getSolutionsPath(issueId: string): string {\r\n   612\t  return join(getIssuesDir(), 'solutions', `${issueId}.jsonl`);\r\n   613\t}\r\n...\n\nPath: .codex\\prompts\\issue-new.md\n...\n   242\t\r\n   243\t```bash\r\n   244\t# Create on GitHub first\r\n   245\tGH_URL=$(gh issue create --title \"...\" --body \"...\" | grep -oE 'https://github.com/[^ ]+')\r\n   246\tGH_NUMBER=$(echo $GH_URL | grep -oE '/issues/([0-9]+)$' | grep -oE '[0-9]+')\r\n   247\t\r\n   248\t# Update local issue with binding\r\n   249\tccw issue update ${ISSUE_ID} --github-url \"${GH_URL}\" --github-number ${GH_NUMBER}\r\n   250\t```\r\n   251\t\r\n   252\t### Phase 7: Output Result\r\n   253\t\r\n   254\t```markdown\r\n   255\t## Issue Created\r\n   256\t\r\n   257\t**ID**: ISS-20251229-001\r\n   258\t**Title**: Login fails with special chars\r\n   259\t**Source**: text\r\n   260\t**Priority**: 2 (High)\r\n   261\t\r\n   262\t**Context**:\r\n   263\t500 error when password contains quotes\r\n   264\t\r\n   265\t**Affected Components**:\r\n   266\t- src/auth/login.ts\r\n   267\t- src/utils/validation.ts\r\n   268\t\r\n   269\t**GitHub**: Not published (local only)\r\n   270\t\r\n   271\t**Next Step**: `/issue:plan ISS-20251229-001`\r\n   272\t```\r\n   273\t\r\n   274\t## Quality Checklist\r\n   275\t\r\n   276\tBefore completing, verify:\r\n...\n\nPath: ccw\\src\\core\\routes\\files-routes.ts\n...\n   465\t\r\n   466\t  // API: Update CLAUDE.md using CLI tools (Explorer view)\r\n   467\t  if (pathname === '/api/update-claude-md' && req.method === 'POST') {\r\n   468\t    handlePostRequest(req, res, async (body) => {\r\n   469\t      if (typeof body !== 'object' || body === null) {\r\n   470\t        return { error: 'Invalid request body', status: 400 };\r\n   471\t      }\r\n   472\t\r\n   473\t      const {\r\n   474\t        path: targetPath,\r\n   475\t        tool,\r\n   476\t        strategy = 'single-layer'\r\n   477\t      } = body as { path?: unknown; tool?: unknown; strategy?: unknown };\r\n   478\t\r\n   479\t      if (typeof targetPath !== 'string' || targetPath.trim().length === 0) {\r\n   480\t        return { error: 'path is required', status: 400 };\r\n   481\t      }\r\n...\n\nPath: ccw\\src\\templates\\dashboard-js\\views\\issue-manager.js#chunk4of5\n...\n   434\t\r\n   435\t  try {\r\n   436\t    const response = await fetch('/api/issues?path=' + encodeURIComponent(projectPath), {\r\n   437\t      method: 'POST',\r\n   438\t      headers: { 'Content-Type': 'application/json' },\r\n   439\t      body: JSON.stringify({\r\n   440\t        id: issueId,\r\n   441\t        title: title,\r\n   442\t        context: context,\r\n   443\t        priority: priority,\r\n   444\t        source: 'dashboard'\r\n   445\t      })\r\n   446\t    });\r\n   447\t\r\n   448\t    const result = await response.json();\r\n   449\t\r\n   450\t    if (!response.ok || result.error) {\r\n   451\t      showNotification(result.error || 'Failed to create issue', 'error');\r\n   452\t      return;\r\n   453\t    }\r\n   454\t\r\n   455\t    showNotification(t('issues.created') || 'Issue created successfully', 'success');\r\n   456\t    hideCreateIssueModal();\r\n   457\t\r\n   458\t    // Reload data and refresh view\r\n   459\t    await loadIssueData();\r\n   460\t    renderIssueView();\r\n   461\t  } catch (err) {\r\n   462\t    console.error('Failed to create issue:', err);\r\n   463\t    showNotification('Failed to create issue', 'error');\r\n   464\t  }\r\n   465\t}\r\n...\n\n",
+      "type": "text"
+    }
+  ]
+}
+tool ccw-tools.smart_search({"action":"search","mode":"fuzzy","query":"registerCommand('issue'","path":"C:/Project/Claude-Code-Workflow"})
+2026-02-04T20:14:07.810100Z ERROR rmcp::transport::async_rw: Error reading from stream: serde error expected value at line 1 column 2
+ccw-tools.smart_search({"action":"search","mode":"fuzzy","query":"registerCommand('issue'","path":"C:/Project/Claude-Code-Workflow"}) failed in 3.05s:
+
+thinking
+**Exploring tool alternatives**
+
+It seems that the transport tool is closed, and maybe the server isn't running. The guidelines suggest I should prefer the MCP tool, but since it's failing, I'll opt for using shell-based `rg`. I’ll look for `rg` in the repository. It's possible that there’s compatibility with Windows, so I'll give that a try as well! Let’s keep testing until I get a solution.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+rg -n "issue create" ccw/src/commands/issue.ts
+' in C:\Project\Claude-Code-Workflow succeeded in 317ms:
+1088: * Usage: ccw issue create --data '{"title":"...", "context":"..."}'
+1089: *        echo '{"title":"..."}' | ccw issue create
+1106:    console.error(chalk.gray('Usage: ccw issue create --data \'{"title":"...", "context":"..."}\''));
+1107:    console.error(chalk.gray('       echo \'{"title":"..."}\' | ccw issue create'));
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+rg -n "''^#{1,6} " .claude/commands/issue/new.md
+' in C:\Project\Claude-Code-Workflow succeeded in 339ms:
+8:## Auto Mode
+12:# Issue New Command (/issue:new)
+14:## Core Principle
+23:## Issue Structure 
+62:## Quick Reference
+65:# Clear inputs - direct creation
+69:# Vague input - will ask clarifying questions
+73:## Implementation
+75:### Phase 1: Input Analysis & Clarity Detection
+96:### Phase 2: Data Extraction (GitHub or Text)
+122:### Phase 3: Lightweight Context Hint (Conditional)
+146:### Phase 4: Conditional Clarification (Only if Unclear)
+176:### Phase 5: GitHub Publishing Decision (Non-GitHub Sources)
+199:### Phase 6: Create Issue
+209:# Option 1: Pipe input (recommended for complex JSON - avoids shell escaping)
+212:# Option 2: Heredoc (for multi-line JSON)
+217:# Option 3: --data parameter (simple cases only)
+230:# Create issue via pipe (recommended)
+233:# Or with heredoc for complex JSON
+245:# Output (JSON)
+
+thinking
+**Inspecting requirements and structure**
+
+I notice that the heading "## Issue Structure" has a trailing space. The script that finds headings trims them, so I’ll get a clean heading text of "Issue Structure." Alright, the requirements document mentions "Auto Mode" as well. Now, I need to create the spec.json file containing command metadata, inputs and outputs, and artifacts. To ensure I get this right, I should check the template for the spec-input schema by inspecting specs/spec-input.md for guidance.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -Raw .codex/skills/slash-command-outliner/specs/spec-input.md
+' in C:\Project\Claude-Code-Workflow succeeded in 312ms:
+# Spec Input (Schema + Rules)
+
+The spec is the only “source input” for outline generation. It must be **minimal** and **non-leaky**.
+
+## Minimal JSON Schema (informal)
+
+```json
+{
+  "command": {
+    "group": "workflow|issue|learn|cli|other",
+    "name": "kebab-case",
+    "description": "one sentence",
+    "argument_hint": "[--flag] \"args\"",
+    "allowed_tools": ["Read(*)", "Write(*)"]
+  },
+  "intent": {
+    "type": "analyze|plan|execute|brainstorm|manage|utility",
+    "interaction": "single-shot|iterative|loop",
+    "primary_user_value": "what this command accomplishes"
+  },
+
+thinking
+**Retrieving references**
+
+I need to make sure that the spec.json and references.json align properly. The references.json should include candidates and selected ones. For Phase 02, I’ll focus on retrieving those references. It’s likely I’ll have to look at other command documents, like `/issue:plan` and `/issue:update`. I think I’ll search for the files under `.claude/commands/issue/*.md` and compile a list of what I find related to those commands.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-ChildItem -Force .claude/commands/issue -Filter *.md | Select-Object Name
+' in C:\Project\Claude-Code-Workflow succeeded in 323ms:
+
+[32;1mName[0m
+[32;1m----[0m
+convert-to-plan.md
+discover-by-prompt.md
+discover.md
+execute.md
+from-brainstorm.md
+new.md
+plan.md
+queue.md
+
+
+thinking
+**Structuring evidence documentation**
+
+I realize that evidence needs a clear heading, so I'll use "Phase 6: Create Issue" as the documentation title. For the TypeScript evidence, I should choose an anchor string in the file `ccw/src/commands/issue.ts` to identify the path for `issues.jsonl`. Now, I need to search for that specific string. This should help clarify the process and organize the documentation better.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+rg -n "issues'"\\.jsonl\" ccw/src/commands/issue.ts
+" in C:\Project\Claude-Code-Workflow succeeded in 320ms:
+3: * Storage: issues.jsonl + solutions/{issue-id}.jsonl + queue.json
+468:  const path = join(getIssuesDir(), 'issues.jsonl');
+482:  const path = join(getIssuesDir(), 'issues.jsonl');
+523: * Move completed issue from issues.jsonl to issue-history.jsonl
+3144:      console.log(chalk.gray('  .workflow/issues/issues.jsonl         Active issues'));
+
+thinking
+**Searching for TS anchors**
+
+I see that the TS file has an `issue update` anchor, which makes me think I can reference the `ccw issue update` usage string. So, it seems the pointer row for the GitHub publishing prompt could cite the TS anchor for the issue update command, even if it doesn’t necessarily need to cite `gh`. I need to gather more TS anchors, particularly looking for `ccw issue update` in the same file. Time to search!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+rg -n "ccw issue update" ccw/src/commands/issue.ts
+' in C:\Project\Claude-Code-Workflow succeeded in 318ms:
+1828:    console.error(chalk.gray('Usage: ccw issue update <issue-id> --status <status>'));
+1829:    console.error(chalk.gray('       ccw issue update --from-queue [queue-id]  (sync from queue)'));
+
+thinking
+**Considering improvements**
+
+I'm thinking we can still identify some small improvements, like making sure that the `argument-hint` includes -y and so on. However, if the documentation already has that, we should double-check it. I'll take a look at the frontmatter of the .claude/commands/issue/new.md file and review the first lines to see what adjustments might be necessary. It's essential to ensure everything aligns properly and provides clear guidance.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-Content -TotalCount 40 .claude/commands/issue/new.md
+' in C:\Project\Claude-Code-Workflow succeeded in 326ms:
+---
+name: new
+description: Create structured issue from GitHub URL or text description
+argument-hint: "[-y|--yes] <github-url | text-description> [--priority 1-5]"
+allowed-tools: TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*), mcp__ace-tool__search_context(*)
+---
+
+## Auto Mode
+
+When `--yes` or `-y`: Skip clarification questions, create issue with inferred details.
+
+# Issue New Command (/issue:new)
+
+## Core Principle
+
+**Requirement Clarity Detection** → Ask only when needed
+
+```
+Clear Input (GitHub URL, structured text)  → Direct creation
+Unclear Input (vague description)          → Minimal clarifying questions
+
+thinking
+**Evaluating command documentation**
+
+I see that the command document has frontmatter, and our generated outline needs to match it. There's a discrepancy with the ID format: the requirement uses `ISS-20251229-001`, while the document’s interface shows `ISS-YYYYMMDD-HHMMSS`, which might not align. In the TypeScript code, it looks like it's in the format `ISS-YYYYMMDD-NNN`. I should highlight this gap. Next, I’ll inspect the TypeScript function that generates issue IDs to ensure everything is correct. I'll search for the "ISS-" pattern.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+rg -n "ISS-" ccw/src/commands/issue.ts | Select-Object -First 40
+' in C:\Project\Claude-Code-Workflow succeeded in 333ms:
+559: * Generate auto-increment issue ID: ISS-YYYYMMDD-NNN
+564:  const prefix = `ISS-${dateStr}-`;
+565:  const todayPattern = new RegExp(`^ISS-${dateStr}-(\\d{3})$`);
+648: * @returns Solution ID like "SOL-GH-123-1" or "SOL-ISS-20251229-001-2"
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+(Get-Content ccw/src/commands/issue.ts -Raw).Split("`n")[3125..3155] -join "`n"
+' in C:\Project\Claude-Code-Workflow succeeded in 323ms:
+      console.log(chalk.gray('  done <item-id> --fail --reason "." Mark task failed with reason (supports JSON)'));
+      console.log();
+      console.log(chalk.bold('Options:'));
+      console.log(chalk.gray('  --title <title>                    Issue/task title'));
+      console.log(chalk.gray('  --status <status>                  Filter by status (comma-separated)'));
+      console.log(chalk.gray('  --brief                            Brief JSON output (minimal fields)'));
+      console.log(chalk.gray('  --solution <path>                  Solution JSON file'));
+      console.log(chalk.gray('  --result <json>                    Execution result'));
+      console.log(chalk.gray('  --reason <text>                    Failure reason (string or JSON)'));
+      console.log(chalk.gray('  --queue <queue-id>                 Target queue for multi-queue operations'));
+      console.log(chalk.gray('  --priority <n>                     Queue priority (lower = higher)'));
+      console.log(chalk.gray('  --json                             JSON output'));
+      console.log(chalk.gray('  --force                            Force operation'));
+      console.log(chalk.gray('  --state <state>                    GitHub issue state (open/closed/all)'));
+      console.log(chalk.gray('  --limit <n>                        Max issues to pull from GitHub'));
+      console.log(chalk.gray('  --labels <labels>                  Filter by GitHub labels (comma-separated)'));
+      console.log();
+      console.log(chalk.bold('Storage:'));
+      console.log(chalk.gray('  .workflow/issues/issues.jsonl         Active issues'));
+      console.log(chalk.gray('  .workflow/issues/issue-history.jsonl  Completed issues'));
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Test-Path .codex/prompts/issue-new.md
+rg -n "''^#{1,6} " .codex/prompts/issue-new.md | Select-Object -First 40
+' in C:\Project\Claude-Code-Workflow succeeded in 349ms:
+True
+6:# Issue New Command
+8:## Core Principles
+20:## Parameter Formats
+23:# GitHub URL (auto-detected)
+27:# Text description with priority
+30:# Auto mode - skip all questions
+34:# With labels
+38:## Issue Structure
+69:## Inputs
+75:## Output Requirements
+79:# Pipe input (recommended for complex JSON)
+82:# Returns created issue JSON
+98:## Workflow
+100:### Phase 0: Parse Arguments & Flags
+105:# Input examples (Codex placeholders)
+109:# Parse flags (comma-separated in single argument)
+114:# Extract main input (URL or text) - remove all flags
+118:### Phase 1: Analyze Input & Clarity Detection
+139:### Phase 2: Extract Issue Data & Priority
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+(Get-Content ccw/src/commands/issue.ts -Raw).Split("`n")[1078..1115] -join "`n"
+' in C:\Project\Claude-Code-Workflow succeeded in 321ms:
+    return match ? Math.max(max, parseInt(match[1])) : max;
+  }, 0);
+  return `${prefix}-${maxNum + 1}`;
+}
+
+// ============ Commands ============
+
+/**
+ * create - Create issue from JSON data
+ * Usage: ccw issue create --data '{"title":"...", "context":"..."}'
+ *        echo '{"title":"..."}' | ccw issue create
+ * Output: JSON with created issue (includes auto-generated ID)
+ */
+async function createAction(options: IssueOptions): Promise<void> {
+  let jsonData: string | undefined = options.data;
+
+  // Support stdin pipe input (avoids shell escaping issues)
+  if (!jsonData && !process.stdin.isTTY) {
+    try {
+      jsonData = readFileSync(0, 'utf-8').trim();
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+(Get-Content ccw/src/commands/issue.ts -Raw).Split("`n")[1815..1845] -join "`n"
+' in C:\Project\Claude-Code-Workflow succeeded in 319ms:
+      }
+      if (unplanned.length > 0) {
+        console.log(chalk.yellow(`  Planned but NOT in queue: ${unplanned.length} issues`));
+        unplanned.forEach(id => console.log(chalk.yellow(`    - ${id}`)));
+      }
+    }
+    return;
+  }
+
+  // Standard single-issue update
+  if (!issueId) {
+    console.error(chalk.red('Issue ID is required'));
+    console.error(chalk.gray('Usage: ccw issue update <issue-id> --status <status>'));
+    console.error(chalk.gray('       ccw issue update --from-queue [queue-id]  (sync from queue)'));
+    process.exit(1);
+  }
+
+  const issue = findIssue(issueId);
+  if (!issue) {
+    console.error(chalk.red(`Issue "${issueId}" not found`));
+
+
+
+
+
+thinking
+**Verifying commands and outlining execution**
+
+I need to verify commands for existing pointers like `.claude/commands/issue/new.md` and check with `Test-Path`. There are others too, like `.codex/prompts/issue-new.md` and `ccw/src/commands/issue.ts`. For `.workflow/issues/issues.jsonl`, I might use `Test-Path`, but it could fail. The execution process outline will include specific phases and a bullet list describing six phases.
+
+As for error handling, I’ll make a checklist for things like invalid input and file I/O errors, keeping it concise and clear. I'll also provide examples for usage.
+thinking
+**Creating a gap report**
+
+I'm working on a gap report to compare our current outline with the selected reference, `.claude/commands/issue/new.md`. Since our outline is based on the same requirements, gaps should be minimal. I’m thinking of keeping the "Auto Mode" section, though it's not in the core required sections, it can be noted as optional.
+
+Another identified gap is the ID format mismatch between documents and the CLI. I'll propose aligning them to `ISS-YYYYMMDD-NNN`. Additionally, there's a mismatch in artifact paths between `.workflow/issues.jsonl` and `.workflow/issues/issues.jsonl`, which I’ll also suggest fixing. Finally, I plan to ensure the report includes an evidence table with pointers and recommended implementation hints.
+thinking
+**Finalizing the gap report and plan**
+
+I need to ensure there are no placeholders in the evidence table of the gap report template—specifically, I'll replace the placeholder row `TBD` with actual data. The fix-plan will consist of concise bullet points, and since there’s no specific template, I'll create my own.
+
+I also need to run an evidence verification script on the generated outline and gap report using a node command. For writing files, I’ll use `functions.mcp__ccw-tools__write_file`. However, I’m cautious since there was a failure earlier with the smart_search tool due to a closed transport. I’ll proceed with writing files, but I need to stay alert to any issues.
+thinking
+**Using the apply_patch tool**
+
+I see that while the function is in the namespace, it includes `mcp__ccw-tools`, and I’ll need to test if it’s still functional. Alternatively, I have the option to use the `apply_patch` tool, which seems like a more reliable choice for adding files. 
+
+For creating six files, I can make a single `apply_patch` call with multiple Add File sections. I’ll ensure the content is ASCII only, avoiding any special characters to comply with the requirements. While the documentation included checkmarks, I’ll stick with simple text like “Local issue created:” and store everything in pretty JSON format, being careful with no leakage to maintain security.
+thinking
+**Ensuring output paths exist**
+
+I need to make sure the output path directories exist, as the `apply_patch` tool might be able to create them. I think it generally adds files only if the parent directories are already in place. 
+
+While it’s likely that the tool auto-creates directories in this context, I’ll plan for the possibility that it might not. If that’s the case, I can use the shell command `New-Item -ItemType Directory` to create any necessary intermediate directories. 
+
+I’ll also create file paths for outputs, like `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json`, and confirm that the progress directory is there. I should list everything to double-check.
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Test-Path .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs
+' in C:\Project\Claude-Code-Workflow succeeded in 317ms:
+True
+
+thinking
+I'm thinking about directories and whether they actually exist or not. It seems like I'll need to check on that and see if there are outputs related to them. I'm curious to know what I might find! It's a bit ambiguous right now, and it feels like there's more to explore here about the existence of these directories and their outputs. Let's see what the next steps will be!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-ChildItem -Force .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs -Recurse | Select-Object FullName
+' in C:\Project\Claude-Code-Workflow succeeded in 340ms:
+
+[32;1mFullName[0m
+[32;1m--------[0m
+C:\Project\Claude-Code-Workflow\.workflow\.cycle\cycle-auto-20260205T010617-slashcmdoutliner-codex.progress\llm\CMD-01…
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+Get-ChildItem -Force .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs | Format-Table -AutoSize
+' in C:\Project\Claude-Code-Workflow succeeded in 339ms:
+
+    Directory: C:\Project\Claude-Code-Workflow\.workflow\.cycle\cycle-auto-20260205T010617-slashcmdoutliner-codex.progr
+ess\llm\CMD-015\specs
+
+[32;1mMode [0m[32;1m       LastWriteTime[0m [32;1;3mLength[0m[32;1m Name[0m
+[32;1m---- [0m [32;1m      -------------[0m [32;1m------[0m [32;1m----[0m
+d----   2026/2/5     4:12        [44;1moutputs[0m
+
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+rg -n "function findEvidenceTables" -n .codex/skills/slash-command-outliner/scripts/verify-evidence.js
+(Get-Content .codex/skills/slash-command-outliner/scripts/verify-evidence.js -Raw).Split("`n")[120..220] -join "`n"
+' in C:\Project\Claude-Code-Workflow succeeded in 347ms:
+166:export function findEvidenceTables(lines) {
+  function takePart(key) {
+    const idx = lower.indexOf(`${key}:`);
+    if (idx === -1) return null;
+    const after = text.slice(idx + key.length + 1);
+    // stop at next key or line break / semicolon
+    const stop = after.search(/(?:\bdocs:|\bts:|;|\r?\n)/i);
+    const part = (stop === -1 ? after : after.slice(0, stop)).trim();
+    return part.length ? part : null;
+  }
+
+  function parsePart(part) {
+    if (!part) return null;
+    const cleaned = stripBackticks(part).trim();
+    // Delimiter is " / " (spaces matter). This avoids splitting POSIX paths like "ccw/src/foo.ts".
+    const segs = cleaned.split(/\s+\/\s+/);
+    const file = stripBackticks(segs[0] || '').trim();
+    const anchor = stripBackticks(segs.slice(1).join(' / ') || '').trim();
+    return { file, anchor };
+  }
+file update
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json
+{
+  "candidates": [
+    {
+      "slash": "/issue:new",
+      "file_path": ".claude/commands/issue/new.md",
+      "score": 1.0,
+      "why": "Exact command; defines phases for clarity detection, data extraction, optional clarification, optional GitHub publish, and local issue creation."
+    },
+    {
+      "slash": "/issue:from-brainstorm",
+      "file_path": ".claude/commands/issue/from-brainstorm.md",
+      "score": 0.78,
+      "why": "Same group and output type (structured issue), similar flow from unstructured input to normalized issue JSON."
+    },
+    {
+      "slash": "/issue:discover",
+      "file_path": ".claude/commands/issue/discover.md",
+      "score": 0.65,
+      "why": "Same group; uses context discovery patterns that can inform conditional context hints for /issue:new."
+    },
+    {
+      "slash": "/issue:plan",
+      "file_path": ".claude/commands/issue/plan.md",
+      "score": 0.6,
+      "why": "Direct follow-up command; helps ensure /issue:new output fields are sufficient for downstream planning."
+    },
+    {
+      "slash": "/issue:queue",
+      "file_path": ".claude/commands/issue/queue.md",
+      "score": 0.52,
+      "why": "Same storage family; useful for validating issue JSON fields and lifecycle statuses."
+    }
+  ],
+  "selected": {
+    "slash": "/issue:new",
+    "file_path": ".claude/commands/issue/new.md",
+    "score": 1.0,
+    "why": "Oracle command doc for CMD-015; use as the primary reference for structure and behavior."
+  }
+}
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md
+# Agent Outline: issue:new
+
+## Purpose
+
+Implement and/or evolve the `/issue:new` slash command according to CCW conventions with minimal regressions.
+
+## Execution Model
+
+- Default: incremental, testable changes
+- Before editing: use `mcp__ace-tool__search_context` to find and match existing patterns for issue commands and JSONL storage
+- Interaction model: single-pass for clear inputs; minimal questions for unclear inputs; optional GitHub publish prompt for non-GitHub sources
+
+## State & Artifacts
+
+- Runtime store (created/updated by CLI):
+  - `.workflow/issues/issues.jsonl`
+- Related artifacts:
+  - Command doc: `.claude/commands/issue/new.md`
+  - Prompt doc: `.codex/prompts/issue-new.md`
+  - CLI implementation: `ccw/src/commands/issue.ts`
+
+## Tooling
+
+- Allowed tools: TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*), mcp__ace-tool__search_context(*)
+- Non-negotiables:
+  - no unrelated changes
+  - pointers labeled Existing vs Planned with dual-source evidence (docs + TS)
+  - deterministic evidence gate must pass
+
+## Validation Strategy
+
+- P0 gates: frontmatter + allowed-tools + core sections + artifact references
+- Deterministic evidence verification:
+  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md`
+  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md`
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json
+{
+  "command": {
+    "group": "issue",
+    "name": "new",
+    "description": "Create structured issue from GitHub URL or text description",
+    "argument_hint": "[-y|--yes] <github-url | text-description> [--priority 1-5]",
+    "allowed_tools": [
+      "TodoWrite(*)",
+      "Bash(*)",
+      "Read(*)",
+      "AskUserQuestion(*)",
+      "mcp__ace-tool__search_context(*)"
+    ]
+  },
+  "intent": {
+    "type": "execute",
+    "interaction": "iterative",
+    "primary_user_value": "Create a local structured issue record (and optionally publish/bind it to GitHub) from either a GitHub issue reference or a free-text problem description."
+  },
+  "artifacts": {
+    "reads": [
+      ".workflow/issues/issues.jsonl"
+    ],
+    "writes": [
+      ".workflow/issues/issues.jsonl"
+    ]
+  },
+  "constraints": {
+    "max_rounds": 2,
+    "time_budget_seconds": 600,
+    "must_not": [
+      "Do not ask clarification questions when -y/--yes is provided (auto mode).",
+      "Do not claim repository pointers exist unless they are verifiable in the repo at generation time.",
+      "Do not create or modify unrelated files; only the issue storage files via ccw CLI and any explicitly requested outputs."
+    ]
+  },
+  "acceptance": {
+    "p0": [
+      "Frontmatter valid (name/description/allowed-tools, argument-hint if applicable)",
+      "Allowed-tools matches intended behavior",
+      "Core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
+      "All implementation pointers labeled Existing vs Planned with dual-source evidence (docs + TS) and concrete verify commands"
+    ]
+  }
+}
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md
+# Fix Plan: issue:new (CMD-015)
+
+## P1 (Should Fix)
+
+1) Docs: normalize ID format and storage path references
+   - Target: `.claude/commands/issue/new.md`
+   - Change:
+     - Prefer `ISS-YYYYMMDD-NNN` (auto-increment) wording for local issues
+     - Prefer `.workflow/issues/issues.jsonl` for the active issues store
+   - Verify:
+     - `rg \"ISS-\" .claude/commands/issue/new.md`
+     - `rg \"\\.workflow/issues\" .claude/commands/issue/new.md`
+
+2) Prompt: keep prompt aligned with docs + CLI
+   - Target: `.codex/prompts/issue-new.md`
+   - Change:
+     - Ensure examples and storage references match docs + CLI (ID format + `.workflow/issues/issues.jsonl`)
+   - Verify:
+     - `rg \"ISS-\" .codex/prompts/issue-new.md`
+     - `rg \"\\.workflow/issues/issues\\.jsonl\" ccw/src/commands/issue.ts`
+
+## P2 (Optional)
+
+3) Docs: add one explicit note that pipe/heredoc is preferred for JSON input (avoids escaping)
+   - Target: `.claude/commands/issue/new.md` (near Phase 6)
+   - Verify:
+     - `rg \"Pipe input\" .claude/commands/issue/new.md`
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md
+# Gap Report: issue:new
+
+## Reference
+
+- Selected reference: /issue:new (`.claude/commands/issue/new.md`)
+
+## P0 Gaps (Must Fix)
+
+- None identified between the generated outline and the selected reference at the section/flow level.
+
+## P1 Gaps (Should Fix)
+
+- Normalize issue ID format language across docs/prompts/CLI references:
+  - CLI implementation uses `ISS-YYYYMMDD-NNN` (auto-increment).
+  - Ensure `/issue:new` docs and prompt examples consistently describe that format.
+- Normalize storage path naming across docs/prompts:
+  - CLI surfaces `.workflow/issues/issues.jsonl` as the active issues store.
+  - Ensure docs/prompts refer to the same path (avoid older `.workflow/issues.jsonl` phrasing).
+
+## P2 Gaps (Optional)
+
+- Add one explicit note in the command doc about preferring pipe/heredoc input for JSON to avoid shell escaping issues (already supported by `ccw issue create`).
+
+## Implementation Pointers (Evidence)
+
+| Pointer | Status | Evidence | Verify | Notes |
+|---|---|---|---|---|
+| `.claude/commands/issue/new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Quick Reference` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `Test-Path .claude/commands/issue/new.md` | User-facing behavior + examples |
+| `.codex/prompts/issue-new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Implementation` ; ts: `ccw/src/commands/issue.ts` / `echo '{"title":"..."}' | ccw issue create` | `Test-Path .codex/prompts/issue-new.md` | Prompt runner flow (flags, phases, output formatting) |
+| `ccw/src/commands/issue.ts` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `async function createAction(options: IssueOptions): Promise<void> {` | `Test-Path ccw/src/commands/issue.ts` | Source of truth for storage + CLI semantics |
+| `ccw issue create` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `rg \"Usage: ccw issue create\" ccw/src/commands/issue.ts` | Local issue creation endpoint (stdin supported) |
+| `ccw issue update` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 5: GitHub Publishing Decision (Non-GitHub Sources)` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue update <issue-id> --status <status>` | `rg \"Usage: ccw issue update\" ccw/src/commands/issue.ts` | Local issue update endpoint for GitHub binding |
+| `.workflow/issues/issues.jsonl` | Planned | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `.workflow/issues/issues.jsonl         Active issues` | `Test-Path .workflow/issues/issues.jsonl` | Runtime store; exists after first create |
+
+## Implementation Hints (Tooling/Server)
+
+- `ccw issue create` supports stdin; recommend pipe or heredoc for complex JSON to avoid quoting issues.
+- When publishing a text-based issue to GitHub, persist the returned URL/number by calling `ccw issue update` on the local issue ID.
+
+## Proposed Fix Plan (Minimal)
+
+- Docs (P1): Align `/issue:new` ID format wording and storage path to match `ccw/src/commands/issue.ts`.
+- Prompts (P1): Keep `.codex/prompts/issue-new.md` aligned with docs/CLI for ID format + storage path.
+
+A C:\Project\Claude-Code-Workflow\.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md
+---
+name: new
+description: Create structured issue from GitHub URL or text description
+argument-hint: "[-y|--yes] <github-url | text-description> [--priority 1-5]"
+allowed-tools: TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*), mcp__ace-tool__search_context(*)
+group: issue
+---
+
+# Issue New Command (/issue:new)
+
+## Overview
+
+- Goal: Create a local structured issue record from either a GitHub issue URL (or short ref) or a free-text description; optionally publish to GitHub and bind the local issue to the GitHub issue.
+- Command: `/issue:new`
+
+## Usage
+
+```bash
+/issue:new [-y|--yes] <github-url | text-description> [--priority 1-5]
+```
+
+## Inputs
+
+- Required inputs:
+  - One of:
+    - GitHub issue URL (or short ref like `#123` when the repo context is clear), OR
+    - Text description of the problem
+- Optional inputs:
+  - `-y` / `--yes`: auto mode; skip clarification questions and proceed with inferred fields
+  - `--priority 1-5`: override inferred priority (1 = critical, 5 = low)
+
+## Outputs / Artifacts
+
+- Writes:
+  - `.workflow/issues/issues.jsonl` (active issues; local issue record created via `ccw issue create`)
+  - Optional update to the same store to persist GitHub binding (`ccw issue update`)
+- Reads:
+  - `.workflow/issues/issues.jsonl` (to compute next `ISS-YYYYMMDD-NNN` for local issues)
+
+## Implementation Pointers
+
+- Command doc: `.claude/commands/issue/new.md`
+- Likely code locations:
+  - `.codex/prompts/issue-new.md` (execution prompt / flow details)
+  - `ccw/src/commands/issue.ts` (CLI endpoints for local issue create/update; JSONL storage)
+  - `.workflow/issues/issues.jsonl` (runtime store written by CLI)
+
+### Evidence (Existing vs Planned)
+
+| Pointer | Status | Evidence (docs + TS) | Verify | Why |
+|---|---|---|---|---|
+| `.claude/commands/issue/new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Quick Reference` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `Test-Path .claude/commands/issue/new.md` | Source command doc for user-facing behavior |
+| `.codex/prompts/issue-new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Implementation` ; ts: `ccw/src/commands/issue.ts` / `echo '{"title":"..."}' | ccw issue create` | `Test-Path .codex/prompts/issue-new.md` | Prompt implementation details used by the agent |
+| `ccw/src/commands/issue.ts` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `async function createAction(options: IssueOptions): Promise<void> {` | `Test-Path ccw/src/commands/issue.ts` | Defines `ccw issue create/update` and issue JSONL storage |
+| `ccw issue create` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `rg \"Usage: ccw issue create\" ccw/src/commands/issue.ts` | CLI endpoint used to create the local issue record (supports stdin pipe) |
+| `ccw issue update` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 5: GitHub Publishing Decision (Non-GitHub Sources)` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue update <issue-id> --status <status>` | `rg \"Usage: ccw issue update\" ccw/src/commands/issue.ts` | CLI endpoint used to persist GitHub binding after publishing |
+| `.workflow/issues/issues.jsonl` | Planned | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `.workflow/issues/issues.jsonl         Active issues` | `Test-Path .workflow/issues/issues.jsonl` | Runtime store for active issues (created/updated by CLI) |
+
+## Execution Process
+
+1. Phase 1: Input analysis + clarity detection
+   - Detect GitHub URL / short ref vs free text
+   - Decide whether input is clear enough to create without questions
+2. Phase 2: Data extraction (GitHub or text)
+   - GitHub: fetch issue fields via `gh issue view ... --json ...`
+   - Text: parse minimal structure (title/context; optional expected/actual, steps, affected components)
+3. Phase 3: Lightweight context hint (conditional)
+   - If helpful, use `mcp__ace-tool__search_context` for light hints (avoid heavy repo scans)
+4. Phase 4: Conditional clarification (only if unclear)
+   - Ask the minimum number of questions needed to reach a usable issue record
+   - Skip entirely in auto mode (`-y/--yes`)
+5. Phase 5: GitHub publishing decision (non-GitHub sources)
+   - If the source is not GitHub, ask whether to publish to GitHub
+   - If yes: `gh issue create ...` then bind local issue to GitHub via `ccw issue update`
+6. Phase 6: Create issue
+   - Build the issue JSON payload
+   - Create via `ccw issue create` (prefer stdin pipe or heredoc for complex JSON)
+   - Print created issue JSON and a next-step hint (e.g. `/issue:plan <id>`)
+
+## Error Handling
+
+- Invalid or empty input: ask user for a clearer description (unless auto mode, then fail with an actionable message).
+- GitHub fetch/publish failure: report `gh` error output and continue with local-only creation when possible.
+- CLI failure (`ccw issue create/update`): surface stderr, do not claim issue was created/updated.
+- JSON parsing/escaping issues: recommend pipe input or heredoc and re-run.
+
+## Examples
+
+```bash
+# Clear inputs - direct creation
+/issue:new https://github.com/owner/repo/issues/123
+/issue:new \"Login fails with special chars. Expected: success. Actual: 500 error\"
+
+# Vague input - will ask clarifying questions
+/issue:new \"something wrong with auth\"
+
+# Auto mode - skip questions
+/issue:new -y \"Login sometimes fails\" --priority 2
+```
+
+apply_patch(auto_approved=true) exited 0 in 122ms:
+Success. Updated the following files:
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md
+A .workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..70882feaf1d2dbbcdcc6376cef9f1b0a23650323
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md
+@@ -0,0 +1,28 @@
++# Fix Plan: issue:new (CMD-015)
++
++## P1 (Should Fix)
++
++1) Docs: normalize ID format and storage path references
++   - Target: `.claude/commands/issue/new.md`
++   - Change:
++     - Prefer `ISS-YYYYMMDD-NNN` (auto-increment) wording for local issues
++     - Prefer `.workflow/issues/issues.jsonl` for the active issues store
++   - Verify:
++     - `rg \"ISS-\" .claude/commands/issue/new.md`
++     - `rg \"\\.workflow/issues\" .claude/commands/issue/new.md`
++
++2) Prompt: keep prompt aligned with docs + CLI
++   - Target: `.codex/prompts/issue-new.md`
++   - Change:
++     - Ensure examples and storage references match docs + CLI (ID format + `.workflow/issues/issues.jsonl`)
++   - Verify:
++     - `rg \"ISS-\" .codex/prompts/issue-new.md`
++     - `rg \"\\.workflow/issues/issues\\.jsonl\" ccw/src/commands/issue.ts`
++
++## P2 (Optional)
++
++3) Docs: add one explicit note that pipe/heredoc is preferred for JSON input (avoids escaping)
++   - Target: `.claude/commands/issue/new.md` (near Phase 6)
++   - Verify:
++     - `rg \"Pipe input\" .claude/commands/issue/new.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..fb6376d26ad426dc8411a09945a46a0c138e7b8c
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md
+@@ -0,0 +1,44 @@
++# Gap Report: issue:new
++
++## Reference
++
++- Selected reference: /issue:new (`.claude/commands/issue/new.md`)
++
++## P0 Gaps (Must Fix)
++
++- None identified between the generated outline and the selected reference at the section/flow level.
++
++## P1 Gaps (Should Fix)
++
++- Normalize issue ID format language across docs/prompts/CLI references:
++  - CLI implementation uses `ISS-YYYYMMDD-NNN` (auto-increment).
++  - Ensure `/issue:new` docs and prompt examples consistently describe that format.
++- Normalize storage path naming across docs/prompts:
++  - CLI surfaces `.workflow/issues/issues.jsonl` as the active issues store.
++  - Ensure docs/prompts refer to the same path (avoid older `.workflow/issues.jsonl` phrasing).
++
++## P2 Gaps (Optional)
++
++- Add one explicit note in the command doc about preferring pipe/heredoc input for JSON to avoid shell escaping issues (already supported by `ccw issue create`).
++
++## Implementation Pointers (Evidence)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/issue/new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Quick Reference` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `Test-Path .claude/commands/issue/new.md` | User-facing behavior + examples |
++| `.codex/prompts/issue-new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Implementation` ; ts: `ccw/src/commands/issue.ts` / `echo '{"title":"..."}' | ccw issue create` | `Test-Path .codex/prompts/issue-new.md` | Prompt runner flow (flags, phases, output formatting) |
++| `ccw/src/commands/issue.ts` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `async function createAction(options: IssueOptions): Promise<void> {` | `Test-Path ccw/src/commands/issue.ts` | Source of truth for storage + CLI semantics |
++| `ccw issue create` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `rg \"Usage: ccw issue create\" ccw/src/commands/issue.ts` | Local issue creation endpoint (stdin supported) |
++| `ccw issue update` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 5: GitHub Publishing Decision (Non-GitHub Sources)` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue update <issue-id> --status <status>` | `rg \"Usage: ccw issue update\" ccw/src/commands/issue.ts` | Local issue update endpoint for GitHub binding |
++| `.workflow/issues/issues.jsonl` | Planned | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `.workflow/issues/issues.jsonl         Active issues` | `Test-Path .workflow/issues/issues.jsonl` | Runtime store; exists after first create |
++
++## Implementation Hints (Tooling/Server)
++
++- `ccw issue create` supports stdin; recommend pipe or heredoc for complex JSON to avoid quoting issues.
++- When publishing a text-based issue to GitHub, persist the returned URL/number by calling `ccw issue update` on the local issue ID.
++
++## Proposed Fix Plan (Minimal)
++
++- Docs (P1): Align `/issue:new` ID format wording and storage path to match `ccw/src/commands/issue.ts`.
++- Prompts (P1): Keep `.codex/prompts/issue-new.md` aligned with docs/CLI for ID format + storage path.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..68b89c60c6f639d38c4f05295927310d64e58286
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,36 @@
++# Agent Outline: issue:new
++
++## Purpose
++
++Implement and/or evolve the `/issue:new` slash command according to CCW conventions with minimal regressions.
++
++## Execution Model
++
++- Default: incremental, testable changes
++- Before editing: use `mcp__ace-tool__search_context` to find and match existing patterns for issue commands and JSONL storage
++- Interaction model: single-pass for clear inputs; minimal questions for unclear inputs; optional GitHub publish prompt for non-GitHub sources
++
++## State & Artifacts
++
++- Runtime store (created/updated by CLI):
++  - `.workflow/issues/issues.jsonl`
++- Related artifacts:
++  - Command doc: `.claude/commands/issue/new.md`
++  - Prompt doc: `.codex/prompts/issue-new.md`
++  - CLI implementation: `ccw/src/commands/issue.ts`
++
++## Tooling
++
++- Allowed tools: TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*), mcp__ace-tool__search_context(*)
++- Non-negotiables:
++  - no unrelated changes
++  - pointers labeled Existing vs Planned with dual-source evidence (docs + TS)
++  - deterministic evidence gate must pass
++
++## Validation Strategy
++
++- P0 gates: frontmatter + allowed-tools + core sections + artifact references
++- Deterministic evidence verification:
++  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md`
++  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..975e98e962014aa2dd4fe54ee02a3552aba0f0c4
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,100 @@
++---
++name: new
++description: Create structured issue from GitHub URL or text description
++argument-hint: "[-y|--yes] <github-url | text-description> [--priority 1-5]"
++allowed-tools: TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*), mcp__ace-tool__search_context(*)
++group: issue
++---
++
++# Issue New Command (/issue:new)
++
++## Overview
++
++- Goal: Create a local structured issue record from either a GitHub issue URL (or short ref) or a free-text description; optionally publish to GitHub and bind the local issue to the GitHub issue.
++- Command: `/issue:new`
++
++## Usage
++
++```bash
++/issue:new [-y|--yes] <github-url | text-description> [--priority 1-5]
++```
++
++## Inputs
++
++- Required inputs:
++  - One of:
++    - GitHub issue URL (or short ref like `#123` when the repo context is clear), OR
++    - Text description of the problem
++- Optional inputs:
++  - `-y` / `--yes`: auto mode; skip clarification questions and proceed with inferred fields
++  - `--priority 1-5`: override inferred priority (1 = critical, 5 = low)
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/issues/issues.jsonl` (active issues; local issue record created via `ccw issue create`)
++  - Optional update to the same store to persist GitHub binding (`ccw issue update`)
++- Reads:
++  - `.workflow/issues/issues.jsonl` (to compute next `ISS-YYYYMMDD-NNN` for local issues)
++
++## Implementation Pointers
++
++- Command doc: `.claude/commands/issue/new.md`
++- Likely code locations:
++  - `.codex/prompts/issue-new.md` (execution prompt / flow details)
++  - `ccw/src/commands/issue.ts` (CLI endpoints for local issue create/update; JSONL storage)
++  - `.workflow/issues/issues.jsonl` (runtime store written by CLI)
++
++### Evidence (Existing vs Planned)
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/issue/new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Quick Reference` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `Test-Path .claude/commands/issue/new.md` | Source command doc for user-facing behavior |
++| `.codex/prompts/issue-new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Implementation` ; ts: `ccw/src/commands/issue.ts` / `echo '{"title":"..."}' | ccw issue create` | `Test-Path .codex/prompts/issue-new.md` | Prompt implementation details used by the agent |
++| `ccw/src/commands/issue.ts` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `async function createAction(options: IssueOptions): Promise<void> {` | `Test-Path ccw/src/commands/issue.ts` | Defines `ccw issue create/update` and issue JSONL storage |
++| `ccw issue create` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `rg \"Usage: ccw issue create\" ccw/src/commands/issue.ts` | CLI endpoint used to create the local issue record (supports stdin pipe) |
++| `ccw issue update` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 5: GitHub Publishing Decision (Non-GitHub Sources)` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue update <issue-id> --status <status>` | `rg \"Usage: ccw issue update\" ccw/src/commands/issue.ts` | CLI endpoint used to persist GitHub binding after publishing |
++| `.workflow/issues/issues.jsonl` | Planned | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `.workflow/issues/issues.jsonl         Active issues` | `Test-Path .workflow/issues/issues.jsonl` | Runtime store for active issues (created/updated by CLI) |
++
++## Execution Process
++
++1. Phase 1: Input analysis + clarity detection
++   - Detect GitHub URL / short ref vs free text
++   - Decide whether input is clear enough to create without questions
++2. Phase 2: Data extraction (GitHub or text)
++   - GitHub: fetch issue fields via `gh issue view ... --json ...`
++   - Text: parse minimal structure (title/context; optional expected/actual, steps, affected components)
++3. Phase 3: Lightweight context hint (conditional)
++   - If helpful, use `mcp__ace-tool__search_context` for light hints (avoid heavy repo scans)
++4. Phase 4: Conditional clarification (only if unclear)
++   - Ask the minimum number of questions needed to reach a usable issue record
++   - Skip entirely in auto mode (`-y/--yes`)
++5. Phase 5: GitHub publishing decision (non-GitHub sources)
++   - If the source is not GitHub, ask whether to publish to GitHub
++   - If yes: `gh issue create ...` then bind local issue to GitHub via `ccw issue update`
++6. Phase 6: Create issue
++   - Build the issue JSON payload
++   - Create via `ccw issue create` (prefer stdin pipe or heredoc for complex JSON)
++   - Print created issue JSON and a next-step hint (e.g. `/issue:plan <id>`)
++
++## Error Handling
++
++- Invalid or empty input: ask user for a clearer description (unless auto mode, then fail with an actionable message).
++- GitHub fetch/publish failure: report `gh` error output and continue with local-only creation when possible.
++- CLI failure (`ccw issue create/update`): surface stderr, do not claim issue was created/updated.
++- JSON parsing/escaping issues: recommend pipe input or heredoc and re-run.
++
++## Examples
++
++```bash
++# Clear inputs - direct creation
++/issue:new https://github.com/owner/repo/issues/123
++/issue:new \"Login fails with special chars. Expected: success. Actual: 500 error\"
++
++# Vague input - will ask clarifying questions
++/issue:new \"something wrong with auth\"
++
++# Auto mode - skip questions
++/issue:new -y \"Login sometimes fails\" --priority 2
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..d6622fd1e19e37dabd100096c3fcab82336abe97
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json
+@@ -0,0 +1,41 @@
++{
++  "candidates": [
++    {
++      "slash": "/issue:new",
++      "file_path": ".claude/commands/issue/new.md",
++      "score": 1.0,
++      "why": "Exact command; defines phases for clarity detection, data extraction, optional clarification, optional GitHub publish, and local issue creation."
++    },
++    {
++      "slash": "/issue:from-brainstorm",
++      "file_path": ".claude/commands/issue/from-brainstorm.md",
++      "score": 0.78,
++      "why": "Same group and output type (structured issue), similar flow from unstructured input to normalized issue JSON."
++    },
++    {
++      "slash": "/issue:discover",
++      "file_path": ".claude/commands/issue/discover.md",
++      "score": 0.65,
++      "why": "Same group; uses context discovery patterns that can inform conditional context hints for /issue:new."
++    },
++    {
++      "slash": "/issue:plan",
++      "file_path": ".claude/commands/issue/plan.md",
++      "score": 0.6,
++      "why": "Direct follow-up command; helps ensure /issue:new output fields are sufficient for downstream planning."
++    },
++    {
++      "slash": "/issue:queue",
++      "file_path": ".claude/commands/issue/queue.md",
++      "score": 0.52,
++      "why": "Same storage family; useful for validating issue JSON fields and lifecycle statuses."
++    }
++  ],
++  "selected": {
++    "slash": "/issue:new",
++    "file_path": ".claude/commands/issue/new.md",
++    "score": 1.0,
++    "why": "Oracle command doc for CMD-015; use as the primary reference for structure and behavior."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..44787a03704567e73520eab9fae40747b7887c4d
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json
+@@ -0,0 +1,46 @@
++{
++  "command": {
++    "group": "issue",
++    "name": "new",
++    "description": "Create structured issue from GitHub URL or text description",
++    "argument_hint": "[-y|--yes] <github-url | text-description> [--priority 1-5]",
++    "allowed_tools": [
++      "TodoWrite(*)",
++      "Bash(*)",
++      "Read(*)",
++      "AskUserQuestion(*)",
++      "mcp__ace-tool__search_context(*)"
++    ]
++  },
++  "intent": {
++    "type": "execute",
++    "interaction": "iterative",
++    "primary_user_value": "Create a local structured issue record (and optionally publish/bind it to GitHub) from either a GitHub issue reference or a free-text problem description."
++  },
++  "artifacts": {
++    "reads": [
++      ".workflow/issues/issues.jsonl"
++    ],
++    "writes": [
++      ".workflow/issues/issues.jsonl"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 2,
++    "time_budget_seconds": 600,
++    "must_not": [
++      "Do not ask clarification questions when -y/--yes is provided (auto mode).",
++      "Do not claim repository pointers exist unless they are verifiable in the repo at generation time.",
++      "Do not create or modify unrelated files; only the issue storage files via ccw CLI and any explicitly requested outputs."
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "Frontmatter valid (name/description/allowed-tools, argument-hint if applicable)",
++      "Allowed-tools matches intended behavior",
++      "Core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
++      "All implementation pointers labeled Existing vs Planned with dual-source evidence (docs + TS) and concrete verify commands"
++    ]
++  }
++}
++
+
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..70882feaf1d2dbbcdcc6376cef9f1b0a23650323
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md
+@@ -0,0 +1,28 @@
++# Fix Plan: issue:new (CMD-015)
++
++## P1 (Should Fix)
++
++1) Docs: normalize ID format and storage path references
++   - Target: `.claude/commands/issue/new.md`
++   - Change:
++     - Prefer `ISS-YYYYMMDD-NNN` (auto-increment) wording for local issues
++     - Prefer `.workflow/issues/issues.jsonl` for the active issues store
++   - Verify:
++     - `rg \"ISS-\" .claude/commands/issue/new.md`
++     - `rg \"\\.workflow/issues\" .claude/commands/issue/new.md`
++
++2) Prompt: keep prompt aligned with docs + CLI
++   - Target: `.codex/prompts/issue-new.md`
++   - Change:
++     - Ensure examples and storage references match docs + CLI (ID format + `.workflow/issues/issues.jsonl`)
++   - Verify:
++     - `rg \"ISS-\" .codex/prompts/issue-new.md`
++     - `rg \"\\.workflow/issues/issues\\.jsonl\" ccw/src/commands/issue.ts`
++
++## P2 (Optional)
++
++3) Docs: add one explicit note that pipe/heredoc is preferred for JSON input (avoids escaping)
++   - Target: `.claude/commands/issue/new.md` (near Phase 6)
++   - Verify:
++     - `rg \"Pipe input\" .claude/commands/issue/new.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..fb6376d26ad426dc8411a09945a46a0c138e7b8c
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md
+@@ -0,0 +1,44 @@
++# Gap Report: issue:new
++
++## Reference
++
++- Selected reference: /issue:new (`.claude/commands/issue/new.md`)
++
++## P0 Gaps (Must Fix)
++
++- None identified between the generated outline and the selected reference at the section/flow level.
++
++## P1 Gaps (Should Fix)
++
++- Normalize issue ID format language across docs/prompts/CLI references:
++  - CLI implementation uses `ISS-YYYYMMDD-NNN` (auto-increment).
++  - Ensure `/issue:new` docs and prompt examples consistently describe that format.
++- Normalize storage path naming across docs/prompts:
++  - CLI surfaces `.workflow/issues/issues.jsonl` as the active issues store.
++  - Ensure docs/prompts refer to the same path (avoid older `.workflow/issues.jsonl` phrasing).
++
++## P2 Gaps (Optional)
++
++- Add one explicit note in the command doc about preferring pipe/heredoc input for JSON to avoid shell escaping issues (already supported by `ccw issue create`).
++
++## Implementation Pointers (Evidence)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/issue/new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Quick Reference` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `Test-Path .claude/commands/issue/new.md` | User-facing behavior + examples |
++| `.codex/prompts/issue-new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Implementation` ; ts: `ccw/src/commands/issue.ts` / `echo '{"title":"..."}' | ccw issue create` | `Test-Path .codex/prompts/issue-new.md` | Prompt runner flow (flags, phases, output formatting) |
++| `ccw/src/commands/issue.ts` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `async function createAction(options: IssueOptions): Promise<void> {` | `Test-Path ccw/src/commands/issue.ts` | Source of truth for storage + CLI semantics |
++| `ccw issue create` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `rg \"Usage: ccw issue create\" ccw/src/commands/issue.ts` | Local issue creation endpoint (stdin supported) |
++| `ccw issue update` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 5: GitHub Publishing Decision (Non-GitHub Sources)` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue update <issue-id> --status <status>` | `rg \"Usage: ccw issue update\" ccw/src/commands/issue.ts` | Local issue update endpoint for GitHub binding |
++| `.workflow/issues/issues.jsonl` | Planned | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `.workflow/issues/issues.jsonl         Active issues` | `Test-Path .workflow/issues/issues.jsonl` | Runtime store; exists after first create |
++
++## Implementation Hints (Tooling/Server)
++
++- `ccw issue create` supports stdin; recommend pipe or heredoc for complex JSON to avoid quoting issues.
++- When publishing a text-based issue to GitHub, persist the returned URL/number by calling `ccw issue update` on the local issue ID.
++
++## Proposed Fix Plan (Minimal)
++
++- Docs (P1): Align `/issue:new` ID format wording and storage path to match `ccw/src/commands/issue.ts`.
++- Prompts (P1): Keep `.codex/prompts/issue-new.md` aligned with docs/CLI for ID format + storage path.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..68b89c60c6f639d38c4f05295927310d64e58286
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,36 @@
++# Agent Outline: issue:new
++
++## Purpose
++
++Implement and/or evolve the `/issue:new` slash command according to CCW conventions with minimal regressions.
++
++## Execution Model
++
++- Default: incremental, testable changes
++- Before editing: use `mcp__ace-tool__search_context` to find and match existing patterns for issue commands and JSONL storage
++- Interaction model: single-pass for clear inputs; minimal questions for unclear inputs; optional GitHub publish prompt for non-GitHub sources
++
++## State & Artifacts
++
++- Runtime store (created/updated by CLI):
++  - `.workflow/issues/issues.jsonl`
++- Related artifacts:
++  - Command doc: `.claude/commands/issue/new.md`
++  - Prompt doc: `.codex/prompts/issue-new.md`
++  - CLI implementation: `ccw/src/commands/issue.ts`
++
++## Tooling
++
++- Allowed tools: TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*), mcp__ace-tool__search_context(*)
++- Non-negotiables:
++  - no unrelated changes
++  - pointers labeled Existing vs Planned with dual-source evidence (docs + TS)
++  - deterministic evidence gate must pass
++
++## Validation Strategy
++
++- P0 gates: frontmatter + allowed-tools + core sections + artifact references
++- Deterministic evidence verification:
++  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md`
++  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..975e98e962014aa2dd4fe54ee02a3552aba0f0c4
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,100 @@
++---
++name: new
++description: Create structured issue from GitHub URL or text description
++argument-hint: "[-y|--yes] <github-url | text-description> [--priority 1-5]"
++allowed-tools: TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*), mcp__ace-tool__search_context(*)
++group: issue
++---
++
++# Issue New Command (/issue:new)
++
++## Overview
++
++- Goal: Create a local structured issue record from either a GitHub issue URL (or short ref) or a free-text description; optionally publish to GitHub and bind the local issue to the GitHub issue.
++- Command: `/issue:new`
++
++## Usage
++
++```bash
++/issue:new [-y|--yes] <github-url | text-description> [--priority 1-5]
++```
++
++## Inputs
++
++- Required inputs:
++  - One of:
++    - GitHub issue URL (or short ref like `#123` when the repo context is clear), OR
++    - Text description of the problem
++- Optional inputs:
++  - `-y` / `--yes`: auto mode; skip clarification questions and proceed with inferred fields
++  - `--priority 1-5`: override inferred priority (1 = critical, 5 = low)
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/issues/issues.jsonl` (active issues; local issue record created via `ccw issue create`)
++  - Optional update to the same store to persist GitHub binding (`ccw issue update`)
++- Reads:
++  - `.workflow/issues/issues.jsonl` (to compute next `ISS-YYYYMMDD-NNN` for local issues)
++
++## Implementation Pointers
++
++- Command doc: `.claude/commands/issue/new.md`
++- Likely code locations:
++  - `.codex/prompts/issue-new.md` (execution prompt / flow details)
++  - `ccw/src/commands/issue.ts` (CLI endpoints for local issue create/update; JSONL storage)
++  - `.workflow/issues/issues.jsonl` (runtime store written by CLI)
++
++### Evidence (Existing vs Planned)
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/issue/new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Quick Reference` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `Test-Path .claude/commands/issue/new.md` | Source command doc for user-facing behavior |
++| `.codex/prompts/issue-new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Implementation` ; ts: `ccw/src/commands/issue.ts` / `echo '{"title":"..."}' | ccw issue create` | `Test-Path .codex/prompts/issue-new.md` | Prompt implementation details used by the agent |
++| `ccw/src/commands/issue.ts` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `async function createAction(options: IssueOptions): Promise<void> {` | `Test-Path ccw/src/commands/issue.ts` | Defines `ccw issue create/update` and issue JSONL storage |
++| `ccw issue create` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `rg \"Usage: ccw issue create\" ccw/src/commands/issue.ts` | CLI endpoint used to create the local issue record (supports stdin pipe) |
++| `ccw issue update` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 5: GitHub Publishing Decision (Non-GitHub Sources)` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue update <issue-id> --status <status>` | `rg \"Usage: ccw issue update\" ccw/src/commands/issue.ts` | CLI endpoint used to persist GitHub binding after publishing |
++| `.workflow/issues/issues.jsonl` | Planned | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `.workflow/issues/issues.jsonl         Active issues` | `Test-Path .workflow/issues/issues.jsonl` | Runtime store for active issues (created/updated by CLI) |
++
++## Execution Process
++
++1. Phase 1: Input analysis + clarity detection
++   - Detect GitHub URL / short ref vs free text
++   - Decide whether input is clear enough to create without questions
++2. Phase 2: Data extraction (GitHub or text)
++   - GitHub: fetch issue fields via `gh issue view ... --json ...`
++   - Text: parse minimal structure (title/context; optional expected/actual, steps, affected components)
++3. Phase 3: Lightweight context hint (conditional)
++   - If helpful, use `mcp__ace-tool__search_context` for light hints (avoid heavy repo scans)
++4. Phase 4: Conditional clarification (only if unclear)
++   - Ask the minimum number of questions needed to reach a usable issue record
++   - Skip entirely in auto mode (`-y/--yes`)
++5. Phase 5: GitHub publishing decision (non-GitHub sources)
++   - If the source is not GitHub, ask whether to publish to GitHub
++   - If yes: `gh issue create ...` then bind local issue to GitHub via `ccw issue update`
++6. Phase 6: Create issue
++   - Build the issue JSON payload
++   - Create via `ccw issue create` (prefer stdin pipe or heredoc for complex JSON)
++   - Print created issue JSON and a next-step hint (e.g. `/issue:plan <id>`)
++
++## Error Handling
++
++- Invalid or empty input: ask user for a clearer description (unless auto mode, then fail with an actionable message).
++- GitHub fetch/publish failure: report `gh` error output and continue with local-only creation when possible.
++- CLI failure (`ccw issue create/update`): surface stderr, do not claim issue was created/updated.
++- JSON parsing/escaping issues: recommend pipe input or heredoc and re-run.
++
++## Examples
++
++```bash
++# Clear inputs - direct creation
++/issue:new https://github.com/owner/repo/issues/123
++/issue:new \"Login fails with special chars. Expected: success. Actual: 500 error\"
++
++# Vague input - will ask clarifying questions
++/issue:new \"something wrong with auth\"
++
++# Auto mode - skip questions
++/issue:new -y \"Login sometimes fails\" --priority 2
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..d6622fd1e19e37dabd100096c3fcab82336abe97
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json
+@@ -0,0 +1,41 @@
++{
++  "candidates": [
++    {
++      "slash": "/issue:new",
++      "file_path": ".claude/commands/issue/new.md",
++      "score": 1.0,
++      "why": "Exact command; defines phases for clarity detection, data extraction, optional clarification, optional GitHub publish, and local issue creation."
++    },
++    {
++      "slash": "/issue:from-brainstorm",
++      "file_path": ".claude/commands/issue/from-brainstorm.md",
++      "score": 0.78,
++      "why": "Same group and output type (structured issue), similar flow from unstructured input to normalized issue JSON."
++    },
++    {
++      "slash": "/issue:discover",
++      "file_path": ".claude/commands/issue/discover.md",
++      "score": 0.65,
++      "why": "Same group; uses context discovery patterns that can inform conditional context hints for /issue:new."
++    },
++    {
++      "slash": "/issue:plan",
++      "file_path": ".claude/commands/issue/plan.md",
++      "score": 0.6,
++      "why": "Direct follow-up command; helps ensure /issue:new output fields are sufficient for downstream planning."
++    },
++    {
++      "slash": "/issue:queue",
++      "file_path": ".claude/commands/issue/queue.md",
++      "score": 0.52,
++      "why": "Same storage family; useful for validating issue JSON fields and lifecycle statuses."
++    }
++  ],
++  "selected": {
++    "slash": "/issue:new",
++    "file_path": ".claude/commands/issue/new.md",
++    "score": 1.0,
++    "why": "Oracle command doc for CMD-015; use as the primary reference for structure and behavior."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..44787a03704567e73520eab9fae40747b7887c4d
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json
+@@ -0,0 +1,46 @@
++{
++  "command": {
++    "group": "issue",
++    "name": "new",
++    "description": "Create structured issue from GitHub URL or text description",
++    "argument_hint": "[-y|--yes] <github-url | text-description> [--priority 1-5]",
++    "allowed_tools": [
++      "TodoWrite(*)",
++      "Bash(*)",
++      "Read(*)",
++      "AskUserQuestion(*)",
++      "mcp__ace-tool__search_context(*)"
++    ]
++  },
++  "intent": {
++    "type": "execute",
++    "interaction": "iterative",
++    "primary_user_value": "Create a local structured issue record (and optionally publish/bind it to GitHub) from either a GitHub issue reference or a free-text problem description."
++  },
++  "artifacts": {
++    "reads": [
++      ".workflow/issues/issues.jsonl"
++    ],
++    "writes": [
++      ".workflow/issues/issues.jsonl"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 2,
++    "time_budget_seconds": 600,
++    "must_not": [
++      "Do not ask clarification questions when -y/--yes is provided (auto mode).",
++      "Do not claim repository pointers exist unless they are verifiable in the repo at generation time.",
++      "Do not create or modify unrelated files; only the issue storage files via ccw CLI and any explicitly requested outputs."
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "Frontmatter valid (name/description/allowed-tools, argument-hint if applicable)",
++      "Allowed-tools matches intended behavior",
++      "Core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
++      "All implementation pointers labeled Existing vs Planned with dual-source evidence (docs + TS) and concrete verify commands"
++    ]
++  }
++}
++
+
+
+thinking
+**Running verification script**
+
+I’m planning to run the verification script on the generated outline and gap report. My next step is to ensure that Node is installed on the system since that’s necessary. Once I confirm it’s set up correctly, I’ll execute the node command to run the script. I want to make sure everything is in place to avoid any hiccups, so I'll double-check all requirements first!
+exec
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '[Console]::InputEncoding  = [Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+chcp 65001 > $null
+
+node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md
+' in C:\Project\Claude-Code-Workflow succeeded in 341ms:
+OK: evidence verification passed
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..70882feaf1d2dbbcdcc6376cef9f1b0a23650323
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md
+@@ -0,0 +1,28 @@
++# Fix Plan: issue:new (CMD-015)
++
++## P1 (Should Fix)
++
++1) Docs: normalize ID format and storage path references
++   - Target: `.claude/commands/issue/new.md`
++   - Change:
++     - Prefer `ISS-YYYYMMDD-NNN` (auto-increment) wording for local issues
++     - Prefer `.workflow/issues/issues.jsonl` for the active issues store
++   - Verify:
++     - `rg \"ISS-\" .claude/commands/issue/new.md`
++     - `rg \"\\.workflow/issues\" .claude/commands/issue/new.md`
++
++2) Prompt: keep prompt aligned with docs + CLI
++   - Target: `.codex/prompts/issue-new.md`
++   - Change:
++     - Ensure examples and storage references match docs + CLI (ID format + `.workflow/issues/issues.jsonl`)
++   - Verify:
++     - `rg \"ISS-\" .codex/prompts/issue-new.md`
++     - `rg \"\\.workflow/issues/issues\\.jsonl\" ccw/src/commands/issue.ts`
++
++## P2 (Optional)
++
++3) Docs: add one explicit note that pipe/heredoc is preferred for JSON input (avoids escaping)
++   - Target: `.claude/commands/issue/new.md` (near Phase 6)
++   - Verify:
++     - `rg \"Pipe input\" .claude/commands/issue/new.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..fb6376d26ad426dc8411a09945a46a0c138e7b8c
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md
+@@ -0,0 +1,44 @@
++# Gap Report: issue:new
++
++## Reference
++
++- Selected reference: /issue:new (`.claude/commands/issue/new.md`)
++
++## P0 Gaps (Must Fix)
++
++- None identified between the generated outline and the selected reference at the section/flow level.
++
++## P1 Gaps (Should Fix)
++
++- Normalize issue ID format language across docs/prompts/CLI references:
++  - CLI implementation uses `ISS-YYYYMMDD-NNN` (auto-increment).
++  - Ensure `/issue:new` docs and prompt examples consistently describe that format.
++- Normalize storage path naming across docs/prompts:
++  - CLI surfaces `.workflow/issues/issues.jsonl` as the active issues store.
++  - Ensure docs/prompts refer to the same path (avoid older `.workflow/issues.jsonl` phrasing).
++
++## P2 Gaps (Optional)
++
++- Add one explicit note in the command doc about preferring pipe/heredoc input for JSON to avoid shell escaping issues (already supported by `ccw issue create`).
++
++## Implementation Pointers (Evidence)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/issue/new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Quick Reference` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `Test-Path .claude/commands/issue/new.md` | User-facing behavior + examples |
++| `.codex/prompts/issue-new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Implementation` ; ts: `ccw/src/commands/issue.ts` / `echo '{"title":"..."}' | ccw issue create` | `Test-Path .codex/prompts/issue-new.md` | Prompt runner flow (flags, phases, output formatting) |
++| `ccw/src/commands/issue.ts` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `async function createAction(options: IssueOptions): Promise<void> {` | `Test-Path ccw/src/commands/issue.ts` | Source of truth for storage + CLI semantics |
++| `ccw issue create` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `rg \"Usage: ccw issue create\" ccw/src/commands/issue.ts` | Local issue creation endpoint (stdin supported) |
++| `ccw issue update` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 5: GitHub Publishing Decision (Non-GitHub Sources)` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue update <issue-id> --status <status>` | `rg \"Usage: ccw issue update\" ccw/src/commands/issue.ts` | Local issue update endpoint for GitHub binding |
++| `.workflow/issues/issues.jsonl` | Planned | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `.workflow/issues/issues.jsonl         Active issues` | `Test-Path .workflow/issues/issues.jsonl` | Runtime store; exists after first create |
++
++## Implementation Hints (Tooling/Server)
++
++- `ccw issue create` supports stdin; recommend pipe or heredoc for complex JSON to avoid quoting issues.
++- When publishing a text-based issue to GitHub, persist the returned URL/number by calling `ccw issue update` on the local issue ID.
++
++## Proposed Fix Plan (Minimal)
++
++- Docs (P1): Align `/issue:new` ID format wording and storage path to match `ccw/src/commands/issue.ts`.
++- Prompts (P1): Keep `.codex/prompts/issue-new.md` aligned with docs/CLI for ID format + storage path.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..68b89c60c6f639d38c4f05295927310d64e58286
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,36 @@
++# Agent Outline: issue:new
++
++## Purpose
++
++Implement and/or evolve the `/issue:new` slash command according to CCW conventions with minimal regressions.
++
++## Execution Model
++
++- Default: incremental, testable changes
++- Before editing: use `mcp__ace-tool__search_context` to find and match existing patterns for issue commands and JSONL storage
++- Interaction model: single-pass for clear inputs; minimal questions for unclear inputs; optional GitHub publish prompt for non-GitHub sources
++
++## State & Artifacts
++
++- Runtime store (created/updated by CLI):
++  - `.workflow/issues/issues.jsonl`
++- Related artifacts:
++  - Command doc: `.claude/commands/issue/new.md`
++  - Prompt doc: `.codex/prompts/issue-new.md`
++  - CLI implementation: `ccw/src/commands/issue.ts`
++
++## Tooling
++
++- Allowed tools: TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*), mcp__ace-tool__search_context(*)
++- Non-negotiables:
++  - no unrelated changes
++  - pointers labeled Existing vs Planned with dual-source evidence (docs + TS)
++  - deterministic evidence gate must pass
++
++## Validation Strategy
++
++- P0 gates: frontmatter + allowed-tools + core sections + artifact references
++- Deterministic evidence verification:
++  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md`
++  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..975e98e962014aa2dd4fe54ee02a3552aba0f0c4
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,100 @@
++---
++name: new
++description: Create structured issue from GitHub URL or text description
++argument-hint: "[-y|--yes] <github-url | text-description> [--priority 1-5]"
++allowed-tools: TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*), mcp__ace-tool__search_context(*)
++group: issue
++---
++
++# Issue New Command (/issue:new)
++
++## Overview
++
++- Goal: Create a local structured issue record from either a GitHub issue URL (or short ref) or a free-text description; optionally publish to GitHub and bind the local issue to the GitHub issue.
++- Command: `/issue:new`
++
++## Usage
++
++```bash
++/issue:new [-y|--yes] <github-url | text-description> [--priority 1-5]
++```
++
++## Inputs
++
++- Required inputs:
++  - One of:
++    - GitHub issue URL (or short ref like `#123` when the repo context is clear), OR
++    - Text description of the problem
++- Optional inputs:
++  - `-y` / `--yes`: auto mode; skip clarification questions and proceed with inferred fields
++  - `--priority 1-5`: override inferred priority (1 = critical, 5 = low)
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/issues/issues.jsonl` (active issues; local issue record created via `ccw issue create`)
++  - Optional update to the same store to persist GitHub binding (`ccw issue update`)
++- Reads:
++  - `.workflow/issues/issues.jsonl` (to compute next `ISS-YYYYMMDD-NNN` for local issues)
++
++## Implementation Pointers
++
++- Command doc: `.claude/commands/issue/new.md`
++- Likely code locations:
++  - `.codex/prompts/issue-new.md` (execution prompt / flow details)
++  - `ccw/src/commands/issue.ts` (CLI endpoints for local issue create/update; JSONL storage)
++  - `.workflow/issues/issues.jsonl` (runtime store written by CLI)
++
++### Evidence (Existing vs Planned)
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/issue/new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Quick Reference` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `Test-Path .claude/commands/issue/new.md` | Source command doc for user-facing behavior |
++| `.codex/prompts/issue-new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Implementation` ; ts: `ccw/src/commands/issue.ts` / `echo '{"title":"..."}' | ccw issue create` | `Test-Path .codex/prompts/issue-new.md` | Prompt implementation details used by the agent |
++| `ccw/src/commands/issue.ts` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `async function createAction(options: IssueOptions): Promise<void> {` | `Test-Path ccw/src/commands/issue.ts` | Defines `ccw issue create/update` and issue JSONL storage |
++| `ccw issue create` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `rg \"Usage: ccw issue create\" ccw/src/commands/issue.ts` | CLI endpoint used to create the local issue record (supports stdin pipe) |
++| `ccw issue update` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 5: GitHub Publishing Decision (Non-GitHub Sources)` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue update <issue-id> --status <status>` | `rg \"Usage: ccw issue update\" ccw/src/commands/issue.ts` | CLI endpoint used to persist GitHub binding after publishing |
++| `.workflow/issues/issues.jsonl` | Planned | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `.workflow/issues/issues.jsonl         Active issues` | `Test-Path .workflow/issues/issues.jsonl` | Runtime store for active issues (created/updated by CLI) |
++
++## Execution Process
++
++1. Phase 1: Input analysis + clarity detection
++   - Detect GitHub URL / short ref vs free text
++   - Decide whether input is clear enough to create without questions
++2. Phase 2: Data extraction (GitHub or text)
++   - GitHub: fetch issue fields via `gh issue view ... --json ...`
++   - Text: parse minimal structure (title/context; optional expected/actual, steps, affected components)
++3. Phase 3: Lightweight context hint (conditional)
++   - If helpful, use `mcp__ace-tool__search_context` for light hints (avoid heavy repo scans)
++4. Phase 4: Conditional clarification (only if unclear)
++   - Ask the minimum number of questions needed to reach a usable issue record
++   - Skip entirely in auto mode (`-y/--yes`)
++5. Phase 5: GitHub publishing decision (non-GitHub sources)
++   - If the source is not GitHub, ask whether to publish to GitHub
++   - If yes: `gh issue create ...` then bind local issue to GitHub via `ccw issue update`
++6. Phase 6: Create issue
++   - Build the issue JSON payload
++   - Create via `ccw issue create` (prefer stdin pipe or heredoc for complex JSON)
++   - Print created issue JSON and a next-step hint (e.g. `/issue:plan <id>`)
++
++## Error Handling
++
++- Invalid or empty input: ask user for a clearer description (unless auto mode, then fail with an actionable message).
++- GitHub fetch/publish failure: report `gh` error output and continue with local-only creation when possible.
++- CLI failure (`ccw issue create/update`): surface stderr, do not claim issue was created/updated.
++- JSON parsing/escaping issues: recommend pipe input or heredoc and re-run.
++
++## Examples
++
++```bash
++# Clear inputs - direct creation
++/issue:new https://github.com/owner/repo/issues/123
++/issue:new \"Login fails with special chars. Expected: success. Actual: 500 error\"
++
++# Vague input - will ask clarifying questions
++/issue:new \"something wrong with auth\"
++
++# Auto mode - skip questions
++/issue:new -y \"Login sometimes fails\" --priority 2
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..d6622fd1e19e37dabd100096c3fcab82336abe97
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json
+@@ -0,0 +1,41 @@
++{
++  "candidates": [
++    {
++      "slash": "/issue:new",
++      "file_path": ".claude/commands/issue/new.md",
++      "score": 1.0,
++      "why": "Exact command; defines phases for clarity detection, data extraction, optional clarification, optional GitHub publish, and local issue creation."
++    },
++    {
++      "slash": "/issue:from-brainstorm",
++      "file_path": ".claude/commands/issue/from-brainstorm.md",
++      "score": 0.78,
++      "why": "Same group and output type (structured issue), similar flow from unstructured input to normalized issue JSON."
++    },
++    {
++      "slash": "/issue:discover",
++      "file_path": ".claude/commands/issue/discover.md",
++      "score": 0.65,
++      "why": "Same group; uses context discovery patterns that can inform conditional context hints for /issue:new."
++    },
++    {
++      "slash": "/issue:plan",
++      "file_path": ".claude/commands/issue/plan.md",
++      "score": 0.6,
++      "why": "Direct follow-up command; helps ensure /issue:new output fields are sufficient for downstream planning."
++    },
++    {
++      "slash": "/issue:queue",
++      "file_path": ".claude/commands/issue/queue.md",
++      "score": 0.52,
++      "why": "Same storage family; useful for validating issue JSON fields and lifecycle statuses."
++    }
++  ],
++  "selected": {
++    "slash": "/issue:new",
++    "file_path": ".claude/commands/issue/new.md",
++    "score": 1.0,
++    "why": "Oracle command doc for CMD-015; use as the primary reference for structure and behavior."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..44787a03704567e73520eab9fae40747b7887c4d
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json
+@@ -0,0 +1,46 @@
++{
++  "command": {
++    "group": "issue",
++    "name": "new",
++    "description": "Create structured issue from GitHub URL or text description",
++    "argument_hint": "[-y|--yes] <github-url | text-description> [--priority 1-5]",
++    "allowed_tools": [
++      "TodoWrite(*)",
++      "Bash(*)",
++      "Read(*)",
++      "AskUserQuestion(*)",
++      "mcp__ace-tool__search_context(*)"
++    ]
++  },
++  "intent": {
++    "type": "execute",
++    "interaction": "iterative",
++    "primary_user_value": "Create a local structured issue record (and optionally publish/bind it to GitHub) from either a GitHub issue reference or a free-text problem description."
++  },
++  "artifacts": {
++    "reads": [
++      ".workflow/issues/issues.jsonl"
++    ],
++    "writes": [
++      ".workflow/issues/issues.jsonl"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 2,
++    "time_budget_seconds": 600,
++    "must_not": [
++      "Do not ask clarification questions when -y/--yes is provided (auto mode).",
++      "Do not claim repository pointers exist unless they are verifiable in the repo at generation time.",
++      "Do not create or modify unrelated files; only the issue storage files via ccw CLI and any explicitly requested outputs."
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "Frontmatter valid (name/description/allowed-tools, argument-hint if applicable)",
++      "Allowed-tools matches intended behavior",
++      "Core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
++      "All implementation pointers labeled Existing vs Planned with dual-source evidence (docs + TS) and concrete verify commands"
++    ]
++  }
++}
++
+
+codex
+Wrote CMD-015 outputs under `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/`:
+
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md`
+- `.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md`
+
+Evidence tables pass the deterministic gate:
+- `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md`
+file update:
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..70882feaf1d2dbbcdcc6376cef9f1b0a23650323
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/fix-plan.md
+@@ -0,0 +1,28 @@
++# Fix Plan: issue:new (CMD-015)
++
++## P1 (Should Fix)
++
++1) Docs: normalize ID format and storage path references
++   - Target: `.claude/commands/issue/new.md`
++   - Change:
++     - Prefer `ISS-YYYYMMDD-NNN` (auto-increment) wording for local issues
++     - Prefer `.workflow/issues/issues.jsonl` for the active issues store
++   - Verify:
++     - `rg \"ISS-\" .claude/commands/issue/new.md`
++     - `rg \"\\.workflow/issues\" .claude/commands/issue/new.md`
++
++2) Prompt: keep prompt aligned with docs + CLI
++   - Target: `.codex/prompts/issue-new.md`
++   - Change:
++     - Ensure examples and storage references match docs + CLI (ID format + `.workflow/issues/issues.jsonl`)
++   - Verify:
++     - `rg \"ISS-\" .codex/prompts/issue-new.md`
++     - `rg \"\\.workflow/issues/issues\\.jsonl\" ccw/src/commands/issue.ts`
++
++## P2 (Optional)
++
++3) Docs: add one explicit note that pipe/heredoc is preferred for JSON input (avoids escaping)
++   - Target: `.claude/commands/issue/new.md` (near Phase 6)
++   - Verify:
++     - `rg \"Pipe input\" .claude/commands/issue/new.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..fb6376d26ad426dc8411a09945a46a0c138e7b8c
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md
+@@ -0,0 +1,44 @@
++# Gap Report: issue:new
++
++## Reference
++
++- Selected reference: /issue:new (`.claude/commands/issue/new.md`)
++
++## P0 Gaps (Must Fix)
++
++- None identified between the generated outline and the selected reference at the section/flow level.
++
++## P1 Gaps (Should Fix)
++
++- Normalize issue ID format language across docs/prompts/CLI references:
++  - CLI implementation uses `ISS-YYYYMMDD-NNN` (auto-increment).
++  - Ensure `/issue:new` docs and prompt examples consistently describe that format.
++- Normalize storage path naming across docs/prompts:
++  - CLI surfaces `.workflow/issues/issues.jsonl` as the active issues store.
++  - Ensure docs/prompts refer to the same path (avoid older `.workflow/issues.jsonl` phrasing).
++
++## P2 Gaps (Optional)
++
++- Add one explicit note in the command doc about preferring pipe/heredoc input for JSON to avoid shell escaping issues (already supported by `ccw issue create`).
++
++## Implementation Pointers (Evidence)
++
++| Pointer | Status | Evidence | Verify | Notes |
++|---|---|---|---|---|
++| `.claude/commands/issue/new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Quick Reference` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `Test-Path .claude/commands/issue/new.md` | User-facing behavior + examples |
++| `.codex/prompts/issue-new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Implementation` ; ts: `ccw/src/commands/issue.ts` / `echo '{"title":"..."}' | ccw issue create` | `Test-Path .codex/prompts/issue-new.md` | Prompt runner flow (flags, phases, output formatting) |
++| `ccw/src/commands/issue.ts` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `async function createAction(options: IssueOptions): Promise<void> {` | `Test-Path ccw/src/commands/issue.ts` | Source of truth for storage + CLI semantics |
++| `ccw issue create` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `rg \"Usage: ccw issue create\" ccw/src/commands/issue.ts` | Local issue creation endpoint (stdin supported) |
++| `ccw issue update` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 5: GitHub Publishing Decision (Non-GitHub Sources)` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue update <issue-id> --status <status>` | `rg \"Usage: ccw issue update\" ccw/src/commands/issue.ts` | Local issue update endpoint for GitHub binding |
++| `.workflow/issues/issues.jsonl` | Planned | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `.workflow/issues/issues.jsonl         Active issues` | `Test-Path .workflow/issues/issues.jsonl` | Runtime store; exists after first create |
++
++## Implementation Hints (Tooling/Server)
++
++- `ccw issue create` supports stdin; recommend pipe or heredoc for complex JSON to avoid quoting issues.
++- When publishing a text-based issue to GitHub, persist the returned URL/number by calling `ccw issue update` on the local issue ID.
++
++## Proposed Fix Plan (Minimal)
++
++- Docs (P1): Align `/issue:new` ID format wording and storage path to match `ccw/src/commands/issue.ts`.
++- Prompts (P1): Keep `.codex/prompts/issue-new.md` aligned with docs/CLI for ID format + storage path.
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..68b89c60c6f639d38c4f05295927310d64e58286
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-agent-outline.md
+@@ -0,0 +1,36 @@
++# Agent Outline: issue:new
++
++## Purpose
++
++Implement and/or evolve the `/issue:new` slash command according to CCW conventions with minimal regressions.
++
++## Execution Model
++
++- Default: incremental, testable changes
++- Before editing: use `mcp__ace-tool__search_context` to find and match existing patterns for issue commands and JSONL storage
++- Interaction model: single-pass for clear inputs; minimal questions for unclear inputs; optional GitHub publish prompt for non-GitHub sources
++
++## State & Artifacts
++
++- Runtime store (created/updated by CLI):
++  - `.workflow/issues/issues.jsonl`
++- Related artifacts:
++  - Command doc: `.claude/commands/issue/new.md`
++  - Prompt doc: `.codex/prompts/issue-new.md`
++  - CLI implementation: `ccw/src/commands/issue.ts`
++
++## Tooling
++
++- Allowed tools: TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*), mcp__ace-tool__search_context(*)
++- Non-negotiables:
++  - no unrelated changes
++  - pointers labeled Existing vs Planned with dual-source evidence (docs + TS)
++  - deterministic evidence gate must pass
++
++## Validation Strategy
++
++- P0 gates: frontmatter + allowed-tools + core sections + artifact references
++- Deterministic evidence verification:
++  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md`
++  - `node .codex/skills/slash-command-outliner/scripts/verify-evidence.js --file=.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/gap-report.md`
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..975e98e962014aa2dd4fe54ee02a3552aba0f0c4
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/generated-slash-outline.md
+@@ -0,0 +1,100 @@
++---
++name: new
++description: Create structured issue from GitHub URL or text description
++argument-hint: "[-y|--yes] <github-url | text-description> [--priority 1-5]"
++allowed-tools: TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*), mcp__ace-tool__search_context(*)
++group: issue
++---
++
++# Issue New Command (/issue:new)
++
++## Overview
++
++- Goal: Create a local structured issue record from either a GitHub issue URL (or short ref) or a free-text description; optionally publish to GitHub and bind the local issue to the GitHub issue.
++- Command: `/issue:new`
++
++## Usage
++
++```bash
++/issue:new [-y|--yes] <github-url | text-description> [--priority 1-5]
++```
++
++## Inputs
++
++- Required inputs:
++  - One of:
++    - GitHub issue URL (or short ref like `#123` when the repo context is clear), OR
++    - Text description of the problem
++- Optional inputs:
++  - `-y` / `--yes`: auto mode; skip clarification questions and proceed with inferred fields
++  - `--priority 1-5`: override inferred priority (1 = critical, 5 = low)
++
++## Outputs / Artifacts
++
++- Writes:
++  - `.workflow/issues/issues.jsonl` (active issues; local issue record created via `ccw issue create`)
++  - Optional update to the same store to persist GitHub binding (`ccw issue update`)
++- Reads:
++  - `.workflow/issues/issues.jsonl` (to compute next `ISS-YYYYMMDD-NNN` for local issues)
++
++## Implementation Pointers
++
++- Command doc: `.claude/commands/issue/new.md`
++- Likely code locations:
++  - `.codex/prompts/issue-new.md` (execution prompt / flow details)
++  - `ccw/src/commands/issue.ts` (CLI endpoints for local issue create/update; JSONL storage)
++  - `.workflow/issues/issues.jsonl` (runtime store written by CLI)
++
++### Evidence (Existing vs Planned)
++
++| Pointer | Status | Evidence (docs + TS) | Verify | Why |
++|---|---|---|---|---|
++| `.claude/commands/issue/new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Quick Reference` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `Test-Path .claude/commands/issue/new.md` | Source command doc for user-facing behavior |
++| `.codex/prompts/issue-new.md` | Existing | docs: `.claude/commands/issue/new.md` / `Implementation` ; ts: `ccw/src/commands/issue.ts` / `echo '{"title":"..."}' | ccw issue create` | `Test-Path .codex/prompts/issue-new.md` | Prompt implementation details used by the agent |
++| `ccw/src/commands/issue.ts` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `async function createAction(options: IssueOptions): Promise<void> {` | `Test-Path ccw/src/commands/issue.ts` | Defines `ccw issue create/update` and issue JSONL storage |
++| `ccw issue create` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue create --data '{"title":"...", "context":"..."}'` | `rg \"Usage: ccw issue create\" ccw/src/commands/issue.ts` | CLI endpoint used to create the local issue record (supports stdin pipe) |
++| `ccw issue update` | Existing | docs: `.claude/commands/issue/new.md` / `Phase 5: GitHub Publishing Decision (Non-GitHub Sources)` ; ts: `ccw/src/commands/issue.ts` / `Usage: ccw issue update <issue-id> --status <status>` | `rg \"Usage: ccw issue update\" ccw/src/commands/issue.ts` | CLI endpoint used to persist GitHub binding after publishing |
++| `.workflow/issues/issues.jsonl` | Planned | docs: `.claude/commands/issue/new.md` / `Phase 6: Create Issue` ; ts: `ccw/src/commands/issue.ts` / `.workflow/issues/issues.jsonl         Active issues` | `Test-Path .workflow/issues/issues.jsonl` | Runtime store for active issues (created/updated by CLI) |
++
++## Execution Process
++
++1. Phase 1: Input analysis + clarity detection
++   - Detect GitHub URL / short ref vs free text
++   - Decide whether input is clear enough to create without questions
++2. Phase 2: Data extraction (GitHub or text)
++   - GitHub: fetch issue fields via `gh issue view ... --json ...`
++   - Text: parse minimal structure (title/context; optional expected/actual, steps, affected components)
++3. Phase 3: Lightweight context hint (conditional)
++   - If helpful, use `mcp__ace-tool__search_context` for light hints (avoid heavy repo scans)
++4. Phase 4: Conditional clarification (only if unclear)
++   - Ask the minimum number of questions needed to reach a usable issue record
++   - Skip entirely in auto mode (`-y/--yes`)
++5. Phase 5: GitHub publishing decision (non-GitHub sources)
++   - If the source is not GitHub, ask whether to publish to GitHub
++   - If yes: `gh issue create ...` then bind local issue to GitHub via `ccw issue update`
++6. Phase 6: Create issue
++   - Build the issue JSON payload
++   - Create via `ccw issue create` (prefer stdin pipe or heredoc for complex JSON)
++   - Print created issue JSON and a next-step hint (e.g. `/issue:plan <id>`)
++
++## Error Handling
++
++- Invalid or empty input: ask user for a clearer description (unless auto mode, then fail with an actionable message).
++- GitHub fetch/publish failure: report `gh` error output and continue with local-only creation when possible.
++- CLI failure (`ccw issue create/update`): surface stderr, do not claim issue was created/updated.
++- JSON parsing/escaping issues: recommend pipe input or heredoc and re-run.
++
++## Examples
++
++```bash
++# Clear inputs - direct creation
++/issue:new https://github.com/owner/repo/issues/123
++/issue:new \"Login fails with special chars. Expected: success. Actual: 500 error\"
++
++# Vague input - will ask clarifying questions
++/issue:new \"something wrong with auth\"
++
++# Auto mode - skip questions
++/issue:new -y \"Login sometimes fails\" --priority 2
++```
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..d6622fd1e19e37dabd100096c3fcab82336abe97
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/references.json
+@@ -0,0 +1,41 @@
++{
++  "candidates": [
++    {
++      "slash": "/issue:new",
++      "file_path": ".claude/commands/issue/new.md",
++      "score": 1.0,
++      "why": "Exact command; defines phases for clarity detection, data extraction, optional clarification, optional GitHub publish, and local issue creation."
++    },
++    {
++      "slash": "/issue:from-brainstorm",
++      "file_path": ".claude/commands/issue/from-brainstorm.md",
++      "score": 0.78,
++      "why": "Same group and output type (structured issue), similar flow from unstructured input to normalized issue JSON."
++    },
++    {
++      "slash": "/issue:discover",
++      "file_path": ".claude/commands/issue/discover.md",
++      "score": 0.65,
++      "why": "Same group; uses context discovery patterns that can inform conditional context hints for /issue:new."
++    },
++    {
++      "slash": "/issue:plan",
++      "file_path": ".claude/commands/issue/plan.md",
++      "score": 0.6,
++      "why": "Direct follow-up command; helps ensure /issue:new output fields are sufficient for downstream planning."
++    },
++    {
++      "slash": "/issue:queue",
++      "file_path": ".claude/commands/issue/queue.md",
++      "score": 0.52,
++      "why": "Same storage family; useful for validating issue JSON fields and lifecycle statuses."
++    }
++  ],
++  "selected": {
++    "slash": "/issue:new",
++    "file_path": ".claude/commands/issue/new.md",
++    "score": 1.0,
++    "why": "Oracle command doc for CMD-015; use as the primary reference for structure and behavior."
++  }
++}
++
+diff --git a/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..44787a03704567e73520eab9fae40747b7887c4d
+--- /dev/null
++++ b/.workflow/.cycle/cycle-auto-20260205T010617-slashcmdoutliner-codex.progress/llm/CMD-015/specs/outputs/spec.json
+@@ -0,0 +1,46 @@
++{
++  "command": {
++    "group": "issue",
++    "name": "new",
++    "description": "Create structured issue from GitHub URL or text description",
++    "argument_hint": "[-y|--yes] <github-url | text-description> [--priority 1-5]",
++    "allowed_tools": [
++      "TodoWrite(*)",
++      "Bash(*)",
++      "Read(*)",
++      "AskUserQuestion(*)",
++      "mcp__ace-tool__search_context(*)"
++    ]
++  },
++  "intent": {
++    "type": "execute",
++    "interaction": "iterative",
++    "primary_user_value": "Create a local structured issue record (and optionally publish/bind it to GitHub) from either a GitHub issue reference or a free-text problem description."
++  },
++  "artifacts": {
++    "reads": [
++      ".workflow/issues/issues.jsonl"
++    ],
++    "writes": [
++      ".workflow/issues/issues.jsonl"
++    ]
++  },
++  "constraints": {
++    "max_rounds": 2,
++    "time_budget_seconds": 600,
++    "must_not": [
++      "Do not ask clarification questions when -y/--yes is provided (auto mode).",
++      "Do not claim repository pointers exist unless they are verifiable in the repo at generation time.",
++      "Do not create or modify unrelated files; only the issue storage files via ccw CLI and any explicitly requested outputs."
++    ]
++  },
++  "acceptance": {
++    "p0": [
++      "Frontmatter valid (name/description/allowed-tools, argument-hint if applicable)",
++      "Allowed-tools matches intended behavior",
++      "Core sections present (Overview, Usage, Execution Process, Outputs/Artifacts, Error Handling)",
++      "All implementation pointers labeled Existing vs Planned with dual-source evidence (docs + TS) and concrete verify commands"
++    ]
++  }
++}
++
+
+tokens used
+75,556
