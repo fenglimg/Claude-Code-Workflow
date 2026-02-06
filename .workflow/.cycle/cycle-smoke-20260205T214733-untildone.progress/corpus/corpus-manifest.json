@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-02-05T13:47:33.618Z",
+  "generated_at": "2026-02-05T13:57:33.749Z",
   "corpus": {
     "schema_version": "1.0.0",
     "generated_at": "2026-02-05T13:47:33.618Z",
@@ -18,7 +18,19 @@
         "allowed_tools_csv": "Task(*), AskUserQuestion(*), Read(*), Write(*), Bash(*), Glob(*), Grep(*)",
         "status": "pending",
         "llm": {
-          "status": "pending"
+          "status": "failed",
+          "last_run_at": "2026-02-05T13:57:33.747Z",
+          "outputs": {
+            "out_dir": ".workflow/.cycle/cycle-smoke-20260205T214733-untildone.progress/llm/CMD-001/specs/outputs"
+          },
+          "tool": "codex",
+          "codex": {
+            "exit_code": null,
+            "timed_out": true,
+            "signal": "SIGTERM",
+            "spawn_error": "ETIMEDOUT"
+          },
+          "last_error": "codex exit code null"
         }
       },
       {

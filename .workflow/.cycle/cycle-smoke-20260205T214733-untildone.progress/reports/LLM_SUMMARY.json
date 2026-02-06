@@ -1,0 +1,15 @@
+{
+  "cycle_id": "cycle-smoke-20260205T214733-untildone",
+  "generated_at": "2026-02-05T13:57:33.754Z",
+  "processed_commands": 1,
+  "total_commands": 77,
+  "passed": 0,
+  "failed": 1,
+  "only": "pending",
+  "limit": 1,
+  "llm_tool": "codex",
+  "model": "",
+  "permission_mode": "bypassPermissions",
+  "skill_root": ".codex/skills/slash-command-outliner",
+  "top_failure_kinds": []
+}

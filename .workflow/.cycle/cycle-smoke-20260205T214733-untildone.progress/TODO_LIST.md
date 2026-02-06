@@ -1,10 +1,10 @@
 # TODO_LIST (slash-command-outliner LLM regression)
 
 - Cycle: `cycle-smoke-20260205T214733-untildone`
-- Generated at: 2026-02-05T13:47:33.621Z
+- Updated at: 2026-02-05T13:57:33.752Z
 
 - [ ] CMD-001 /ccw-coordinator (`.claude/commands/ccw-coordinator.md`)
-  - pending
+  - failed: codex exit code null
 - [ ] CMD-002 /ccw-debug (`.claude/commands/ccw-debug.md`)
   - pending
 - [ ] CMD-003 /ccw-plan (`.claude/commands/ccw-plan.md`)
