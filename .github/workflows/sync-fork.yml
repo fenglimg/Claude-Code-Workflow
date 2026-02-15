@@ -1,0 +1,39 @@
+name: Sync Fork with Upstream
+
+on:
+  # 手动触发
+  workflow_dispatch:
+  # 定时触发：每天北京时间 8:00 (UTC 0:00)
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/catlog22/Claude-Code-Workflow.git
+          git fetch upstream
+      
+      - name: Sync with upstream
+        run: |
+          git checkout main
+          git merge upstream/main --no-edit
+          git push origin main
+      
+      - name: Check for changes
+        run: |
+          if git diff --quiet upstream/main main; then
+            echo "✅ main is already synced with upstream"
+          else
+            echo "🔄 Synced main with upstream"
+          fi
