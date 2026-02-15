@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-code-workflow.dev/schemas/knowledge-base.json",
+  "title": "CCW Knowledge Base Metadata Schema",
+  "description": "Schema for Claude-Code-Workflow knowledge base document metadata",
+  "type": "object",
+  "required": ["id", "title", "category", "version", "lastUpdated", "coverage"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the document",
+      "pattern": "^KB-[A-Z]+-[0-9]{3}$"
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable title"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["architecture", "commands", "skills", "mcp", "servers"],
+      "description": "Document category"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Document version (semver)"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of last update"
+    },
+    "coverage": {
+      "type": "object",
+      "description": "Coverage metrics for this document",
+      "required": ["modules", "completeness"],
+      "properties": {
+        "modules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of covered modules/components"
+        },
+        "completeness": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Completeness percentage (0-100)"
+        },
+        "missingTopics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Topics not yet covered"
+        }
+      }
+    },
+    "relatedDocs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "relationship"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Related document ID"
+          },
+          "relationship": {
+            "type": "string",
+            "enum": ["depends-on", "extends", "references", "supersedes"],
+            "description": "Relationship type"
+          }
+        }
+      },
+      "description": "Related documents"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Searchable keywords"
+    },
+    "author": {
+      "type": "string",
+      "description": "Document author"
+    },
+    "reviewStatus": {
+      "type": "string",
+      "enum": ["draft", "review", "approved", "deprecated"],
+      "default": "draft",
+      "description": "Document review status"
+    }
+  },
+  "additionalProperties": true
+}
