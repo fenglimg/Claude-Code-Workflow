@@ -1,0 +1,114 @@
+{
+  "session_id": "TLS-ccw-deep-learn-2025-02-15",
+  "phase": "impl",
+  "plan_type": "implementation",
+  "generated_at": "2025-02-15T13:45:00.000Z",
+  "epics": [
+    {
+      "id": "EPIC-001",
+      "title": "Architecture Documentation",
+      "priority": "Must",
+      "size": "M",
+      "status": "pending",
+      "tasks": [
+        "Create docs/knowledge-base/architecture.md",
+        "Document CLI entry point",
+        "Document MCP Server",
+        "Document Tool Registry",
+        "Document Routes system",
+        "Add Mermaid diagrams"
+      ]
+    },
+    {
+      "id": "EPIC-002",
+      "title": "Commands Documentation",
+      "priority": "Must",
+      "size": "L",
+      "status": "pending",
+      "tasks": [
+        "Scan .claude/commands/ for all command files",
+        "Generate docs/knowledge-base/commands/*.md",
+        "Create category index pages",
+        "Add usage examples for each command"
+      ]
+    },
+    {
+      "id": "EPIC-003",
+      "title": "Skills Documentation",
+      "priority": "Must",
+      "size": "L",
+      "status": "pending",
+      "tasks": [
+        "Scan .claude/skills/ for all SKILL.md files",
+        "Generate docs/knowledge-base/skills/*.md",
+        "Document phases, specs, templates",
+        "Create skill dependency graph"
+      ]
+    },
+    {
+      "id": "EPIC-004",
+      "title": "Agents Documentation",
+      "priority": "Must",
+      "size": "M",
+      "status": "pending",
+      "tasks": [
+        "Scan .claude/agents/ for all agent files",
+        "Generate docs/knowledge-base/agents/*.md",
+        "Document capabilities and responsibilities"
+      ]
+    },
+    {
+      "id": "EPIC-005",
+      "title": "MCP & CLI Documentation",
+      "priority": "Must",
+      "size": "M",
+      "status": "pending",
+      "tasks": [
+        "Document MCP tools from .mcp.json",
+        "Document CLI tools (Gemini/Codex/Claude)",
+        "Create integration guides"
+      ]
+    },
+    {
+      "id": "EPIC-006",
+      "title": "Coverage Verification System",
+      "priority": "Must",
+      "size": "L",
+      "status": "pending",
+      "tasks": [
+        "Create scripts/coverage-check.ts",
+        "Implement skill scanner",
+        "Implement command scanner",
+        "Implement agent scanner",
+        "Generate coverage report (JSON + MD)",
+        "Add --fail-on-missing flag"
+      ]
+    },
+    {
+      "id": "EPIC-007",
+      "title": "CI Integration",
+      "priority": "Must",
+      "size": "M",
+      "status": "pending",
+      "tasks": [
+        "Create .github/workflows/coverage.yml",
+        "Configure PR gate",
+        "Configure daily schedule",
+        "Add status badge to README"
+      ]
+    }
+  ],
+  "execution_order": [
+    "EPIC-001",
+    "EPIC-002, EPIC-003, EPIC-004, EPIC-005 (parallel)",
+    "EPIC-006",
+    "EPIC-007"
+  ],
+  "acceptance_criteria": {
+    "coverage_target": 100,
+    "skills_documented": 27,
+    "commands_documented": 48,
+    "agents_documented": 21,
+    "ci_passing": true
+  }
+}

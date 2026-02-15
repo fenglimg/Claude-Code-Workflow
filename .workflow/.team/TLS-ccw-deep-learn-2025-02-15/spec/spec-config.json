@@ -1,0 +1,62 @@
+{
+  "session_id": "TLS-ccw-deep-learn-2025-02-15",
+  "seed_input": "全面学习 Claude-Code-Workflow 项目 - 覆盖所有架构、命令、技能、MCP 集成和服务器交互",
+  "input_type": "text",
+  "timestamp": "2026-02-15T13:10:00.000Z",
+  "mode": "interactive",
+  "complexity": "complex",
+  "depth": "comprehensive",
+  "focus_areas": [
+    "核心架构",
+    "模块关系",
+    "数据流",
+    "设计理念",
+    "所有命令清单",
+    "参数说明",
+    "使用场景",
+    "组合规则",
+    "所有技能清单",
+    "触发条件",
+    "执行流程",
+    "模板规范",
+    "可用 MCP",
+    "功能映射",
+    "调用模式",
+    "CLI 交互",
+    "API 调用",
+    "会话管理",
+    "当前覆盖率",
+    "新增命令检测",
+    "自动化验证"
+  ],
+  "seed_analysis": {
+    "problem_statement": "Claude-Code-Workflow 是一个复杂的 JSON 驱动多代理开发框架，需要全面的知识系统来确保开发者能够高效使用和维护",
+    "target_users": [
+      "CCW 框架使用者",
+      "开发者",
+      "AI 工程师",
+      "技术维护人员"
+    ],
+    "domain": "AI 辅助开发工具 / 多代理工作流编排",
+    "constraints": [
+      "知识必须与代码库同步",
+      "支持自动化验证",
+      "可追溯性要求",
+      "版本一致性"
+    ]
+  },
+  "learning_targets": {
+    "architecture": ["核心架构", "模块关系", "数据流", "设计理念"],
+    "commands": ["所有命令清单", "参数说明", "使用场景", "组合规则"],
+    "skills": ["所有技能清单", "触发条件", "执行流程", "模板规范"],
+    "mcp": ["可用 MCP", "功能映射", "调用模式"],
+    "server": ["CLI 交互", "API 调用", "会话管理"],
+    "coverage": ["当前覆盖率", "新增命令检测", "自动化验证"]
+  },
+  "user_preferences": {
+    "scope": "深度覆盖",
+    "focus": "全面规格",
+    "discussion_depth": "全面辩论",
+    "output_type": "完整知识系统"
+  }
+}

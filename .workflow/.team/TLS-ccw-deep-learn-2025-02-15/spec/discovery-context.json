@@ -1,0 +1,332 @@
+{
+  "session_id": "SPEC-ccw-deep-learn-2025-02-15",
+  "phase": 1,
+  "document_type": "discovery-context",
+  "status": "complete",
+  "generated_at": "2025-02-15T00:00:00.000Z",
+  "seed_analysis": {
+    "problem_statement": "全面学习 Claude-Code-Workflow 项目，建立完整的项目认知基础，覆盖架构、命令、技能、MCP 集成和服务器交互等所有维度",
+    "target_users": [
+      "开发者：需要理解项目架构和扩展机制",
+      "贡献者：需要了解代码组织和贡献规范",
+      "用户：需要理解工作流系统和 CLI 工具使用"
+    ],
+    "domain": "AI-assisted development workflow automation",
+    "constraints": [
+      "深度覆盖所有项目模块",
+      "全面规格化项目结构",
+      "支持多角色讨论验证"
+    ],
+    "exploration_dimensions": [
+      "架构层: 核心模块、依赖关系、数据流、设计模式",
+      "命令层: 所有 .claude/commands/ 下的命令文件",
+      "技能层: 所有 .claude/skills/ 下的技能定义",
+      "MCP 层: 可用的 MCP 工具、功能映射",
+      "服务器层: CLI 交互、API 调用模式",
+      "覆盖率: 当前状态、验证机制"
+    ],
+    "complexity": "complex"
+  },
+  "codebase_context": {
+    "tech_stack": {
+      "language": "TypeScript/JavaScript (ES Modules)",
+      "runtime": "Node.js >=18.0.0",
+      "cli_framework": "Commander.js",
+      "web_framework": "Express.js",
+      "database": "better-sqlite3",
+      "validation": "Zod",
+      "mcp_sdk": "@modelcontextprotocol/sdk"
+    },
+    "architecture_patterns": [
+      "CLI Entry Point Pattern: ccw/bin/ccw.js -> ccw/dist/cli.js",
+      "Command Pattern: Modular commands in ccw/src/commands/",
+      "Tool Registry Pattern: MCP-like tool system in ccw/src/tools/",
+      "Route Pattern: Express routes in ccw/src/core/routes/",
+      "Skill Pattern: Phase-based workflow orchestration in .claude/skills/",
+      "Agent Pattern: Specialized agents in .claude/agents/"
+    ],
+    "existing_conventions": {
+      "file_organization": {
+        "ccw/": "Core CLI and server code",
+        "ccw/src/commands/": "CLI command implementations",
+        "ccw/src/core/": "Core services, routes, auth",
+        "ccw/src/tools/": "Tool implementations (MCP-compatible)",
+        "ccw/src/types/": "TypeScript type definitions",
+        "ccw/src/utils/": "Utility functions",
+        ".claude/commands/": "Slash command definitions",
+        ".claude/skills/": "Skill definitions with phases",
+        ".claude/agents/": "Specialized agent definitions"
+      },
+      "naming_conventions": {
+        "commands": "kebab-case.md",
+        "skills": "kebab-case/SKILL.md",
+        "agents": "kebab-case-agent.md",
+        "routes": "kebab-case-routes.ts",
+        "tools": "kebab-case.ts"
+      }
+    },
+    "integration_points": [
+      "Gemini CLI: Google AI analysis tool",
+      "Codex CLI: OpenAI autonomous coding",
+      "Qwen CLI: Alibaba Qwen-Code",
+      "Claude CLI: Anthropic Claude integration",
+      "OpenCode CLI: Open-source multi-model",
+      "ACE Tool: Semantic code search via MCP",
+      "CodexLens: Local FTS + Semantic + Hybrid search"
+    ],
+    "constraints_from_codebase": []
+  },
+  "architecture_discovery": {
+    "core_modules": {
+      "cli_entry": {
+        "path": "ccw/bin/ccw.js",
+        "description": "CLI entry point, imports from ccw/dist/cli.js",
+        "exports": ["run(argv)"]
+      },
+      "cli_main": {
+        "path": "ccw/src/cli.ts",
+        "description": "Commander.js program definition with all subcommands",
+        "commands": [
+          "view/serve - Dashboard server",
+          "stop - Stop server",
+          "install/uninstall/upgrade - Installation management",
+          "list - List installations",
+          "tool - Execute CCW tools",
+          "session - Workflow session management",
+          "cli - Unified CLI tool executor",
+          "memory - Memory module for context tracking",
+          "core-memory - Strategic context management",
+          "hook - Claude Code hooks endpoint",
+          "issue - Issue lifecycle management",
+          "loop - Multi-CLI orchestration",
+          "team - Team message bus",
+          "workflow - Workflow installation and management"
+        ]
+      },
+      "mcp_server": {
+        "path": "ccw/src/mcp-server/index.ts",
+        "description": "MCP server exposing CCW tools via Model Context Protocol",
+        "default_tools": ["write_file", "edit_file", "read_file", "read_many_files", "read_outline", "core_memory", "smart_search"]
+      },
+      "tool_registry": {
+        "path": "ccw/src/tools/index.ts",
+        "description": "Tool registry with MCP-compatible schema",
+        "tools": [
+          "edit_file", "write_file", "read_file", "read_many_files", "read_outline",
+          "get_modules_by_depth", "classify_folders", "detect_changed_modules",
+          "discover_design_files", "generate_module_docs", "convert_tokens_to_css",
+          "session_manager", "cli_executor", "smart_search", "codex_lens_lsp",
+          "vscode_lsp", "core_memory", "context_cache", "skill_context_loader",
+          "ask_question", "team_msg"
+        ]
+      },
+      "cli_executor": {
+        "path": "ccw/src/tools/cli-executor-core.ts",
+        "description": "Unified execution for external CLI tools (Gemini/Qwen/Codex/Claude)",
+        "features": [
+          "Streaming output support",
+          "Session resume with --resume flag",
+          "Model alias resolution (PRIMARY_MODEL, SECONDARY_MODEL)",
+          "Environment file loading",
+          "LiteLLM endpoint integration",
+          "CLI Settings integration"
+        ]
+      }
+    },
+    "routes": [
+      "auth-routes", "cli-settings-routes", "codexlens-routes", "discovery-routes",
+      "files-routes", "graph-routes", "litellm-api-routes", "litellm-routes",
+      "loop-routes", "loop-v2-routes", "provider-routes", "rules-routes",
+      "session-routes", "task-routes", "test-loop-routes", "commands-routes",
+      "nav-status-routes", "help-routes", "dashboard-routes", "hooks-routes",
+      "memory-routes", "config-routes", "mcp-templates-db", "audit-routes",
+      "ccw-routes", "claude-routes", "cli-routes", "cli-sessions-routes",
+      "core-memory-routes", "issue-routes", "mcp-routes", "orchestrator-routes",
+      "skills-routes", "status-routes", "system-routes", "team-routes", "unsplash-routes"
+    ]
+  },
+  "commands_discovery": {
+    "total_commands": 44,
+    "categories": {
+      "cli": ["codex-review", "cli-init"],
+      "workflow": {
+        "session": ["list", "resume", "solidify", "start", "complete"],
+        "ui-design": [
+          "animation-extract", "design-sync", "generate", "import-from-code",
+          "layout-extract", "reference-page-generator", "style-extract",
+          "codify-style", "explore-auto", "imitate-auto"
+        ],
+        "brainstorm": ["artifacts", "auto-parallel", "role-analysis", "synthesis"],
+        "core": [
+          "clean", "init", "init-guidelines", "integration-test-cycle",
+          "refactor-cycle", "unified-execute-with-file", "analyze-with-file",
+          "brainstorm-with-file", "collaborative-plan-with-file", "debug-with-file",
+          "req-plan-with-file"
+        ]
+      },
+      "issue": [
+        "new", "convert-to-plan", "discover", "discover-by-prompt",
+        "execute", "from-brainstorm", "plan", "queue"
+      ],
+      "memory": ["prepare", "style-skill-memory"],
+      "core_commands": [
+        "ccw", "ccw-coordinator", "ccw-debug", "ccw-plan", "ccw-test",
+        "flow-create"
+      ]
+    },
+    "key_commands": {
+      "ccw": "Auto workflow orchestrator - analyzes intent, selects workflow level",
+      "ccw-coordinator": "Smart orchestrator - recommends command chains, external CLI execution",
+      "workflow:plan": "Unified planning skill - 4-phase planning workflow",
+      "workflow:execute": "Coordinate agent execution for workflow tasks",
+      "issue:discover": "Issue discovery and analysis",
+      "issue:execute": "Execute issue resolution workflow"
+    }
+  },
+  "skills_discovery": {
+    "total_skills": 27,
+    "categories": {
+      "workflow_core": [
+        "workflow-plan", "workflow-execute", "workflow-lite-plan",
+        "workflow-multi-cli-plan", "workflow-tdd", "workflow-test-fix",
+        "workflow-skill-designer"
+      ],
+      "team": [
+        "team-lifecycle", "team-command-designer", "team-skill-designer", "team-issue"
+      ],
+      "issue_management": [
+        "issue-discover", "issue-resolve", "issue-manage"
+      ],
+      "analysis": [
+        "project-analyze", "review-code", "skill-tuning", "brainstorm"
+      ],
+      "documentation": [
+        "copyright-docs", "software-manual", "spec-generator"
+      ],
+      "memory": [
+        "memory-capture", "memory-manage"
+      ],
+      "other": [
+        "ccw-help", "skill-generator", "flow-coordinator", "review-cycle"
+      ]
+    },
+    "skill_structure": {
+      "pattern": "Phase-based orchestration",
+      "components": [
+        "SKILL.md - Main orchestrator with mode detection",
+        "phases/ - Phase-specific execution documents",
+        "specs/ - Quality standards and rules",
+        "templates/ - Output templates"
+      ]
+    }
+  },
+  "mcp_discovery": {
+    "server": {
+      "name": "ccw-tools",
+      "version": "6.2.0",
+      "protocol": "Model Context Protocol (MCP)"
+    },
+    "environment_variables": {
+      "CCW_PROJECT_ROOT": "Project root directory",
+      "CCW_ALLOWED_DIRS": "Allowed directories for sandbox",
+      "CCW_ENABLED_TOOLS": "Comma-separated tool list or 'all'",
+      "CCW_ENABLE_SANDBOX": "Enable sandbox mode"
+    },
+    "default_tools": [
+      "write_file", "edit_file", "read_file", "read_many_files",
+      "read_outline", "core_memory", "smart_search"
+    ],
+    "tool_categories": {
+      "file_operations": ["read_file", "read_many_files", "read_outline", "write_file", "edit_file"],
+      "search": ["smart_search"],
+      "memory": ["core_memory"],
+      "code_analysis": ["get_modules_by_depth", "classify_folders", "detect_changed_modules"],
+      "cli_execution": ["cli_executor"],
+      "session": ["session_manager"],
+      "communication": ["ask_question", "team_msg"]
+    }
+  },
+  "server_discovery": {
+    "dashboard": {
+      "port": 3456,
+      "features": [
+        "Session Overview - Track workflow sessions and progress",
+        "CodexLens - FTS + Semantic + Hybrid code search",
+        "Graph Explorer - Interactive code relationship visualization",
+        "CLI Manager - Execution history with session resume"
+      ]
+    },
+    "cli_tools": {
+      "gemini": {
+        "enabled": true,
+        "primaryModel": "gemini-2.5-pro",
+        "secondaryModel": "gemini-2.5-flash",
+        "type": "builtin"
+      },
+      "codex": {
+        "enabled": true,
+        "primaryModel": "gpt-5.2",
+        "secondaryModel": "gpt-5.2",
+        "type": "builtin"
+      },
+      "claude": {
+        "enabled": true,
+        "primaryModel": "sonnet",
+        "secondaryModel": "haiku",
+        "type": "builtin"
+      },
+      "qwen": {
+        "enabled": false,
+        "type": "builtin"
+      },
+      "opencode": {
+        "enabled": false,
+        "type": "builtin"
+      }
+    },
+    "execution_modes": {
+      "analysis": "Read-only, safe for auto-execution",
+      "write": "Create/Modify/Delete files, requires explicit --mode write",
+      "review": "Git-aware code review (codex only)"
+    }
+  },
+  "workflow_levels": {
+    "level_1": {
+      "name": "lite-lite-lite",
+      "description": "Instant execution, no artifacts",
+      "use_case": "Quick fixes, config changes"
+    },
+    "level_2": {
+      "name": "lite-plan / lite-fix / multi-cli-plan",
+      "description": "Lightweight planning with execution",
+      "use_case": "Clear single-module features, bug diagnosis"
+    },
+    "level_3": {
+      "name": "plan / tdd-plan / test-fix-gen",
+      "description": "Standard planning with session persistence",
+      "use_case": "Multi-module development"
+    },
+    "level_4": {
+      "name": "brainstorm:auto-parallel",
+      "description": "Multi-role brainstorming -> plan -> execute",
+      "use_case": "New features, architecture design"
+    }
+  },
+  "recommendations": {
+    "focus_areas": [
+      "深入理解 4-level workflow 系统",
+      "掌握 CLI 工具调用和模式选择",
+      "理解 Skill phase-based orchestration 模式",
+      "熟悉 MCP server 和 tool registry 机制"
+    ],
+    "risks": [
+      "项目规模大，需要分模块学习",
+      "技能系统复杂，需要实践验证"
+    ],
+    "open_questions": [
+      "如何扩展自定义 CLI 工具?",
+      "如何创建新的 Skill?",
+      "Team lifecycle 模式的最佳实践?"
+    ]
+  }
+}
