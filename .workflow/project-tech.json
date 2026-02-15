@@ -1,0 +1,144 @@
+{
+  "project_name": "Claude-Code-Workflow",
+  "initialized_at": "2026-02-15T12:00:00.000Z",
+  "overview": {
+    "description": "JSON-driven multi-agent development framework with intelligent CLI orchestration (Gemini/Qwen/Codex), context-first architecture, React dashboard frontend, and Python-based semantic code search",
+    "technology_stack": {
+      "languages": [
+        {"name": "TypeScript", "file_count": 813, "primary": true},
+        {"name": "Python", "file_count": 380, "primary": false},
+        {"name": "JavaScript", "file_count": 33, "primary": false},
+        {"name": "Markdown", "file_count": 496, "primary": false},
+        {"name": "JSON", "file_count": 182, "primary": false}
+      ],
+      "frameworks": [
+        "React",
+        "Express",
+        "Vite",
+        "Radix UI",
+        "TanStack Query",
+        "Zustand",
+        "React Router",
+        "XYFlow",
+        "Pydantic",
+        "Typer",
+        "Tree-sitter",
+        "FastEmbed",
+        "LiteLLM"
+      ],
+      "build_tools": [
+        "npm",
+        "TypeScript",
+        "Vite",
+        "ESBuild",
+        "setuptools",
+        "pip"
+      ],
+      "test_frameworks": [
+        "Vitest",
+        "Playwright",
+        "Node.js Test Runner",
+        "pytest"
+      ]
+    },
+    "architecture": {
+      "style": "Layered Monorepo with Multi-Language Services",
+      "layers": [
+        "presentation",
+        "api-routes",
+        "core-services",
+        "data-access",
+        "external-integrations"
+      ],
+      "patterns": [
+        "Command Pattern",
+        "Repository Pattern",
+        "Factory Pattern",
+        "Plugin Architecture",
+        "Event-Driven Hooks",
+        "MCP Server Protocol",
+        "Skill-Based Workflows"
+      ]
+    },
+    "key_components": [
+      {
+        "name": "CCW CLI Core",
+        "path": "ccw/src",
+        "description": "Main CLI orchestration layer with command routing, session management, and multi-tool coordination for Gemini/Qwen/Codex",
+        "importance": "high"
+      },
+      {
+        "name": "React Dashboard",
+        "path": "ccw/frontend/src",
+        "description": "Web-based dashboard for session visualization, workflow management, and real-time CLI monitoring with React 18 and Radix UI",
+        "importance": "high"
+      },
+      {
+        "name": "CodexLens",
+        "path": "codex-lens/src/codexlens",
+        "description": "Multi-modal semantic code analysis platform with tree-sitter parsing, embedding-based search, and LSP support",
+        "importance": "high"
+      },
+      {
+        "name": "CCW LiteLLM Bridge",
+        "path": "ccw-litellm/src/ccw_litellm",
+        "description": "Unified LiteLLM interface layer for model-agnostic LLM calls shared by CCW and CodexLens",
+        "importance": "medium"
+      },
+      {
+        "name": "MCP Server",
+        "path": "ccw/src/mcp-server",
+        "description": "Model Context Protocol server implementation for IDE integration and tool exposure",
+        "importance": "medium"
+      },
+      {
+        "name": "Workflow Skills",
+        "path": ".claude/skills",
+        "description": "Extensible skill system for workflow automation including planning, execution, code review, and issue management",
+        "importance": "high"
+      },
+      {
+        "name": "CLI Templates",
+        "path": ".ccw/workflows/cli-templates",
+        "description": "JSON-driven prompt templates, protocols, and schemas for structured CLI interactions",
+        "importance": "medium"
+      },
+      {
+        "name": "API Routes",
+        "path": "ccw/src/core/routes",
+        "description": "Express-based REST API routes for session, memory, hooks, files, and semantic search operations",
+        "importance": "high"
+      },
+      {
+        "name": "Core Services",
+        "path": "ccw/src/core/services",
+        "description": "Business logic services including cache management, session scanning, data aggregation, and authentication",
+        "importance": "high"
+      },
+      {
+        "name": "Semantic Search",
+        "path": "codex-lens/src/codexlens/search",
+        "description": "Hybrid search system combining lexical, semantic, and reranking strategies for code discovery",
+        "importance": "medium"
+      }
+    ]
+  },
+  "features": [],
+  "development_index": {
+    "feature": [],
+    "enhancement": [],
+    "bugfix": [],
+    "refactor": [],
+    "docs": []
+  },
+  "statistics": {
+    "total_features": 0,
+    "total_sessions": 0,
+    "last_updated": "2026-02-15T12:00:00.000Z"
+  },
+  "_metadata": {
+    "initialized_by": "cli-explore-agent",
+    "analysis_timestamp": "2026-02-15T12:00:00.000Z",
+    "analysis_mode": "deep-scan"
+  }
+}

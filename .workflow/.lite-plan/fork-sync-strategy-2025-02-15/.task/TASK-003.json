@@ -1,0 +1,24 @@
+{
+  "id": "TASK-003",
+  "title": "创建自动化同步脚本（可选）",
+  "description": "创建一个简单的 shell 脚本或 GitHub Actions workflow，自动定期同步 upstream 到 fork",
+  "depends_on": ["TASK-001"],
+  "convergence": {
+    "criteria": [
+      "存在 scripts/sync-upstream.sh 或 .github/workflows/sync-fork.yml",
+      "手动执行脚本能成功同步"
+    ]
+  },
+  "files": [
+    {
+      "path": "scripts/sync-upstream.sh",
+      "change": "create - 同步 upstream 的 shell 脚本"
+    }
+  ],
+  "implementation": [
+    "创建 scripts/ 目录（如不存在）",
+    "编写 sync-upstream.sh: git fetch upstream && git checkout main && git merge upstream/main && git push origin main",
+    "添加执行权限 chmod +x"
+  ],
+  "test": "运行 ./scripts/sync-upstream.sh 验证同步成功"
+}

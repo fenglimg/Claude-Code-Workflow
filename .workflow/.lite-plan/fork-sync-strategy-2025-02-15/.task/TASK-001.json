@@ -1,0 +1,18 @@
+{
+  "id": "TASK-001",
+  "title": "添加上游仓库为 upstream remote",
+  "description": "将 catlog22/Claude-Code-Workflow 添加为 upstream remote，并配置 fetch 能力",
+  "depends_on": [],
+  "convergence": {
+    "criteria": [
+      "git remote -v 显示 upstream 指向 https://github.com/catlog22/Claude-Code-Workflow.git",
+      "git fetch upstream 执行成功"
+    ]
+  },
+  "files": [],
+  "implementation": [
+    "git remote add upstream https://github.com/catlog22/Claude-Code-Workflow.git",
+    "git fetch upstream"
+  ],
+  "test": "运行 git remote -v 验证 upstream 存在，运行 git branch -r 验证 upstream/main 可见"
+}

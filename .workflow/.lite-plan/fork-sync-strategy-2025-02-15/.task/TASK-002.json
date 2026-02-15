@@ -1,0 +1,20 @@
+{
+  "id": "TASK-002",
+  "title": "同步 main 分支到上游",
+  "description": "从 upstream/main 拉取最新更改并合并到本地 main 分支，然后推送到 origin",
+  "depends_on": ["TASK-001"],
+  "convergence": {
+    "criteria": [
+      "本地 main 分支与 upstream/main 同步（无落后 commits）",
+      "origin/main 与本地 main 同步"
+    ]
+  },
+  "files": [],
+  "implementation": [
+    "git checkout main",
+    "git fetch upstream",
+    "git merge upstream/main (或 git rebase upstream/main)",
+    "git push origin main"
+  ],
+  "test": "运行 git log --oneline upstream/main..main 确认无差异"
+}
