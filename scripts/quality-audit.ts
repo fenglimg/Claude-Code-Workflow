@@ -617,11 +617,11 @@ export class DQSScorer {
 
   private scoreStructureBySections(content: string): number {
     const sections: Array<{ key: string; patterns: RegExp[] }> = [
-      { key: 'overview', patterns: [/^#{1,6}\s+overview\b/im, /^#{1,6}\s+概述\b/im] },
-      { key: 'capabilities', patterns: [/^#{1,6}\s+capabilities\b/im, /^#{1,6}\s+核心能力\b/im] },
-      { key: 'flow', patterns: [/^#{1,6}\s+flow\b/im, /^#{1,6}\s+流程\b/im, /^#{1,6}\s+工作流\b/im] },
-      { key: 'scenarios', patterns: [/^#{1,6}\s+scenarios\b/im, /^#{1,6}\s+使用场景\b/im, /^#{1,6}\s+场景\b/im, /^#{1,6}\s+use cases?\b/im] },
-      { key: 'best_practices', patterns: [/^#{1,6}\s+best practices\b/im, /^#{1,6}\s+最佳实践\b/im] },
+      { key: 'overview', patterns: [/^#{1,6}\s+overview\b/im, /^#{1,6}\s+概述/im] },
+      { key: 'capabilities', patterns: [/^#{1,6}\s+capabilities\b/im, /^#{1,6}\s+核心能力/im] },
+      { key: 'flow', patterns: [/^#{1,6}\s+flow\b/im, /^#{1,6}\s+流程/im, /^#{1,6}\s+工作流/im] },
+      { key: 'scenarios', patterns: [/^#{1,6}\s+scenarios\b/im, /^#{1,6}\s+使用场景/im, /^#{1,6}\s+场景/im, /^#{1,6}\s+use cases?\b/im] },
+      { key: 'best_practices', patterns: [/^#{1,6}\s+best practices\b/im, /^#{1,6}\s+最佳实践/im] },
     ];
     const present = sections.filter((s) => s.patterns.some((p) => p.test(content))).length;
     return present * 4; // 20
