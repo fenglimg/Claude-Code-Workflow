@@ -1,0 +1,116 @@
+name: Docs Sync & Quality Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.claude/**'
+      - 'docs/knowledge-base/**'
+      - 'scripts/quality-audit.ts'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.claude/**'
+      - 'docs/knowledge-base/**'
+  workflow_dispatch:
+
+jobs:
+  quality-audit:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run DQS Quality Audit
+        run: |
+          npx ts-node scripts/quality-audit.ts \
+            --output json \
+            --fail-below 70 \
+            > scripts/quality-report.json
+          cat scripts/quality-report.json | jq '.'
+        continue-on-error: true
+
+      - name: Run Coverage Check
+        run: npx ts-node scripts/coverage-check.ts --output json
+
+      - name: Upload quality report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quality-reports
+          path: |
+            scripts/quality-report.json
+            scripts/coverage-report.json
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read reports
+            let qualityReport = {};
+            let coverageReport = {};
+            
+            try {
+              qualityReport = JSON.parse(fs.readFileSync('scripts/quality-report.json', 'utf8'));
+            } catch (e) {}
+            
+            try {
+              coverageReport = JSON.parse(fs.readFileSync('scripts/coverage-report.json', 'utf8'));
+            } catch (e) {}
+            
+            const qualityScore = qualityReport.overallScore || 0;
+            const qualityGrade = qualityScore >= 80 ? 'A' : qualityScore >= 70 ? 'B' : qualityScore >= 60 ? 'C' : 'F';
+            const coveragePct = coverageReport.overall_coverage || 0;
+            
+            const body = `## 📊 Documentation Quality & Coverage Report
+            
+            ### Quality Score (DQS)
+            | Metric | Value |
+            |--------|-------|
+            | Overall Score | ${qualityScore}/100 |
+            | Grade | ${qualityGrade} |
+            | Files Audited | ${qualityReport.fileCount || 0} |
+            
+            ### Coverage
+            | Category | Total | Documented | Coverage |
+            |----------|-------|------------|----------|
+            | Skills | ${coverageReport.skills?.total || 0} | ${coverageReport.skills?.documented || 0} | ${coverageReport.skills ? Math.round(coverageReport.skills.documented / Math.max(1, coverageReport.skills.total) * 100) : 0}% |
+            | Commands | ${coverageReport.commands?.total || 0} | ${coverageReport.commands?.documented || 0} | ${coverageReport.commands ? Math.round(coverageReport.commands.documented / Math.max(1, coverageReport.commands.total) * 100) : 0}% |
+            | Agents | ${coverageReport.agents?.total || 0} | ${coverageReport.agents?.documented || 0} | ${coverageReport.agents ? Math.round(coverageReport.agents.documented / Math.max(1, coverageReport.agents.total) * 100) : 0}% |
+            | **Total** | ${coverageReport.skills?.total + coverageReport.commands?.total + coverageReport.agents?.total || 0} | ${coverageReport.skills?.documented + coverageReport.commands?.documented + coverageReport.agents?.documented || 0} | **${coveragePct}%** |
+            
+            ---
+            
+            ${qualityScore < 70 ? '⚠️ **Quality score below threshold (70)**' : '✅ Quality check passed'}
+            ${coveragePct < 100 ? '⚠️ **Missing documentation detected**' : '✅ Coverage check passed'}
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Check quality threshold
+        run: |
+          SCORE=$(cat scripts/quality-report.json | jq -r '.overallScore // 0')
+          if [ "$SCORE" -lt 70 ]; then
+            echo "::warning::Quality score ($SCORE) below threshold (70)"
+          fi
+          echo "Quality score: $SCORE"
