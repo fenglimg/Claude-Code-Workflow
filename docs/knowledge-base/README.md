@@ -2,136 +2,196 @@
 
 Claude-Code-Workflow (CCW) 知识库 - 全面覆盖架构、命令、技能、MCP 和服务器组件。
 
+## 文档分层
+
+CCW 知识库采用**双层文档架构**，满足不同学习和使用需求：
+
+| 层级 | 路径 | 定位 | 适用场景 |
+|------|------|------|----------|
+| **参考层** | `reference/` | 快速查找、API 参考 | 日常使用、命令查找 |
+| **深度层** | `deep-dive/` | 深度学习、设计决策 | 理解架构、扩展开发 |
+| **学习路径** | `learning-paths/` | 渐进式学习 | 入门指南、开发者指南 |
+
+---
+
 ## 目录结构
 
 ```
 docs/knowledge-base/
-├── README.md              # 本文件 - 索引和导航
-├── schema.json            # 元数据 JSON Schema
-├── architecture/          # 架构文档
-│   └── overview.md
-├── commands/              # 命令参考
-│   └── cli-reference.md
-├── skills/                # 技能参考
-│   └── overview.md
-├── mcp/                   # MCP 集成
-│   └── integration.md
-└── servers/               # 服务器架构
-    └── architecture.md
+├── README.md                    # 本文件 - 索引和导航
+├── schema.json                  # 元数据 JSON Schema
+│
+├── reference/                   # 📖 参考层 - 快速查找
+│   ├── commands/                # 命令参考
+│   ├── skills/                  # 技能参考
+│   └── agents/                  # 代理参考
+│
+├── deep-dive/                   # 🔬 深度层 - 深入学习
+│   ├── architecture/            # 架构设计
+│   │   ├── mental-model.md      # 心智模型
+│   │   ├── design-decisions.md  # 设计决策
+│   │   └── module-interactions.md # 模块交互
+│   ├── implementation/          # 实现细节
+│   │   ├── cli-execution.md     # CLI 执行链
+│   │   ├── skill-phases.md      # 技能阶段系统
+│   │   └── agent-lifecycle.md   # 代理生命周期
+│   └── extension/               # 扩展指南
+│       ├── add-new-skill.md     # 添加新技能
+│       ├── add-new-command.md   # 添加新命令
+│       └── add-new-agent.md     # 添加新代理
+│
+└── learning-paths/              # 🎓 学习路径 - 渐进学习
+    ├── getting-started.md       # 入门指南 (30min)
+    ├── developer-guide.md       # 开发者指南
+    └── contributor-guide.md     # 贡献者指南
 ```
 
-## 模块概览
+---
 
-### 1. 架构 (Architecture)
+## 快速导航
 
-**文件**: [architecture/overview.md](architecture/overview.md)
+### 按需求导航
 
-核心内容:
-- 系统架构概览
-- 组件层次结构
-- 数据流设计
-- 工作流级别定义
+| 我想要... | 查看 |
+|-----------|------|
+| **30 分钟理解核心概念** | [learning-paths/getting-started.md](learning-paths/getting-started.md) |
+| **查找命令用法** | [reference/commands/](reference/commands/) |
+| **理解架构设计** | [deep-dive/architecture/mental-model.md](deep-dive/architecture/mental-model.md) |
+| **了解设计决策** | [deep-dive/architecture/design-decisions.md](deep-dive/architecture/design-decisions.md) |
+| **添加新功能** | [deep-dive/extension/](deep-dive/extension/) |
+| **深度调试** | [learning-paths/developer-guide.md](learning-paths/developer-guide.md) |
 
-**关键概念**:
-- CLI Layer - 命令行入口
-- Commands Layer - 命令处理器
-- Core Services - 核心服务
-- Tools Layer - 工具层
+### 按角色导航
 
-### 2. 命令 (Commands)
+| 角色 | 推荐路径 |
+|------|----------|
+| 新用户 | `learning-paths/getting-started.md` → `reference/commands/` |
+| 开发者 | `deep-dive/architecture/mental-model.md` → `deep-dive/implementation/` |
+| 贡献者 | `deep-dive/extension/` → `learning-paths/contributor-guide.md` |
 
-**文件**: [commands/cli-reference.md](commands/cli-reference.md)
+---
 
-核心内容:
-- CLI 命令参考
-- Slash 命令列表
-- 选项和参数
-- 执行模式
+## 参考层 (Reference)
 
-**关键命令**:
+### 命令参考
+
+**位置**: [reference/commands/](reference/commands/)
+
+核心命令:
 - `ccw install` - 安装工作流
 - `ccw view` - 打开仪表板
 - `ccw cli` - 执行 CLI 工具
 - `/ccw` - 自动工作流编排
 - `/workflow:plan` - 标准规划
 
-### 3. 技能 (Skills)
+### 技能参考
 
-**文件**: [skills/overview.md](skills/overview.md)
+**位置**: [reference/skills/](reference/skills/)
 
-核心内容:
-- 可用技能列表
-- 技能结构定义
-- 阶段和动作
-- 状态管理
-
-**关键技能**:
+核心技能:
 - `brainstorm` - 多角色头脑风暴
 - `review-code` - 代码审查
 - `project-analyze` - 项目分析
 - `team-lifecycle` - 团队协作
 
-### 4. MCP 集成
+### 代理参考
 
-**文件**: [mcp/integration.md](mcp/integration.md)
+**位置**: [reference/agents/](reference/agents/)
 
-核心内容:
-- MCP 配置
-- 内置工具
-- ACE 搜索
-- 第三方集成
+核心代理:
+- `code-developer` - 代码实现
+- `cli-explore-agent` - 代码探索
+- `test-fix-agent` - 测试修复
+- `universal-executor` - 通用执行
 
-**关键工具**:
-- `read_file` / `write_file` / `edit_file` - 文件操作
-- `search_context` - 语义搜索
-- `team_msg` - 团队消息
-- `webReader` - 网页读取
+---
 
-### 5. 服务器架构
+## 深度层 (Deep-Dive)
 
-**文件**: [servers/architecture.md](servers/architecture.md)
+### 架构深度
 
-核心内容:
-- HTTP/WebSocket 服务器
-- API 端点
-- 仪表板功能
-- 安全配置
+| 文档 | 内容 |
+|------|------|
+| [mental-model.md](deep-dive/architecture/mental-model.md) | 核心抽象、组件职责、协作关系 |
+| [design-decisions.md](deep-dive/architecture/design-decisions.md) | 关键技术决策的背景和权衡 |
+| [module-interactions.md](deep-dive/architecture/module-interactions.md) | 模块间数据流和交互流程 |
 
-**关键组件**:
-- Main Server - 主服务器
-- WebSocket - 实时通信
-- Data Aggregator - 数据聚合
-- Cache Manager - 缓存管理
+### 实现深度
 
-## 快速导航
+| 文档 | 内容 |
+|------|------|
+| [cli-execution.md](deep-dive/implementation/cli-execution.md) | CLI 执行链路、数据流图 |
+| [skill-phases.md](deep-dive/implementation/skill-phases.md) | Phase-based 设计原理 |
+| [agent-lifecycle.md](deep-dive/implementation/agent-lifecycle.md) | 代理生命周期、发现机制 |
 
-| 我想要... | 查看 |
-|-----------|------|
-| 了解系统整体架构 | [architecture/overview.md](architecture/overview.md) |
-| 查找命令用法 | [commands/cli-reference.md](commands/cli-reference.md) |
-| 学习技能系统 | [skills/overview.md](skills/overview.md) |
-| 配置 MCP 工具 | [mcp/integration.md](mcp/integration.md) |
-| 理解服务器实现 | [servers/architecture.md](servers/architecture.md) |
+### 扩展指南
+
+| 文档 | 内容 |
+|------|------|
+| [add-new-skill.md](deep-dive/extension/add-new-skill.md) | 技能目录结构、SKILL.md 编写 |
+| [add-new-command.md](deep-dive/extension/add-new-command.md) | 命令注册、参数解析 |
+| [add-new-agent.md](deep-dive/extension/add-new-agent.md) | 代理配置、工具权限 |
+
+---
+
+## 学习路径 (Learning Paths)
+
+### 入门指南 (30 分钟)
+
+**位置**: [learning-paths/getting-started.md](learning-paths/getting-started.md)
+
+内容:
+- 核心概念速览
+- 关键术语表
+- 第一个工作流示例
+
+### 开发者指南
+
+**位置**: [learning-paths/developer-guide.md](learning-paths/developer-guide.md)
+
+内容:
+- 架构深入解读
+- 调试技巧
+- 性能优化
+- 最佳实践
+
+### 贡献者指南
+
+**位置**: [learning-paths/contributor-guide.md](learning-paths/contributor-guide.md)
+
+内容:
+- 贡献流程
+- 代码规范
+- 测试要求
+
+---
+
+## 遗留文档
+
+以下文档保留向后兼容，建议迁移到新结构：
+
+| 原位置 | 建议迁移到 |
+|--------|-----------|
+| `architecture/overview.md` | `deep-dive/architecture/mental-model.md` |
+| `commands/cli-reference.md` | `reference/commands/` |
+| `skills/overview.md` | `reference/skills/` |
+| `mcp/integration.md` | `reference/mcp/` |
+| `servers/architecture.md` | `deep-dive/implementation/` |
+
+---
 
 ## 覆盖范围
 
-### 已覆盖模块
-
-| 模块 | 状态 | 文档位置 |
-|------|------|----------|
-| 架构概览 | ✅ | architecture/overview.md |
-| CLI 命令 | ✅ | commands/cli-reference.md |
-| 技能系统 | ✅ | skills/overview.md |
-| MCP 集成 | ✅ | mcp/integration.md |
-| 服务器架构 | ✅ | servers/architecture.md |
-
 ### 核心组件覆盖率
 
-- **ccw/src/core/** - 已覆盖服务器、内存存储、会话管理
-- **ccw/src/commands/** - 已覆盖主要命令
-- **ccw/src/tools/** - 已覆盖核心工具
-- **.claude/skills/** - 已覆盖主要技能
-- **.claude/commands/** - 已覆盖工作流命令
+- **ccw/src/core/** - 服务器、内存存储、会话管理
+- **ccw/src/commands/** - 主要命令
+- **ccw/src/tools/** - 核心工具
+- **.claude/skills/** - 27 个技能
+- **.claude/commands/** - 48 个命令
+- **.claude/agents/** - 21 个代理
+
+---
 
 ## 元数据
 
@@ -140,9 +200,10 @@ docs/knowledge-base/
 ## 维护
 
 更新知识库时:
-1. 更新对应模块文档
-2. 更新本索引文件
-3. 运行覆盖率验证脚本
+1. 参考层 → 更新 `reference/` 对应模块
+2. 深度层 → 更新 `deep-dive/` 详细文档
+3. 更新本索引文件
+4. 运行覆盖率验证脚本
 
 ## 相关资源
 

@@ -1,0 +1,240 @@
+{
+  "relevant_files": [
+    {
+      "path": "/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/ccw/src/cli.ts",
+      "purpose": "CLI entry point using Commander.js - defines all CLI commands (view, serve, cli, session, memory, etc.)",
+      "key_functions": ["run(argv)", "loadPackageInfo()"],
+      "discovery_source": "bash-scan",
+      "rationale": "Main entry point for ccw CLI - reveals command structure and option parsing patterns"
+    },
+    {
+      "path": "/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/ccw/src/commands/cli.ts",
+      "purpose": "CLI command implementation - unified executor for gemini/qwen/codex/claude tools",
+      "key_functions": ["cliCommand()", "execAction()", "historyAction()", "statusAction()"],
+      "discovery_source": "bash-scan",
+      "rationale": "Core CLI execution logic - shows how multi-tool orchestration works with streaming and caching"
+    },
+    {
+      "path": "/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/ccw/src/tools/cli-executor-core.ts",
+      "purpose": "Core execution engine for external CLI tools with process spawning and output parsing",
+      "key_functions": ["executeCliTool()", "killCurrentCliProcess()", "executeClaudeWithSettings()", "injectTransactionId()"],
+      "discovery_source": "bash-scan",
+      "rationale": "Heart of CLI execution - demonstrates spawn patterns, resume strategies, and output streaming"
+    },
+    {
+      "path": "/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/ccw/src/tools/claude-cli-tools.ts",
+      "purpose": "Configuration management for CLI tools (cli-tools.json) - global config at ~/.claude/",
+      "key_functions": ["loadClaudeCliTools()", "saveClaudeCliTools()", "getToolConfig()", "migrateConfig()"],
+      "discovery_source": "dependency-trace",
+      "rationale": "Config-driven architecture - shows how JSON-first state enables tool extensibility"
+    },
+    {
+      "path": "/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/ccw/src/tools/template-discovery.ts",
+      "purpose": "Template auto-discovery from ~/.ccw/workflows/cli-templates/ - protocol and prompt loading",
+      "key_functions": ["scanTemplates()", "loadProtocol()", "loadTemplate()", "buildRulesContent()"],
+      "discovery_source": "dependency-trace",
+      "rationale": "Extensibility mechanism - reveals how --rule option auto-discovers and loads templates"
+    },
+    {
+      "path": "/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/ccw/src/tools/session-manager.ts",
+      "purpose": "Workflow session lifecycle management - init, list, read, write, archive operations",
+      "key_functions": ["execute()", "executeInit()", "executeList()", "resolvePath()", "findSession()"],
+      "discovery_source": "bash-scan",
+      "rationale": "Session state management - shows JSON-based session structure and content routing"
+    },
+    {
+      "path": "/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/ccw/src/core/session-scanner.ts",
+      "purpose": "Scans .workflow directory for active and archived sessions",
+      "key_functions": ["scanSessions()", "findWfsSessions()", "readSessionData()", "inferTypeFromName()"],
+      "discovery_source": "bash-scan",
+      "rationale": "Session discovery - demonstrates how sessions are auto-detected from directory structure"
+    },
+    {
+      "path": "/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/ccw/src/tools/cli-executor-state.ts",
+      "purpose": "SQLite-based conversation persistence and history management",
+      "key_functions": ["saveConversation()", "loadConversation()", "getSqliteStore()", "getExecutionHistory()"],
+      "discovery_source": "dependency-trace",
+      "rationale": "State persistence layer - reveals why SQLite was chosen over file-based storage"
+    },
+    {
+      "path": "/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/ccw/src/tools/cli-prompt-builder.ts",
+      "purpose": "Multi-turn prompt construction with merge and concatenation strategies",
+      "key_functions": ["buildMultiTurnPrompt()", "buildMergedPrompt()", "mergeConversations()", "PromptConcatenator"],
+      "discovery_source": "dependency-trace",
+      "rationale": "Resume/merge logic - shows how conversation context is preserved across turns"
+    },
+    {
+      "path": "/Users/wepie/Desktop/personal-projects/Claude-Code-Workflow/.claude/skills/_shared/SKILL-DESIGN-SPEC.md",
+      "purpose": "Skill design specification - phase-based execution pattern",
+      "key_functions": [],
+      "discovery_source": "bash-scan",
+      "rationale": "Skill system architecture - documents the phase-based design rationale"
+    }
+  ],
+  "patterns": [
+    "JSON-First State Architecture - All configuration and session state stored as JSON files for human-readability",
+    "Command Pattern with Commander.js - Each ccw command is a separate module with consistent interface",
+    "Plugin Architecture for Tools - Tools (builtin/cli-wrapper/api-endpoint) are discovered via config",
+    "Phase-Based Skill Execution - Skills decompose into numbered phases with clear input/output contracts",
+    "Repository Pattern for Sessions - SessionManager provides CRUD abstraction over .workflow directory",
+    "Factory Pattern for CLI Tools - buildCommand() creates appropriate command based on tool type",
+    "Event-Driven Hooks - Dashboard notifications via HTTP POST for CLI execution events",
+    "Strategy Pattern for Resume - Native vs prompt-concat vs hybrid resume strategies",
+    "Template Discovery Pattern - Auto-scan ~/.ccw/workflows/cli-templates for --rule option"
+  ],
+  "key_findings": [
+    {
+      "finding": "Multi-Tool Strategy enables best-in-class CLI routing",
+      "evidence": "cli-executor-core.ts lines 541-692: Tools are categorized as builtin (gemini/qwen/codex), cli-wrapper (routes to claude --settings), or api-endpoint (routes to LiteLLM)",
+      "confidence": "high"
+    },
+    {
+      "finding": "JSON-first state was chosen for human-readability and git-friendliness",
+      "evidence": "claude-cli-tools.ts comment line 10: 'Config location: ~/.claude/cli-tools.json' - all config is JSON, not database. Session files are JSON for diff-ability",
+      "confidence": "high"
+    },
+    {
+      "finding": "SQLite for conversation history (not JSON) for query performance",
+      "evidence": "cli-executor-state.ts uses better-sqlite3 for conversation persistence with indexed queries",
+      "confidence": "high"
+    },
+    {
+      "finding": "Phase-based skill design emerged from software-manual and copyright-docs patterns",
+      "evidence": "SKILL-DESIGN-SPEC.md documents the extraction from these two mature skills",
+      "confidence": "high"
+    },
+    {
+      "finding": "Transaction IDs solve concurrent session disambiguation",
+      "evidence": "cli-executor-core.ts lines 377-407: generateTransactionId() and injectTransactionId() for parallel execution tracking",
+      "confidence": "high"
+    },
+    {
+      "finding": "Three resume strategies optimize context handling per tool",
+      "evidence": "resume-strategy.ts defines native/hybrid/prompt-concat strategies based on tool capabilities",
+      "confidence": "medium"
+    }
+  ],
+  "design_decisions": [
+    {
+      "decision": "JSON configuration instead of database",
+      "rationale": "Human-readable, git-diffable, easy to edit manually. Global config in ~/.claude/ for user-level settings. No project-level config to avoid conflicts",
+      "alternatives_considered": ["SQLite for all state", "YAML config", "Project-level .ccw/config.json"]
+    },
+    {
+      "decision": "Multi-CLI tool support (gemini/qwen/codex/claude)",
+      "rationale": "Different AI models excel at different tasks. Codex for code, Gemini for analysis, Claude for reasoning. User choice via --tool flag",
+      "alternatives_considered": ["Single tool with model switching", "Auto-selection based on task type"]
+    },
+    {
+      "decision": "Phase-based skill structure with numbered directories",
+      "rationale": "Clear execution order via numeric prefixes (01-xxx, 02-xxx). Supports sub-phases (02.5-xxx). Separation of concerns: phases/logic, specs/config, templates/view",
+      "alternatives_considered": ["Single-file skills", "Graph-based execution", "State machine skills"]
+    },
+    {
+      "decision": "SQLite for conversation history",
+      "rationale": "Efficient queries for history, search, and filtering. JSON files would require full scans. better-sqlite3 provides synchronous API",
+      "alternatives_considered": ["JSONL append-only", "LevelDB", "Full PostgreSQL"]
+    },
+    {
+      "decision": "TypeScript over Python for core",
+      "rationale": "Single language across CLI and React frontend. Strong typing for complex state. Native Node.js child_process for CLI spawning",
+      "alternatives_considered": ["Python CLI with TypeScript frontend", "Go for CLI core"]
+    }
+  ],
+  "module_interactions": [
+    {
+      "from": "cli.ts (Commander)",
+      "to": "commands/cli.ts",
+      "data_flow": "Parsed options and positional arguments",
+      "trigger": "User runs 'ccw cli -p ... --tool gemini'"
+    },
+    {
+      "from": "commands/cli.ts",
+      "to": "tools/cli-executor-core.ts",
+      "data_flow": "Execution params (tool, prompt, mode, resume, etc.)",
+      "trigger": "execAction() calls executeCliTool()"
+    },
+    {
+      "from": "cli-executor-core.ts",
+      "to": "tools/cli-executor-utils.ts",
+      "data_flow": "Tool availability check, command building",
+      "trigger": "buildCommand() and checkToolAvailability()"
+    },
+    {
+      "from": "cli-executor-core.ts",
+      "to": "tools/cli-executor-state.ts",
+      "data_flow": "Conversation save/load via SQLite",
+      "trigger": "saveConversation() and loadConversation()"
+    },
+    {
+      "from": "cli-executor-core.ts",
+      "to": "child_process.spawn()",
+      "data_flow": "External CLI invocation (gemini/qwen/codex)",
+      "trigger": "executeCliTool() spawns subprocess"
+    },
+    {
+      "from": "commands/cli.ts",
+      "to": "tools/template-discovery.ts",
+      "data_flow": "Template loading for --rule option",
+      "trigger": "loadProtocol() and loadTemplate()"
+    },
+    {
+      "from": "tools/cli-executor-core.ts",
+      "to": "tools/claude-cli-tools.ts",
+      "data_flow": "Tool config lookup (primaryModel, enabled)",
+      "trigger": "getToolConfig() and getPrimaryModel()"
+    },
+    {
+      "from": "commands/session.ts",
+      "to": "tools/session-manager.ts",
+      "data_flow": "Session CRUD operations",
+      "trigger": "sessionCommand() routes to execute()"
+    }
+  ],
+  "extension_points": [
+    {
+      "name": "Add new CLI tool",
+      "location": "~/.claude/cli-tools.json",
+      "how_to_extend": "Add entry to 'tools' object with enabled, primaryModel, secondaryModel, type ('builtin'|'cli-wrapper'|'api-endpoint'). For api-endpoint, add 'id' field referencing LiteLLM config"
+    },
+    {
+      "name": "Add new CLI template",
+      "location": "~/.ccw/workflows/cli-templates/prompts/",
+      "how_to_extend": "Create {category}-{name}.txt file. Auto-discovered by template-discovery.ts. Use via --rule {category}-{name}"
+    },
+    {
+      "name": "Add new protocol",
+      "location": "~/.ccw/workflows/cli-templates/protocols/",
+      "how_to_extend": "Create analysis-protocol.md or write-protocol.md. Auto-loaded based on --mode"
+    },
+    {
+      "name": "Add new skill",
+      "location": ".claude/skills/{skill-name}/",
+      "how_to_extend": "Create SKILL.md (entry), phases/ (numbered steps), specs/ (constraints), templates/ (reusable). Follow SKILL-DESIGN-SPEC.md"
+    },
+    {
+      "name": "Add new command",
+      "location": "ccw/src/commands/{command}.ts",
+      "how_to_extend": "Create command module, import in cli.ts, register with program.command(). Follow existing patterns"
+    },
+    {
+      "name": "Add new session content type",
+      "location": "ccw/src/tools/session-manager.ts PATH_ROUTES",
+      "how_to_extend": "Add entry to PATH_ROUTES mapping content_type to file path template. Support {base}, {task_id}, etc. placeholders"
+    }
+  ],
+  "questions_for_user": [
+    "是否需要深入了解 React Dashboard 前端的组件架构?",
+    "是否需要探索 CodexLens Python 语义搜索模块的实现?",
+    "是否需要分析 MCP Server 的工具暴露机制?",
+    "是否需要了解 Memory 系统的嵌入和检索流程?",
+    "是否需要研究 Loop 编排器的工作流自动化逻辑?"
+  ],
+  "_metadata": {
+    "files_analyzed": 15,
+    "depth": "deep",
+    "analysis_timestamp": "2025-02-16T00:00:00.000Z",
+    "analysis_mode": "deep-scan",
+    "primary_sources": ["bash-scan", "dependency-trace", "manual-read"]
+  }
+}
