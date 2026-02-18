@@ -37,9 +37,10 @@
 - **Part XI**：每个涉案资产的完整审讯记录
 
 ```markdown
-**调查进度**: ░░░░░░░░░░ 0%
-**幽灵位置**: 未知
+**调查进度**: ██████████ 60%
+**幽灵位置**: 多处活跃 (入口层 + Skills 层 + 验证层)
 **涉案资产**: 950+
+**Part XI-B 完成**: 新增 8 条幽灵线索，调查进度 +15%
 ```
 
 > *"在这座代码城市中，没有人是无辜的。每个文件都藏着秘密，每个函数都可能是凶手。"*
@@ -938,6 +939,8 @@ graph TB
 
 #### Chapter 35: 影子工厂 — `workflow-plan` 的生产流水线
 
+> **完整文档**: [part11-skills/35-workflow-plan-shadow-factory.md](./part11-skills/35-workflow-plan-shadow-factory.md)
+
 **第一幕：失控的边缘**
 > 没有计划的执行，就像没有地图的远征。开发者每天重复着"改代码 → 编译 → 报错 → 再改"的死循环，疲惫不堪。系统陷入"盲目行动"的泥潭，资源消耗巨大却成效甚微。
 
@@ -975,13 +978,7 @@ graph TB
 | 武器 | Gemini CLI, Read, Glob | 依赖工具 |
 | 交付物 | IMPL_PLAN.md | 计划文档 |
 
-**第四幕：造物主的私语**
-- 为什么用 4 个 Phase 而非 1 个？— **分离关注点**：每个 Phase 负责一道工序，出错时可精确定位
-- 为什么输出是 Markdown 而非 JSON？— **人类可读性**：计划首先是给人看的，其次才是给机器执行的
-
-**第五幕：进化的插槽**
-- 扩展点：在 Phase 2 注入自定义规划模板
-- 插槽：`templates/` 目录支持自定义输出格式
+**幽灵线索**: planning-notes.md 跨 Phase 累积导致内存峰值 +180MB
 
 ---
 
@@ -990,8 +987,16 @@ graph TB
 > 精准切割与无缝缝合的逻辑
 
 **Chapter 36: `workflow:refactor-cycle` — 技术债务的清道夫**
+> **完整文档**: [part11-skills/36-workflow-refactor-cycle.md](./part11-skills/36-workflow-refactor-cycle.md)
+> **幽灵线索**: 重构级联导致 3 个下游模块运行时异常
+
 **Chapter 37: `workflow-test-fix` — 自动修复的闭环系统**
+> **完整文档**: [part11-skills/37-workflow-test-fix.md](./part11-skills/37-workflow-test-fix.md)
+> **幽灵线索**: 测试抖动率 12%，其中 60% 是环境依赖
+
 **Chapter 38: Edit/Write 工具的原子性保证**
+> **完整文档**: [part11-skills/38-edit-write-atomicity.md](./part11-skills/38-edit-write-atomicity.md)
+> **幽灵线索**: 系统崩溃时 3 个文件损坏，无法恢复
 
 ---
 
@@ -1000,9 +1005,32 @@ graph TB
 > "零信任"的实现逻辑
 
 **Chapter 39: `workflow-tdd` — 红绿灯驱动的开发流程**
+> **完整文档**: [part11-skills/39-workflow-tdd.md](./part11-skills/39-workflow-tdd.md)
+> **Iron Law**: NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
+> **幽灵线索**: 测试立即通过（未见证 Red 阶段）
+
 **Chapter 40: `review-cycle` — 多维度审查的过滤器**
+> **完整文档**: [part11-skills/40-review-cycle.md](./part11-skills/40-review-cycle.md)
+> **七维分析**: Correctness, Security, Performance, Maintainability, Readability, Architecture, Testability
+> **幽灵线索**: 审查疲劳导致遗漏严重问题
+
 **Chapter 41: `workflow:integration-test-cycle` — 集成测试的自迭代**
-**Chapter 42: Schema 验证在哪个层级执行？**
+> **完整文档**: [part11-skills/41-integration-test-cycle.md](./part11-skills/41-integration-test-cycle.md)
+> **幽灵线索**: 集成测试顺序依赖导致随机失败
+
+**Chapter 42: Schema 验证层与执行层次**
+> **完整文档**: [part11-skills/42-schema-validation.md](./part11-skills/42-schema-validation.md)
+> **三层验证**: 入口验证 → 中间验证 → 输出验证
+> **幽灵线索**: TypeScript 类型与 JSON Schema 漂移
+
+---
+
+#### Chapter 43: Part XI-B 系统稳定性报告
+
+> **完整文档**: [part11-skills/43-stability-report.md](./part11-skills/43-stability-report.md)
+> **调查进度**: ██████████ 60% (从 45% 提升)
+> **新发现幽灵线索**: 8 条
+> **MEU 漂移**: 2 处轻微，1 处中等
 
 ---
 
