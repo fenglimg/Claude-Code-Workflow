@@ -745,7 +745,7 @@ async function detectSchemaDrift() {
 
 ### D. 下一章
 
-[Chapter 7: Skill 定义语言](../part4-orchestration-layer/07-skill-definition.md) - 揭秘 Skill 阶段编排与类型约束
+[Chapter 7: Skill 定义语言](../part4-orchestration-layer/07-skill-phases.md) - 揭秘 Skill 阶段编排与类型约束
 
 ---
 

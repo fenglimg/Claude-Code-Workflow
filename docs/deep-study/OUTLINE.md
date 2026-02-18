@@ -542,6 +542,10 @@ plan-json-schema.json
 
 ## Part IX: 测试与质量
 
+> **完整文档**: [part8-frontend/ch18-testing-strategy.md](part8-frontend/ch18-testing-strategy.md)
+>
+> **注**: Part IX 内容已整合至 Part VIII 前端系统中，包含 Dashboard 测试策略与质量保证。
+
 ### Chapter 18: 测试策略
 
 **测试层次**:

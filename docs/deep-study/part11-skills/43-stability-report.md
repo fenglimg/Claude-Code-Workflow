@@ -333,8 +333,9 @@ Phase 4: Task Generation
 
 ### C. 相关报告
 
-- [Part X 系统稳定性报告](../part10-extensions/stability-report.md)
-- [Part XI-A 系统稳定性报告](../part11-infrastructure/stability-report.md)
+- [Part X 扩展指南](../part10-extensions/README.md) - 添加新资产 (Skill/Command/Agent)
+- [Part XI-A Commands](../part11-commands/README.md) - 命令系统概述
+- [Part XI-D Infrastructure](../part11-infrastructure/README.md) - Schema 与配置基础
 - [主大纲 OUTLINE.md](../OUTLINE.md)
 
 ---

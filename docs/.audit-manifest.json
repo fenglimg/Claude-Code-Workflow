@@ -174,18 +174,160 @@
         "count": 20,
         "files": {}
       }
+    },
+    "deep_study_docs": {
+      "path": "docs/deep-study/**/*.md",
+      "count": 65,
+      "files": {
+        "docs/deep-study/OUTLINE.md": {
+          "git_hash": "updated",
+          "analyzed_at": "2025-02-18",
+          "role": "主大纲文档",
+          "version": "2.1.0"
+        },
+        "docs/deep-study/part1-entry-layer/01-slash-command-trigger.md": {
+          "analyzed_at": "2025-02-17",
+          "role": "Chapter 1: Slash Command 触发链路"
+        },
+        "docs/deep-study/part1-entry-layer/02-cli-entry-point.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 2: CLI 入口点"
+        },
+        "docs/deep-study/part1-entry-layer/03-intent-analysis.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 3: 意图分析"
+        },
+        "docs/deep-study/part2-dispatch-layer/04-workflow-pyramid.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 4: 工作流级别映射"
+        },
+        "docs/deep-study/part3-transport-layer/05-express-routes.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 5: Express 路由架构"
+        },
+        "docs/deep-study/part3-transport-layer/06-session-manager.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 6: 会话管理服务"
+        },
+        "docs/deep-study/part3-5-type-system/06-5-typescript-types.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 6.5: TypeScript 类型定义"
+        },
+        "docs/deep-study/part3-5-type-system/06-6-json-schema.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 6.6: JSON Schema 规范"
+        },
+        "docs/deep-study/part4-orchestration-layer/07-skill-phases.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 7: Skill 定义语言"
+        },
+        "docs/deep-study/part4-orchestration-layer/08-core-skills-deep-dive.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 8: 核心技能深度解析"
+        },
+        "docs/deep-study/part4-5-cross-language/10.5-child-process-diplomat.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 10.5: child_process 调用机制"
+        },
+        "docs/deep-study/part4-5-cross-language/10.6-json-rpc-border.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 10.6: JSON-RPC 序列化边界"
+        },
+        "docs/deep-study/part4-5-cross-language/10.7-error-boundary.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 10.7: 错误边界与故障恢复"
+        },
+        "docs/deep-study/part5-execution-layer/09-agent-lifecycle.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 11: Agent 生命周期"
+        },
+        "docs/deep-study/part5-execution-layer/10-core-agents-deep-dive.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 12: 核心代理深度解析"
+        },
+        "docs/deep-study/part5-execution-layer/11-12-agent-system.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Agent System 2.0 架构"
+        },
+        "docs/deep-study/part6-integration-layer/13-multi-cli-integration.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 13: 多 CLI 工具集成"
+        },
+        "docs/deep-study/part6-integration-layer/14-semantic-search.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 14: CodexLens 语义搜索"
+        },
+        "docs/deep-study/part7-storage-layer/15-sqlite-database.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 15: SQLite 数据库设计"
+        },
+        "docs/deep-study/part7-storage-layer/16-filesystem-workflow.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 16: 文件系统工作流"
+        },
+        "docs/deep-study/part8-frontend/ch17-dashboard-architecture.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 17: React Dashboard 架构"
+        },
+        "docs/deep-study/part8-frontend/ch18-testing-strategy.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Chapter 18: 测试策略 (Part VIII + IX)"
+        },
+        "docs/deep-study/part10-extensions/README.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Part X 扩展指南索引"
+        },
+        "docs/deep-study/part10-5-hidden/README.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Part X.5 隐藏特性索引"
+        },
+        "docs/deep-study/part11-commands/README.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Part XI-A Commands 索引"
+        },
+        "docs/deep-study/part11-skills/INDEX.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Part XI-B Skills 索引"
+        },
+        "docs/deep-study/part11-agents/README.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Part XI-C Agents 索引"
+        },
+        "docs/deep-study/part11-infrastructure/README.md": {
+          "analyzed_at": "2025-02-18",
+          "role": "Part XI-D Infrastructure 索引"
+        }
+      }
     }
   },
   "scan_status": {
-    "total_assets": 950,
-    "scanned": 10,
+    "total_assets": 1015,
+    "scanned": 75,
     "pending": 940,
-    "last_scan": "2025-02-17T12:45:00Z",
-    "chapters_completed": ["part1-entry-layer/01-slash-command-trigger.md"],
-    "chapters_pending": [
+    "last_scan": "2025-02-18T19:30:00Z",
+    "chapters_completed": [
+      "part1-entry-layer/01-slash-command-trigger.md",
       "part1-entry-layer/02-cli-entry-point.md",
-      "part2-dispatch-layer/03-intent-analysis.md",
-      "part2-dispatch-layer/04-workflow-level-mapping.md"
+      "part1-entry-layer/03-intent-analysis.md",
+      "part2-dispatch-layer/04-workflow-pyramid.md",
+      "part3-transport-layer/*.md",
+      "part3-5-type-system/*.md",
+      "part4-orchestration-layer/*.md",
+      "part4-5-cross-language/*.md",
+      "part5-execution-layer/*.md",
+      "part6-integration-layer/*.md",
+      "part7-storage-layer/*.md",
+      "part8-frontend/*.md",
+      "part10-extensions/README.md",
+      "part10-5-hidden/README.md",
+      "part11-*/README.md"
+    ],
+    "chapters_pending": [
+      "part10-5-hidden/ch19-*.md (详细扫描)",
+      "part11-commands/ch25-33.md (详细扫描)",
+      "part11-skills/35-43.md (详细扫描)",
+      "part11-agents/ch43-48.md (详细扫描)",
+      "part11-infrastructure/49-52.md (详细扫描)"
     ]
   }
 }
