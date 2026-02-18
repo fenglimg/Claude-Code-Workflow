@@ -1,0 +1,238 @@
+{
+  "relevant_files": [
+    {
+      "path": ".claude/commands/ccw.md",
+      "purpose": "主入口命令 - 意图分析、工作流选择、命令链执行",
+      "key_exports": ["ccw"],
+      "rationale": "定义 /ccw 命令的 5 阶段工作流（意图分析、需求澄清、工作流选择、TODO 跟踪、命令链执行），是所有 slash command 的主入口",
+      "role": "modify_target",
+      "discovery_source": "bash-scan"
+    },
+    {
+      "path": ".claude/commands/ccw-plan.md",
+      "purpose": "规划协调器 - 需求分析、策略选择、规划工作流执行",
+      "key_exports": ["ccw-plan"],
+      "rationale": "展示 frontmatter 字段（name, description, argument-hint, allowed-tools）如何定义命令行为，以及 --mode 参数如何路由到不同的规划策略",
+      "role": "pattern_reference",
+      "discovery_source": "bash-scan"
+    },
+    {
+      "path": ".claude/commands/workflow/session/start.md",
+      "purpose": "会话启动命令 - 发现/创建工作流会话",
+      "key_exports": ["start"],
+      "rationale": "演示命名空间命令（workflow:session:start）的结构，frontmatter 定义了 name=start 但通过目录层级形成完整命令路径",
+      "role": "pattern_reference",
+      "discovery_source": "bash-scan"
+    },
+    {
+      "path": ".claude/commands/issue/discover.md",
+      "purpose": "Issue 发现命令 - 多视角问题分析",
+      "key_exports": ["issue:discover"],
+      "rationale": "展示 issue:discover 命名空间的定义，frontmatter 中的 name 字段直接包含冒号分隔符（issue:discover），说明两种命名空间定义方式",
+      "role": "pattern_reference",
+      "discovery_source": "bash-scan"
+    },
+    {
+      "path": ".claude/commands/workflow/brainstorm-with-file.md",
+      "purpose": "头脑风暴命令 - 多 CLI 协作的创意发散",
+      "key_exports": ["brainstorm-with-file"],
+      "rationale": "展示复杂的命令实现，包含 4 阶段工作流、CLI 调用示例、allowed-tools 定义，说明命令如何调用外部 CLI 工具",
+      "role": "pattern_reference",
+      "discovery_source": "bash-scan"
+    },
+    {
+      "path": ".claude/commands/issue/new.md",
+      "purpose": "Issue 创建命令 - 从 GitHub/文本创建结构化 issue",
+      "key_exports": ["new"],
+      "rationale": "展示 allowed-tools 如何限制命令可用的工具（Bash, Read, AskUserQuestion, mcp__ace-tool__search_context），以及 Auto Mode（-y）的实现模式",
+      "role": "pattern_reference",
+      "discovery_source": "bash-scan"
+    },
+    {
+      "path": ".claude/skills/workflow-plan/SKILL.md",
+      "purpose": "Workflow Plan 技能 - 统一规划工作流",
+      "key_exports": ["workflow-plan", "workflow:plan-verify", "workflow:replan"],
+      "rationale": "展示 Skill 的 frontmatter 结构（name, description, allowed-tools）和多模式路由（plan/verify/replan），说明 Skill 如何通过 Skill tool 被调用",
+      "role": "pattern_reference",
+      "discovery_source": "bash-scan"
+    },
+    {
+      "path": ".claude/skills/issue-discover/SKILL.md",
+      "purpose": "Issue 发现技能 - 统一 issue 发现和创建",
+      "key_exports": ["issue-discover"],
+      "rationale": "展示 Skill 的 description 字段中的 triggers 关键词如何影响 Claude Code 的识别（\"issue:new\", \"issue:discover\", \"create issue\"）",
+      "role": "pattern_reference",
+      "discovery_source": "bash-scan"
+    },
+    {
+      "path": ".claude/skills/brainstorm/SKILL.md",
+      "purpose": "头脑风暴技能 - 双模式操作（auto/single-role）",
+      "key_exports": ["brainstorm"],
+      "rationale": "展示 Skill 如何通过 Skill tool 被其他 Skill 调用（Skill(skill=\"brainstorm\", args=\"...\")），以及 Skill 与 Command 的关系",
+      "role": "dependency",
+      "discovery_source": "bash-scan"
+    },
+    {
+      "path": ".claude/skills/workflow-skill-designer/SKILL.md",
+      "purpose": "Skill 设计器 - 设计和生成新的 Skill",
+      "key_exports": ["workflow-skill-designer"],
+      "rationale": "包含关于 Skill 路由的最佳实践，说明 Skill(skill=\"...\") 语法与直接 Read(\"phases/...md\") 的选择，揭示 Skill 调用的内部机制",
+      "role": "type_definition",
+      "discovery_source": "bash-scan"
+    }
+  ],
+  "patterns": [
+    {
+      "name": "命令定义模式 (Command Definition Pattern)",
+      "description": "Slash Command 通过 .md 文件定义，frontmatter 包含关键字段",
+      "structure": {
+        "frontmatter_fields": {
+          "name": "命令名称，可包含命名空间（如 'issue:discover' 或 'start'）",
+          "description": "命令描述，Claude Code 用于意图识别",
+          "argument-hint": "参数提示，显示给用户",
+          "allowed-tools": "限制命令可用的工具列表，支持通配符（如 'Skill(*)'）"
+        },
+        "naming_conventions": {
+          "flat_command": "/ccw → name: ccw",
+          "nested_directory": "/workflow:session:start → .claude/commands/workflow/session/start.md, name: start",
+          "inline_namespace": "/issue:discover → name: issue:discover"
+        }
+      },
+      "examples": [
+        ".claude/commands/ccw.md - name: ccw",
+        ".claude/commands/workflow/session/start.md - name: start (目录形成命名空间)",
+        ".claude/commands/issue/discover.md - name: issue:discover (内联命名空间)"
+      ]
+    },
+    {
+      "name": "命名空间路由模式 (Namespace Routing Pattern)",
+      "description": "两种命名空间定义方式影响命令路径解析",
+      "routing_rules": {
+        "directory_based": {
+          "pattern": ".claude/commands/{namespace}/{subcommand}.md",
+          "example": "/workflow:session:start → .claude/commands/workflow/session/start.md",
+          "name_field": "使用简单名称（如 'start'）"
+        },
+        "inline_namespace": {
+          "pattern": ".claude/commands/{namespace}/{command}.md",
+          "example": "/issue:discover → .claude/commands/issue/discover.md",
+          "name_field": "包含完整命名空间（如 'issue:discover'）"
+        }
+      },
+      "resolution_order": [
+        "1. Claude Code 解析用户输入（如 /workflow:session:start）",
+        "2. 按目录层级查找文件（workflow/session/start.md）",
+        "3. 读取 frontmatter 获取 name 字段验证匹配",
+        "4. 执行命令内容"
+      ]
+    },
+    {
+      "name": "Skill 注入模式 (Skill Injection Pattern)",
+      "description": "命令通过 Skill tool 调用 Skill 执行复杂工作流",
+      "invocation_syntax": {
+        "from_command": "Skill(skill=\"workflow-plan\", args=\"task description\")",
+        "from_skill": "Skill(skill=\"brainstorm\", args=\"topic\")",
+        "with_mode": "Skill(skill=\"workflow:plan-verify\", args=\"--session xxx\")"
+      },
+      "routing_mechanism": {
+        "skill_discovery": "Claude Code 根据 skill 名称查找 .claude/skills/{skill-name}/SKILL.md",
+        "trigger_keywords": "Skill 的 description 字段包含 triggers（如 'Triggers on \"issue:new\"'）",
+        "allowed_tools_filter": "Skill 的 allowed-tools 字段限制可用工具"
+      },
+      "relationship": {
+        "command_as_entry": "命令是用户入口，负责意图分析",
+        "skill_as_executor": "Skill 是执行层，包含详细工作流逻辑",
+        "delegation_pattern": "命令分析意图后通过 Skill tool 委托执行"
+      }
+    },
+    {
+      "name": "工具限制模式 (Tool Restriction Pattern)",
+      "description": "allowed-tools 字段控制命令/Skill 可用的工具集",
+      "syntax": {
+        "wildcard": "Skill(*) - 允许所有 Skill 调用",
+        "specific": "Read(*), Write(*), Bash(*) - 允许特定工具的所有操作",
+        "mcp_tools": "mcp__ace-tool__search_context(*) - 允许 MCP 工具"
+      },
+      "examples": [
+        "ccw.md: allowed-tools: Skill(*), TodoWrite(*), AskUserQuestion(*), Read(*), Grep(*), Glob(*)",
+        "issue/new.md: allowed-tools: TodoWrite(*), Bash(*), Read(*), AskUserQuestion(*), mcp__ace-tool__search_context(*)",
+        "brainstorm-with-file.md: allowed-tools: TodoWrite(*), Task(*), AskUserQuestion(*), Read(*), Grep(*), Glob(*), Bash(*), Edit(*), Write(*)"
+      ]
+    },
+    {
+      "name": "直接 Skill 调用模式 (Direct Skill Invocation)",
+      "description": "可以绕过命令直接调用 Skill",
+      "methods": {
+        "via_skill_tool": {
+          "syntax": "Skill(skill=\"skill-name\", args=\"arguments\")",
+          "example": "Skill(skill=\"issue-discover\", args=\"src/auth/** --perspectives=security\")"
+        },
+        "trigger_keywords": {
+          "syntax": "在对话中提及 trigger 关键词",
+          "example": "\"discover issues in auth module\" 会触发 issue-discover skill"
+        }
+      },
+      "differences": {
+        "command_invocation": "包含意图分析和用户确认阶段",
+        "direct_skill": "跳过意图分析，直接执行 Skill 工作流",
+        "use_cases": "直接 Skill 调用适用于明确的执行需求，命令调用适用于需要路由选择的场景"
+      }
+    }
+  ],
+  "key_findings": [
+    {
+      "finding": "两种命名空间定义方式共存",
+      "details": "目录层级方式（workflow/session/start.md + name: start）和内联方式（issue/discover.md + name: issue:discover）都可以工作，Claude Code 根据文件路径和 name 字段共同解析",
+      "evidence": "issue/discover.md 的 name 字段为 'issue:discover'，而 workflow/session/start.md 的 name 字段仅为 'start'"
+    },
+    {
+      "finding": "allowed-tools 是关键的安全边界",
+      "details": "命令和 Skill 通过 allowed-tools 字段限制可用工具，支持通配符语法（如 'Skill(*)'）和具体工具指定（如 'mcp__ace-tool__search_context(*)'）",
+      "evidence": "ccw.md 限制为 'Skill(*), TodoWrite(*), AskUserQuestion(*), Read(*), Grep(*), Glob(*)'，不包含 Write/Edit 工具"
+    },
+    {
+      "finding": "命令-Skill 委托模式",
+      "details": "命令（如 /ccw, /ccw-plan）作为用户入口负责意图分析和路由选择，然后通过 Skill tool 委托给对应的 Skill（如 workflow-plan）执行具体工作流",
+      "evidence": "ccw.md 的 Phase 5 使用 'Skill({ skill: fullCommand })' 执行命令链"
+    },
+    {
+      "finding": "Skill 触发关键词机制",
+      "details": "Skill 的 description 字段包含 'Triggers on \"xxx\", \"yyy\"' 格式的关键词，Claude Code 使用这些关键词进行语义匹配",
+      "evidence": "issue-discover SKILL.md 的 description 包含 'Triggers on \"issue:new\", \"issue:discover\", \"create issue\"'"
+    },
+    {
+      "finding": "Skill 间调用通过 Skill tool",
+      "details": "一个 Skill 可以通过 Skill tool 调用另一个 Skill，但最佳实践建议对于 phase 文件使用直接 Read() 而非 Skill 路由",
+      "evidence": "workflow-skill-designer/phases/03-phase-design.md 明确指出 'Skill(skill=\"...\") 是 unnecessary round-trip'"
+    },
+    {
+      "finding": "Auto Mode 统一实现模式",
+      "details": "多个命令支持 --yes/-y 标志跳过用户确认，实现模式统一：解析参数 → 检测 auto_yes → 跳过 AskUserQuestion",
+      "evidence": "brainstorm-with-file.md, issue/new.md, issue/discover.md 都实现了 Auto Mode"
+    }
+  ],
+  "questions_for_user": [
+    {
+      "question": "Claude Code 如何处理命令名称冲突？",
+      "context": "当两个命令有相同的 name 字段但位于不同目录时，解析优先级是什么？",
+      "impact": "影响命令命名规范和冲突避免策略"
+    },
+    {
+      "question": "allowed-tools 的通配符 (*) 是否支持更细粒度的控制？",
+      "context": "例如 'Skill(workflow-*)' 是否有效？这影响安全边界设计",
+      "impact": "影响最小权限原则的实现"
+    },
+    {
+      "question": "Skill 的 trigger 关键词匹配是精确匹配还是语义匹配？",
+      "context": "如果用户说 'find issues' 而非 'discover issues'，是否会触发 issue-discover skill？",
+      "impact": "影响 Skill 设计中的关键词选择策略"
+    }
+  ],
+  "_metadata": {
+    "scan_time": "2025-02-17T12:30:00Z",
+    "file_count": 10,
+    "analysis_scope": ".claude/commands/**, .claude/skills/**",
+    "discovery_sources": ["bash-scan", "content-analysis"],
+    "schema_version": "1.0"
+  }
+}

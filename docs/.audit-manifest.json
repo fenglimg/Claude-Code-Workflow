@@ -1,0 +1,191 @@
+{
+  "version": "1.0.0",
+  "created": "2025-02-17",
+  "session": "ANL-ccw-architecture-audit-2025-02-17",
+  "description": "CCW 架构级深度研习 - 文档资产审计清单",
+  "audit_policy": {
+    "trigger": "git_hash_change",
+    "strategy": "file_hash_primary|meu_drift_secondary",
+    "meu_definition": "最小执行单元 - 必须作为原子组一起执行的命令/函数集合"
+  },
+  "assets": {
+    "commands": {
+      "cli": {
+        "path": "ccw/src/commands/*.ts",
+        "count": 18,
+        "files": {}
+      },
+      "claude_commands": {
+        "path": ".claude/commands/**/*.md",
+        "count": 51,
+        "files": {
+          ".claude/commands/ccw.md": {
+            "git_hash": "a2242e85821da6c7acc685280626d0b4d285902e",
+            "analyzed_in": "docs/deep-study/part1-entry-layer/01-slash-command-trigger.md",
+            "analyzed_at": "2025-02-17",
+            "role": "主入口命令"
+          },
+          ".claude/commands/ccw-plan.md": {
+            "git_hash": "b1875d9d27324d0d3ecb036d1bf53047440269ca",
+            "analyzed_in": "docs/deep-study/part1-entry-layer/01-slash-command-trigger.md",
+            "analyzed_at": "2025-02-17",
+            "role": "规划协调器"
+          },
+          ".claude/commands/workflow/session/start.md": {
+            "git_hash": "145ba42c04a645e965eeae6380a3726f9d4b95f8",
+            "analyzed_in": "docs/deep-study/part1-entry-layer/01-slash-command-trigger.md",
+            "analyzed_at": "2025-02-17",
+            "role": "命名空间命令示例"
+          },
+          ".claude/commands/issue/discover.md": {
+            "git_hash": "f0cfab7de51d26538e415916e630e9639e91bd1a",
+            "analyzed_in": "docs/deep-study/part1-entry-layer/01-slash-command-trigger.md",
+            "analyzed_at": "2025-02-17",
+            "role": "内联命名空间示例"
+          },
+          ".claude/commands/workflow/brainstorm-with-file.md": {
+            "git_hash": "d1fbad113180052a051ace52b7a690eba6e452ee",
+            "analyzed_in": "docs/deep-study/part1-entry-layer/01-slash-command-trigger.md",
+            "analyzed_at": "2025-02-17",
+            "role": "复杂命令实现示例"
+          },
+          ".claude/commands/issue/new.md": {
+            "git_hash": "4a76c1807d858266f41c6ff2f99c53f6e6eabe0d",
+            "analyzed_in": "docs/deep-study/part1-entry-layer/01-slash-command-trigger.md",
+            "analyzed_at": "2025-02-17",
+            "role": "Auto Mode 实现示例"
+          }
+        }
+      }
+    },
+    "skills": {
+      "claude_skills": {
+        "path": ".claude/skills/**/SKILL.md",
+        "count": 27,
+        "files": {
+          ".claude/skills/workflow-plan/SKILL.md": {
+            "git_hash": "2e1bbc554e2189e2c80db7cbb5d8875f3a224df3",
+            "analyzed_in": "docs/deep-study/part1-entry-layer/01-slash-command-trigger.md",
+            "analyzed_at": "2025-02-17",
+            "role": "Skill 多模式路由示例"
+          },
+          ".claude/skills/issue-discover/SKILL.md": {
+            "git_hash": "9fef611f21e8425939bf6a073a5bd6ef790e6fa8",
+            "analyzed_in": "docs/deep-study/part1-entry-layer/01-slash-command-trigger.md",
+            "analyzed_at": "2025-02-17",
+            "role": "Skill trigger 关键词示例"
+          },
+          ".claude/skills/brainstorm/SKILL.md": {
+            "git_hash": "7f1c9647612b42c92db7d2f1a69b481f89319602",
+            "analyzed_in": "docs/deep-study/part1-entry-layer/01-slash-command-trigger.md",
+            "analyzed_at": "2025-02-17",
+            "role": "Skill 间调用示例"
+          },
+          ".claude/skills/workflow-skill-designer/SKILL.md": {
+            "git_hash": "dbd2f17b240b72273646f5599d3471a823afdd2a",
+            "analyzed_in": "docs/deep-study/part1-entry-layer/01-slash-command-trigger.md",
+            "analyzed_at": "2025-02-17",
+            "role": "Skill 调用最佳实践"
+          }
+        }
+      },
+      "codex_skills": {
+        "path": ".codex/skills/**/*.md",
+        "count": 17,
+        "files": {}
+      }
+    },
+    "agents": {
+      "claude_agents": {
+        "path": ".claude/agents/*.md",
+        "count": 21,
+        "files": {}
+      }
+    },
+    "routes": {
+      "express_routes": {
+        "path": "ccw/src/core/routes/*.ts",
+        "count": 36,
+        "files": {}
+      }
+    },
+    "services": {
+      "core_services": {
+        "path": "ccw/src/core/services/*.ts",
+        "count": 10,
+        "files": {}
+      }
+    },
+    "tools": {
+      "cli_tools": {
+        "path": "ccw/src/tools/*.ts",
+        "count": 47,
+        "files": {}
+      }
+    },
+    "types": {
+      "type_definitions": {
+        "path": "ccw/src/types/*.ts",
+        "count": 8,
+        "files": {}
+      }
+    },
+    "config": {
+      "config_modules": {
+        "path": "ccw/src/config/*.ts",
+        "count": 5,
+        "files": {}
+      }
+    },
+    "utils": {
+      "utility_functions": {
+        "path": "ccw/src/utils/*.ts",
+        "count": 19,
+        "files": {}
+      }
+    },
+    "codexlens": {
+      "python_modules": {
+        "path": "codex-lens/src/codexlens/**/*.py",
+        "count": 80,
+        "files": {}
+      }
+    },
+    "frontend": {
+      "pages": {
+        "path": "ccw/frontend/src/pages/**/*.tsx",
+        "count": 68,
+        "files": {}
+      },
+      "components": {
+        "path": "ccw/frontend/src/components/**/*.tsx",
+        "count": 100,
+        "files": {}
+      }
+    },
+    "templates": {
+      "prompt_templates": {
+        "path": ".ccw/workflows/cli-templates/prompts/*.md",
+        "count": 60,
+        "files": {}
+      },
+      "schemas": {
+        "path": ".ccw/workflows/cli-templates/schemas/*.json",
+        "count": 20,
+        "files": {}
+      }
+    }
+  },
+  "scan_status": {
+    "total_assets": 950,
+    "scanned": 10,
+    "pending": 940,
+    "last_scan": "2025-02-17T12:45:00Z",
+    "chapters_completed": ["part1-entry-layer/01-slash-command-trigger.md"],
+    "chapters_pending": [
+      "part1-entry-layer/02-cli-entry-point.md",
+      "part2-dispatch-layer/03-intent-analysis.md",
+      "part2-dispatch-layer/04-workflow-level-mapping.md"
+    ]
+  }
+}
