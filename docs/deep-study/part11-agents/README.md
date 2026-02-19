@@ -139,13 +139,33 @@ Section C covers the Agent layer of CCW architecture, focusing on intelligent ex
 
 ---
 
+### Chapter 49: Code Developer Agent - Incremental Implementation
+
+**File**: [ch49-code-developer.md](./ch49-code-developer.md)
+
+**Topics Covered**:
+- 5-phase implementation workflow (Context Assessment, Pre-Analysis, Implementation, Quality Gates, Task Completion)
+- Dual-mode execution (Agent direct vs CLI handoff)
+- Module verification protocol with search tool priority
+- Context sufficiency scoring (0.0-1.0 threshold)
+- Resume strategies (new/resume/fork/merge_fork)
+
+**Key Insights**:
+| Context Score | Action | Tool |
+|---------------|--------|------|
+| < 0.6 | Supplement with Gemini analysis | Gemini |
+| >= 0.6 | Direct implementation | Agent/CLI |
+| Module reference | Verify existence first | ACE/Grep |
+
+---
+
 ## Agent Role Classification
 
 | Classification | Agents | Core Responsibility |
 |----------------|--------|---------------------|
 | **Planning** | action-planning-agent, cli-planning-agent, cli-lite-planning-agent, cli-roadmap-plan-agent | Transform requirements into structured tasks |
 | **Analysis** | cli-explore-agent, context-search-agent, debug-explore-agent | Discover and analyze codebase context |
-| **Execution** | cli-execution-agent | Intelligently execute CLI commands |
+| **Execution** | cli-execution-agent, code-developer | Intelligently execute CLI commands and implement code |
 | **Quality** | test-fix-agent | Ensure code quality through testing |
 
 ---
@@ -167,6 +187,7 @@ Section C covers the Agent layer of CCW architecture, focusing on intelligent ex
 | context-search-agent | Stable | Medium | 2025-01-28 |
 | cli-execution-agent | Stable | Medium | 2025-02-01 |
 | test-fix-agent | Stable | Low | 2025-02-05 |
+| code-developer | Stable | Medium | 2025-02-10 |
 
 ### Drift Indicators
 
@@ -177,6 +198,8 @@ Section C covers the Agent layer of CCW architecture, focusing on intelligent ex
 | **Schema Drift** | Output format changes break downstream | cli-explore, context-search |
 | **Loop Detection** | Missing loop detection causes infinite cycles | debug-explore |
 | **Coverage False Sense** | High coverage masks quality issues | test-fix |
+| **Module Verification Skip** | Skipping module existence check causes runtime errors | code-developer |
+| **Context Score False Positive** | Threshold just above limit still missing critical context | code-developer |
 
 ### Recommended Actions
 
@@ -185,14 +208,16 @@ Section C covers the Agent layer of CCW architecture, focusing on intelligent ex
 3. **Schema Drift**: Add version field to all JSON outputs
 4. **Loop Detection**: Add iteration counter to debug-explore-agent
 5. **Coverage False Sense**: Add quality metrics alongside coverage
+6. **Module Verification Skip**: Enforce mandatory module verification before any import
+7. **Context Score False Positive**: Add critical context validation beyond score threshold
 
 ---
 
 ## Ghost Tracking Progress
 
 ```markdown
-调查进度: █████████░ 40%
-幽灵位置: Part XI Agent 层 — 6 个章节完成
+调查进度: ██████████ 45%
+幽灵位置: Part XI Agent 层 — 7 个章节完成
 
 本章完成:
 ├── Chapter 43: 规划智能体 — 多步推理模型 ✅
@@ -200,7 +225,8 @@ Section C covers the Agent layer of CCW architecture, focusing on intelligent ex
 ├── Chapter 45: 调试智能体 — 假设驱动调试 ✅
 ├── Chapter 46: 上下文搜索智能体 — 语义索引构建 ✅
 ├── Chapter 47: CLI 执行智能体 — 5 阶段执行流 ✅
-└── Chapter 48: 测试修复智能体 — 自我修正循环 ✅
+├── Chapter 48: 测试修复智能体 — 自我修正循环 ✅
+└── Chapter 49: 代码开发智能体 — 增量实现与质量守护 ✅
 
 幽灵线索:
 ├── CLI 执行策略配置异常 (Ch43)
@@ -208,7 +234,8 @@ Section C covers the Agent layer of CCW architecture, focusing on intelligent ex
 ├── 假设验证循环异常 (Ch45)
 ├── 上下文收集不完整 (Ch46)
 ├── 模板选择错误模式 (Ch47)
-└── 层级诊断错误模式 (Ch48)
+├── 层级诊断错误模式 (Ch48)
+└── 模块验证遗漏模式 (Ch49)
 ```
 
 ---
@@ -243,6 +270,7 @@ Section C covers the Agent layer of CCW architecture, focusing on intelligent ex
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2025-02-18 | Initial documentation with 6 chapters |
+| 1.1 | 2025-02-18 | Added Chapter 49: Code Developer Agent |
 
 ---
 

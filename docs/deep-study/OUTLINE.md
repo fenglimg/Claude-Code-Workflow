@@ -923,6 +923,23 @@ graph TB
 
 ---
 
+#### Chapter 35: Team 系列命令 — 多 Agent 协作
+
+> **完整文档**: [part11-commands/ch35-team-commands.md](./part11-commands/ch35-team-commands.md)
+
+**涉及命令**:
+- `/team-lifecycle` - 完整生命周期管理
+- `/team-issue` - Issue 协作解决
+- `/team-skill-designer` - Team Skill 设计
+- `/team-command-designer` - Team Command 设计
+
+**关键问题**:
+1. Team 模式与单人模式的边界？
+2. 多 Agent 间的任务分配策略？
+3. 冲突检测与解决机制？
+
+---
+
 ### ⚔️ Section B: 武装特种兵 — Skills 篇
 
 > **社会阶层宣言**
@@ -1038,6 +1055,39 @@ graph TB
 
 ---
 
+#### Chapter 44-46: 协作与发现类 Skill
+
+> **Chapter 44: `brainstorm` — 多角色头脑风暴**
+> **完整文档**: [part11-skills/44-brainstorm-skill.md](./part11-skills/44-brainstorm-skill.md)
+>
+> **核心能力**: 多视角发散思维、角色分析、创意收敛
+
+> **Chapter 45: `issue-discover` / `issue-resolve` — Issue 生命周期管理**
+> **完整文档**: [part11-skills/45-issue-skills.md](./part11-skills/45-issue-skills.md)
+>
+> **核心能力**: Issue 发现、规划、解决流水线
+
+> **Chapter 46: `memory-manage` / `memory-capture` — 记忆管理系统**
+> **完整文档**: [part11-skills/46-memory-skills.md](./part11-skills/46-memory-skills.md)
+>
+> **核心能力**: CLAUDE.md 更新、会话记忆、文档生成
+
+---
+
+#### Chapter 47-48: 元编程类 Skill
+
+> **Chapter 47: `skill-generator` / `skill-tuning` — Skill 元编程**
+> **完整文档**: [part11-skills/47-meta-skills.md](./part11-skills/47-meta-skills.md)
+>
+> **核心能力**: Skill 创建、诊断、优化
+
+> **Chapter 48: `workflow-execute` / `workflow-lite-plan` — 执行引擎**
+> **完整文档**: [part11-skills/48-workflow-execution-skills.md](./part11-skills/48-workflow-execution-skills.md)
+>
+> **核心能力**: 轻量级规划、会话执行、任务协调
+
+---
+
 ### 🧠 Section C: 沉思的先知 — Agents 篇
 
 > **社会阶层宣言**
@@ -1104,6 +1154,25 @@ graph TB
 
 **Chapter 47: `cli-execution-agent` — 5 阶段执行流程**
 **Chapter 48: `test-fix-agent` — 测试失败的自动修复闭环**
+
+---
+
+#### Chapter 49-51: 执行与生成类 Agent
+
+> **Chapter 49: `code-developer` — 代码实现专家**
+> **完整文档**: [part11-agents/ch49-code-developer.md](./part11-agents/ch49-code-developer.md)
+>
+> **核心能力**: 代码编写、测试生成、增量实现
+
+> **Chapter 50: `universal-executor` — 万能执行者**
+> **完整文档**: [part11-agents/ch50-universal-executor.md](./part11-agents/ch50-universal-executor.md)
+>
+> **核心能力**: 跨领域任务执行、自适应策略
+
+> **Chapter 51: `doc-generator` / `memory-bridge` — 文档与记忆管理**
+> **完整文档**: [part11-agents/ch51-doc-memory-agents.md](./part11-agents/ch51-doc-memory-agents.md)
+>
+> **核心能力**: 文档生成、记忆桥接、状态同步
 
 ---
 

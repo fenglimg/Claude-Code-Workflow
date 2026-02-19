@@ -191,6 +191,28 @@ The command layer implements a sophisticated architecture that includes:
 
 ---
 
+### Chapter 35: Team Pulse — team-lifecycle, team-issue, team-skill-designer, team-command-designer
+
+**File**: [ch35-team-commands.md](./ch35-team-commands.md)
+
+**Topics Covered**:
+- Unified entry point + --role routing architecture
+- team-lifecycle: 8 roles, 3 modes (spec-only, impl-only, full-lifecycle)
+- team-issue: 6 roles, 3 modes (quick, full, batch)
+- team-skill-designer: Meta-skill for generating skill packages
+- team-command-designer: Meta-skill for generating command files
+- Shared infrastructure: message bus, task lifecycle, role isolation
+
+**Key Insights**:
+| Skill | Roles | Modes | Task Chain |
+|-------|-------|-------|------------|
+| team-lifecycle | 8 | spec-only, impl-only, full-lifecycle | 16 tasks |
+| team-issue | 6 | quick, full, batch | 4-6 tasks |
+| team-skill-designer | N/A | N/A | Generates SKILL.md + roles/ |
+| team-command-designer | N/A | N/A | Generates single .md file |
+
+---
+
 ## Architecture Summary
 
 ```
@@ -222,6 +244,12 @@ The command layer implements a sophisticated architecture that includes:
 │  ├─ /memory:prepare          (Temporary Context)                        │
 │  └─ /memory:style-skill-memory (Permanent SKILL)                        │
 │                                                                          │
+│  Team Subsystem (Multi-Agent Collaboration)                              │
+│  ├─ team-lifecycle      (Full Lifecycle: spec → impl → test)            │
+│  ├─ team-issue          (Issue Resolution Pipeline)                     │
+│  ├─ team-skill-designer (Generate Skill Packages)                       │
+│  └─ team-command-designer (Generate Command Files)                      │
+│                                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -252,6 +280,13 @@ brainstorm → cli-explore-agent → [Gemini || Codex || Claude]
 Session state is persisted to disk for recovery and audit:
 ```
 session → workflow-session.json → archives/
+```
+
+### 5. Unified Entry + Role Routing Pattern
+Team skills use a single entry point with --role parameter:
+```
+Skill(skill="team-lifecycle", args="--role=coordinator")
+  → Read(roles/coordinator.md) → Execute 5-phase process
 ```
 
 ---
@@ -302,6 +337,7 @@ Throughout this Part, we tracked "Memory Ghosts" - the accumulation and leakage 
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1 | 2025-02-18 | Added Chapter 35: Team commands documentation |
 | 1.0 | 2025-02-18 | Initial documentation - 9 chapters covering command layer |
 
 ---

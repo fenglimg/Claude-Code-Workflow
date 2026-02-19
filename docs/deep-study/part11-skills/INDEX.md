@@ -186,10 +186,51 @@
 
 ---
 
+### Chapter 44: 思维交响乐团 — brainstorm 的多角色智力融合
+
+**生命周期阶段**: 需求探索 -> 角色分析 -> 智慧综合
+
+> 九种角色，九种视角，将混沌的需求转化为结构化的解决方案。
+
+**核心特征**:
+- 双模式路由: Auto Mode (四阶段管道) / Single Role Mode (单角色深度)
+- 四阶段管道: Mode Detection -> Interactive Framework -> Parallel Analysis -> Synthesis
+- 九角色并行: 系统架构师、UI设计师、UX专家、产品经理等
+- 功能点分解: 从讨论中提取独立可实施的功能单元
+
+**幽灵线索**: 创意稀释导致洞见丢失、折中方案掩盖独特视角、功能点粒度不均
+
+[阅读完整章节](./44-brainstorm-skill.md)
+
+---
+
+### Chapter 46: 记忆之桥 — Memory Skills 的记忆管理系统
+
+**生命周期阶段**: 会话记忆 → 项目记忆 → 文档生成
+
+> 双子星架构，连接会话与项目的记忆桥梁。
+
+**核心特征**:
+- 双子星架构: memory-manage (项目记忆) + memory-capture (会话记忆)
+- 5 种更新模式: update-full/related/single + docs-full/related
+- 3 层架构: Layer 3→2→1 bottom-up 聚合
+- Compact 模式: 会话压缩 + Recovery ID 恢复
+- Tips 模式: 快速笔记 + 标签分类
+
+**幽灵线索**: CLAUDE.md 碎片化漂移、会话记忆断层、多模块记忆不一致
+
+[阅读完整章节](./46-memory-skills.md)
+
+---
+
 ## 架构全景图
 
 ```mermaid
 graph TB
+    subgraph "Brainstorm Skills (头脑风暴类)"
+        F1["brainstorm<br/>思维交响乐团<br/>9角色并行"]
+    end
+
     subgraph "Planning Skills (计划类)"
         A1["workflow-plan<br/>影子工厂<br/>4-Phase 管道"]
     end
@@ -213,6 +254,14 @@ graph TB
         E1["Schema Validation<br/>宪法法庭<br/>类型约束"]
     end
 
+    subgraph "Memory Skills (记忆类)"
+        G1["memory-manage<br/>记忆守护者<br/>CLAUDE.md 管理"]
+        G2["memory-capture<br/>会话捕获<br/>Compact + Tips"]
+    end
+
+    G1 -->|"项目记忆"| A1
+    G2 -->|"会话恢复"| G1
+    F1 -->|"guidance-specification.md"| A1
     A1 -->|"IMPL_PLAN.md"| B1
     A1 -->|"IMPL_PLAN.md"| C1
     B1 --> B2
@@ -221,6 +270,7 @@ graph TB
     C3 --> D1
     D1 -->|"质量门禁"| E1
 
+    style F1 fill:#FF6B6B,stroke:#C92A2A
     style A1 fill:#CD5C5C,stroke:#8B0000
     style B1 fill:#CD5C5C,stroke:#8B0000
     style B2 fill:#2F4F4F,stroke:#000000
@@ -229,6 +279,8 @@ graph TB
     style C3 fill:#4169E1,stroke:#00008B
     style D1 fill:#9370DB,stroke:#4B0082
     style E1 fill:#2F4F4F,stroke:#000000
+    style G1 fill:#20B2AA,stroke:#008B8B
+    style G2 fill:#20B2AA,stroke:#008B8B
 ```
 
 ---
@@ -239,35 +291,41 @@ graph TB
 
 | 角色 | 推荐章节 | 原因 |
 |------|----------|------|
-| **规划者** | Chapter 35 | 理解计划生成的完整流程 |
+| **产品经理** | Chapter 44 | 理解多角色头脑风暴的完整流程 |
+| **规划者** | Chapter 35, 44 | 计划生成与需求探索 |
 | **重构专家** | Chapter 36, 38 | 安全重构与原子操作 |
 | **测试工程师** | Chapter 37, 39, 41 | TDD、自愈、集成测试 |
 | **代码审查员** | Chapter 40 | 多维审查方法论 |
 | **架构师** | Chapter 42, 43 | Schema 约束与系统稳定性 |
+| **知识管理者** | Chapter 46 | 记忆管理与知识持久化 |
 
 ### 按问题阅读
 
 | 问题 | 推荐章节 | 关键概念 |
 |------|----------|----------|
+| "需求太模糊，不知道从何开始" | Chapter 44 | 多角色分析、功能点分解 |
 | "计划太复杂，无法执行" | Chapter 35 | 4-Phase 分离、条件执行 |
 | "重构后测试全挂" | Chapter 36, 38 | 安全重构模式、回滚机制 |
 | "测试一直失败" | Chapter 37 | 策略引擎、自适应修复 |
 | "TDD 难以坚持" | Chapter 39 | 铁律执行、合规检查 |
 | "审查遗漏严重" | Chapter 40 | 七维分析、深度调查 |
 | "Schema 不一致" | Chapter 42 | 三层验证、类型同步 |
+| "会话记忆丢失" | Chapter 46 | Compact 模式、Recovery ID |
 
 ---
 
 ## 幽灵追踪进度
 
 ```markdown
-调查进度: ████████░░ 45%
+调查进度: █████████░ 65%
 幽灵位置: Skills 层 — 检测到多阶段执行中的内存累积模式
 Part XI-B 线索:
 ├── Chapter 35: planning-notes.md 跨阶段内存累积
 ├── Chapter 37: 测试抖动与 L0-L3 误报
 ├── Chapter 38: 部分写入与文件损坏
-└── Chapter 41: 集成测试环境泄漏
+├── Chapter 41: 集成测试环境泄漏
+├── Chapter 44: 创意稀释导致洞见丢失
+└── Chapter 46: CLAUDE.md 碎片化漂移
 ```
 
 ---
