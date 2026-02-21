@@ -1,0 +1,48 @@
+{
+  "task_id": "IMPL-001.3",
+  "title": "AI 代码问题检测 - 文档内容问题",
+  "type": "code-validation",
+  "priority": "high",
+  "assigned_agent": "test-fix-agent",
+  "status": "pending",
+  "description": "检测文档中的 AI 生成内容问题，包括格式错误、内容不一致、过时引用",
+  "implementation_approach": {
+    "strategy": "static_analysis",
+    "checks": [
+      {
+        "category": "MISSING_FILE",
+        "severity": "CRITICAL",
+        "target": ".audit-manifest.json",
+        "description": "附录 A 引用的资产清单文件不存在"
+      },
+      {
+        "category": "BROKEN_REFERENCE",
+        "severity": "HIGH",
+        "target": "OUTLINE.md:1333",
+        "description": "引用 docs/.audit-manifest.json 路径无效"
+      },
+      {
+        "category": "INCOMPLETE_COVERAGE",
+        "severity": "MEDIUM",
+        "target": "Part II",
+        "description": "Chapter 3-4 未完全分离"
+      },
+      {
+        "category": "MISSING_INDEX",
+        "severity": "LOW",
+        "target": "Part VIII",
+        "description": "无 README 索引文件"
+      }
+    ]
+  },
+  "acceptance_criteria": [
+    "零 CRITICAL 问题",
+    "HIGH 问题已修复或有修复计划",
+    "所有检测问题已记录"
+  ],
+  "test_requirements": {
+    "layer": "L0.5",
+    "severity_levels": ["CRITICAL", "ERROR", "WARNING"],
+    "quality_gate": "CRITICAL = 0"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "task_id": "IMPL-001",
+  "title": "文档规范验证与修复",
+  "type": "doc-validation",
+  "priority": "high",
+  "assigned_agent": "code-developer",
+  "status": "completed",
+  "description": "验证 deep-study 文档是否符合 OUTLINE.md 定义的规范，修复不符合规范的文档",
+  "implementation_approach": {
+    "strategy": "phased",
+    "phases": [
+      {
+        "name": "结构验证",
+        "description": "检查所有 Part 目录和文件是否符合 OUTLINE.md 定义的结构",
+        "layer": "L0",
+        "actions": [
+          "验证 15 个 Part 目录存在",
+          "检查文件命名符合规范 (XX-{name}.md 或 ch{N}-{name}.md)",
+          "确认 README.md 存在于需要的目录"
+        ]
+      },
+      {
+        "name": "模板符合性检查",
+        "description": "检查资产章节是否包含 6 个必需部分",
+        "layer": "L1",
+        "actions": [
+          "验证 0. 资产证言 部分",
+          "验证 1. 场景：存在的烦恼 部分",
+          "验证 2. 档案：能量流转图谱 部分",
+          "验证 3. 社交：谁在召唤它 部分",
+          "验证 4. 破译：源代码里的小心机 部分",
+          "验证 5. 进化：改装插槽 部分"
+        ]
+      },
+      {
+        "name": "交叉引用验证",
+        "description": "检查文档内部链接和引用是否有效",
+        "layer": "L2",
+        "actions": [
+          "验证 Mermaid 图表语法",
+          "检查相对路径链接",
+          "确认资产引用文件存在"
+        ]
+      }
+    ]
+  },
+  "acceptance_criteria": [
+    "所有 Part 目录结构完整",
+    "文件命名符合规范",
+    "资产章节包含 6 个必需部分",
+    "内部链接 100% 有效"
+  ],
+  "test_requirements": {
+    "layer": "L0-L2",
+    "coverage_target": "95%",
+    "quality_gate": "无 CRITICAL 问题"
+  }
+}

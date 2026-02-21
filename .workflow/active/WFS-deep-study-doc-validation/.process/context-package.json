@@ -1,0 +1,87 @@
+{
+  "metadata": {
+    "session_id": "WFS-deep-study-doc-validation",
+    "task_type": "document_validation",
+    "complexity": "Medium",
+    "created_at": "2025-02-18T10:00:00Z"
+  },
+  "task_description": "deep-study 文档规范性和完整性验证 - 检查 OUTLINE.md 合规性、文档缺漏、.audit-manifest.json 更新状态",
+  "project_context": {
+    "description": "CCW 架构级深度研习文档系统",
+    "document_count": 65,
+    "outline_path": "docs/deep-study/OUTLINE.md"
+  },
+  "document_inventory": {
+    "existing_parts": {
+      "part1-entry-layer": ["01-slash-command-trigger.md", "02-cli-entry-point.md", "03-intent-analysis.md"],
+      "part2-dispatch-layer": ["04-workflow-pyramid.md"],
+      "part3-transport-layer": ["05-express-routes.md", "06-session-manager.md"],
+      "part3-5-type-system": ["06-5-typescript-types.md", "06-6-json-schema.md"],
+      "part4-orchestration-layer": ["07-skill-phases.md", "08-core-skills-deep-dive.md"],
+      "part4-5-cross-language": ["10.5-child-process-diplomat.md", "10.6-json-rpc-border.md", "10.7-error-boundary.md"],
+      "part5-execution-layer": ["09-agent-lifecycle.md", "10-core-agents-deep-dive.md", "11-12-agent-system.md"],
+      "part6-integration-layer": ["13-multi-cli-integration.md", "14-semantic-search.md"],
+      "part7-storage-layer": ["15-sqlite-database.md", "16-filesystem-workflow.md"],
+      "part8-frontend": ["ch17-dashboard-architecture.md", "ch18-testing-strategy.md", "README.md"],
+      "part10-extensions": ["README.md", "ch19-adding-agents.md", "ch19-adding-commands.md", "ch19-adding-skills.md"],
+      "part10-5-hidden": ["README.md", "ch19-5-a2ui-protocol.md", "ch19-6-loop-v2-routes.md", "ch19-7-memory-consolidation.md", "ch19-8-session-clustering.md"],
+      "part11-commands": ["README.md", "ch25-ccw-speaker.md", "ch26-issue-new.md", "ch27-issue-discover.md", "ch28-issue-lifecycle.md", "ch29-workflow-init.md", "ch30-session-lifecycle.md", "ch31-brainstorm-with-file.md", "ch32-cli-commands.md", "ch33-memory-commands.md"],
+      "part11-skills": ["INDEX.md", "35-workflow-plan-shadow-factory.md", "36-workflow-refactor-cycle.md", "37-workflow-test-fix.md", "38-edit-write-atomicity.md", "39-workflow-tdd.md", "40-review-cycle.md", "41-integration-test-cycle.md", "42-schema-validation.md", "43-stability-report.md"],
+      "part11-agents": ["README.md", "ch43-planning-agents.md", "ch44-cli-explore-agent.md", "ch45-debug-explore-agent.md", "ch46-context-search-agent.md", "ch47-cli-execution-agent.md", "ch48-test-fix-agent.md"],
+      "part11-infrastructure": ["README.md", "49-configuration-evolution.md", "50-plan-schema-constitution.md", "51-task-schema-foundation.md", "52-custom-schema-extension.md"]
+    },
+    "outline_expected_parts": {
+      "Part I": ["Chapter 1", "Chapter 2"],
+      "Part II": ["Chapter 3", "Chapter 4"],
+      "Part III": ["Chapter 5", "Chapter 6"],
+      "Part III.5": ["Chapter 6.5", "Chapter 6.6"],
+      "Part IV": ["Chapter 7", "Chapter 8"],
+      "Part IV.5": ["Chapter 10.5", "Chapter 10.6", "Chapter 10.7"],
+      "Part V": ["Chapter 11", "Chapter 12"],
+      "Part VI": ["Chapter 13", "Chapter 14"],
+      "Part VII": ["Chapter 15", "Chapter 16"],
+      "Part VIII": ["Chapter 17", "Chapter 18"],
+      "Part IX": ["Chapter 18"],
+      "Part X": ["Chapter 19", "Section 19.1", "Section 19.2", "Section 19.3"],
+      "Part X.5": ["Chapter 19.5", "Chapter 19.6", "Chapter 19.7", "Chapter 19.8"],
+      "Part XI": ["Chapter 25-34", "Chapter 35-42", "Chapter 43-48", "Chapter 49-52"]
+    }
+  },
+  "audit_manifest": {
+    "expected_path": "docs/.audit-manifest.json",
+    "status": "MISSING",
+    "impact": "附录 A 资产清单无法引用 audit-manifest.json"
+  },
+  "validation_targets": [
+    {
+      "category": "structure_compliance",
+      "description": "文档结构是否符合 OUTLINE.md 定义",
+      "priority": "high"
+    },
+    {
+      "category": "chapter_coverage",
+      "description": "所有章节是否都有对应文档",
+      "priority": "high"
+    },
+    {
+      "category": "naming_convention",
+      "description": "文件命名是否符合规范",
+      "priority": "medium"
+    },
+    {
+      "category": "cross_reference",
+      "description": "文档间交叉引用是否正确",
+      "priority": "medium"
+    },
+    {
+      "category": "audit_manifest",
+      "description": ".audit-manifest.json 是否存在且完整",
+      "priority": "high"
+    }
+  ],
+  "statistics": {
+    "total_md_files": 65,
+    "total_parts": 15,
+    "outline_version": "2.1.0"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "task_id": "IMPL-002",
+  "title": "执行修复与验证循环",
+  "type": "test-fix",
+  "priority": "high",
+  "assigned_agent": "test-fix-agent",
+  "status": "pending",
+  "description": "执行文档问题修复，循环验证直到通过质量门禁",
+  "implementation_approach": {
+    "strategy": "iterative_fix",
+    "max_iterations": 5,
+    "fix_targets": [
+      {
+        "priority": 1,
+        "target": "创建 .audit-manifest.json",
+        "severity": "CRITICAL",
+        "approach": "扫描所有文档生成资产清单 JSON"
+      },
+      {
+        "priority": 2,
+        "target": "修复 OUTLINE.md 引用",
+        "severity": "HIGH",
+        "approach": "更新引用路径为正确位置"
+      },
+      {
+        "priority": 3,
+        "target": "补充 Part VIII README",
+        "severity": "LOW",
+        "approach": "创建索引文件"
+      }
+    ]
+  },
+  "acceptance_criteria": [
+    "所有 CRITICAL 问题已修复",
+    "HIGH 问题修复率 >= 90%",
+    "通过质量门禁检查"
+  ],
+  "test_requirements": {
+    "layer": "L3",
+    "pass_rate_target": "95%",
+    "max_iterations": 5,
+    "exit_condition": "CRITICAL = 0 AND PASS_RATE >= 95%"
+  }
+}

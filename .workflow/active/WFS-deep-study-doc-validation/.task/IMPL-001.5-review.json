@@ -1,0 +1,54 @@
+{
+  "task_id": "IMPL-001.5",
+  "title": "质量门禁审查",
+  "type": "quality-review",
+  "priority": "high",
+  "assigned_agent": "test-fix-agent",
+  "status": "pending",
+  "description": "执行文档质量门禁检查，确保文档符合出版标准",
+  "implementation_approach": {
+    "strategy": "quality_gate",
+    "gates": [
+      {
+        "name": "结构覆盖率",
+        "target": "100%",
+        "current": "95%",
+        "status": "pending"
+      },
+      {
+        "name": "模板符合率",
+        "target": "80%+",
+        "current": "待验证",
+        "status": "pending"
+      },
+      {
+        "name": "链接有效率",
+        "target": "100%",
+        "current": "待验证",
+        "status": "pending"
+      },
+      {
+        "name": "audit-manifest 完整性",
+        "target": "存在且完整",
+        "current": "缺失",
+        "status": "blocked"
+      }
+    ]
+  },
+  "acceptance_criteria": [
+    "结构覆盖率 >= 95%",
+    "模板符合率 >= 80%",
+    "链接有效率 = 100%",
+    "audit-manifest 存在"
+  ],
+  "test_requirements": {
+    "layer": "L0-L3",
+    "threshold": "PASS_RATE >= 95%",
+    "anti_patterns": [
+      "empty_chapter",
+      "missing_template_section",
+      "broken_link",
+      "outdated_reference"
+    ]
+  }
+}
