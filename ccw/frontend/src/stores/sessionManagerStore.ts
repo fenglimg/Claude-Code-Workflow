@@ -35,6 +35,50 @@ const initialState: SessionManagerState = {
 /** Module-level worker reference. Worker objects are not serializable. */
 let _workerRef: Worker | null = null;
 
+// ========== WebSocket Session Lock Message Handler ==========
+
+/**
+ * Handle CLI_SESSION_LOCKED WebSocket message from backend.
+ * Updates session metadata to reflect locked state.
+ */
+export function handleSessionLockedMessage(payload: {
+  sessionKey: string;
+  reason: string;
+  executionId?: string;
+  timestamp: string;
+}): void {
+  const store = useSessionManagerStore.getState();
+  store.updateTerminalMeta(payload.sessionKey, {
+    status: 'locked',
+    isLocked: true,
+    lockReason: payload.reason,
+    lockedByExecutionId: payload.executionId,
+    lockedAt: payload.timestamp,
+  });
+}
+
+/**
+ * Handle CLI_SESSION_UNLOCKED WebSocket message from backend.
+ * Updates session metadata to reflect unlocked state.
+ */
+export function handleSessionUnlockedMessage(payload: {
+  sessionKey: string;
+  timestamp: string;
+}): void {
+  const store = useSessionManagerStore.getState();
+  const existing = store.terminalMetas[payload.sessionKey];
+  // Only unlock if currently locked
+  if (existing?.isLocked) {
+    store.updateTerminalMeta(payload.sessionKey, {
+      status: 'active',
+      isLocked: false,
+      lockReason: undefined,
+      lockedByExecutionId: undefined,
+      lockedAt: undefined,
+    });
+  }
+}
+
 // ========== Worker Message Handler ==========
 
 function _handleWorkerMessage(event: MessageEvent<MonitorAlert>): void {
@@ -285,6 +329,13 @@ export const useSessionManagerStore = create<SessionManagerStore>()(
           shellKind: session.shellKind,
         };
 
+        // Map shellKind to preferredShell for API
+        const mapShellKind = (kind: string): 'bash' | 'pwsh' | 'cmd' => {
+          if (kind === 'pwsh' || kind === 'powershell') return 'pwsh';
+          if (kind === 'cmd') return 'cmd';
+          return 'bash'; // 'git-bash', 'wsl-bash', or fallback
+        };
+
         try {
           // Close existing session
           await closeCliSession(terminalId, projectPath ?? undefined);
@@ -293,7 +344,7 @@ export const useSessionManagerStore = create<SessionManagerStore>()(
           const result = await createCliSession(
             {
               workingDir: sessionConfig.workingDir,
-              preferredShell: sessionConfig.shellKind === 'powershell' ? 'pwsh' : 'bash',
+              preferredShell: mapShellKind(sessionConfig.shellKind),
               tool: sessionConfig.tool,
               model: sessionConfig.model,
               resumeKey: sessionConfig.resumeKey,
@@ -324,6 +375,85 @@ export const useSessionManagerStore = create<SessionManagerStore>()(
           }
           throw error;
         }
+      },
+
+      closeSession: async (terminalId: string) => {
+        const projectPath = selectProjectPath(useWorkflowStore.getState());
+        const cliStore = useCliSessionStore.getState();
+
+        try {
+          // Call backend API to terminate PTY session
+          await closeCliSession(terminalId, projectPath ?? undefined);
+
+          // Remove session from cliSessionStore
+          cliStore.removeSession(terminalId);
+
+          // Remove terminal meta
+          set(
+            (state) => {
+              const nextMetas = { ...state.terminalMetas };
+              delete nextMetas[terminalId];
+              return { terminalMetas: nextMetas };
+            },
+            false,
+            'closeSession'
+          );
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.error('[SessionManager] closeSession error:', error);
+          }
+          throw error;
+        }
+      },
+
+      // ========== Session Lock Actions ==========
+
+      lockSession: (sessionId: string, reason: string, executionId?: string) => {
+        set(
+          (state) => {
+            const existing = state.terminalMetas[sessionId];
+            if (!existing) return state;
+            return {
+              terminalMetas: {
+                ...state.terminalMetas,
+                [sessionId]: {
+                  ...existing,
+                  status: 'locked' as TerminalStatus,
+                  isLocked: true,
+                  lockReason: reason,
+                  lockedByExecutionId: executionId,
+                  lockedAt: new Date().toISOString(),
+                },
+              },
+            };
+          },
+          false,
+          'lockSession'
+        );
+      },
+
+      unlockSession: (sessionId: string) => {
+        set(
+          (state) => {
+            const existing = state.terminalMetas[sessionId];
+            if (!existing) return state;
+            return {
+              terminalMetas: {
+                ...state.terminalMetas,
+                [sessionId]: {
+                  ...existing,
+                  status: 'active' as TerminalStatus,
+                  isLocked: false,
+                  lockReason: undefined,
+                  lockedByExecutionId: undefined,
+                  lockedAt: undefined,
+                },
+              },
+            };
+          },
+          false,
+          'unlockSession'
+        );
       },
     }),
     { name: 'SessionManagerStore' }

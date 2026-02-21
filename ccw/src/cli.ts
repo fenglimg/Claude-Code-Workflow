@@ -192,6 +192,8 @@ export function run(argv: string[]): void {
     .option('--inject-mode <mode>', 'Inject mode: none, full, progressive (default: codex=full, others=none)')
     // Template/Rules options
     .option('--rule <template>', 'Template name for auto-discovery (defines $PROTO and $TMPL env vars)')
+    // Claude-specific options
+    .option('--effort <level>', 'Effort level for claude session (low, medium, high)')
     // Codex review options
     .option('--uncommitted', 'Review uncommitted changes (codex review)')
     .option('--base <branch>', 'Review changes against base branch (codex review)')
@@ -263,6 +265,10 @@ export function run(argv: string[]): void {
     .option('--output <file>', 'Output file path for export')
     .option('--overwrite', 'Overwrite existing memories when importing')
     .option('--prefix <prefix>', 'Add prefix to imported memory IDs')
+    .option('--unified', 'Use unified vector+FTS search (for search subcommand)')
+    .option('--topK <n>', 'Max results for unified search', '20')
+    .option('--minScore <n>', 'Min relevance score for unified search', '0')
+    .option('--category <cat>', 'Filter by category for unified search')
     .action((subcommand, args, options) => coreMemoryCommand(subcommand, args, options));
 
   // Hook command - CLI endpoint for Claude Code hooks

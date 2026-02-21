@@ -11,12 +11,13 @@
  * - POST   /api/orchestrator/flows/:id/duplicate - Duplicate flow
  *
  * Execution Control Endpoints:
- * - POST   /api/orchestrator/flows/:id/execute        - Start flow execution
- * - POST   /api/orchestrator/executions/:execId/pause  - Pause execution
- * - POST   /api/orchestrator/executions/:execId/resume - Resume execution
- * - POST   /api/orchestrator/executions/:execId/stop   - Stop execution
- * - GET    /api/orchestrator/executions/:execId        - Get execution state
- * - GET    /api/orchestrator/executions/:execId/logs   - Get execution logs
+ * - POST   /api/orchestrator/flows/:id/execute             - Start flow execution
+ * - POST   /api/orchestrator/flows/:id/execute-in-session  - Start flow execution in PTY session
+ * - POST   /api/orchestrator/executions/:execId/pause      - Pause execution
+ * - POST   /api/orchestrator/executions/:execId/resume     - Resume execution
+ * - POST   /api/orchestrator/executions/:execId/stop       - Stop execution
+ * - GET    /api/orchestrator/executions/:execId            - Get execution state
+ * - GET    /api/orchestrator/executions/:execId/logs       - Get execution logs
  *
  * Template Management Endpoints:
  * - GET    /api/orchestrator/templates          - List local + builtin templates
@@ -146,6 +147,16 @@ export interface PromptTemplateNodeData {
    * Arguments for the slash command
    */
   slashArgs?: string;
+
+  /**
+   * Instruction type for native CLI session routing
+   */
+  instructionType?: 'prompt' | 'skill';
+
+  /**
+   * Skill name for skill-type instructions
+   */
+  skillName?: string;
 
   /**
    * Error handling behavior
@@ -1259,6 +1270,161 @@ export async function handleOrchestratorRoutes(ctx: RouteContext): Promise<boole
             startedAt: execution.startedAt
           },
           message: 'Execution created'
+        };
+      } catch (error) {
+        return { success: false, error: (error as Error).message, status: 500 };
+      }
+    });
+    return true;
+  }
+
+  // ==== EXECUTE FLOW IN SESSION ====
+  // POST /api/orchestrator/flows/:id/execute-in-session
+  if (pathname.match(/^\/api\/orchestrator\/flows\/[^/]+\/execute-in-session$/) && req.method === 'POST') {
+    const flowId = pathname.split('/').slice(-2)[0];
+    if (!flowId || !isValidFlowId(flowId)) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: 'Invalid flow ID format' }));
+      return true;
+    }
+
+    handlePostRequest(req, res, async (body) => {
+      const {
+        sessionConfig,
+        sessionKey: existingSessionKey,
+        variables: inputVariables,
+        stepTimeout,
+        errorStrategy = 'pause'
+      } = body as {
+        sessionConfig?: {
+          tool?: string;
+          model?: string;
+          preferredShell?: string;
+        };
+        sessionKey?: string;
+        variables?: Record<string, unknown>;
+        stepTimeout?: number;
+        errorStrategy?: 'pause' | 'skip' | 'stop';
+      };
+
+      // Input validation
+      const validTools = ['claude', 'gemini', 'qwen', 'codex', 'opencode'];
+      const validShells = ['bash', 'pwsh', 'cmd'];
+      const validErrorStrategies = ['pause', 'skip', 'stop'];
+
+      if (sessionConfig) {
+        if (sessionConfig.tool && !validTools.includes(sessionConfig.tool)) {
+          return { success: false, error: `Invalid tool. Must be one of: ${validTools.join(', ')}`, status: 400 };
+        }
+        if (sessionConfig.preferredShell && !validShells.includes(sessionConfig.preferredShell)) {
+          return { success: false, error: `Invalid preferredShell. Must be one of: ${validShells.join(', ')}`, status: 400 };
+        }
+        if (sessionConfig.model && typeof sessionConfig.model !== 'string') {
+          return { success: false, error: 'model must be a string', status: 400 };
+        }
+      }
+
+      if (inputVariables && typeof inputVariables !== 'object') {
+        return { success: false, error: 'variables must be an object', status: 400 };
+      }
+
+      if (stepTimeout !== undefined) {
+        if (typeof stepTimeout !== 'number' || stepTimeout < 1000 || stepTimeout > 3600000) {
+          return { success: false, error: 'stepTimeout must be a number between 1000 and 3600000 (ms)', status: 400 };
+        }
+      }
+
+      if (!validErrorStrategies.includes(errorStrategy)) {
+        return { success: false, error: `Invalid errorStrategy. Must be one of: ${validErrorStrategies.join(', ')}`, status: 400 };
+      }
+
+      try {
+        // Verify flow exists
+        const flow = await readFlowStorage(workflowDir, flowId);
+        if (!flow) {
+          return { success: false, error: 'Flow not found', status: 404 };
+        }
+
+        // Generate execution ID
+        const execId = generateExecutionId();
+        const now = new Date().toISOString();
+
+        // Determine session key
+        let sessionKey = existingSessionKey;
+        if (!sessionKey) {
+          // Create new session if not provided
+          // This would typically call the session manager
+          sessionKey = `cli-session-${Date.now()}-${randomBytes(4).toString('hex')}`;
+        }
+
+        // Create execution state
+        const nodeStates: Record<string, NodeExecutionState> = {};
+        for (const node of flow.nodes) {
+          nodeStates[node.id] = {
+            status: 'pending'
+          };
+        }
+
+        const execution: ExecutionState = {
+          id: execId,
+          flowId: flowId,
+          status: 'pending',
+          startedAt: now,
+          variables: { ...flow.variables, ...inputVariables },
+          nodeStates,
+          logs: [{
+            timestamp: now,
+            level: 'info',
+            message: `Execution started in session: ${sessionKey}`
+          }]
+        };
+
+        // Save execution state
+        await writeExecutionStorage(workflowDir, execution);
+
+        // Broadcast execution created
+        broadcastExecutionStateUpdate(execution);
+
+        // Broadcast EXECUTION_STARTED to WebSocket clients
+        broadcastToClients({
+          type: 'EXECUTION_STARTED',
+          payload: {
+            executionId: execId,
+            flowId: flowId,
+            sessionKey: sessionKey,
+            stepName: flow.name,
+            timestamp: now
+          }
+        });
+
+        // Lock the session (via WebSocket broadcast for frontend to handle)
+        broadcastToClients({
+          type: 'CLI_SESSION_LOCKED',
+          payload: {
+            sessionKey: sessionKey,
+            reason: `Executing workflow: ${flow.name}`,
+            executionId: execId,
+            timestamp: now
+          }
+        });
+
+        // TODO: Implement actual step-by-step execution in PTY session
+        // For now, mark as running and let the frontend handle the orchestration
+        execution.status = 'running';
+        await writeExecutionStorage(workflowDir, execution);
+        broadcastExecutionStateUpdate(execution);
+
+        return {
+          success: true,
+          data: {
+            executionId: execution.id,
+            flowId: execution.flowId,
+            sessionKey: sessionKey,
+            status: execution.status,
+            totalSteps: flow.nodes.length,
+            startedAt: execution.startedAt
+          },
+          message: 'Execution started in session'
         };
       } catch (error) {
         return { success: false, error: (error as Error).message, status: 500 };
