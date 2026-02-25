@@ -18,6 +18,7 @@ import { handleGraphRoutes } from './routes/graph-routes.js';
 import { handleSystemRoutes } from './routes/system-routes.js';
 import { handleFilesRoutes } from './routes/files-routes.js';
 import { handleSkillsRoutes } from './routes/skills-routes.js';
+import { handleSkillHubRoutes } from './routes/skill-hub-routes.js';
 import { handleCommandsRoutes } from './routes/commands-routes.js';
 import { handleIssueRoutes } from './routes/issue-routes.js';
 import { handleDiscoveryRoutes } from './routes/discovery-routes.js';
@@ -113,7 +114,8 @@ function handlePostRequest(req: http.IncomingMessage, res: http.ServerResponse, 
 
   if (typeof cachedRawBody === 'string') {
     try {
-      void handleBody(JSON.parse(cachedRawBody));
+      const trimmed = cachedRawBody.trim();
+      void handleBody(trimmed.length === 0 ? {} : JSON.parse(cachedRawBody));
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -127,7 +129,8 @@ function handlePostRequest(req: http.IncomingMessage, res: http.ServerResponse, 
   req.on('end', async () => {
     try {
       (req as any).__ccwRawBody = body;
-      const parsed = JSON.parse(body);
+      const trimmed = body.trim();
+      const parsed = trimmed.length === 0 ? {} : JSON.parse(body);
       (req as any).body = parsed;
       await handleBody(parsed);
     } catch (error: unknown) {
@@ -562,6 +565,11 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
       // Skills routes (/api/skills*)
       if (pathname.startsWith('/api/skills')) {
         if (await handleSkillsRoutes(routeContext)) return;
+      }
+
+      // Skill Hub routes (/api/skill-hub*)
+      if (pathname.startsWith('/api/skill-hub')) {
+        if (await handleSkillHubRoutes(routeContext)) return;
       }
 
       // Commands routes (/api/commands*)

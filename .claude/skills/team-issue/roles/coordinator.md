@@ -136,38 +136,18 @@ function detectMode(issueIds, userMode) {
 }
 ```
 
-### Phase 2: Create Team + Spawn Workers
+### Phase 2: Create Team + Initialize Session
 
 ```javascript
 TeamCreate({ team_name: "issue" })
 
-// Spawn workers based on mode
-const workersToSpawn = mode === 'quick'
-  ? ['explorer', 'planner', 'integrator', 'implementer']  // No reviewer in quick mode
-  : ['explorer', 'planner', 'reviewer', 'integrator', 'implementer']
-
-for (const workerName of workersToSpawn) {
-  Task({
-    subagent_type: "general-purpose",
-    team_name: "issue",
-    name: workerName,
-    prompt: `你是 team "issue" 的 ${workerName.toUpperCase()}。
-当你收到任务时，调用 Skill(skill="team-issue", args="--role=${workerName}") 执行。
-当前需求: 处理 issue ${issueIds.join(', ')}，模式: ${mode}
-约束: CLI-first data access, 所有 issue 操作通过 ccw issue 命令
-
-## 角色准则（强制）
-- 所有输出必须带 [${workerName}] 标识前缀
-- 仅与 coordinator 通信
-- 每次 SendMessage 前，先调用 mcp__ccw-tools__team_msg 记录
-
-工作流程:
-1. TaskList → 找到分配给你的任务
-2. Skill(skill="team-issue", args="--role=${workerName}") 执行
-3. team_msg log + SendMessage 结果给 coordinator
-4. TaskUpdate completed → 检查下一个任务`
-  })
-}
+// ⚠️ Workers are NOT pre-spawned here.
+// Workers are spawned per-stage in Phase 4 via Stop-Wait Task(run_in_background: false).
+// See SKILL.md Coordinator Spawn Template for worker prompt templates.
+//
+// Worker roles available (spawned on-demand per pipeline stage):
+//   quick mode:  explorer, planner, integrator, implementer
+//   full mode:   explorer, planner, reviewer, integrator, implementer
 ```
 
 ### Phase 3: Create Task Chain
@@ -258,19 +238,22 @@ for (const issueId of issueIds) {
 // Group issues into batches
 const exploreBatches = chunkArray(issueIds, 5)  // max 5 parallel
 const solveBatches = chunkArray(issueIds, 3)    // max 3 parallel
+const maxParallelExplorers = Math.min(issueIds.length, 5)
+const maxParallelBuilders = Math.min(issueIds.length, 3)
 
-// Create EXPLORE tasks — all parallel within each batch, batches run in rolling window
-// Each batch of ≤5 runs concurrently; next batch starts when current batch completes
+// Create EXPLORE tasks — distribute across parallel explorer agents (round-robin)
 const exploreTaskIds = []
 let prevBatchLastId = null
 for (const [batchIdx, batch] of exploreBatches.entries()) {
   const batchTaskIds = []
-  for (const issueId of batch) {
+  for (const [inBatchIdx, issueId] of batch.entries()) {
+    const globalIdx = exploreTaskIds.length
+    const explorerName = `explorer-${(globalIdx % maxParallelExplorers) + 1}`
     const id = TaskCreate({
-      subject: `EXPLORE-${String(exploreTaskIds.length + 1).padStart(3, '0')}: Context for ${issueId}`,
+      subject: `EXPLORE-${String(globalIdx + 1).padStart(3, '0')}: Context for ${issueId}`,
       description: `Batch ${batchIdx + 1}: Explore codebase context for issue ${issueId}.`,
       activeForm: `Exploring ${issueId}`,
-      owner: "explorer",
+      owner: explorerName,  // Distribute across explorer-1, explorer-2, etc.
       // Only block on previous batch's LAST task (not within same batch)
       addBlockedBy: prevBatchLastId ? [prevBatchLastId] : []
     })
@@ -312,12 +295,20 @@ const marshalId = TaskCreate({
 })
 
 // BUILD tasks created dynamically after MARSHAL completes (based on DAG)
+// Each BUILD-* task is assigned to implementer-1, implementer-2, etc. (round-robin)
 // Each BUILD-* task description MUST include:
 //   execution_method: ${executionMethod}
 //   code_review: ${codeReviewTool}
 ```
 
 ### Phase 4: Coordination Loop
+
+> **设计原则（Stop-Wait）**: 模型执行没有时间概念，禁止任何形式的轮询等待。
+> - ❌ 禁止: `while` 循环 + `sleep` + 检查状态
+> - ✅ 采用: 同步 `Task(run_in_background: false)` 调用，Worker 返回 = 阶段完成信号
+>
+> 按 Phase 3 创建的任务链顺序，逐阶段 spawn worker 同步执行。
+> Worker prompt 使用 SKILL.md Coordinator Spawn Template。
 
 Receive teammate messages, dispatch based on type.
 

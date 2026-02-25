@@ -104,11 +104,42 @@ export interface ApiError {
 // ========== CSRF Token Handling ==========
 
 /**
- * Get CSRF token from cookie
+ * In-memory CSRF token storage
+ * The token is obtained from X-CSRF-Token response header and stored here
+ * because the XSRF-TOKEN cookie is HttpOnly and cannot be read by JavaScript
+ */
+let csrfToken: string | null = null;
+
+/**
+ * Get CSRF token from memory
  */
 function getCsrfToken(): string | null {
-  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
+  return csrfToken;
+}
+
+/**
+ * Set CSRF token from response header
+ */
+function updateCsrfToken(response: Response): void {
+  const token = response.headers.get('X-CSRF-Token');
+  if (token) {
+    csrfToken = token;
+  }
+}
+
+/**
+ * Initialize CSRF token by fetching from server
+ * Should be called once on app initialization
+ */
+export async function initializeCsrfToken(): Promise<void> {
+  try {
+    const response = await fetch('/api/csrf-token', {
+      credentials: 'same-origin',
+    });
+    updateCsrfToken(response);
+  } catch (error) {
+    console.error('[CSRF] Failed to initialize CSRF token:', error);
+  }
 }
 
 // ========== Base Fetch Wrapper ==========
@@ -124,9 +155,9 @@ async function fetchApi<T>(
 
   // Add CSRF token for mutating requests
   if (options.method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method)) {
-    const csrfToken = getCsrfToken();
-    if (csrfToken) {
-      headers.set('X-CSRF-Token', csrfToken);
+    const token = getCsrfToken();
+    if (token) {
+      headers.set('X-CSRF-Token', token);
     }
   }
 
@@ -140,6 +171,9 @@ async function fetchApi<T>(
     headers,
     credentials: 'same-origin',
   });
+
+  // Update CSRF token from response header
+  updateCsrfToken(response);
 
   if (!response.ok) {
     const error: ApiError = {
@@ -1232,6 +1266,25 @@ export async function fetchSkillDetail(
 }
 
 /**
+ * Delete a skill
+ * @param skillName - Name of the skill to delete
+ * @param location - Location of the skill (project or user)
+ * @param projectPath - Optional project path
+ * @param cliType - CLI type (claude or codex)
+ */
+export async function deleteSkill(
+  skillName: string,
+  location: 'project' | 'user',
+  projectPath?: string,
+  cliType: 'claude' | 'codex' = 'claude'
+): Promise<{ success: boolean }> {
+  return fetchApi<{ success: boolean }>(`/api/skills/${encodeURIComponent(skillName)}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ location, projectPath, cliType }),
+  });
+}
+
+/**
  * Validate a skill folder for import
  */
 export async function validateSkillImport(sourcePath: string): Promise<{
@@ -1261,6 +1314,42 @@ export async function createSkill(params: {
   return fetchApi('/api/skills/create', {
     method: 'POST',
     body: JSON.stringify(params),
+  });
+}
+
+/**
+ * Read a skill file content
+ */
+export async function readSkillFile(params: {
+  skillName: string;
+  fileName: string;
+  location: 'project' | 'user';
+  projectPath?: string;
+  cliType?: 'claude' | 'codex';
+}): Promise<{ content: string; fileName: string; path: string }> {
+  const { skillName, fileName, location, projectPath, cliType = 'claude' } = params;
+  const encodedSkillName = encodeURIComponent(skillName);
+  const url = `/api/skills/${encodedSkillName}/file?filename=${encodeURIComponent(fileName)}&location=${location}&cliType=${cliType}${projectPath ? `&path=${encodeURIComponent(projectPath)}` : ''}`;
+  return fetchApi(url);
+}
+
+/**
+ * Write a skill file content
+ */
+export async function writeSkillFile(params: {
+  skillName: string;
+  fileName: string;
+  content: string;
+  location: 'project' | 'user';
+  projectPath?: string;
+  cliType?: 'claude' | 'codex';
+}): Promise<{ success: boolean; fileName: string; path: string }> {
+  const { skillName, fileName, content, location, projectPath, cliType = 'claude' } = params;
+  const encodedSkillName = encodeURIComponent(skillName);
+  const url = `/api/skills/${encodedSkillName}/file`;
+  return fetchApi(url, {
+    method: 'POST',
+    body: JSON.stringify({ content, fileName, location, projectPath, cliType }),
   });
 }
 
@@ -3420,10 +3509,89 @@ export interface Hook {
   command?: string;
   trigger: string;
   matcher?: string;
+  scope?: 'global' | 'project';
+  index?: number;
+  templateId?: string;
 }
 
 export interface HooksResponse {
   hooks: Hook[];
+}
+
+/**
+ * Raw hook entry as stored in settings.json
+ * Format: { matcher?: string, hooks: [{ type: "command", command: "..." }] }
+ */
+interface RawHookEntry {
+  matcher?: string;
+  _templateId?: string;
+  hooks?: Array<{
+    type?: string;
+    command?: string;
+    prompt?: string;
+    timeout?: number;
+    async?: boolean;
+  }>;
+  // Legacy flat format support
+  command?: string;
+  args?: string[];
+  script?: string;
+  enabled?: boolean;
+  description?: string;
+}
+
+/**
+ * Parse raw hooks config from backend into flat Hook array
+ */
+function parseHooksConfig(
+  data: {
+    global?: { path?: string; hooks?: Record<string, RawHookEntry[]> };
+    project?: { path?: string | null; hooks?: Record<string, RawHookEntry[]> };
+  }
+): Hook[] {
+  const result: Hook[] = [];
+
+  for (const scope of ['project', 'global'] as const) {
+    const scopeData = data[scope];
+    if (!scopeData?.hooks || typeof scopeData.hooks !== 'object') continue;
+
+    for (const [event, entries] of Object.entries(scopeData.hooks)) {
+      if (!Array.isArray(entries)) continue;
+
+      entries.forEach((entry, index) => {
+        // Extract command from nested hooks array (official format)
+        let command = '';
+        if (entry.hooks && Array.isArray(entry.hooks) && entry.hooks.length > 0) {
+          command = entry.hooks.map(h => h.command || h.prompt || '').filter(Boolean).join(' && ');
+        }
+        // Legacy flat format fallback
+        if (!command && entry.command) {
+          command = entry.args
+            ? `${entry.command} ${entry.args.join(' ')}`
+            : entry.command;
+        }
+        if (!command && entry.script) {
+          command = entry.script;
+        }
+
+        const name = `${scope}-${event}-${index}`;
+
+        result.push({
+          name,
+          description: entry.description,
+          enabled: entry.enabled !== false,
+          command,
+          trigger: event,
+          matcher: entry.matcher,
+          scope,
+          index,
+          templateId: entry._templateId,
+        });
+      });
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -3432,9 +3600,9 @@ export interface HooksResponse {
  */
 export async function fetchHooks(projectPath?: string): Promise<HooksResponse> {
   const url = projectPath ? `/api/hooks?path=${encodeURIComponent(projectPath)}` : '/api/hooks';
-  const data = await fetchApi<{ hooks?: Hook[] }>(url);
+  const data = await fetchApi<Record<string, unknown>>(url);
   return {
-    hooks: data.hooks ?? [],
+    hooks: parseHooksConfig(data as Parameters<typeof parseHooksConfig>[0]),
   };
 }
 
@@ -3515,12 +3683,35 @@ export async function deleteHook(hookName: string): Promise<void> {
 
 /**
  * Install a hook from predefined template
+ * Converts template data to Claude Code's settings.json format:
+ * { _templateId, matcher?, hooks: [{ type: "command", command: "full command string" }] }
  */
-export async function installHookTemplate(templateId: string): Promise<Hook> {
-  return fetchApi<Hook>('/api/hooks/install-template', {
-    method: 'POST',
-    body: JSON.stringify({ templateId }),
-  });
+export async function installHookTemplate(
+  trigger: string,
+  templateData: { id: string; command: string; args?: string[]; matcher?: string }
+): Promise<{ success: boolean }> {
+  // Build full command string from command + args
+  const fullCommand = templateData.args
+    ? `${templateData.command} ${templateData.args.map(a => a.includes(' ') ? `'${a}'` : a).join(' ')}`
+    : templateData.command;
+
+  // Build hookData in Claude Code's official nested format
+  // _templateId is ignored by Claude Code but used for installed detection
+  const hookData: Record<string, unknown> = {
+    _templateId: templateData.id,
+    hooks: [
+      {
+        type: 'command',
+        command: fullCommand,
+      }
+    ]
+  };
+
+  if (templateData.matcher) {
+    hookData.matcher = templateData.matcher;
+  }
+
+  return saveHook('project', trigger, hookData);
 }
 
 // ========== Rules API ==========
@@ -5777,10 +5968,31 @@ export async function previewYamlConfig(): Promise<{ success: boolean; config: s
 
 // ========== CCW-LiteLLM Package Management ==========
 
+export interface CcwLitellmEnvCheck {
+  python: string;
+  installed: boolean;
+  version?: string;
+  error?: string;
+}
+
+export interface CcwLitellmStatus {
+  /**
+   * Whether ccw-litellm is installed in the CodexLens venv.
+   * This is the environment used for the LiteLLM embedding backend.
+   */
+  installed: boolean;
+  version?: string;
+  error?: string;
+  checks?: {
+    codexLensVenv: CcwLitellmEnvCheck;
+    systemPython?: CcwLitellmEnvCheck;
+  };
+}
+
 /**
  * Check ccw-litellm status
  */
-export async function checkCcwLitellmStatus(refresh = false): Promise<{ installed: boolean; version?: string; error?: string }> {
+export async function checkCcwLitellmStatus(refresh = false): Promise<CcwLitellmStatus> {
   return fetchApi(`/api/litellm-api/ccw-litellm/status${refresh ? '?refresh=true' : ''}`);
 }
 
@@ -5808,23 +6020,50 @@ export async function uninstallCcwLitellm(): Promise<{ success: boolean; message
  * CLI Settings (Claude CLI endpoint configuration)
  * Maps to backend EndpointSettings from /api/cli/settings
  */
+/**
+ * CLI Provider type
+ */
+export type CliProvider = 'claude' | 'codex' | 'gemini';
+
+/**
+ * Base settings fields shared across all providers
+ */
+export interface CliSettingsBase {
+  env: Record<string, string | undefined>;
+  model?: string;
+  tags?: string[];
+  availableModels?: string[];
+}
+
+/**
+ * Claude-specific settings
+ */
+export interface ClaudeCliSettingsApi extends CliSettingsBase {
+  settingsFile?: string;
+}
+
+/**
+ * Codex-specific settings
+ */
+export interface CodexCliSettingsApi extends CliSettingsBase {
+  profile?: string;
+  authJson?: string;
+  configToml?: string;
+}
+
+/**
+ * Gemini-specific settings
+ */
+export interface GeminiCliSettingsApi extends CliSettingsBase {
+}
+
 export interface CliSettingsEndpoint {
   id: string;
   name: string;
   description?: string;
-  settings: {
-    env: {
-      ANTHROPIC_AUTH_TOKEN?: string;
-      ANTHROPIC_BASE_URL?: string;
-      DISABLE_AUTOUPDATER?: string;
-      [key: string]: string | undefined;
-    };
-    model?: string;
-    includeCoAuthoredBy?: boolean;
-    settingsFile?: string;
-    availableModels?: string[];
-    tags?: string[];
-  };
+  /** CLI provider type (defaults to 'claude' for backward compat) */
+  provider: CliProvider;
+  settings: ClaudeCliSettingsApi | CodexCliSettingsApi | GeminiCliSettingsApi;
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -5845,19 +6084,9 @@ export interface SaveCliSettingsRequest {
   id?: string;
   name: string;
   description?: string;
-  settings: {
-    env: {
-      ANTHROPIC_AUTH_TOKEN?: string;
-      ANTHROPIC_BASE_URL?: string;
-      DISABLE_AUTOUPDATER?: string;
-      [key: string]: string | undefined;
-    };
-    model?: string;
-    includeCoAuthoredBy?: boolean;
-    settingsFile?: string;
-    availableModels?: string[];
-    tags?: string[];
-  };
+  /** CLI provider type */
+  provider?: CliProvider;
+  settings: ClaudeCliSettingsApi | CodexCliSettingsApi | GeminiCliSettingsApi;
   enabled?: boolean;
 }
 
@@ -6353,6 +6582,8 @@ export interface CreateCliSessionInput {
   resumeKey?: string;
   /** Launch mode for native CLI sessions (default or yolo). */
   launchMode?: 'default' | 'yolo';
+  /** Settings endpoint ID for injecting env vars and settings into CLI process. */
+  settingsEndpointId?: string;
 }
 
 function withPath(url: string, projectPath?: string): string {

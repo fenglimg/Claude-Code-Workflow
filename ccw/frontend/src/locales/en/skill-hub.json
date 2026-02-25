@@ -1,0 +1,83 @@
+{
+  "title": "Skill Hub",
+  "description": "Discover and install shared skills from the community",
+  "links": "Links",
+  "homepage": "Homepage",
+  "license": "License",
+  "source": {
+    "remote": "Remote",
+    "local": "Local"
+  },
+  "status": {
+    "installed": "Installed",
+    "updateAvailable": "Update Available"
+  },
+  "tabs": {
+    "remote": "Remote",
+    "local": "Local",
+    "installed": "Installed"
+  },
+  "stats": {
+    "remote": "Remote Skills",
+    "remoteDesc": "Available from community",
+    "local": "Local Skills",
+    "localDesc": "Shared locally",
+    "installed": "Installed",
+    "installedDesc": "Skills in use",
+    "updates": "Updates",
+    "updatesDesc": "New versions available"
+  },
+  "search": {
+    "placeholder": "Search skills..."
+  },
+  "filter": {
+    "allCategories": "All Categories"
+  },
+  "actions": {
+    "refresh": "Refresh",
+    "install": "Install",
+    "installing": "Installing...",
+    "update": "Update",
+    "uninstall": "Uninstall",
+    "viewDetails": "View Details"
+  },
+  "card": {
+    "tags": "Tags",
+    "updated": "Updated: {date}"
+  },
+  "install": {
+    "success": "Skill '{name}' installed successfully",
+    "error": "Failed to install skill: {error}"
+  },
+  "uninstall": {
+    "success": "Skill '{name}' uninstalled",
+    "error": "Failed to uninstall skill: {error}"
+  },
+  "refresh": {
+    "success": "Skill list refreshed"
+  },
+  "details": {
+    "comingSoon": "Details view coming soon"
+  },
+  "error": {
+    "loadFailed": "Failed to load skills. Check network connection."
+  },
+  "empty": {
+    "remote": {
+      "title": "No Remote Skills",
+      "description": "Remote skill repository is empty or unreachable."
+    },
+    "local": {
+      "title": "No Local Skills",
+      "description": "Add skills to ~/.ccw/skill-hub/local/ to share them."
+    },
+    "installed": {
+      "title": "No Installed Skills",
+      "description": "Install skills from Remote or Local tabs to use them."
+    }
+  },
+  "installationInfo": "Installation Info",
+  "installedTo": "Installed To",
+  "installedAt": "Installed At",
+  "latestVersion": "Latest Version"
+}

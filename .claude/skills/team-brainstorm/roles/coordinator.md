@@ -94,7 +94,7 @@ AskUserQuestion({
 })
 ```
 
-### Phase 2: Create Team + Spawn Workers
+### Phase 2: Create Team + Initialize Session
 
 ```javascript
 TeamCreate({ team_name: teamName })
@@ -135,7 +135,9 @@ const teamSession = {
 Write(`${sessionFolder}/team-session.json`, JSON.stringify(teamSession, null, 2))
 ```
 
-Spawn workers (see SKILL.md Coordinator Spawn Template).
+// ⚠️ Workers are NOT pre-spawned here.
+// Workers are spawned per-stage in Phase 4 via Stop-Wait Task(run_in_background: false).
+// See SKILL.md Coordinator Spawn Template for worker prompt templates.
 
 ### Phase 3: Create Task Chain
 
@@ -185,10 +187,12 @@ TaskUpdate({ taskId: evalId, owner: "evaluator", addBlockedBy: [synthId] })
 
 ```javascript
 // 并行创意: IDEA-001 + IDEA-002 + IDEA-003 (no dependencies between them)
+// Each gets a distinct agent owner for true parallel execution
 const ideaAngles = selectedAngles.slice(0, 3)
 ideaAngles.forEach((angle, i) => {
+  const ideatorName = ideaAngles.length > 1 ? `ideator-${i+1}` : 'ideator'
   TaskCreate({ subject: `IDEA-00${i+1}: ${angle}角度创意生成`, description: `话题: ${taskDescription}\n角度: ${angle}\n\nSession: ${sessionFolder}\n输出: ideas/idea-00${i+1}.md`, activeForm: `${angle}创意生成中` })
-  TaskUpdate({ taskId: ideaIds[i], owner: "ideator" })
+  TaskUpdate({ taskId: ideaIds[i], owner: ideatorName })
 })
 
 // CHALLENGE-001: 批量挑战 (blockedBy all IDEA-001..003)
@@ -209,6 +213,13 @@ TaskUpdate({ taskId: evalId, owner: "evaluator", addBlockedBy: [synthId] })
 ```
 
 ### Phase 4: Coordination Loop + Generator-Critic Control
+
+> **设计原则（Stop-Wait）**: 模型执行没有时间概念，禁止任何形式的轮询等待。
+> - ❌ 禁止: `while` 循环 + `sleep` + 检查状态
+> - ✅ 采用: 同步 `Task(run_in_background: false)` 调用，Worker 返回 = 阶段完成信号
+>
+> 按 Phase 3 创建的任务链顺序，逐阶段 spawn worker 同步执行。
+> Worker prompt 使用 SKILL.md Coordinator Spawn Template。
 
 | Received Message | Action |
 |-----------------|--------|
