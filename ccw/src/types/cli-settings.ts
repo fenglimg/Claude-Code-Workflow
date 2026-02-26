@@ -258,3 +258,75 @@ export function validateSettings(settings: unknown, provider?: CliProvider): set
 
   return true;
 }
+
+/**
+ * Exported settings format for backup/restore
+ */
+export interface ExportedSettings {
+  /** Export format version for future migrations */
+  version: string;
+  /** Export timestamp (ISO 8601) */
+  timestamp: string;
+  /** All endpoint settings */
+  endpoints: EndpointSettings[];
+}
+
+/**
+ * Import options for conflict resolution
+ */
+export interface ImportOptions {
+  /** How to handle conflicts: 'skip' keeps existing, 'overwrite' replaces, 'merge' combines */
+  conflictStrategy?: 'skip' | 'overwrite' | 'merge';
+  /** Whether to skip invalid endpoints (default: true) */
+  skipInvalid?: boolean;
+  /** Whether to disable all imported endpoints (default: false) */
+  disableImported?: boolean;
+}
+
+/**
+ * Import result summary
+ */
+export interface ImportResult {
+  /** Whether import was successful overall */
+  success: boolean;
+  /** Number of endpoints imported successfully */
+  imported: number;
+  /** Number of endpoints skipped (conflicts or validation errors) */
+  skipped: number;
+  /** Detailed error messages for failed imports */
+  errors: string[];
+  /** List of imported endpoint IDs */
+  importedIds?: string[];
+}
+
+/**
+ * Codex config preview response
+ */
+export interface CodexConfigPreviewResponse {
+  /** Whether preview was successful */
+  success: boolean;
+  /** Path to config.toml */
+  configPath: string;
+  /** Path to auth.json */
+  authPath: string;
+  /** config.toml content with sensitive values masked */
+  configToml: string | null;
+  /** auth.json content with API keys masked */
+  authJson: string | null;
+  /** Error messages if any files could not be read */
+  errors?: string[];
+}
+
+/**
+ * Gemini config preview response
+ */
+export interface GeminiConfigPreviewResponse {
+  /** Whether preview was successful */
+  success: boolean;
+  /** Path to settings.json */
+  settingsPath: string;
+  /** settings.json content with sensitive values masked */
+  settingsJson: string | null;
+  /** Error messages if file could not be read */
+  errors?: string[];
+}

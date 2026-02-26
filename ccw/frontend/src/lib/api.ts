@@ -2064,7 +2064,30 @@ export interface NativeSession {
 }
 
 /**
- * Fetch native CLI session content by execution ID
+ * Options for fetching native session
+ */
+export interface FetchNativeSessionOptions {
+  executionId?: string;
+  projectPath?: string;
+  /** Direct file path to session file (bypasses ccw execution ID lookup) */
+  filePath?: string;
+  /** Tool type for file path query: claude | opencode | codex | qwen | gemini | auto */
+  tool?: 'claude' | 'opencode' | 'codex' | 'qwen' | 'gemini' | 'auto';
+  /** Output format: json (default) | text | pairs */
+  format?: 'json' | 'text' | 'pairs';
+  /** Include thoughts in text format */
+  thoughts?: boolean;
+  /** Include tool calls in text format */
+  tools?: boolean;
+  /** Include token counts in text format */
+  tokens?: boolean;
+}
+
+/**
+ * Fetch native CLI session content by execution ID or file path
+ * @param executionId - CCW execution ID (backward compatible)
+ * @param projectPath - Optional project path
+ * @deprecated Use fetchNativeSessionWithOptions for new features
  */
 export async function fetchNativeSession(
   executionId: string,
@@ -2074,6 +2097,88 @@ export async function fetchNativeSession(
   if (projectPath) params.set('path', projectPath);
   return fetchApi<NativeSession>(
     `/api/cli/native-session?${params.toString()}`
+  );
+}
+
+/**
+ * Fetch native CLI session content with full options
+ * Supports both execution ID lookup and direct file path query
+ */
+export async function fetchNativeSessionWithOptions(
+  options: FetchNativeSessionOptions
+): Promise<NativeSession | string | Array<{ turn: number; userPrompt: string; assistantResponse: string; timestamp: string }>> {
+  const params = new URLSearchParams();
+
+  // Priority: filePath > executionId
+  if (options.filePath) {
+    params.set('filePath', options.filePath);
+    if (options.tool) params.set('tool', options.tool);
+  } else if (options.executionId) {
+    params.set('id', options.executionId);
+  } else {
+    throw new Error('Either executionId or filePath is required');
+  }
+
+  if (options.projectPath) params.set('path', options.projectPath);
+  if (options.format) params.set('format', options.format);
+  if (options.thoughts) params.set('thoughts', 'true');
+  if (options.tools) params.set('tools', 'true');
+  if (options.tokens) params.set('tokens', 'true');
+
+  const url = `/api/cli/native-session?${params.toString()}`;
+
+  // Text format returns string, others return JSON
+  if (options.format === 'text') {
+    const response = await fetch(url, { credentials: 'same-origin' });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Request failed' }));
+      throw new Error(error.error || response.statusText);
+    }
+    return response.text();
+  }
+
+  return fetchApi<NativeSession | Array<{ turn: number; userPrompt: string; assistantResponse: string; timestamp: string }>>(url);
+}
+
+// ========== Native Sessions List API ==========
+
+/**
+ * Native session metadata for list endpoint
+ */
+export interface NativeSessionListItem {
+  id: string;
+  tool: string;
+  path: string;
+  title?: string;
+  startTime: string;
+  updatedAt: string;
+  projectHash?: string;
+}
+
+/**
+ * Native sessions list response
+ */
+export interface NativeSessionsListResponse {
+  sessions: NativeSessionListItem[];
+  count: number;
+}
+
+/**
+ * Fetch list of native CLI sessions
+ * @param tool - Filter by tool type (optional)
+ * @param project - Filter by project path (optional)
+ */
+export async function fetchNativeSessions(
+  tool?: 'gemini' | 'qwen' | 'codex' | 'claude' | 'opencode',
+  project?: string
+): Promise<NativeSessionsListResponse> {
+  const params = new URLSearchParams();
+  if (tool) params.set('tool', tool);
+  if (project) params.set('project', project);
+
+  const query = params.toString();
+  return fetchApi<NativeSessionsListResponse>(
+    `/api/cli/native-sessions${query ? `?${query}` : ''}`
   );
 }
 
@@ -6150,6 +6255,54 @@ export async function getCliSettingsPath(endpointId: string): Promise<{ endpoint
   return fetchApi(`/api/cli/settings/${encodeURIComponent(endpointId)}/path`);
 }
 
+// ========== CLI Config Preview API ==========
+
+/**
+ * Codex config preview response
+ */
+export interface CodexConfigPreviewResponse {
+  /** Whether preview was successful */
+  success: boolean;
+  /** Path to config.toml */
+  configPath: string;
+  /** Path to auth.json */
+  authPath: string;
+  /** config.toml content with sensitive values masked */
+  configToml: string | null;
+  /** auth.json content with API keys masked */
+  authJson: string | null;
+  /** Error messages if any files could not be read */
+  errors?: string[];
+}
+
+/**
+ * Gemini config preview response
+ */
+export interface GeminiConfigPreviewResponse {
+  /** Whether preview was successful */
+  success: boolean;
+  /** Path to settings.json */
+  settingsPath: string;
+  /** settings.json content with sensitive values masked */
+  settingsJson: string | null;
+  /** Error messages if file could not be read */
+  errors?: string[];
+}
+
+/**
+ * Fetch Codex config files preview (config.toml and auth.json)
+ */
+export async function fetchCodexConfigPreview(): Promise<CodexConfigPreviewResponse> {
+  return fetchApi('/api/cli/settings/codex/preview');
+}
+
+/**
+ * Fetch Gemini settings file preview (settings.json)
+ */
+export async function fetchGeminiConfigPreview(): Promise<GeminiConfigPreviewResponse> {
+  return fetchApi('/api/cli/settings/gemini/preview');
+}
+
 // ========== Orchestrator Execution Monitoring API ==========
 
 /**
@@ -6479,6 +6632,68 @@ export async function upgradeCcwInstallation(
   return fetchApi('/api/ccw/upgrade', {
     method: 'POST',
     body: JSON.stringify({ path }),
+  });
+}
+
+// ========== CLI Settings Export/Import API ==========
+
+/**
+ * Exported settings structure from backend
+ */
+export interface ExportedSettings {
+  version: string;
+  exportedAt: string;
+  settings: {
+    cliTools?: Record<string, unknown>;
+    chineseResponse?: {
+      claudeEnabled: boolean;
+      codexEnabled: boolean;
+    };
+    windowsPlatform?: {
+      enabled: boolean;
+    };
+    codexCliEnhancement?: {
+      enabled: boolean;
+    };
+  };
+}
+
+/**
+ * Import options for settings import
+ */
+export interface ImportOptions {
+  overwrite?: boolean;
+  dryRun?: boolean;
+}
+
+/**
+ * Import result from backend
+ */
+export interface ImportResult {
+  success: boolean;
+  imported: number;
+  skipped: number;
+  errors: string[];
+  importedIds: string[];
+}
+
+/**
+ * Export CLI settings to JSON file
+ */
+export async function exportSettings(): Promise<ExportedSettings> {
+  return fetchApi('/api/cli/settings/export');
+}
+
+/**
+ * Import CLI settings from JSON data
+ */
+export async function importSettings(
+  data: ExportedSettings,
+  options?: ImportOptions
+): Promise<ImportResult> {
+  return fetchApi('/api/cli/settings/import', {
+    method: 'POST',
+    body: JSON.stringify({ data, options }),
   });
 }
 
