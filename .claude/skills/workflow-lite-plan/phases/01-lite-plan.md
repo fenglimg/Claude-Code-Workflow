@@ -106,16 +106,19 @@ bash(`mkdir -p ${sessionFolder} && test -d ${sessionFolder} && echo "SUCCESS: ${
 
 **Exploration Decision Logic**:
 ```javascript
-needsExploration = (
-  workflowPreferences.forceExplore ||
-  task.mentions_specific_files ||
-  task.requires_codebase_context ||
-  task.needs_architecture_understanding ||
-  task.modifies_existing_code
-)
+// Check if task description already contains prior analysis context (from analyze-with-file)
+const hasPriorAnalysis = /##\s*Prior Analysis/i.test(task_description)
+
+needsExploration = workflowPreferences.forceExplore ? true
+  : hasPriorAnalysis ? false
+  : (task.mentions_specific_files ||
+     task.requires_codebase_context ||
+     task.needs_architecture_understanding ||
+     task.modifies_existing_code)
 
 if (!needsExploration) {
-  // Skip to Phase 2 (Clarification) or Phase 3 (Planning)
+  // Skip exploration — analysis context already in task description (or not needed)
+  // manifest is absent; Phase 3 loads it with safe fallback
   proceed_to_next_phase()
 }
 ```
@@ -132,9 +135,13 @@ if (!needsExploration) {
 
 const complexity = analyzeTaskComplexity(task_description)
 // Returns: 'Low' | 'Medium' | 'High'
-// Low: Single file, isolated change, minimal risk
-// Medium: Multiple files, some dependencies, moderate risk
-// High: Cross-module, architectural, high risk
+// Low: ONLY truly trivial — single file, single function, zero cross-module impact, no new patterns
+//   Examples: fix typo, rename variable, add log line, adjust constant value
+// Medium: Multiple files OR any integration point OR new pattern introduction OR moderate risk
+//   Examples: add endpoint, implement feature, refactor module, fix bug spanning files
+// High: Cross-module, architectural, or systemic change
+//   Examples: new subsystem, migration, security overhaul, API redesign
+// ⚠️ Default bias: When uncertain between Low and Medium, choose Medium
 
 // Angle assignment based on task type (orchestrator decides, not agent)
 const ANGLE_PRESETS = {
@@ -160,8 +167,14 @@ function selectAngles(taskDescription, count) {
 const selectedAngles = selectAngles(task_description, complexity === 'High' ? 4 : (complexity === 'Medium' ? 3 : 1))
 
 // Planning strategy determination
-const planningStrategy = complexity === 'Low'
-  ? 'Direct Claude Planning'
+// Agent trigger: anything beyond trivial single-file change
+// - hasPriorAnalysis → always agent (analysis validated non-trivial task)
+// - multi-angle exploration → agent (complexity warranted multiple angles)
+// - Medium/High complexity → agent
+// Direct Claude planning ONLY for truly trivial Low + no analysis + single angle
+const planningStrategy = (
+  complexity === 'Low' && !hasPriorAnalysis && selectedAngles.length <= 1
+) ? 'Direct Claude Planning'
   : 'cli-lite-planning-agent'
 
 console.log(`
@@ -203,7 +216,7 @@ Execute **${angle}** exploration for task planning context. Analyze codebase fro
 - **Exploration Index**: ${index + 1} of ${selectedAngles.length}
 
 ## Agent Initialization
-cli-explore-agent autonomously handles: project structure discovery, schema loading, project context loading (project-tech.json, project-guidelines.json), and keyword search. These steps execute automatically.
+cli-explore-agent autonomously handles: project structure discovery, schema loading, project context loading (project-tech.json, specs/*.md), and keyword search. These steps execute automatically.
 
 ## Exploration Strategy (${angle} focus)
 
@@ -242,6 +255,8 @@ cli-explore-agent autonomously handles: project structure discovery, schema load
 - [ ] Constraints are project-specific to ${angle}
 - [ ] JSON output follows schema exactly
 - [ ] clarification_needs includes options + recommended
+- [ ] Files with relevance >= 0.7 have key_code array describing key symbols
+- [ ] Files with relevance >= 0.7 have topic_relation explaining connection to ${angle}
 
 ## Execution
 **Write**: \`${sessionFolder}/exploration-${angle}.json\`
@@ -308,8 +323,10 @@ Angles explored: ${explorationManifest.explorations.map(e => e.angle).join(', ')
 
 **Aggregate clarification needs from all exploration angles**:
 ```javascript
-// Load manifest and all exploration files
-const manifest = JSON.parse(Read(`${sessionFolder}/explorations-manifest.json`))
+// Load manifest and all exploration files (may not exist if exploration was skipped)
+const manifest = file_exists(`${sessionFolder}/explorations-manifest.json`)
+  ? JSON.parse(Read(`${sessionFolder}/explorations-manifest.json`))
+  : { exploration_count: 0, explorations: [] }
 const explorations = manifest.explorations.map(exp => ({
   angle: exp.angle,
   data: JSON.parse(Read(exp.path))
@@ -402,8 +419,10 @@ taskFiles.forEach(taskPath => {
 // Step 1: Read schema
 const schema = Bash(`cat ~/.ccw/workflows/cli-templates/schemas/plan-overview-base-schema.json`)
 
-// Step 2: ⚠️ MANDATORY - Read and review ALL exploration files
-const manifest = JSON.parse(Read(`${sessionFolder}/explorations-manifest.json`))
+// Step 2: Read exploration files if available
+const manifest = file_exists(`${sessionFolder}/explorations-manifest.json`)
+  ? JSON.parse(Read(`${sessionFolder}/explorations-manifest.json`))
+  : { explorations: [] }
 manifest.explorations.forEach(exp => {
   const explorationData = Read(exp.path)
   console.log(`\n### Exploration: ${exp.angle}\n${explorationData}`)
@@ -477,11 +496,11 @@ Generate implementation plan and write plan.json.
 ## Output Schema Reference
 Execute: cat ~/.ccw/workflows/cli-templates/schemas/plan-overview-base-schema.json (get schema reference before generating plan)
 
-## Project Context (MANDATORY - Read Both Files)
-1. Read: .workflow/project-tech.json (technology stack, architecture, key components)
-2. Read: .workflow/project-guidelines.json (user-defined constraints and conventions)
+## Project Context (MANDATORY - Load via ccw spec)
+Execute: ccw spec load --category planning
+This loads technology stack, architecture, key components, and user-defined constraints/conventions.
 
-**CRITICAL**: All generated tasks MUST comply with constraints in project-guidelines.json
+**CRITICAL**: All generated tasks MUST comply with constraints in specs/*.md
 
 ## Task Description
 ${task_description}
@@ -639,8 +658,10 @@ if (autoYes) {
 **Step 5.1: Build executionContext**
 
 ```javascript
-// Load manifest and all exploration files
-const manifest = JSON.parse(Read(`${sessionFolder}/explorations-manifest.json`))
+// Load manifest and all exploration files (may not exist if exploration was skipped)
+const manifest = file_exists(`${sessionFolder}/explorations-manifest.json`)
+  ? JSON.parse(Read(`${sessionFolder}/explorations-manifest.json`))
+  : { exploration_count: 0, explorations: [] }
 const explorations = {}
 
 manifest.explorations.forEach(exp => {
@@ -687,8 +708,9 @@ executionContext = {
 **Step 5.2: Handoff**
 
 ```javascript
-// Direct phase handoff: Read and execute Phase 2 (lite-execute) with in-memory context
-// No Skill routing needed - executionContext is already set in Step 5.1
+// ⚠️ COMPACT PROTECTION: Phase 2 instructions MUST persist in memory throughout execution.
+// If compact compresses Phase 2 content at any point, re-read this file before continuing.
+// See SKILL.md "Compact Protection" section for full protocol.
 Read("phases/02-lite-execute.md")
 // Execute Phase 2 with executionContext (Mode 1: In-Memory Plan)
 ```

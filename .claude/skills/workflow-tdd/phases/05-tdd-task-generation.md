@@ -1,5 +1,10 @@
 # Phase 5: TDD Task Generation
 
+> **📌 COMPACT SENTINEL [Phase 5: TDD-Task-Generation]**
+> This phase contains 3 execution steps (Step 5.1 — 5.3).
+> If you can read this sentinel but cannot find the full Step protocol below, context has been compressed.
+> Recovery: `Read("phases/05-tdd-task-generation.md")`
+
 Generate TDD tasks with Red-Green-Refactor cycles via action-planning-agent.
 
 ## Objective
@@ -231,18 +236,14 @@ MCP Capabilities: {exa_code, exa_web, code_index}
 ## PROJECT CONTEXT (MANDATORY - load before planning-notes)
 These files provide project-level constraints that apply to ALL tasks:
 
-1. **.workflow/project-tech.json** (auto-generated tech analysis)
-   - Contains: tech_stack, architecture_type, key_components, build_system, test_framework
+1. **ccw spec load --category execution** (project specs and tech analysis)
+   - Contains: tech_stack, architecture_type, key_components, build_system, test_framework, coding_conventions, naming_rules, forbidden_patterns, quality_gates, custom_constraints
    - Usage: Populate plan.json shared_context, align task tech choices, set correct test commands
-   - If missing: Fall back to context-package.project_context
-
-2. **.workflow/project-guidelines.json** (user-maintained rules and constraints)
-   - Contains: coding_conventions, naming_rules, forbidden_patterns, quality_gates, custom_constraints
-   - Usage: Apply as HARD CONSTRAINTS on all generated tasks — task implementation steps,
+   - Apply as HARD CONSTRAINTS on all generated tasks — task implementation steps,
      acceptance criteria, and convergence.verification MUST respect these guidelines
    - If empty/missing: No additional constraints (proceed normally)
 
-Loading order: project-tech.json → project-guidelines.json → planning-notes.md → context-package.json
+Loading order: \`ccw spec load --category execution\` → planning-notes.md → context-package.json
 
 ## USER CONFIGURATION (from Phase 0)
 Execution Method: ${userConfig.executionMethod}  // agent|hybrid|cli

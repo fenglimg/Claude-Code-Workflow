@@ -21,6 +21,7 @@ import { handleSkillsRoutes } from './routes/skills-routes.js';
 import { handleSkillHubRoutes } from './routes/skill-hub-routes.js';
 import { handleCommandsRoutes } from './routes/commands-routes.js';
 import { handleIssueRoutes } from './routes/issue-routes.js';
+import { handleQueueSchedulerRoutes } from './routes/queue-routes.js';
 import { handleDiscoveryRoutes } from './routes/discovery-routes.js';
 import { handleRulesRoutes } from './routes/rules-routes.js';
 import { handleSessionRoutes } from './routes/session-routes.js';
@@ -40,6 +41,8 @@ import { handleOrchestratorRoutes } from './routes/orchestrator-routes.js';
 import { handleConfigRoutes } from './routes/config-routes.js';
 import { handleTeamRoutes } from './routes/team-routes.js';
 import { handleNotificationRoutes } from './routes/notification-routes.js';
+import { handleAnalysisRoutes } from './routes/analysis-routes.js';
+import { handleSpecRoutes } from './routes/spec-routes.js';
 
 // Import WebSocket handling
 import { handleWebSocketUpgrade, broadcastToClients, extractSessionIdFromPath } from './websocket.js';
@@ -54,6 +57,8 @@ import { randomBytes } from 'crypto';
 // Import health check service
 import { getHealthCheckService } from './services/health-check-service.js';
 import { getCliSessionShareManager } from './services/cli-session-share.js';
+import { getCliSessionManager } from './services/cli-session-manager.js';
+import { QueueSchedulerService } from './services/queue-scheduler-service.js';
 
 // Import status check functions for warmup
 import { checkSemanticStatus, checkVenvStatus } from '../tools/codex-lens.js';
@@ -292,6 +297,10 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
   const unauthenticatedPaths = new Set<string>(['/api/auth/token', '/api/csrf-token', '/api/hook', '/api/test/ask-question', '/api/a2ui/answer']);
   const cliSessionShareManager = getCliSessionShareManager();
 
+  // Initialize Queue Scheduler Service (needs broadcastToClients and cliSessionManager)
+  const cliSessionManager = getCliSessionManager(initialPath);
+  const queueSchedulerService = new QueueSchedulerService(broadcastToClients, cliSessionManager);
+
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', `http://localhost:${serverPort}`);
     const pathname = url.pathname;
@@ -434,6 +443,11 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
         if (await handleDashboardRoutes(routeContext)) return;
       }
 
+      // Analysis routes (/api/analysis/*)
+      if (pathname.startsWith('/api/analysis')) {
+        if (await handleAnalysisRoutes(routeContext)) return;
+      }
+
       // CLI sessions (PTY) routes (/api/cli-sessions/*) - independent from /api/cli/*
       if (pathname.startsWith('/api/cli-sessions')) {
         if (await handleCliSessionsRoutes(routeContext)) return;
@@ -517,6 +531,11 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
         if (await handleGraphRoutes(routeContext)) return;
       }
 
+      // Spec routes (/api/specs/*)
+      if (pathname.startsWith('/api/specs/')) {
+        if (await handleSpecRoutes(routeContext)) return;
+      }
+
       // CCW routes (/api/ccw and /api/ccw/*)
       if (pathname.startsWith('/api/ccw')) {
         if (await handleCcwRoutes(routeContext)) return;
@@ -577,7 +596,12 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
         if (await handleCommandsRoutes(routeContext)) return;
       }
 
-      // Queue routes (/api/queue*) - top-level queue API
+      // Queue Scheduler routes (/api/queue/execute, /api/queue/scheduler/*)
+      if (pathname === '/api/queue/execute' || pathname.startsWith('/api/queue/scheduler')) {
+        if (await handleQueueSchedulerRoutes(routeContext, queueSchedulerService)) return;
+      }
+
+      // Queue routes (/api/queue*) - top-level queue API (issue-based)
       if (pathname.startsWith('/api/queue')) {
         if (await handleIssueRoutes(routeContext)) return;
       }
@@ -614,12 +638,13 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
         if (await handleFilesRoutes(routeContext)) return;
       }
 
-      // System routes (data, health, version, paths, shutdown, notify, storage, dialog, a2ui answer broker)
+      // System routes (data, health, version, paths, shutdown, notify, storage, dialog, a2ui answer broker, system settings, project-tech)
       if (pathname === '/api/data' || pathname === '/api/health' ||
           pathname === '/api/version-check' || pathname === '/api/shutdown' ||
           pathname === '/api/recent-paths' || pathname === '/api/switch-path' ||
           pathname === '/api/remove-recent-path' || pathname === '/api/system/notify' ||
-          pathname === '/api/a2ui/answer' ||
+          pathname === '/api/system/settings' || pathname === '/api/system/hooks/install-recommended' ||
+          pathname === '/api/a2ui/answer' || pathname === '/api/project-tech/stats' ||
           pathname.startsWith('/api/storage/') || pathname.startsWith('/api/dialog/')) {
         if (await handleSystemRoutes(routeContext)) return;
       }

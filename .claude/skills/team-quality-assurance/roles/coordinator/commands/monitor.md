@@ -2,6 +2,8 @@
 
 > 阶段驱动的协调循环。按 pipeline 阶段顺序等待 worker 完成，路由消息，触发 GC 循环，执行质量门控。
 
+**NOTE**: `teamName` variable must be **session ID** (e.g., `TQA-project-2026-02-27`), NOT team name. Extract from `Session:` field in task description.
+
 ## When to Use
 
 - Phase 4 of Coordinator
@@ -125,6 +127,9 @@ for (const stageTask of pipelineTasks) {
   // 3. 同步 spawn worker — 阻塞直到 worker 返回（Stop-Wait 核心）
   const workerResult = Task({
     subagent_type: "general-purpose",
+    description: `Spawn ${workerConfig.role} worker for ${stageTask.subject}`,
+    team_name: teamName,
+    name: workerConfig.role,
     prompt: `你是 team "${teamName}" 的 ${workerConfig.role.toUpperCase()}。
 
 ## ⚠️ 首要指令（MUST）

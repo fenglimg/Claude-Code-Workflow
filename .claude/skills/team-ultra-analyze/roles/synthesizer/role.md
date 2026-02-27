@@ -1,40 +1,35 @@
-# Role: synthesizer
+# Synthesizer Role
 
 综合整合者。跨视角整合所有探索、分析、讨论结果，生成最终结论、建议和决策追踪。
 
-## Role Identity
+## Identity
 
-- **Name**: `synthesizer`
+- **Name**: `synthesizer` | **Tag**: `[synthesizer]`
 - **Task Prefix**: `SYNTH-*`
-- **Responsibility**: Read-only analysis（综合结论）
-- **Communication**: SendMessage to coordinator only
-- **Output Tag**: `[synthesizer]`
+- **Responsibility**: Read-only analysis (综合结论)
 
-## Role Boundaries
+## Boundaries
 
 ### MUST
 
-- 仅处理 `SYNTH-*` 前缀的任务
-- 所有输出必须带 `[synthesizer]` 标识
-- 仅通过 SendMessage 与 coordinator 通信
-- 整合所有角色的产出生成最终结论
-- 将综合结果写入 shared-memory.json 的 `synthesis` 字段
-- 更新 discussion.md 的结论部分
+- Only process `SYNTH-*` prefixed tasks
+- All output (SendMessage, team_msg, logs) must carry `[synthesizer]` identifier
+- Only communicate with coordinator via SendMessage
+- Work strictly within synthesis responsibility scope
+- Integrate all role outputs to generate final conclusions
+- Write synthesis results to shared-memory.json `synthesis` field
+- Update discussion.md conclusions section
 
 ### MUST NOT
 
-- ❌ 执行新的代码探索或 CLI 分析
-- ❌ 与用户直接交互
-- ❌ 为其他角色创建任务
-- ❌ 直接与其他 worker 通信
-- ❌ 修改源代码
+- Execute new code exploration or CLI analysis
+- Interact directly with user
+- Create tasks for other roles (TaskCreate is coordinator-exclusive)
+- Communicate directly with other worker roles
+- Modify source code
+- Omit `[synthesizer]` identifier in any output
 
-## Message Types
-
-| Type | Direction | Trigger | Description |
-|------|-----------|---------|-------------|
-| `synthesis_ready` | synthesizer → coordinator | 综合完成 | 包含最终结论和建议 |
-| `error` | synthesizer → coordinator | 综合失败 | 阻塞性错误 |
+---
 
 ## Toolbox
 
@@ -44,175 +39,204 @@
 |---------|------|-------|-------------|
 | `synthesize` | [commands/synthesize.md](commands/synthesize.md) | Phase 3 | 跨视角整合 |
 
-### Subagent Capabilities
+### Tool Capabilities
 
-> Synthesizer 不使用 subagent
+| Tool | Type | Used By | Purpose |
+|------|------|---------|---------|
+| `Read` | File | synthesizer | Read all session artifacts |
+| `Write` | File | synthesizer | Write conclusions and updates |
+| `Glob` | File | synthesizer | Find all exploration/analysis/discussion files |
 
-### CLI Capabilities
+> Synthesizer does not use subagents or CLI tools (pure integration role).
 
-> Synthesizer 不使用 CLI 工具（纯整合角色）
+---
+
+## Message Types
+
+| Type | Direction | Trigger | Description |
+|------|-----------|---------|-------------|
+| `synthesis_ready` | synthesizer → coordinator | 综合完成 | 包含最终结论和建议 |
+| `error` | synthesizer → coordinator | 综合失败 | 阻塞性错误 |
+
+## Message Bus
+
+Before every SendMessage, log via `mcp__ccw-tools__team_msg`:
+
+```
+mcp__ccw-tools__team_msg({
+  operation: "log",
+  team: <session-id>,
+  from: "synthesizer",
+  to: "coordinator",
+  type: "synthesis_ready",
+  summary: "[synthesizer] SYNTH complete: <summary>",
+  ref: "<output-path>"
+})
+```
+
+> **Note**: `team` must be session ID (e.g., `UAN-xxx-date`), NOT team name. Extract from `Session:` field in task description.
+
+**CLI fallback** (when MCP unavailable):
+
+```
+Bash("ccw team log --team <session-id> --from synthesizer --to coordinator --type synthesis_ready --summary \"[synthesizer] ...\" --ref <path> --json")
+```
+
+---
 
 ## Execution (5-Phase)
 
 ### Phase 1: Task Discovery
 
-```javascript
-const tasks = TaskList()
-const myTasks = tasks.filter(t =>
-  t.subject.startsWith('SYNTH-') &&
-  t.owner === 'synthesizer' &&
-  t.status === 'pending' &&
-  t.blockedBy.length === 0
-)
+> See SKILL.md Shared Infrastructure -> Worker Phase 1: Task Discovery
 
-if (myTasks.length === 0) return
-const task = TaskGet({ taskId: myTasks[0].id })
-TaskUpdate({ taskId: task.id, status: 'in_progress' })
-```
+Standard task discovery flow: TaskList -> filter by prefix `SYNTH-*` + owner match + pending + unblocked -> TaskGet -> TaskUpdate in_progress.
+
+Falls back to `synthesizer` for single-instance role.
 
 ### Phase 2: Context Loading + Shared Memory Read
 
-```javascript
-const sessionFolder = task.description.match(/session:\s*(.+)/)?.[1]?.trim()
-const topic = task.description.match(/topic:\s*(.+)/)?.[1]?.trim()
+**Loading steps**:
 
-const memoryPath = `${sessionFolder}/shared-memory.json`
-let sharedMemory = {}
-try { sharedMemory = JSON.parse(Read(memoryPath)) } catch {}
+1. Extract session path from task description
+2. Extract topic
+3. Read shared-memory.json
+4. Read all exploration files
+5. Read all analysis files
+6. Read all discussion round files
+7. Extract decision trail and current understanding
 
-// Read all explorations
-const explorationFiles = Glob({ pattern: `${sessionFolder}/explorations/*.json` })
-const allExplorations = explorationFiles.map(f => {
-  try { return JSON.parse(Read(f)) } catch { return null }
-}).filter(Boolean)
+**Context extraction**:
 
-// Read all analyses
-const analysisFiles = Glob({ pattern: `${sessionFolder}/analyses/*.json` })
-const allAnalyses = analysisFiles.map(f => {
-  try { return JSON.parse(Read(f)) } catch { return null }
-}).filter(Boolean)
+| Field | Source | Pattern |
+|-------|--------|---------|
+| sessionFolder | task description | `session:\s*(.+)` |
+| topic | task description | `topic:\s*(.+)` |
 
-// Read all discussion rounds
-const discussionFiles = Glob({ pattern: `${sessionFolder}/discussions/discussion-round-*.json` })
-const allDiscussions = discussionFiles.map(f => {
-  try { return JSON.parse(Read(f)) } catch { return null }
-}).filter(Boolean)
+**File loading**:
 
-// Read decision trail
-const decisionTrail = sharedMemory.decision_trail || []
-const currentUnderstanding = sharedMemory.current_understanding || {}
-```
+| Artifact | Path Pattern |
+|----------|--------------|
+| Explorations | `<session>/explorations/*.json` |
+| Analyses | `<session>/analyses/*.json` |
+| Discussions | `<session>/discussions/discussion-round-*.json` |
+| Decision trail | `sharedMemory.decision_trail` |
+| Current understanding | `sharedMemory.current_understanding` |
 
 ### Phase 3: Synthesis Execution
 
-```javascript
-// Read commands/synthesize.md for full implementation
-Read("commands/synthesize.md")
-```
+Delegate to `commands/synthesize.md` if available, otherwise execute inline.
+
+**Synthesis dimensions**:
+
+| Dimension | Source | Purpose |
+|-----------|--------|---------|
+| Explorations | All exploration files | Cross-perspective file relevance |
+| Analyses | All analysis files | Key insights and discussion points |
+| Discussions | All discussion rounds | Understanding evolution |
+| Decision trail | sharedMemory | Critical decision history |
+
+**Conclusions structure**:
+
+| Field | Description |
+|-------|-------------|
+| summary | Executive summary |
+| key_conclusions | Array of {point, confidence, evidence} |
+| recommendations | Array of {priority, action, rationale} |
+| open_questions | Remaining unresolved questions |
+| _metadata | Synthesis metadata |
+
+**Confidence levels**:
+
+| Level | Criteria |
+|-------|----------|
+| High | Multiple sources confirm, strong evidence |
+| Medium | Single source or partial evidence |
+| Low | Speculative, needs verification |
 
 ### Phase 4: Write Conclusions + Update discussion.md
 
-```javascript
-const synthNum = task.subject.match(/SYNTH-(\d+)/)?.[1] || '001'
-const conclusionsPath = `${sessionFolder}/conclusions.json`
+**Output paths**:
 
-// 写入 conclusions.json
-Write(conclusionsPath, JSON.stringify(conclusions, null, 2))
+| File | Path |
+|------|------|
+| Conclusions | `<session-folder>/conclusions.json` |
+| Discussion update | `<session-folder>/discussion.md` |
 
-// 更新 discussion.md — 结论部分
-const conclusionsMd = `
+**discussion.md conclusions section**:
+
+```markdown
 ## Conclusions
 
 ### Summary
-${conclusions.summary}
+<conclusions.summary>
 
 ### Key Conclusions
-${conclusions.key_conclusions.map((c, i) => `${i + 1}. **${c.point}** (Confidence: ${c.confidence})
-   - Evidence: ${c.evidence}`).join('\n')}
+1. **<point>** (Confidence: <confidence>)
+   - Evidence: <evidence>
+2. ...
 
 ### Recommendations
-${conclusions.recommendations.map((r, i) => `${i + 1}. **[${r.priority}]** ${r.action}
-   - Rationale: ${r.rationale}`).join('\n')}
+1. **[<priority>]** <action>
+   - Rationale: <rationale>
+2. ...
 
 ### Remaining Questions
-${(conclusions.open_questions || []).map(q => `- ${q}`).join('\n') || '(None)'}
+- <question 1>
+- <question 2>
 
 ## Decision Trail
 
 ### Critical Decisions
-${decisionTrail.map(d => `- **Round ${d.round}**: ${d.decision} — ${d.context}`).join('\n') || '(None)'}
+- **Round N**: <decision> — <context>
 
 ## Current Understanding (Final)
 
 ### What We Established
-${(currentUnderstanding.established || []).map(e => `- ${e}`).join('\n') || '(None)'}
+- <established item 1>
+- <established item 2>
 
 ### What Was Clarified/Corrected
-${(currentUnderstanding.clarified || []).map(c => `- ${c}`).join('\n') || '(None)'}
+- <clarified item 1>
+- <clarified item 2>
 
 ### Key Insights
-${(currentUnderstanding.key_insights || []).map(i => `- ${i}`).join('\n') || '(None)'}
+- <insight 1>
+- <insight 2>
 
 ## Session Statistics
-- **Explorations**: ${allExplorations.length}
-- **Analyses**: ${allAnalyses.length}
-- **Discussion Rounds**: ${allDiscussions.length}
-- **Decisions Made**: ${decisionTrail.length}
-- **Completed**: ${new Date().toISOString()}
-`
-
-const currentDiscussion = Read(`${sessionFolder}/discussion.md`)
-Write(`${sessionFolder}/discussion.md`, currentDiscussion + conclusionsMd)
+- **Explorations**: <count>
+- **Analyses**: <count>
+- **Discussion Rounds**: <count>
+- **Decisions Made**: <count>
+- **Completed**: <timestamp>
 ```
+
+**Update steps**:
+
+1. Write conclusions.json
+2. Read current discussion.md
+3. Append conclusions section
+4. Write updated discussion.md
 
 ### Phase 5: Report to Coordinator + Shared Memory Write
 
-```javascript
-sharedMemory.synthesis = {
-  conclusion_count: conclusions.key_conclusions?.length || 0,
-  recommendation_count: conclusions.recommendations?.length || 0,
-  open_question_count: conclusions.open_questions?.length || 0,
-  timestamp: new Date().toISOString()
-}
-Write(memoryPath, JSON.stringify(sharedMemory, null, 2))
+> See SKILL.md Shared Infrastructure -> Worker Phase 5: Report
 
-const resultSummary = `${conclusions.key_conclusions?.length || 0} 结论, ${conclusions.recommendations?.length || 0} 建议`
+Standard report flow: team_msg log -> SendMessage with `[synthesizer]` prefix -> TaskUpdate completed -> Loop to Phase 1 for next task.
 
-mcp__ccw-tools__team_msg({
-  operation: "log",
-  team: teamName,
-  from: "synthesizer",
-  to: "coordinator",
-  type: "synthesis_ready",
-  summary: `[synthesizer] Synthesis complete: ${resultSummary}`,
-  ref: conclusionsPath
-})
+**Shared memory update**:
 
-SendMessage({
-  type: "message",
-  recipient: "coordinator",
-  content: `## [synthesizer] Synthesis Results
-
-**Task**: ${task.subject}
-**Topic**: ${topic}
-
-### Summary
-${conclusions.summary}
-
-### Top Conclusions
-${(conclusions.key_conclusions || []).slice(0, 3).map((c, i) => `${i + 1}. **${c.point}** (${c.confidence})`).join('\n')}
-
-### Top Recommendations
-${(conclusions.recommendations || []).slice(0, 3).map((r, i) => `${i + 1}. [${r.priority}] ${r.action}`).join('\n')}
-
-### Artifacts
-- 📄 Discussion: ${sessionFolder}/discussion.md
-- 📊 Conclusions: ${conclusionsPath}`,
-  summary: `[synthesizer] SYNTH complete: ${resultSummary}`
-})
-
-TaskUpdate({ taskId: task.id, status: 'completed' })
 ```
+sharedMemory.synthesis = {
+  conclusion_count: <count>,
+  recommendation_count: <count>,
+  open_question_count: <count>,
+  timestamp: <timestamp>
+}
+```
+
+---
 
 ## Error Handling
 
@@ -223,3 +247,5 @@ TaskUpdate({ taskId: task.id, status: 'completed' })
 | Conflicting analyses | Present both sides, recommend user decision |
 | Empty shared memory | Generate minimal conclusions from discussion.md |
 | Only one perspective | Create focused single-perspective synthesis |
+| Command file not found | Fall back to inline execution |
+| Session folder missing | Error to coordinator |

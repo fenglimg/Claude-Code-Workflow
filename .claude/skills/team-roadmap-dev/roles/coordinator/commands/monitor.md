@@ -172,6 +172,7 @@ function spawnPlanner(phase, gapIteration, sessionFolder) {
   // Synchronous call - blocks until planner returns
   Task({
     subagent_type: "general-purpose",
+    description: `Spawn planner worker for phase ${phase}`,
     team_name: "roadmap-dev",
     name: "planner",
     prompt: `You are the PLANNER for team "roadmap-dev".
@@ -203,6 +204,7 @@ function spawnExecutor(phase, gapIteration, sessionFolder) {
 
   Task({
     subagent_type: "general-purpose",
+    description: `Spawn executor worker for phase ${phase}`,
     team_name: "roadmap-dev",
     name: "executor",
     prompt: `You are the EXECUTOR for team "roadmap-dev".
@@ -234,6 +236,7 @@ function spawnVerifier(phase, gapIteration, sessionFolder) {
 
   Task({
     subagent_type: "general-purpose",
+    description: `Spawn verifier worker for phase ${phase}`,
     team_name: "roadmap-dev",
     name: "verifier",
     prompt: `You are the VERIFIER for team "roadmap-dev".
@@ -265,7 +268,7 @@ function triggerGapClosure(phase, iteration, gaps, sessionFolder) {
 
   // Log gap closure initiation
   mcp__ccw-tools__team_msg({
-    operation: "log", team: "roadmap-dev",
+    operation: "log", team: sessionId  // MUST be session ID (e.g., RD-xxx-date), NOT team name,
     from: "coordinator", to: "planner",
     type: "gap_closure",
     summary: `[coordinator] Gap closure iteration ${iteration} for phase ${phase}: ${gaps.length} gaps`,
@@ -331,7 +334,7 @@ function updateStatePhaseComplete(phase, sessionFolder) {
 ```javascript
 // All phases done -- return control to coordinator Phase 5 (Report + Persist)
 mcp__ccw-tools__team_msg({
-  operation: "log", team: "roadmap-dev",
+  operation: "log", team: sessionId  // MUST be session ID (e.g., RD-xxx-date), NOT team name,
   from: "coordinator", to: "all",
   type: "project_complete",
   summary: `[coordinator] All ${totalPhases} phases complete.`,

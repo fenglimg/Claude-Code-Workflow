@@ -12,6 +12,7 @@
     "ccw/frontend"
   ],
   "scripts": {
+    "sync-version": "node scripts/sync-version.mjs",
     "build": "tsc -p ccw/tsconfig.json",
     "postbuild": "node -e \"const fs=require('fs');['ccw/bin/ccw.js','ccw/bin/ccw-mcp.js'].forEach(f=>{try{fs.chmodSync(f,0o755)}catch{}})\"",
     "start": "node ccw/bin/ccw.js",
@@ -49,6 +50,7 @@
     "commander": "^11.0.0",
     "figlet": "^1.7.0",
     "glob": "^10.3.0",
+    "gray-matter": "^4.0.3",
     "gradient-string": "^2.0.2",
     "inquirer": "^9.2.0",
     "jsonwebtoken": "^9.0.3",

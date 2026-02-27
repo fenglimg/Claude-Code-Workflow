@@ -451,7 +451,20 @@ CONSTRAINTS: ${perspective.constraints}
      - Corrected assumptions
      - New insights
 
-5. **Repeat or Converge**
+5. **📌 Intent Drift Check** (every round ≥ 2)
+   - Re-read "User Intent" from discussion.md header
+   - For each original intent item, check: addressed / in-progress / not yet discussed / implicitly absorbed
+   - If any item is "implicitly absorbed" (addressed by a different solution than originally envisioned), explicitly note this in discussion.md:
+     ```markdown
+     #### Intent Coverage Check
+     - ✅ Intent 1: [addressed in Round N]
+     - 🔄 Intent 2: [in-progress, current focus]
+     - ⚠️ Intent 3: [implicitly absorbed by X — needs explicit confirmation]
+     - ❌ Intent 4: [not yet discussed]
+     ```
+   - If any item is ❌ or ⚠️ after 3+ rounds, surface it to the user in the next round's presentation
+
+6. **Repeat or Converge**
    - Continue loop (max 5 rounds) or exit to Phase 4
 
 **Discussion Actions**:
@@ -482,7 +495,28 @@ CONSTRAINTS: ${perspective.constraints}
 
 **Workflow Steps**:
 
-1. **Consolidate Insights**
+1. **📌 Intent Coverage Verification** (MANDATORY before synthesis)
+   - Re-read all original "User Intent" items from discussion.md header
+   - For EACH intent item, determine coverage status:
+     - **✅ Addressed**: Explicitly discussed and concluded with clear design/recommendation
+     - **🔀 Transformed**: Original intent evolved into a different solution — document the transformation chain
+     - **⚠️ Absorbed**: Implicitly covered by a broader solution — flag for explicit confirmation
+     - **❌ Missed**: Not discussed — MUST be either addressed now or explicitly listed as out-of-scope with reason
+   - Write "Intent Coverage Matrix" to discussion.md:
+     ```markdown
+     ### Intent Coverage Matrix
+     | # | Original Intent | Status | Where Addressed | Notes |
+     |---|----------------|--------|-----------------|-------|
+     | 1 | [intent text] | ✅ Addressed | Round N, Conclusion #M | |
+     | 2 | [intent text] | 🔀 Transformed | Round N → Round M | Original: X → Final: Y |
+     | 3 | [intent text] | ❌ Missed | — | Reason for omission |
+     ```
+   - **Gate**: If any item is ❌ Missed, MUST either:
+     - (a) Add a dedicated discussion round to address it before continuing, OR
+     - (b) Explicitly confirm with user that it is intentionally deferred
+   - Add `intent_coverage[]` to conclusions.json
+
+2. **Consolidate Insights**
    - Extract all findings from discussion timeline
    - **📌 Compile Decision Trail**: Aggregate all Decision Records from Phases 1-3 into a consolidated decision log
    - **Key conclusions**: Main points with evidence and confidence levels (high/medium/low)
@@ -508,11 +542,53 @@ CONSTRAINTS: ${perspective.constraints}
      - **Trade-offs Made**: Key trade-offs and why certain paths were chosen over others
    - Add session statistics: rounds, duration, sources, artifacts, **decision count**
 
-3. **Post-Completion Options** (AskUserQuestion)
-   - **创建Issue**: Launch issue-discover with conclusions
-   - **生成任务**: Launch workflow-lite-plan for implementation
-   - **导出报告**: Generate standalone analysis report
-   - **完成**: No further action
+3. **Post-Completion Options**
+
+   ```javascript
+   const hasActionableRecs = conclusions.recommendations?.some(r => r.priority === 'high' || r.priority === 'medium')
+
+   const nextStep = AskUserQuestion({
+     questions: [{
+       question: "Analysis complete. What's next?",
+       header: "Next Step",
+       multiSelect: false,
+       options: [
+         { label: hasActionableRecs ? "生成任务 (Recommended)" : "生成任务", description: "Launch workflow-lite-plan with analysis context" },
+         { label: "创建Issue", description: "Launch issue-discover with conclusions" },
+         { label: "导出报告", description: "Generate standalone analysis report" },
+         { label: "完成", description: "No further action" }
+       ]
+     }]
+   })
+   ```
+
+   **Handle "生成任务"**:
+   ```javascript
+   if (nextStep.includes("生成任务")) {
+     // 1. Build task description from high/medium priority recommendations
+     const taskDescription = conclusions.recommendations
+       .filter(r => r.priority === 'high' || r.priority === 'medium')
+       .map(r => r.action)
+       .join('\n') || conclusions.summary
+
+     // 2. Assemble compact analysis context as inline memory block
+     const contextLines = [
+       `## Prior Analysis (${sessionId})`,
+       `**Summary**: ${conclusions.summary}`
+     ]
+     const codebasePath = `${sessionFolder}/exploration-codebase.json`
+     if (file_exists(codebasePath)) {
+       const data = JSON.parse(Read(codebasePath))
+       const files = (data.relevant_files || []).slice(0, 8).map(f => f.path || f.file || f).filter(Boolean)
+       const findings = (data.key_findings || []).slice(0, 5)
+       if (files.length) contextLines.push(`**Key Files**: ${files.join(', ')}`)
+       if (findings.length) contextLines.push(`**Key Findings**:\n${findings.map(f => `- ${f}`).join('\n')}`)
+     }
+
+     // 3. Call lite-plan with enriched task description (no special flags)
+     Skill(skill="workflow-lite-plan", args=`"${taskDescription}\n\n${contextLines.join('\n')}"`)
+   }
+   ```
 
 **conclusions.json Schema**:
 - `session_id`: Session identifier
@@ -525,10 +601,12 @@ CONSTRAINTS: ${perspective.constraints}
 - `open_questions[]`: Unresolved questions
 - `follow_up_suggestions[]`: {type, summary}
 - `decision_trail[]`: {round, decision, context, options_considered, chosen, reason, impact}
+- `intent_coverage[]`: {intent, status, where_addressed, notes}
 
 **Success Criteria**:
 - conclusions.json created with final synthesis
 - discussion.md finalized with conclusions and decision trail
+- **📌 Intent Coverage Matrix** verified — all original intents accounted for (no ❌ Missed without explicit user deferral)
 - User offered next step options
 - Session complete
 - **📌 Complete decision trail** documented and traceable from initial scoping to final conclusions
@@ -690,6 +768,8 @@ User agrees with current direction, wants deeper code analysis
 - Ready to implement (past analysis phase)
 - Need simple task breakdown
 - Focus on quick execution planning
+
+> **Note**: Phase 4「生成任务」assembles analysis context as inline `## Prior Analysis` block in task description, allowing lite-plan to skip redundant exploration automatically.
 
 ---
 

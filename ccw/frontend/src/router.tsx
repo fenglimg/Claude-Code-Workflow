@@ -36,6 +36,8 @@ import {
   CliSessionSharePage,
   TeamPage,
   TerminalDashboardPage,
+  AnalysisPage,
+  SpecsSettingsPage,
 } from '@/pages';
 
 /**
@@ -146,6 +148,10 @@ const routes: RouteObject[] = [
         element: <RulesManagerPage />,
       },
       {
+        path: 'settings/specs',
+        element: <SpecsSettingsPage />,
+      },
+      {
         path: 'settings/codexlens',
         element: <CodexLensManagerPage />,
       },
@@ -168,6 +174,10 @@ const routes: RouteObject[] = [
       {
         path: 'teams',
         element: <TeamPage />,
+      },
+      {
+        path: 'analysis',
+        element: <AnalysisPage />,
       },
       {
         path: 'terminal-dashboard',
@@ -234,6 +244,7 @@ export const ROUTES = {
   TEAMS: '/teams',
   TERMINAL_DASHBOARD: '/terminal-dashboard',
   SKILL_HUB: '/skill-hub',
+  ANALYSIS: '/analysis',
 } as const;
 
 export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];

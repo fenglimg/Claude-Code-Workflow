@@ -25,6 +25,14 @@ Unified lightweight planning and execution skill. Routes to lite-plan (planning 
      └───────────┘           └───────────┘
 ```
 
+## Compact Recovery (Phase Persistence)
+
+Multi-phase execution (lite-plan → lite-execute) spans long conversations that trigger context compression. Uses **双重保险**: TodoWrite 跟踪 active phase 保护其不被压缩，sentinel 作为兜底。
+
+> **⚠️ COMPACT DIRECTIVE**: Context compression MUST check TodoWrite phase status.
+> The phase currently marked `in_progress` is the active execution phase — preserve its FULL content.
+> Only compress phases marked `completed` or `pending`.
+
 ## Mode Detection & Routing
 
 ```javascript
@@ -111,17 +119,11 @@ if (autoYes) {
 After collecting preferences, enhance context and dispatch:
 
 ```javascript
-// Step 1: Check for project context files
-const hasProjectTech = fileExists('.workflow/project-tech.json')
-const hasProjectGuidelines = fileExists('.workflow/project-guidelines.json')
+// Step 1: Load project context via ccw spec
+Bash('ccw spec load --category planning')
 
 // Step 2: Log available context
-if (hasProjectTech) {
-  console.log('Project tech context available: .workflow/project-tech.json')
-}
-if (hasProjectGuidelines) {
-  console.log('Project guidelines available: .workflow/project-guidelines.json')
-}
+console.log('Project context loaded via: ccw spec load --category planning')
 
 // Step 3: Dispatch to phase (workflowPreferences available as context)
 if (mode === 'plan') {
@@ -161,7 +163,12 @@ Plan mode and execute mode are triggered by skill name routing (see Mode Detecti
 
 ## Phase Reference Documents
 
-| Phase | Document | Purpose |
-|-------|----------|---------|
-| 1 | [phases/01-lite-plan.md](phases/01-lite-plan.md) | Complete planning pipeline: exploration, clarification, planning, confirmation, handoff |
-| 2 | [phases/02-lite-execute.md](phases/02-lite-execute.md) | Complete execution engine: input modes, task grouping, batch execution, code review |
+| Phase | Document | Purpose | Compact |
+|-------|----------|---------|---------|
+| 1 | [phases/01-lite-plan.md](phases/01-lite-plan.md) | Complete planning pipeline: exploration, clarification, planning, confirmation, handoff | TodoWrite 驱动 |
+| 2 | [phases/02-lite-execute.md](phases/02-lite-execute.md) | Complete execution engine: input modes, task grouping, batch execution, code review | TodoWrite 驱动 + 🔄 sentinel |
+
+**Compact Rules**:
+1. **TodoWrite `in_progress`** → 保留完整内容，禁止压缩
+2. **TodoWrite `completed`** → 可压缩为摘要
+3. **🔄 sentinel fallback** → Phase 2 包含 compact sentinel；若 compact 后仅存 sentinel 而无完整 Step 协议，必须立即 `Read("phases/02-lite-execute.md")` 恢复

@@ -1,5 +1,10 @@
 # Phase 2: Lite-Execute
 
+> **📌 COMPACT SENTINEL [Phase 2: Lite-Execute]**
+> This phase contains 6 execution steps (Step 1 — 6).
+> If you can read this sentinel but cannot find the full Step protocol below, context has been compressed.
+> Recovery: `Read("phases/02-lite-execute.md")`
+
 Complete execution engine: multi-mode input, task grouping, batch execution, code review, and development index update.
 
 ---
@@ -354,6 +359,8 @@ TodoWrite({
 
 ### Step 3: Launch Execution
 
+> **⚠️ CHECKPOINT**: Before proceeding, verify Phase 2 execution protocol (Step 3-5) is in active memory. If only a summary remains, re-read `phases/02-lite-execute.md` now.
+
 **Executor Resolution**: `getTaskExecutor()` and `groupTasksByExecutor()` defined in Step 2 (Task Grouping).
 
 **Batch Execution Routing** (根据 batch.executor 字段路由):
@@ -480,7 +487,8 @@ ${(t.test?.success_metrics || []).length > 0 ? `\n**Success metrics**: ${t.test.
     context.push(`### Artifacts\nPlan: ${executionContext.session.artifacts.plan}`)
   }
   // Project guidelines (user-defined constraints from /workflow:session:solidify)
-  context.push(`### Project Guidelines\n@.workflow/project-guidelines.json`)
+  // Loaded via: ccw spec load --category planning
+  context.push(`### Project Guidelines\n(Loaded via ccw spec load --category planning)`)
   if (context.length > 0) sections.push(`## Context\n${context.join('\n\n')}`)
 
   sections.push(`Complete each task according to its "Done when" checklist.`)
@@ -574,6 +582,8 @@ Progress tracked at batch level (not individual task level). Icons: ⚡ (paralle
 
 ### Step 5: Code Review (Optional)
 
+> **⚠️ CHECKPOINT**: Before proceeding, verify Phase 2 review protocol is in active memory. If only a summary remains, re-read `phases/02-lite-execute.md` now.
+
 **Skip Condition**: Only run if `codeReviewTool ≠ "Skip"`
 
 **Review Focus**: Verify implementation against plan convergence criteria and test requirements
@@ -665,7 +675,7 @@ if (hasUnresolvedIssues(reviewResult)) {
 
 **Trigger**: After all executions complete (regardless of code review)
 
-**Operation**: Execute `/workflow:session:sync -y "{summary}"` to update both `project-guidelines.json` and `project-tech.json` in one shot.
+**Operation**: Execute `/workflow:session:sync -y "{summary}"` to update both `specs/*.md` and `project-tech.json` in one shot.
 
 Summary 取值优先级：`originalUserInput` → `planObject.summary` → git log 自动推断。
 
@@ -760,7 +770,7 @@ Appended to `previousExecutionResults` array for context continuity in multi-exe
 
 ## Post-Completion Expansion
 
-**Auto-sync**: 执行 `/workflow:session:sync -y "{summary}"` 更新 project-guidelines + project-tech（Step 6 已触发，此处不重复）。
+**Auto-sync**: 执行 `/workflow:session:sync -y "{summary}"` 更新 specs/*.md + project-tech（Step 6 已触发，此处不重复）。
 
 完成后询问用户是否扩展为issue(test/enhance/refactor/doc)，选中项调用 `/issue:new "{summary} - {dimension}"`
 

@@ -1,16 +1,13 @@
-# Role: coordinator
+# Coordinator Role
 
 分析团队协调者。编排 pipeline：话题澄清 → 管道选择 → 团队创建 → 任务分发 → 讨论循环 → 结果汇报。
 
-## Role Identity
+## Identity
 
-- **Name**: `coordinator`
-- **Task Prefix**: N/A (coordinator creates tasks, doesn't receive them)
-- **Responsibility**: Orchestration
-- **Communication**: SendMessage to all teammates
-- **Output Tag**: `[coordinator]`
+- **Name**: `coordinator` | **Tag**: `[coordinator]`
+- **Responsibility**: Orchestration (Parse requirements -> Create team -> Dispatch tasks -> Monitor progress -> Report results)
 
-## Role Boundaries
+## Boundaries
 
 ### MUST
 
@@ -19,16 +16,41 @@
 - 通过 TaskCreate 创建任务并分配给 worker 角色
 - 通过消息总线监控 worker 进度并路由消息
 - 讨论循环中通过 AskUserQuestion 收集用户反馈
+- 维护会话状态持久化
 
 ### MUST NOT
 
-- ❌ **直接执行任何业务任务**（代码探索、CLI 分析、综合整合等）
-- ❌ 直接调用 cli-explore-agent、code-developer 等实现类 subagent
-- ❌ 直接调用 CLI 分析工具（ccw cli）
-- ❌ 绕过 worker 角色自行完成应委派的工作
-- ❌ 在输出中省略 `[coordinator]` 标识
+- 直接执行任何业务任务（代码探索、CLI 分析、综合整合等）
+- 直接调用 cli-explore-agent、code-developer 等实现类 subagent
+- 直接调用 CLI 分析工具（ccw cli）
+- 绕过 worker 角色自行完成应委派的工作
+- 在输出中省略 `[coordinator]` 标识
 
 > **核心原则**: coordinator 是指挥者，不是执行者。所有实际工作必须通过 TaskCreate 委派给 worker 角色。
+
+---
+
+## Toolbox
+
+### Available Commands
+
+| Command | File | Phase | Description |
+|---------|------|-------|-------------|
+| `dispatch` | [commands/dispatch.md](commands/dispatch.md) | Phase 3 | 任务链创建与依赖管理 |
+| `monitor` | [commands/monitor.md](commands/monitor.md) | Phase 4 | 讨论循环 + 进度监控 |
+
+### Tool Capabilities
+
+| Tool | Type | Used By | Purpose |
+|------|------|---------|---------|
+| `TaskCreate` | Task | coordinator | 创建任务并分配给 worker |
+| `TaskList` | Task | coordinator | 监控任务状态 |
+| `TeamCreate` | Team | coordinator | 创建分析团队 |
+| `AskUserQuestion` | Interaction | coordinator | 收集用户反馈 |
+| `SendMessage` | Communication | coordinator | 与 worker 通信 |
+| `Read/Write` | File | coordinator | 会话状态管理 |
+
+---
 
 ## Message Types
 
@@ -41,300 +63,292 @@
 | `error` | coordinator → user | 协调错误 | 阻塞性问题 |
 | `shutdown` | coordinator → all | 团队关闭 | 清理资源 |
 
-## Toolbox
+## Message Bus
 
-### Available Commands
+Before every SendMessage, log via `mcp__ccw-tools__team_msg`:
 
-| Command | File | Phase | Description |
-|---------|------|-------|-------------|
-| `dispatch` | [commands/dispatch.md](commands/dispatch.md) | Phase 3 | 任务链创建与依赖管理 |
-| `monitor` | [commands/monitor.md](commands/monitor.md) | Phase 4 | 讨论循环 + 进度监控 |
+```
+mcp__ccw-tools__team_msg({
+  operation: "log",
+  team: <session-id>,
+  from: "coordinator",
+  to: "<recipient>",
+  type: "<message-type>",
+  summary: "[coordinator] <summary>",
+  ref: "<artifact-path>"
+})
+```
 
-### Subagent Capabilities
+> **Note**: `team` must be session ID (e.g., `UAN-xxx-date`), NOT team name. Extract from `Session:` field in task description.
 
-> Coordinator 不直接使用 subagent（通过 worker 角色间接使用）
+**CLI fallback** (when MCP unavailable):
 
-### CLI Capabilities
+```
+Bash("ccw team log --team <session-id> --from coordinator --to <recipient> --type <type> --summary \"[coordinator] ...\" --ref <path> --json")
+```
 
-> Coordinator 不直接使用 CLI 分析工具
+---
 
-## Execution
+## Entry Router
 
-### Phase 1: Topic Understanding & Requirement Clarification
+When coordinator is invoked, first detect the invocation type:
 
-```javascript
-const args = "$ARGUMENTS"
+| Detection | Condition | Handler |
+|-----------|-----------|---------|
+| Worker callback | Message contains `[role-name]` tag from a known worker role | -> handleCallback: auto-advance pipeline |
+| Status check | Arguments contain "check" or "status" | -> handleCheck: output execution graph, no advancement |
+| Manual resume | Arguments contain "resume" or "continue" | -> handleResume: check worker states, advance pipeline |
+| New session | None of the above | -> Phase 0 (Session Resume Check) |
 
-// 提取话题描述
-const taskDescription = args.replace(/--role[=\s]+\w+/, '').replace(/--team[=\s]+[\w-]+/, '').replace(/--mode[=\s]+\w+/, '').trim()
+For callback/check/resume: load `commands/monitor.md` and execute the appropriate handler, then STOP.
 
-// ★ 统一 auto mode 检测
-const autoYes = /\b(-y|--yes)\b/.test(args)
+---
 
-// 管道模式选择
-function detectPipelineMode(args, desc) {
-  const modeMatch = args.match(/--mode[=\s]+(quick|standard|deep)/)
-  if (modeMatch) return modeMatch[1]
-  if (/快速|quick|overview|概览/.test(desc)) return 'quick'
-  if (/深入|deep|thorough|详细|全面/.test(desc)) return 'deep'
-  return 'standard'
-}
+## Phase 0: Session Resume Check
 
-let pipelineMode = detectPipelineMode(args, taskDescription)
+**Objective**: Detect and resume interrupted sessions before creating new ones.
 
-// 维度检测
-const DIMENSION_KEYWORDS = {
-  architecture: /架构|architecture|design|structure|设计/,
-  implementation: /实现|implement|code|coding|代码/,
-  performance: /性能|performance|optimize|bottleneck|优化/,
-  security: /安全|security|auth|permission|权限/,
-  concept: /概念|concept|theory|principle|原理/,
-  comparison: /比较|compare|vs|difference|区别/,
-  decision: /决策|decision|choice|tradeoff|选择/
-}
+**Workflow**:
 
-const detectedDimensions = Object.entries(DIMENSION_KEYWORDS)
-  .filter(([_, regex]) => regex.test(taskDescription))
-  .map(([dim]) => dim)
+1. Scan `.workflow/.team/UAN-*/` for sessions with status "active" or "paused"
+2. No sessions found -> proceed to Phase 1
+3. Single session found -> resume it (-> Session Reconciliation)
+4. Multiple sessions -> AskUserQuestion for user selection
 
-const dimensions = detectedDimensions.length > 0 ? detectedDimensions : ['general']
+**Session Reconciliation**:
 
-// 交互式澄清（非 auto 模式）
-if (!autoYes) {
-  // 1. Focus 方向选择
-  const DIMENSION_DIRECTIONS = {
-    architecture: ['System Design', 'Component Interactions', 'Technology Choices', 'Design Patterns', 'Scalability Strategy'],
-    implementation: ['Code Structure', 'Implementation Details', 'Code Patterns', 'Error Handling', 'Algorithm Analysis'],
-    performance: ['Performance Bottlenecks', 'Optimization Opportunities', 'Resource Utilization', 'Caching Strategy'],
-    security: ['Security Vulnerabilities', 'Authentication/Authorization', 'Access Control', 'Data Protection'],
-    concept: ['Conceptual Foundation', 'Core Mechanisms', 'Fundamental Patterns', 'Trade-offs & Reasoning'],
-    comparison: ['Solution Comparison', 'Pros & Cons Analysis', 'Technology Evaluation'],
-    decision: ['Decision Criteria', 'Trade-off Analysis', 'Risk Assessment', 'Impact Analysis'],
-    general: ['Overview', 'Key Patterns', 'Potential Issues', 'Improvement Opportunities']
+1. Audit TaskList -> get real status of all tasks
+2. Reconcile: session state <-> TaskList status (bidirectional sync)
+3. Reset any in_progress tasks -> pending (they were interrupted)
+4. Determine remaining pipeline from reconciled state
+5. Rebuild team if disbanded (TeamCreate + spawn needed workers only)
+6. Create missing tasks with correct blockedBy dependencies
+7. Verify dependency chain integrity
+8. Update session file with reconciled state
+9. Kick first executable task's worker -> Phase 4
+
+---
+
+## Phase 1: Topic Understanding & Requirement Clarification
+
+**Objective**: Parse user input and gather execution parameters.
+
+**Workflow**:
+
+1. **Parse arguments** for explicit settings: mode, scope, focus areas
+
+2. **Extract topic description**: Remove `--role`, `--team`, `--mode` flags from arguments
+
+3. **Pipeline mode selection**:
+
+| Condition | Mode |
+|-----------|------|
+| `--mode=quick` explicit or topic contains "quick/overview/fast" | Quick |
+| `--mode=deep` explicit or topic contains "deep/thorough/detailed/comprehensive" | Deep |
+| Default (no match) | Standard |
+
+4. **Dimension detection** (from topic keywords):
+
+| Dimension | Keywords |
+|-----------|----------|
+| architecture | 架构, architecture, design, structure, 设计 |
+| implementation | 实现, implement, code, 代码 |
+| performance | 性能, performance, optimize, 优化 |
+| security | 安全, security, auth, 权限 |
+| concept | 概念, concept, theory, 原理 |
+| comparison | 比较, compare, vs, 区别 |
+| decision | 决策, decision, choice, 选择 |
+
+5. **Interactive clarification** (non-auto mode only):
+
+| Question | Purpose |
+|----------|---------|
+| Analysis Focus | Multi-select focus directions |
+| Analysis Perspectives | Select technical/architectural/business/domain views |
+| Analysis Depth | Confirm Quick/Standard/Deep |
+
+**Success**: All parameters captured, mode finalized.
+
+---
+
+## Phase 2: Create Team + Initialize Session
+
+**Objective**: Initialize team, session file, and wisdom directory.
+
+**Workflow**:
+
+1. **Generate session ID**: `UAN-{slug}-{YYYY-MM-DD}`
+2. **Create session folder structure**:
+
+```
+.workflow/.team/UAN-{slug}-{date}/
++-- shared-memory.json
++-- discussion.md
++-- explorations/
++-- analyses/
++-- discussions/
++-- wisdom/
+    +-- learnings.md
+    +-- decisions.md
+    +-- conventions.md
+    +-- issues.md
+```
+
+3. **Initialize shared-memory.json**:
+
+```json
+{
+  "explorations": [],
+  "analyses": [],
+  "discussions": [],
+  "synthesis": null,
+  "decision_trail": [],
+  "current_understanding": {
+    "established": [],
+    "clarified": [],
+    "key_insights": []
   }
-
-  const directionOptions = dimensions.flatMap(d => (DIMENSION_DIRECTIONS[d] || []).slice(0, 3))
-    .map(d => ({ label: d, description: `Focus on ${d}` }))
-
-  const focusResult = AskUserQuestion({
-    questions: [{
-      question: "选择分析方向（可多选）",
-      header: "Analysis Focus",
-      multiSelect: true,
-      options: directionOptions
-    }]
-  })
-
-  // 2. 视角选择（Standard/Deep 模式）
-  let selectedPerspectives = ['technical']
-  if (pipelineMode !== 'quick') {
-    const perspectiveResult = AskUserQuestion({
-      questions: [{
-        question: "选择分析视角（可多选，最多4个）",
-        header: "Analysis Perspectives",
-        multiSelect: true,
-        options: [
-          { label: "Technical", description: "实现、代码模式、技术可行性" },
-          { label: "Architectural", description: "系统设计、可扩展性、组件交互" },
-          { label: "Business", description: "价值、ROI、利益相关者影响" },
-          { label: "Domain Expert", description: "领域特定模式、最佳实践、标准" }
-        ]
-      }]
-    })
-    // Parse selected perspectives
-  }
-
-  // 3. 深度选择
-  const depthResult = AskUserQuestion({
-    questions: [{
-      question: "选择分析深度",
-      header: "Analysis Depth",
-      multiSelect: false,
-      options: [
-        { label: "Quick Overview", description: "快速概览 (10-15min)" },
-        { label: "Standard Analysis", description: "标准分析 (30-60min)" },
-        { label: "Deep Dive", description: "深度分析 (1-2hr)" }
-      ]
-    }]
-  })
-
-  const depthMap = { 'Quick Overview': 'quick', 'Standard Analysis': 'standard', 'Deep Dive': 'deep' }
-  pipelineMode = depthMap[depthResult["Analysis Depth"]] || pipelineMode
 }
 ```
 
-### Phase 2: Create Team + Initialize Session
+4. **Initialize discussion.md** with session metadata
+5. **Call TeamCreate** with team name "ultra-analyze"
+6. **Spawn worker roles** (see SKILL.md Coordinator Spawn Template)
 
-```javascript
-const teamName = "ultra-analyze"
-const sessionSlug = taskDescription.slice(0, 30).replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '-')
-const sessionDate = new Date().toISOString().slice(0, 10)
-const sessionFolder = `.workflow/.team/UAN-${sessionSlug}-${sessionDate}`
-Bash(`mkdir -p "${sessionFolder}/explorations" "${sessionFolder}/analyses" "${sessionFolder}/discussions"`)
+**Success**: Team created, session file written, wisdom initialized, workers ready.
 
-// 初始化 shared memory
-Write(`${sessionFolder}/shared-memory.json`, JSON.stringify({
-  explorations: [],
-  analyses: [],
-  discussions: [],
-  synthesis: null,
-  decision_trail: [],
-  current_understanding: {
-    established: [],
-    clarified: [],
-    key_insights: []
-  }
-}, null, 2))
+---
 
-// 初始化 discussion.md
-Write(`${sessionFolder}/discussion.md`, `# Analysis Discussion
+## Phase 3: Create Task Chain
 
-## Session Metadata
-- **ID**: UAN-${sessionSlug}-${sessionDate}
-- **Topic**: ${taskDescription}
-- **Started**: ${new Date().toISOString()}
-- **Dimensions**: ${dimensions.join(', ')}
-- **Pipeline**: ${pipelineMode}
+**Objective**: Dispatch tasks based on mode with proper dependencies.
 
-## User Context
-- **Focus Areas**: ${dimensions.join(', ')}
-- **Analysis Depth**: ${pipelineMode}
+Delegate to `commands/dispatch.md` which creates the full task chain:
 
-## Initial Understanding
-- **Dimensions**: ${dimensions.join(', ')}
-- **Scope**: ${taskDescription}
+**Quick Mode** (3 beats, serial):
 
-## Discussion Timeline
-
-`)
-
-TeamCreate({ team_name: teamName })
-
-// ⚠️ Workers are NOT pre-spawned here.
-// Workers are spawned per-stage in Phase 4 via Stop-Wait Task(run_in_background: false).
-// See SKILL.md Coordinator Spawn Template for worker prompt templates.
-// Quick mode: 1 explorer + 1 analyst (single agents)
-// Standard/Deep mode: N explorers + N analysts (parallel agents with distinct names)
-// explorer-1, explorer-2... / analyst-1, analyst-2... for true parallel execution
-// Discussant and Synthesizer are always single instances
-```
-
-### Phase 3: Create Task Chain
-
-根据 pipelineMode 创建不同的任务链：
-
-```javascript
-// Read commands/dispatch.md for full implementation
-Read("commands/dispatch.md")
-```
-
-**Quick Mode**:
 ```
 EXPLORE-001 → ANALYZE-001 → SYNTH-001
 ```
 
-**Standard Mode**:
+**Standard Mode** (4 beats, parallel windows):
+
 ```
 [EXPLORE-001..N](parallel) → [ANALYZE-001..N](parallel) → DISCUSS-001 → SYNTH-001
 ```
 
-**Deep Mode**:
+**Deep Mode** (4+ beats, with discussion loop):
+
 ```
-[EXPLORE-001..N](parallel) → [ANALYZE-001..N](parallel) → DISCUSS-001 → [ANALYZE-fix] → DISCUSS-002 → ... → SYNTH-001
+[EXPLORE-001..N] → [ANALYZE-001..N] → DISCUSS-001 → [ANALYZE-fix] → DISCUSS-002 → ... → SYNTH-001
 ```
 
-### Phase 4: Discussion Loop + Coordination
+**Task chain rules**:
 
-> **设计原则（Stop-Wait）**: 模型执行没有时间概念，禁止任何形式的轮询等待。
-> - ❌ 禁止: `while` 循环 + `sleep` + 检查状态
-> - ✅ 采用: 同步 `Task(run_in_background: false)` 调用，Worker 返回 = 阶段完成信号
->
-> 按 Phase 3 创建的任务链顺序，逐阶段 spawn worker 同步执行。
-> Worker prompt 使用 SKILL.md Coordinator Spawn Template。
+1. Reads SKILL.md Task Metadata Registry for task definitions
+2. Creates tasks via TaskCreate with correct blockedBy
+3. Assigns owner based on role mapping
+4. Includes `Session: <session-folder>` in every task description
 
-```javascript
-// Read commands/monitor.md for full implementation
-Read("commands/monitor.md")
-```
+---
+
+## Phase 4: Discussion Loop + Coordination
+
+**Objective**: Spawn workers in background, monitor callbacks, drive discussion loop.
+
+**Design**: Spawn-and-Stop + Callback pattern.
+
+- Spawn workers with `Task(run_in_background: true)` -> immediately return
+- Worker completes -> SendMessage callback -> auto-advance
+- User can use "check" / "resume" to manually advance
+- Coordinator does one operation per invocation, then STOPS
+
+**Workflow** (see `commands/monitor.md` for details):
+
+1. Load `commands/monitor.md`
+2. Find tasks with: status=pending, blockedBy all resolved, owner assigned
+3. For each ready task -> spawn worker (see SKILL.md Spawn Template)
+4. Output status summary
+5. STOP
+
+**Callback handlers**:
 
 | Received Message | Action |
 |-----------------|--------|
-| `exploration_ready` | 标记 EXPLORE complete → 解锁 ANALYZE |
-| `analysis_ready` | 标记 ANALYZE complete → 解锁 DISCUSS 或 SYNTH |
-| `discussion_processed` | 标记 DISCUSS complete → AskUser → 决定下一步 |
-| `synthesis_ready` | 标记 SYNTH complete → 进入 Phase 5 |
-| Worker: `error` | 评估严重性 → 重试或上报用户 |
+| `exploration_ready` | Mark EXPLORE complete -> unblock ANALYZE |
+| `analysis_ready` | Mark ANALYZE complete -> unblock DISCUSS or SYNTH |
+| `discussion_processed` | Mark DISCUSS complete -> AskUser -> decide next |
+| `synthesis_ready` | Mark SYNTH complete -> Phase 5 |
+| Worker: `error` | Assess severity -> retry or report to user |
 
-**讨论循环逻辑** (Standard/Deep mode):
-```javascript
-let discussionRound = 0
-const MAX_ROUNDS = pipelineMode === 'deep' ? 5 : 1
+**Discussion loop logic** (Standard/Deep mode):
 
-while (discussionRound < MAX_ROUNDS) {
-  // 等待 DISCUSS-N 完成
-  // AskUserQuestion: 同意继续 / 调整方向 / 分析完成 / 有具体问题
-  // 根据用户选择：
-  //   同意继续 → 创建 DISCUSS-(N+1)
-  //   调整方向 → 创建 ANALYZE-fix + DISCUSS-(N+1)
-  //   分析完成 → 退出循环，创建 SYNTH-001
-  //   有具体问题 → 创建 DISCUSS-(N+1) with questions
-  discussionRound++
-}
+| Round | Action |
+|-------|--------|
+| After DISCUSS-N completes | AskUserQuestion: continue / adjust direction / complete / specific questions |
+| User: "继续深入" | Create DISCUSS-(N+1) |
+| User: "调整方向" | Create ANALYZE-fix + DISCUSS-(N+1) |
+| User: "分析完成" | Exit loop, create SYNTH-001 |
+| Round > MAX_ROUNDS (5) | Force synthesis, offer continuation |
+
+**Pipeline advancement** driven by three wake sources:
+
+- Worker callback (automatic) -> Entry Router -> handleCallback
+- User "check" -> handleCheck (status only)
+- User "resume" -> handleResume (advance)
+
+---
+
+## Phase 5: Report + Persist
+
+**Objective**: Completion report and follow-up options.
+
+**Workflow**:
+
+1. Load session state -> count completed tasks, duration
+2. List deliverables with output paths
+3. Update session status -> "completed"
+4. Output final report
+5. Offer next steps to user
+
+**Report structure**:
+
+```
+## [coordinator] Analysis Complete
+
+**Mode**: <mode>
+**Topic**: <topic>
+**Explorations**: <count>
+**Analyses**: <count>
+**Discussion Rounds**: <count>
+**Decisions Made**: <count>
+
+📄 Discussion: <session-folder>/discussion.md
+📊 Conclusions: <session-folder>/conclusions.json
 ```
 
-### Phase 5: Report + Persist
+**Next step options**:
 
-```javascript
-// 读取 shared memory 汇总结果
-const memory = JSON.parse(Read(`${sessionFolder}/shared-memory.json`))
+| Option | Description |
+|--------|-------------|
+| 创建Issue | 基于结论创建 Issue |
+| 生成任务 | 启动 workflow-lite-plan 规划实施 |
+| 导出报告 | 生成独立分析报告 |
+| 关闭团队 | 关闭所有 teammate 并清理 |
 
-const report = {
-  mode: pipelineMode,
-  topic: taskDescription,
-  explorations_count: memory.explorations?.length || 0,
-  analyses_count: memory.analyses?.length || 0,
-  discussion_rounds: memory.discussions?.length || 0,
-  decisions_made: memory.decision_trail?.length || 0,
-  has_synthesis: !!memory.synthesis
-}
-
-mcp__ccw-tools__team_msg({
-  operation: "log", team: teamName, from: "coordinator",
-  to: "user", type: "pipeline_selected",
-  summary: `[coordinator] 分析完成: ${report.explorations_count}次探索, ${report.analyses_count}次分析, ${report.discussion_rounds}轮讨论`
-})
-
-SendMessage({
-  content: `## [coordinator] Analysis Complete\n\n${JSON.stringify(report, null, 2)}\n\n📄 Discussion: ${sessionFolder}/discussion.md\n📊 Conclusions: ${sessionFolder}/conclusions.json`,
-  summary: `[coordinator] Analysis complete: ${pipelineMode} mode`
-})
-
-// 询问下一步（auto 模式跳过，默认关闭团队）
-if (!autoYes) {
-  AskUserQuestion({
-    questions: [{
-      question: "分析流程已完成。下一步：",
-      header: "Next",
-      multiSelect: false,
-      options: [
-        { label: "创建Issue", description: "基于结论创建 Issue" },
-        { label: "生成任务", description: "启动 workflow-lite-plan 规划实施" },
-        { label: "导出报告", description: "生成独立分析报告" },
-        { label: "关闭团队", description: "关闭所有 teammate 并清理" }
-      ]
-    }]
-  })
-}
-```
+---
 
 ## Error Handling
 
 | Scenario | Resolution |
 |----------|------------|
-| Teammate unresponsive | Send follow-up, 2x → respawn |
+| Teammate unresponsive | Send follow-up, 2x -> respawn |
 | Explorer finds nothing | Continue with limited context, note limitation |
 | Discussion loop stuck >5 rounds | Force synthesis, offer continuation |
-| CLI unavailable | Fallback chain: gemini → codex → manual |
+| CLI unavailable | Fallback chain: gemini -> codex -> manual |
 | User timeout in discussion | Save state, show resume command |
 | Max rounds reached | Force synthesis, offer continuation option |
 | Session folder conflict | Append timestamp suffix |
+| Task timeout | Log, mark failed, ask user to retry or skip |
+| Worker crash | Respawn worker, reassign task |
+| Dependency cycle | Detect, report to user, halt |

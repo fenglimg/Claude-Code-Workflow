@@ -728,13 +728,26 @@ export interface Issue {
   id: string;
   title: string;
   context?: string;
-  status: 'open' | 'in_progress' | 'resolved' | 'closed' | 'completed';
+  status: 'registered' | 'planning' | 'planned' | 'queued' | 'executing' | 'completed' | 'failed' | 'paused';
   priority: 'low' | 'medium' | 'high' | 'critical';
   createdAt: string;
   updatedAt?: string;
+  plannedAt?: string;
+  queuedAt?: string;
+  completedAt?: string;
   solutions?: IssueSolution[];
   labels?: string[];
   assignee?: string;
+  tags?: string[];
+  source?: 'github' | 'text' | 'discovery';
+  sourceUrl?: string;
+  boundSolutionId?: string | null;
+  feedback?: Array<{
+    type: 'failure' | 'clarification' | 'rejection';
+    stage: string;
+    content: string;
+    createdAt: string;
+  }>;
   attachments?: Attachment[];
 }
 
@@ -1479,6 +1492,39 @@ export async function getCommandsGroupsConfig(
   return fetchApi<{ groups: Record<string, any>; assignments: Record<string, string> }>(`/api/commands/groups/config?${params}`);
 }
 
+/**
+ * Validate a command file for import
+ */
+export async function validateCommandImport(sourcePath: string): Promise<{
+  valid: boolean;
+  errors?: string[];
+  commandInfo?: { name: string; description: string; version?: string };
+}> {
+  return fetchApi('/api/commands/validate-import', {
+    method: 'POST',
+    body: JSON.stringify({ sourcePath }),
+  });
+}
+
+/**
+ * Create/import a command
+ */
+export async function createCommand(params: {
+  mode: 'import' | 'cli-generate';
+  location: 'project' | 'user';
+  sourcePath?: string;
+  commandName?: string;
+  description?: string;
+  generationType?: 'description' | 'template';
+  projectPath?: string;
+  cliType?: 'claude' | 'codex';
+}): Promise<{ commandName: string; path: string }> {
+  return fetchApi('/api/commands/create', {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
+}
+
 // ========== Memory API ==========
 
 export interface CoreMemory {
@@ -1623,6 +1669,185 @@ export async function unarchiveMemory(memoryId: string, projectPath?: string): P
   return fetchApi<void>(url, {
     method: 'POST',
   });
+}
+
+// ========== Memory V2 API ==========
+
+export interface ExtractionStatus {
+  total_stage1: number;
+  lastRun?: number;
+  jobs: Array<{
+    job_key: string;
+    status: string;
+    last_error?: string;
+  }>;
+}
+
+export interface ConsolidationStatus {
+  status: 'idle' | 'running' | 'completed' | 'error';
+  memoryMdAvailable: boolean;
+  memoryMdPreview?: string;
+  inputCount?: number;
+  lastRun?: number;
+  lastError?: string;
+}
+
+export interface V2Job {
+  kind: string;
+  job_key: string;
+  status: 'pending' | 'running' | 'done' | 'error';
+  last_error?: string;
+  worker_id?: string;
+  started_at?: number;
+  finished_at?: number;
+  retry_remaining?: number;
+}
+
+export interface V2JobsResponse {
+  jobs: V2Job[];
+  total: number;
+  byStatus: Record<string, number>;
+}
+
+/**
+ * Trigger Phase 1 extraction for eligible CLI sessions
+ */
+export async function triggerExtraction(
+  maxSessions?: number,
+  projectPath?: string
+): Promise<{ triggered: boolean; jobIds: string[]; message: string }> {
+  const params = new URLSearchParams();
+  if (projectPath) params.set('path', projectPath);
+  return fetchApi<{ triggered: boolean; jobIds: string[]; message: string }>(
+    `/api/core-memory/extract?${params}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ max_sessions: maxSessions }),
+    }
+  );
+}
+
+/**
+ * Get Phase 1 extraction status
+ */
+export async function getExtractionStatus(
+  projectPath?: string
+): Promise<ExtractionStatus> {
+  const params = new URLSearchParams();
+  if (projectPath) params.set('path', projectPath);
+  return fetchApi<ExtractionStatus>(`/api/core-memory/extract/status?${params}`);
+}
+
+/**
+ * Trigger Phase 2 consolidation to generate MEMORY.md
+ */
+export async function triggerConsolidation(
+  projectPath?: string
+): Promise<{ triggered: boolean; message: string }> {
+  const params = new URLSearchParams();
+  if (projectPath) params.set('path', projectPath);
+  return fetchApi<{ triggered: boolean; message: string }>(
+    `/api/core-memory/consolidate?${params}`,
+    { method: 'POST' }
+  );
+}
+
+/**
+ * Get Phase 2 consolidation status
+ */
+export async function getConsolidationStatus(
+  projectPath?: string
+): Promise<ConsolidationStatus> {
+  const params = new URLSearchParams();
+  if (projectPath) params.set('path', projectPath);
+  return fetchApi<ConsolidationStatus>(`/api/core-memory/consolidate/status?${params}`);
+}
+
+/**
+ * Get V2 pipeline jobs list
+ */
+export async function getV2Jobs(
+  options?: { kind?: string; status_filter?: string },
+  projectPath?: string
+): Promise<V2JobsResponse> {
+  const params = new URLSearchParams();
+  if (projectPath) params.set('path', projectPath);
+  if (options?.kind) params.set('kind', options.kind);
+  if (options?.status_filter) params.set('status_filter', options.status_filter);
+  return fetchApi<V2JobsResponse>(`/api/core-memory/jobs?${params}`);
+}
+
+// ========== Memory V2 Preview API ==========
+
+export interface SessionPreviewItem {
+  sessionId: string;
+  source: 'ccw' | 'native';
+  tool: string;
+  timestamp: number;
+  eligible: boolean;
+  extracted: boolean;
+  bytes: number;
+  turns: number;
+}
+
+export interface ExtractionPreviewResponse {
+  success: boolean;
+  sessions: SessionPreviewItem[];
+  summary: {
+    total: number;
+    eligible: number;
+    alreadyExtracted: number;
+    readyForExtraction: number;
+  };
+}
+
+export interface SelectiveExtractionRequest {
+  sessionIds: string[];
+  includeNative?: boolean;
+  path?: string;
+}
+
+export interface SelectiveExtractionResponse {
+  success: boolean;
+  jobId: string;
+  queued: number;
+  skipped: number;
+  invalidIds: string[];
+}
+
+/**
+ * Preview extraction queue - get list of sessions available for extraction
+ */
+export async function previewExtractionQueue(
+  includeNative: boolean = false,
+  maxSessions?: number,
+  projectPath?: string
+): Promise<ExtractionPreviewResponse> {
+  const params = new URLSearchParams();
+  if (projectPath) params.set('path', projectPath);
+  if (includeNative) params.set('include_native', 'true');
+  if (maxSessions) params.set('max_sessions', String(maxSessions));
+  return fetchApi<ExtractionPreviewResponse>(`/api/core-memory/extract/preview?${params}`);
+}
+
+/**
+ * Trigger selective extraction for specific sessions
+ */
+export async function triggerSelectiveExtraction(
+  request: SelectiveExtractionRequest
+): Promise<SelectiveExtractionResponse> {
+  const params = new URLSearchParams();
+  if (request.path) params.set('path', request.path);
+  return fetchApi<SelectiveExtractionResponse>(
+    `/api/core-memory/extract/selective?${params}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        session_ids: request.sessionIds,
+        include_native: request.includeNative,
+      }),
+    }
+  );
 }
 
 // ========== Project Overview API ==========
@@ -1875,7 +2100,8 @@ export interface CliExecution {
   tool: 'gemini' | 'qwen' | 'codex' | string;
   mode?: string;
   status: 'success' | 'error' | 'timeout';
-  prompt_preview: string;
+  // Backend may return string or object {text: string} for legacy data
+  prompt_preview: string | { text: string } | Record<string, unknown>;
   timestamp: string;
   duration_ms: number;
   sourceDir?: string;
@@ -2008,7 +2234,8 @@ export interface ConversationRecord {
  */
 export interface ConversationTurn {
   turn: number;
-  prompt: string;
+  // Backend may return string or object {text: string} for legacy data
+  prompt: string | { text: string } | Record<string, unknown>;
   output: {
     stdout: string;
     stderr?: string;
@@ -2045,7 +2272,8 @@ export interface NativeSessionTurn {
   turnNumber: number;
   timestamp: string;
   role: 'user' | 'assistant';
-  content: string;
+  // Backend may return string or object {text: string} for legacy data
+  content: string | { text: string } | Record<string, unknown>;
   thoughts?: string[];
   toolCalls?: NativeToolCall[];
   tokens?: NativeTokenInfo;
@@ -7131,4 +7359,330 @@ export async function triggerReindex(
       body: JSON.stringify({ path: projectPath }),
     }
   );
+}
+
+// ========== System Settings API ==========
+
+/**
+ * System settings response from /api/system/settings
+ */
+export interface SystemSettings {
+  injectionControl: {
+    maxLength: number;
+    warnThreshold: number;
+    truncateOnExceed: boolean;
+  };
+  personalSpecDefaults: {
+    defaultReadMode: 'required' | 'optional' | 'keywords';
+    autoEnable: boolean;
+  };
+  recommendedHooks: Array<{
+    id: string;
+    event: string;
+    name: string;
+    command: string;
+    description: string;
+    scope: 'global' | 'project';
+    autoInstall: boolean;
+  }>;
+}
+
+/**
+ * Update system settings request
+ */
+export interface UpdateSystemSettingsInput {
+  injectionControl?: Partial<SystemSettings['injectionControl']>;
+  personalSpecDefaults?: Partial<SystemSettings['personalSpecDefaults']>;
+}
+
+/**
+ * Install recommended hooks request
+ */
+export interface InstallRecommendedHooksInput {
+  hookIds: string[];
+  scope?: 'global' | 'project';
+}
+
+/**
+ * Installed hook result
+ */
+export interface InstalledHook {
+  id: string;
+  event: string;
+  status: 'installed' | 'already-exists';
+}
+
+/**
+ * Install recommended hooks response
+ */
+export interface InstallRecommendedHooksResponse {
+  success: boolean;
+  installed: InstalledHook[];
+}
+
+/**
+ * Fetch system settings (injection control, personal spec defaults, recommended hooks)
+ */
+export async function getSystemSettings(): Promise<SystemSettings> {
+  return fetchApi<SystemSettings>('/api/system/settings');
+}
+
+/**
+ * Update system settings
+ */
+export async function updateSystemSettings(data: UpdateSystemSettingsInput): Promise<{ success: boolean; settings?: Record<string, unknown> }> {
+  return fetchApi<{ success: boolean; settings?: Record<string, unknown> }>('/api/system/settings', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Install recommended hooks
+ */
+export async function installRecommendedHooks(
+  hookIds: string[],
+  scope?: 'global' | 'project'
+): Promise<InstallRecommendedHooksResponse> {
+  return fetchApi<InstallRecommendedHooksResponse>('/api/system/hooks/install-recommended', {
+    method: 'POST',
+    body: JSON.stringify({ hookIds, scope } as InstallRecommendedHooksInput),
+  });
+}
+
+// ========== Spec Stats API ==========
+
+/**
+ * Spec stats response from /api/specs/stats
+ */
+export interface SpecStats {
+  dimensions: Record<string, { count: number; requiredCount: number }>;
+  injectionLength: {
+    requiredOnly: number;
+    withKeywords: number;
+    maxLength: number;
+    percentage: number;
+  };
+}
+
+/**
+ * Fetch spec statistics for a specific workspace
+ * @param projectPath - Optional project path to filter data by workspace
+ */
+export async function getSpecStats(projectPath?: string): Promise<SpecStats> {
+  const url = projectPath
+    ? `/api/specs/stats?path=${encodeURIComponent(projectPath)}`
+    : '/api/specs/stats';
+  return fetchApi<SpecStats>(url);
+}
+
+/**
+ * Spec entry from index
+ */
+export interface SpecEntry {
+  file: string;
+  title: string;
+  dimension: string;
+  category?: 'general' | 'exploration' | 'planning' | 'execution';
+  readMode: 'required' | 'optional' | 'keywords';
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  keywords: string[];
+  scope: 'global' | 'project';
+  /** Content length (body only, cached for performance) */
+  contentLength: number;
+}
+
+/**
+ * Specs list response from /api/specs/list
+ */
+export interface SpecsListResponse {
+  specs: Record<string, SpecEntry[]>;
+}
+
+/**
+ * Fetch specs list for all dimensions
+ * @param projectPath - Optional project path
+ */
+export async function getSpecsList(projectPath?: string): Promise<SpecsListResponse> {
+  const url = projectPath
+    ? `/api/specs/list?path=${encodeURIComponent(projectPath)}`
+    : '/api/specs/list';
+  return fetchApi<SpecsListResponse>(url);
+}
+
+/**
+ * Rebuild spec index
+ */
+export async function rebuildSpecIndex(projectPath?: string): Promise<{ success: boolean; stats?: Record<string, number> }> {
+  const url = projectPath
+    ? `/api/specs/rebuild?path=${encodeURIComponent(projectPath)}`
+    : '/api/specs/rebuild';
+  return fetchApi<{ success: boolean; stats?: Record<string, number> }>(url, {
+    method: 'POST',
+  });
+}
+
+/**
+ * Injection preview file info
+ */
+export interface InjectionPreviewFile {
+  file: string;
+  title: string;
+  dimension: string;
+  category: string;
+  scope: string;
+  readMode: string;
+  priority: string;
+  contentLength: number;
+  content?: string;
+}
+
+/**
+ * Injection preview response
+ */
+export interface InjectionPreviewResponse {
+  files: InjectionPreviewFile[];
+  stats: {
+    count: number;
+    totalLength: number;
+    maxLength: number;
+    percentage: number;
+  };
+}
+
+/**
+ * Get injection preview with file list
+ * @param mode - 'required' | 'all' | 'keywords'
+ * @param preview - Include content preview
+ * @param projectPath - Optional project path
+ * @param category - Optional category filter
+ */
+export async function getInjectionPreview(
+  mode: 'required' | 'all' | 'keywords' = 'required',
+  preview: boolean = false,
+  projectPath?: string,
+  category?: string
+): Promise<InjectionPreviewResponse> {
+  const params = new URLSearchParams();
+  params.set('mode', mode);
+  params.set('preview', String(preview));
+  if (projectPath) {
+    params.set('path', projectPath);
+  }
+  if (category) {
+    params.set('category', category);
+  }
+  return fetchApi<InjectionPreviewResponse>(`/api/specs/injection-preview?${params.toString()}`);
+}
+
+/**
+ * Command preview configuration
+ */
+export interface CommandPreviewConfig {
+  command: string;
+  labelKey: string;  // i18n key for label
+  descriptionKey: string;  // i18n key for description
+  category?: string;
+  mode: 'required' | 'all';
+}
+
+/**
+ * Predefined command preview configurations
+ * Labels and descriptions use i18n keys: commandPreview.{key}.label / commandPreview.{key}.description
+ */
+export const COMMAND_PREVIEWS: CommandPreviewConfig[] = [
+  {
+    command: 'ccw spec load',
+    labelKey: 'default',
+    descriptionKey: 'default',
+    mode: 'required',
+  },
+  {
+    command: 'ccw spec load --category exploration',
+    labelKey: 'exploration',
+    descriptionKey: 'exploration',
+    category: 'exploration',
+    mode: 'required',
+  },
+  {
+    command: 'ccw spec load --category planning',
+    labelKey: 'planning',
+    descriptionKey: 'planning',
+    category: 'planning',
+    mode: 'required',
+  },
+  {
+    command: 'ccw spec load --category execution',
+    labelKey: 'execution',
+    descriptionKey: 'execution',
+    category: 'execution',
+    mode: 'required',
+  },
+  {
+    command: 'ccw spec load --category general',
+    labelKey: 'general',
+    descriptionKey: 'general',
+    category: 'general',
+    mode: 'required',
+  },
+];
+
+/**
+ * Update spec frontmatter (toggle readMode)
+ */
+export async function updateSpecFrontmatter(
+  file: string,
+  readMode: string,
+  projectPath?: string
+): Promise<{ success: boolean; readMode?: string }> {
+  const url = projectPath
+    ? `/api/specs/update-frontmatter?path=${encodeURIComponent(projectPath)}`
+    : '/api/specs/update-frontmatter';
+  return fetchApi<{ success: boolean; readMode?: string }>(url, {
+    method: 'PUT',
+    body: JSON.stringify({ file, readMode }),
+  });
+}
+
+// ========== Analysis API ==========
+
+import type { AnalysisSessionSummary, AnalysisSessionDetail } from '../types/analysis';
+
+/**
+ * Fetch list of analysis sessions
+ */
+export async function fetchAnalysisSessions(
+  projectPath?: string,
+  options?: { limit?: number; offset?: number }
+): Promise<AnalysisSessionSummary[]> {
+  const params = new URLSearchParams();
+  if (options?.limit) params.set('limit', String(options.limit));
+  if (options?.offset) params.set('offset', String(options.offset));
+
+  const queryString = params.toString();
+  const path = queryString
+    ? `${withPath('/api/analysis', projectPath)}&${queryString}`
+    : withPath('/api/analysis', projectPath);
+
+  const data = await fetchApi<{ success: boolean; data: AnalysisSessionSummary[]; error?: string }>(path);
+  if (!data.success) {
+    throw new Error(data.error || 'Failed to fetch analysis sessions');
+  }
+  return data.data;
+}
+
+/**
+ * Fetch analysis session detail
+ */
+export async function fetchAnalysisDetail(
+  sessionId: string,
+  projectPath?: string
+): Promise<AnalysisSessionDetail> {
+  const data = await fetchApi<{ success: boolean; data: AnalysisSessionDetail; error?: string }>(
+    withPath(`/api/analysis/${encodeURIComponent(sessionId)}`, projectPath)
+  );
+  if (!data.success) {
+    throw new Error(data.error || 'Failed to fetch analysis detail');
+  }
+  return data.data;
 }
