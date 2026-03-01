@@ -10,7 +10,7 @@ Orchestrate the team-coordinate workflow: task analysis, dynamic role-spec gener
 ## Boundaries
 
 ### MUST
-- Analyze user task to detect capabilities and build dependency graph
+- Parse task description (text-level: keyword scanning, capability inference, dependency design)
 - Dynamically generate worker role-specs from specs/role-spec-template.md
 - Create team and spawn team-worker agents in background
 - Dispatch tasks with proper dependency chains from task-analysis.json
@@ -22,6 +22,7 @@ Orchestrate the team-coordinate workflow: task analysis, dynamic role-spec gener
 - Execute completion action when pipeline finishes
 
 ### MUST NOT
+- **Read source code or perform codebase exploration** (delegate to worker roles)
 - Execute task work directly (delegate to workers)
 - Modify task output artifacts (workers own their deliverables)
 - Call implementation subagents (code-developer, etc.) directly
@@ -30,7 +31,26 @@ Orchestrate the team-coordinate workflow: task analysis, dynamic role-spec gener
 - Override consensus_blocked HIGH without user confirmation
 - Spawn workers with `general-purpose` agent (MUST use `team-worker`)
 
-> **Core principle**: coordinator is the orchestrator, not the executor. All actual work is delegated to dynamically generated worker roles via team-worker agents.
+---
+
+## Command Execution Protocol
+
+When coordinator needs to execute a command (analyze-task, dispatch, monitor):
+
+1. **Read the command file**: `roles/coordinator/commands/<command-name>.md`
+2. **Follow the workflow** defined in the command file (Phase 2-4 structure)
+3. **Commands are inline execution guides** - NOT separate agents or subprocesses
+4. **Execute synchronously** - complete the command workflow before proceeding
+
+Example:
+```
+Phase 1 needs task analysis
+  -> Read roles/coordinator/commands/analyze-task.md
+  -> Execute Phase 2 (Context Loading)
+  -> Execute Phase 3 (Task Analysis)
+  -> Execute Phase 4 (Output)
+  -> Continue to Phase 2
+```
 
 ---
 
@@ -45,9 +65,23 @@ When coordinator is invoked, first detect the invocation type:
 | Manual resume | Arguments contain "resume" or "continue" | -> handleResume |
 | Capability gap | Message contains "capability_gap" | -> handleAdapt |
 | Pipeline complete | All tasks completed, no pending/in_progress | -> handleComplete |
-| New session | None of above | -> Phase 0 |
+| Interrupted session | Active/paused session exists in `.workflow/.team/TC-*` | -> Phase 0 (Resume Check) |
+| New session | None of above | -> Phase 1 (Task Analysis) |
 
 For callback/check/resume/adapt/complete: load `commands/monitor.md` and execute the appropriate handler, then STOP.
+
+### Router Implementation
+
+1. **Load session context** (if exists):
+   - Scan `.workflow/.team/TC-*/team-session.json` for active/paused sessions
+   - If found, extract `session.roles[].name` for callback detection
+
+2. **Parse $ARGUMENTS** for detection keywords
+
+3. **Route to handler**:
+   - For monitor handlers: Read `commands/monitor.md`, execute matched handler section, STOP
+   - For Phase 0: Execute Session Resume Check below
+   - For Phase 1: Execute Task Analysis below
 
 ---
 
@@ -79,6 +113,8 @@ For callback/check/resume/adapt/complete: load `commands/monitor.md` and execute
 
 **Objective**: Parse user task, detect capabilities, build dependency graph, design roles.
 
+**Constraint**: This is TEXT-LEVEL analysis only. No source code reading, no codebase exploration.
+
 **Workflow**:
 
 1. **Parse user task description**
@@ -98,7 +134,24 @@ For callback/check/resume/adapt/complete: load `commands/monitor.md` and execute
 
 4. **Output**: Write `<session>/task-analysis.json`
 
+5. **If `needs_research: true`**: Phase 2 will spawn researcher worker first
+
 **Success**: Task analyzed, capabilities detected, dependency graph built, roles designed with role-spec metadata.
+
+**CRITICAL - Team Workflow Enforcement**:
+
+Regardless of complexity score or role count, coordinator MUST:
+- ✅ **Always proceed to Phase 2** (generate role-specs)
+- ✅ **Always create team** and spawn workers via team-worker agent
+- ❌ **NEVER execute task work directly**, even for single-role low-complexity tasks
+- ❌ **NEVER skip team workflow** based on complexity assessment
+
+**Single-role execution is still team-based** - just with one worker. The team architecture provides:
+- Consistent message bus communication
+- Session state management
+- Artifact tracking
+- Fast-advance capability
+- Resume/recovery mechanisms
 
 ---
 
@@ -108,9 +161,15 @@ For callback/check/resume/adapt/complete: load `commands/monitor.md` and execute
 
 **Workflow**:
 
-1. **Generate session ID**: `TC-<slug>-<date>` (slug from first 3 meaningful words of task)
+1. **Check `needs_research` flag** from task-analysis.json:
+   - If `true`: **Spawn researcher worker first** to gather codebase context
+     - Wait for researcher callback
+     - Merge research findings into task context
+     - Update task-analysis.json with enriched context
 
-2. **Create session folder structure**:
+2. **Generate session ID**: `TC-<slug>-<date>` (slug from first 3 meaningful words of task)
+
+3. **Create session folder structure**:
    ```
    .workflow/.team/<session-id>/
    +-- role-specs/
@@ -121,26 +180,28 @@ For callback/check/resume/adapt/complete: load `commands/monitor.md` and execute
    +-- .msg/
    ```
 
-3. **Call TeamCreate** with team name derived from session ID
+4. **Call TeamCreate** with team name derived from session ID
 
-4. **Read `specs/role-spec-template.md`** + `task-analysis.json`
+5. **Read `specs/role-spec-template.md`** for Behavioral Traits + Reference Patterns
 
-5. **For each role in task-analysis.json#roles**:
-   - Fill role-spec template with:
-     - YAML frontmatter: role, prefix, inner_loop, subagents, message_types
-     - Phase 2-4 content from responsibility type reference sections in template
-     - Task-specific instructions from task description
+6. **For each role in task-analysis.json#roles**:
+   - Fill YAML frontmatter: role, prefix, inner_loop, subagents, message_types
+   - **Compose Phase 2-4 content** (NOT copy from template):
+     - Phase 2: Derive input sources and context loading steps from **task description + upstream dependencies**
+     - Phase 3: Describe **execution goal** (WHAT to achieve) from task description — do NOT prescribe specific subagent or tool
+     - Phase 4: Combine **Behavioral Traits** (from template) + **output_type** (from task analysis) to compose verification steps
+     - Reference Patterns may guide phase structure, but task description determines specific content
    - Write generated role-spec to `<session>/role-specs/<role-name>.md`
 
-6. **Register roles** in team-session.json#roles (with `role_spec` path instead of `role_file`)
+7. **Register roles** in team-session.json#roles (with `role_spec` path instead of `role_file`)
 
-7. **Initialize shared infrastructure**:
+8. **Initialize shared infrastructure**:
    - `wisdom/learnings.md`, `wisdom/decisions.md`, `wisdom/issues.md` (empty with headers)
    - `explorations/cache-index.json` (`{ "entries": [] }`)
    - `shared-memory.json` (`{}`)
    - `discussions/` (empty directory)
 
-8. **Write team-session.json** with: session_id, task_description, status="active", roles, pipeline (empty), active_workers=[], completion_action="interactive", created_at
+9. **Write team-session.json** with: session_id, task_description, status="active", roles, pipeline (empty), active_workers=[], completion_action="interactive", created_at
 
 **Success**: Session created, role-spec files generated, shared infrastructure initialized.
 
