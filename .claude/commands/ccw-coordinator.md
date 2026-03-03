@@ -17,10 +17,10 @@ Interactive orchestration tool: analyze task → discover commands → recommend
 
 | Skill | 包含操作 |
 |-------|---------|
-| `workflow-lite-plan` | lite-plan, lite-execute |
+| `workflow-lite-planex` | lite-plan (includes execution phase internally) |
 | `workflow-plan` | plan, plan-verify, replan |
 | `workflow-execute` | execute |
-| `workflow-multi-cli-plan` | multi-cli-plan |
+| `workflow-multi-cli-plan` | multi-cli-plan (includes execution phase internally) |
 | `workflow-test-fix` | test-fix-gen, test-cycle-execute |
 | `workflow-tdd-plan` | tdd-plan, tdd-verify |
 | `review-cycle` | review-session-cycle, review-module-cycle, review-cycle-fix |
@@ -30,7 +30,7 @@ Interactive orchestration tool: analyze task → discover commands → recommend
 | `workflow:roadmap-with-file` | strategic requirement roadmap → issue creation → execution-plan.json |
 | `workflow:integration-test-cycle` | explore → test dev → test-fix cycle → reflection |
 | `workflow:refactor-cycle` | tech debt discovery → prioritize → execute → validate |
-| `team-planex` | planner + executor wave pipeline（适合大量零散 issue 或 roadmap 产出的清晰 issue，实现 0→1 开发）|
+| `team-planex` | planner + executor wave pipeline（适合大量零散 issue 或 roadmap 产出的清晰 issue）|
 
 ## Core Concept: Minimum Execution Units (最小执行单元)
 
@@ -49,9 +49,9 @@ Interactive orchestration tool: analyze task → discover commands → recommend
 
 | Unit Name | Commands | Purpose | Output |
 |-----------|----------|---------|--------|
-| **Quick Implementation** | lite-plan → lite-execute | Lightweight plan and immediate execution | Working code |
-| **Multi-CLI Planning** | multi-cli-plan → lite-execute | Multi-perspective analysis and execution | Working code |
-| **Bug Fix** | lite-plan (--bugfix) → lite-execute | Quick bug diagnosis and fix execution | Fixed code |
+| **Quick Implementation** | lite-plan (Phase 1: plan → Phase 2: execute) | Lightweight plan and immediate execution | Working code |
+| **Multi-CLI Planning** | multi-cli-plan (Phase 1: plan → Phase 2: execute) | Multi-perspective analysis and execution | Working code |
+| **Bug Fix** | lite-plan --bugfix (Phase 1: plan → Phase 2: execute) | Quick bug diagnosis and fix execution | Fixed code |
 | **Full Planning + Execution** | plan → execute | Detailed planning and execution | Working code |
 | **Verified Planning + Execution** | plan → plan-verify → execute | Planning with verification and execution | Working code |
 | **Replanning + Execution** | replan → execute | Update plan and execute changes | Working code |
@@ -85,7 +85,7 @@ Interactive orchestration tool: analyze task → discover commands → recommend
 | Unit Name | Commands | Purpose | Output |
 |-----------|----------|---------|--------|
 | **Analyze to Plan** | analyze-with-file → lite-plan | Collaborative analysis → auto chain to lite-plan | discussion.md + code |
-| **Brainstorm to Plan** | brainstorm-with-file → lite-plan | Multi-perspective ideation → auto chain to lite-plan | brainstorm.md + code |
+| **Brainstorm to Plan** | brainstorm-with-file → plan → execute | Multi-perspective ideation → formal planning | brainstorm.md + code |
 | **Debug With File** | debug-with-file | Hypothesis-driven debugging with documentation | understanding.md |
 | **Collaborative Plan** | collaborative-plan-with-file → unified-execute-with-file | Multi-agent collaborative planning and execution | plan-note.md + code |
 | **Roadmap Plan** | roadmap-with-file → team-planex | Requirement decomposition and wave execution | execution-plan.json + code |
@@ -101,8 +101,8 @@ Interactive orchestration tool: analyze task → discover commands → recommend
 
 | Command | Can Precede | Atomic Units |
 |---------|-----------|--------------|
-| lite-plan | lite-execute, convert-to-plan | Quick Implementation, Rapid-to-Issue, Bug Fix |
-| multi-cli-plan | lite-execute | Multi-CLI Planning |
+| lite-plan | convert-to-plan | Quick Implementation, Rapid-to-Issue, Bug Fix |
+| multi-cli-plan | (execution is internal) | Multi-CLI Planning |
 | plan | plan-verify, execute | Full Planning + Execution, Verified Planning + Execution |
 | plan-verify | execute | Verified Planning + Execution |
 | replan | execute | Replanning + Execution |
@@ -118,7 +118,7 @@ Interactive orchestration tool: analyze task → discover commands → recommend
 | issue:queue | issue:execute | Issue Workflow, Rapid-to-Issue, Brainstorm-to-Issue |
 | issue:from-brainstorm | issue:queue | Brainstorm-to-Issue |
 | analyze-with-file | lite-plan (auto) | Analyze to Plan |
-| brainstorm-with-file | lite-plan (auto), issue:from-brainstorm | Brainstorm to Plan, Brainstorm-to-Issue |
+| brainstorm-with-file | plan (auto), issue:from-brainstorm | Brainstorm to Plan, Brainstorm-to-Issue |
 | collaborative-plan-with-file | unified-execute-with-file | Collaborative Plan |
 | roadmap-with-file | team-planex | Roadmap Plan |
 | unified-execute-with-file | (terminal) | Collaborative Plan |
@@ -137,8 +137,8 @@ Interactive orchestration tool: analyze task → discover commands → recommend
 
 **Example Pipeline with Units**:
 ```
-需求 → 【lite-plan → lite-execute】→ 代码 → 【test-fix-gen → test-cycle-execute】→ 测试通过
-       └──── Quick Implementation ────┘         └────── Test Validation ──────┘
+需求 → 【lite-plan】→ 代码 → 【test-fix-gen → test-cycle-execute】→ 测试通过
+       └── Quick Implementation ──┘     └────── Test Validation ──────┘
 ```
 
 ## 3-Phase Workflow
@@ -165,11 +165,13 @@ function detectTaskType(text) {
   if (/urgent|production|critical/.test(text) && /fix|bug/.test(text)) return 'bugfix-hotfix';
   // With-File workflow patterns (specific keywords - must come before generic bugfix)
   if (/brainstorm.*issue|头脑风暴.*issue|idea.*issue|想法.*issue|从.*头脑风暴|convert.*brainstorm/.test(text)) return 'brainstorm-to-issue';
+  // 0→1 Greenfield detection (priority over brainstorm/roadmap)
+  if (/从零开始|from scratch|0.*to.*1|greenfield|全新.*开发|新项目|new project|build.*from.*ground/.test(text)) return 'greenfield';
   if (/brainstorm|ideation|头脑风暴|创意|发散思维|creative thinking/.test(text)) return 'brainstorm-file';
   if (/debug.*document|hypothesis.*debug|深度调试|假设.*验证|systematic debug/.test(text)) return 'debug-file';
   if (/analyze.*document|collaborative analysis|协作分析|深度.*理解/.test(text)) return 'analyze-file';
   if (/collaborative.*plan|协作.*规划|多人.*规划|multi.*agent.*plan|Plan Note|分工.*规划/.test(text)) return 'collaborative-plan';
-  if (/roadmap|需求.*规划|需求.*拆解|requirement.*plan|progressive.*plan|路线.*图/.test(text)) return 'roadmap';
+  if (/roadmap|路线.*图/.test(text)) return 'roadmap';  // Narrowed: only explicit roadmap keywords
   if (/spec.*gen|specification|PRD|产品需求|产品文档|产品规格/.test(text)) return 'spec-driven';
   // Cycle workflow patterns
   if (/integration.*test|集成测试|端到端.*测试|e2e.*test|integration.*cycle/.test(text)) return 'integration-test';
@@ -232,13 +234,7 @@ const commandPorts = {
     tags: ['planning'],
     atomic_group: 'quick-implementation'
   },
-  'lite-execute': {
-    name: 'lite-execute',
-    input: ['plan', 'multi-cli-plan'],
-    output: ['code'],
-    tags: ['execution'],
-    atomic_groups: ['quick-implementation', 'multi-cli-planning', 'bug-fix']
-  },
+  // lite-execute is now an internal phase of lite-plan and multi-cli-plan (not a standalone command)
   'plan': {
     name: 'plan',
     input: ['requirement', 'specification'],
@@ -407,7 +403,7 @@ const commandPorts = {
     output: ['brainstorm-document'],
     tags: ['brainstorm', 'with-file'],
     atomic_group: 'brainstorm-to-plan',
-    note: 'Auto chains to lite-plan with brainstorm artifacts'
+    note: 'Auto chains to workflow-plan with brainstorm artifacts'
   },
   'issue:from-brainstorm': {
     name: 'issue:from-brainstorm',
@@ -515,8 +511,10 @@ function determinePortFlow(taskType, constraints) {
     // Issue workflow types
     'issue-batch':        { inputPort: 'codebase', outputPort: 'completed-issues' },
     'issue-transition':   { inputPort: 'requirement', outputPort: 'completed-issues' },
-    // With-File workflow types (auto chain to lite-plan)
-    'brainstorm-file':      { inputPort: 'exploration-topic', outputPort: 'code' },
+    // 0→1 Greenfield (exploration → formal planning → execution)
+    'greenfield':             { inputPort: 'exploration-topic', outputPort: 'test-passed' },
+    // With-File workflow types (auto chain to plan)
+    'brainstorm-file':      { inputPort: 'exploration-topic', outputPort: 'test-passed' },
     'brainstorm-to-issue':  { inputPort: 'brainstorm-document', outputPort: 'completed-issues' },
     'debug-file':           { inputPort: 'bug-report', outputPort: 'understanding-document' },
     'analyze-file':         { inputPort: 'analysis-topic', outputPort: 'code' },
@@ -546,12 +544,11 @@ function determinePortFlow(taskType, constraints) {
 Recommended Command Chain:
 
 Pipeline (管道视图):
-需求 → lite-plan → 计划 → lite-execute → 代码 → test-cycle-execute → 测试通过
+需求 → lite-plan → 代码 → test-cycle-execute → 测试通过
 
 Commands (命令列表):
-1. /workflow-lite-plan
-2. /workflow:lite-execute
-3. /workflow-test-fix
+1. /workflow-lite-planex
+2. /workflow-test-fix
 
 Proceed? [Confirm / Show Details / Adjust / Cancel]
 ```
@@ -686,9 +683,7 @@ function formatCommand(cmd, previousResults, analysis) {
   if (['lite-plan', 'plan', 'tdd-plan', 'multi-cli-plan'].includes(name)) {
     prompt += ` "${analysis.goal}"`;
 
-  } else if (name === 'lite-execute') {
-    const hasPlan = previousResults.some(r => r.command.includes('plan'));
-    prompt += hasPlan ? ' --in-memory' : ` "${analysis.goal}"`;
+  // lite-execute is now an internal phase of lite-plan (not invoked separately)
 
   } else if (name === 'execute') {
     const plan = previousResults.find(r => r.command.includes('plan'));
@@ -707,7 +702,7 @@ function formatCommand(cmd, previousResults, analysis) {
     prompt = `/spec-generator -y "${analysis.goal}"`;
 
   } else if (name === 'test-gen') {
-    const impl = previousResults.find(r => r.command.includes('execute') || r.command.includes('lite-execute'));
+    const impl = previousResults.find(r => r.command.includes('execute'));
     prompt += impl?.session_id ? ` "${impl.session_id}"` : ` "${analysis.goal}"`;
 
   } else if (name === 'test-fix-gen') {
@@ -856,7 +851,7 @@ workflow 操作通过 `Skill()` 调用对应的 Skill。
 
 ```javascript
 // Skill 调用方式
-Skill({ skill: 'workflow-lite-plan', args: '"task description"' });
+Skill({ skill: 'workflow-lite-planex', args: '"task description"' });
 Skill({ skill: 'workflow-execute', args: '--resume-session="WFS-xxx"' });
 Skill({ skill: 'brainstorm', args: '"exploration topic"' });
 Skill({ skill: 'spec-generator', args: '"product specification"' });
@@ -909,10 +904,10 @@ Task: <description>
 
 | Skill | 包含操作 |
 |-------|---------|
-| `workflow-lite-plan` | lite-plan, lite-execute |
+| `workflow-lite-planex` | lite-plan (includes execution phase internally) |
 | `workflow-plan` | plan, plan-verify, replan |
 | `workflow-execute` | execute |
-| `workflow-multi-cli-plan` | multi-cli-plan |
+| `workflow-multi-cli-plan` | multi-cli-plan (includes execution phase internally) |
 | `workflow-test-fix` | test-fix-gen, test-cycle-execute |
 | `workflow-tdd-plan` | tdd-plan, tdd-verify |
 | `review-cycle` | review-session-cycle, review-module-cycle, review-cycle-fix |
@@ -944,7 +939,7 @@ Task: <description>
 
 | Task Type | Pipeline | Minimum Units |
 |-----------|----------|---|
-| **feature** (simple) | 需求 →【lite-plan → lite-execute】→ 代码 →【test-fix-gen → test-cycle-execute】→ 测试通过 | Quick Implementation + Test Validation |
+| **feature** (simple) | 需求 →【lite-plan】→ 代码 →【test-fix-gen → test-cycle-execute】→ 测试通过 | Quick Implementation + Test Validation |
 | **feature** (complex) | 需求 →【plan → plan-verify】→ validate → execute → 代码 → review → fix | Full Planning + Code Review + Testing |
 | **bugfix** | Bug报告 → lite-plan (--bugfix) → 修复代码 →【test-fix-gen → test-cycle-execute】→ 测试通过 | Bug Fix + Test Validation |
 | **tdd** | 需求 → tdd-plan → TDD任务 → execute → 代码 → tdd-verify | TDD Planning + Execution |
@@ -952,12 +947,13 @@ Task: <description>
 | **test-gen** | 代码/会话 →【test-gen → execute】→ 测试通过 | Test Generation + Execution |
 | **review** | 代码 →【review-* → review-cycle-fix】→ 修复代码 →【test-fix-gen → test-cycle-execute】→ 测试通过 | Code Review + Testing |
 | **brainstorm** | 探索主题 → brainstorm → 分析 →【plan → plan-verify】→ execute → test | Exploration + Planning + Execution |
-| **multi-cli** | 需求 → multi-cli-plan → 对比分析 → lite-execute → test | Multi-Perspective + Testing |
+| **multi-cli** | 需求 → multi-cli-plan → 对比分析 → 代码 → test | Multi-Perspective + Testing |
 | **spec-driven** | 需求 →【spec-generator → plan → execute】→ 代码 →【test-fix-gen → test-cycle-execute】→ 测试通过 | Spec-Driven + Testing |
 | **issue-batch** | 代码库 →【discover → plan → queue → execute】→ 完成 issues | Issue Workflow |
 | **issue-transition** | 需求 →【lite-plan → convert-to-plan → queue → execute】→ 完成 issues | Rapid-to-Issue |
-| **analyze-file** | 分析主题 →【analyze-with-file → lite-plan → lite-execute】→ 代码 | Analyze to Plan |
-| **brainstorm-file** | 主题 →【brainstorm-with-file → lite-plan → lite-execute】→ 代码 | Brainstorm to Plan |
+| **analyze-file** | 分析主题 →【analyze-with-file → lite-plan】→ 代码 | Analyze to Plan |
+| **greenfield** | 需求 →【brainstorm-with-file → plan → execute】→ 代码 → test | Greenfield (0→1) |
+| **brainstorm-file** | 主题 →【brainstorm-with-file → plan → execute】→ 代码 → test | Brainstorm to Plan |
 | **brainstorm-to-issue** | brainstorm.md →【from-brainstorm → queue → execute】→ 完成 issues | Brainstorm to Issue |
 | **debug-file** | Bug报告 → debug-with-file → understanding.md (自包含) | Debug With File |
 | **collaborative-plan** | 需求 →【collaborative-plan-with-file → unified-execute-with-file】→ 代码 | Collaborative Plan |
@@ -967,8 +963,8 @@ Task: <description>
 | **team-planex** | 需求 → team-planex → 代码 (自包含) | Team Plan+Execute |
 | **bugfix-hotfix** | Bug报告(紧急) → lite-plan (--hotfix) → 修复代码 | Hotfix (skip tests) |
 | **exploration** | 探索主题 → brainstorm →【plan → execute】→ 代码 → test | Exploration + Planning |
-| **quick-task** | 需求 →【lite-plan → lite-execute】→ 代码 → test | Quick Implementation |
+| **quick-task** | 需求 →【lite-plan】→ 代码 → test | Quick Implementation |
 | **ui-design** | UI需求 → ui-design:explore → plan → execute → 代码 | UI Design |
-| **documentation** | 文档需求 → lite-plan → lite-execute → 文档 | Documentation |
+| **documentation** | 文档需求 → lite-plan → 文档 | Documentation |
 
 Refer to the Skill 映射 section above for available Skills and Commands.

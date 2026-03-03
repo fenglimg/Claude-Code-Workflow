@@ -28,7 +28,6 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { HookCard, HookFormDialog, HookQuickTemplates, HookWizard, type HookCardData, type HookFormData, type HookTriggerType, HOOK_TEMPLATES, type WizardType } from '@/components/hook';
 import { useHooks, useToggleHook } from '@/hooks';
-import { installHookTemplate } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 // ========== Types ==========
@@ -268,12 +267,25 @@ export function HookManagerPage() {
 
     setInstallingTemplateId(templateId);
     try {
-      await installHookTemplate(template.trigger, {
-        id: template.id,
-        command: template.command,
-        args: template.args ? [...template.args] : undefined,
-        matcher: template.matcher,
+      // Use backend API to install template
+      const response = await fetch('/api/hooks/templates/install', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateId,
+          scope: 'project',
+            }),
       });
+
+      if (!response.ok) {
+        throw new Error(`Failed to install template: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Unknown error');
+      }
+
       await refetch();
     } catch (error) {
       console.error('Failed to install template:', error);

@@ -10,9 +10,7 @@
 
 | Command | Function | Syntax |
 |---------|----------|--------|
-| [`lite-lite-lite`](#lite-lite-lite) | Ultra-lightweight multi-tool analysis and direct execution | `/workflow:lite-lite-lite [-y] <task>` |
-| [`lite-plan`](#lite-plan) | Lightweight interactive planning workflow | `/workflow-lite-plan [-y] [-e] "task"` |
-| [`lite-execute`](#lite-execute) | Execute tasks based on in-memory plan | `/workflow:lite-execute [-y] [--in-memory] [task]` |
+| [`lite-plan`](#lite-plan) | Lightweight interactive planning workflow | `/workflow-lite-planex [-y] [-e] "task"` |
 | [`lite-fix`](#lite-fix) | Lightweight bug diagnosis and fix | `/workflow:lite-fix [-y] [--hotfix] "bug description"` |
 
 ### Standard Workflows
@@ -67,36 +65,13 @@
 
 ## Command Details
 
-### lite-lite-lite
-
-**Function**: Ultra-lightweight multi-tool analysis and direct execution. Simple tasks have no artifacts, complex tasks automatically create planning documents in `.workflow/.scratchpad/`.
-
-**Syntax**:
-```bash
-/workflow:lite-lite-lite [-y|--yes] <task description>
-```
-
-**Use Cases**:
-- Ultra-simple quick tasks
-- Code modifications not needing planning documents
-- Automatic tool selection
-
-**Examples**:
-```bash
-# Ultra-simple task
-/workflow:lite-lite-lite "fix header styles"
-
-# Auto mode
-/workflow:lite-lite-lite -y "update README links"
-```
-
 ### lite-plan
 
-**Function**: Lightweight interactive planning workflow, supporting in-memory planning, code exploration, and execution to lite-execute.
+**Function**: Lightweight interactive planning and execution workflow (Phase 1: plan, Phase 2: execute), supporting in-memory planning, code exploration, and automatic execution after confirmation.
 
 **Syntax**:
 ```bash
-/workflow-lite-plan [-y|--yes] [-e|--explore] "task description" | file.md
+/workflow-lite-planex [-y|--yes] [-e|--explore] "task description" | file.md
 ```
 
 **Options**:
@@ -105,31 +80,10 @@
 **Examples**:
 ```bash
 # Basic planning
-/workflow-lite-plan "add user avatar feature"
+/workflow-lite-planex "add user avatar feature"
 
 # With exploration
-/workflow-lite-plan -e "refactor authentication module"
-```
-
-### lite-execute
-
-**Function**: Execute tasks based on in-memory plan, prompt description, or file content.
-
-**Syntax**:
-```bash
-/workflow:lite-execute [-y|--yes] [--in-memory] ["task description" | file-path]
-```
-
-**Options**:
-- `--in-memory`: Use in-memory plan
-
-**Examples**:
-```bash
-# Execute task
-/workflow:lite-execute "implement avatar upload API"
-
-# Use in-memory plan
-/workflow:lite-execute --in-memory
+/workflow-lite-planex -e "refactor authentication module"
 ```
 
 ### lite-fix

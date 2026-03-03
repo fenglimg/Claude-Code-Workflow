@@ -19,20 +19,15 @@ export default withMermaid(defineConfig({
   // Ignore dead links for incomplete docs
   ignoreDeadLinks: true,
   head: [
-    ['link', { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' }],
+    ['link', { rel: 'icon', href: `${base}favicon.svg`, type: 'image/svg+xml' }],
     [
       'script',
       {},
-      `(() => {
+      `(function() {
   try {
-    const theme = localStorage.getItem('ccw-theme') || 'blue'
-    document.documentElement.setAttribute('data-theme', theme)
-
-    const mode = localStorage.getItem('ccw-color-mode') || 'auto'
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    const isDark = mode === 'dark' || (mode === 'auto' && prefersDark)
-    document.documentElement.classList.toggle('dark', isDark)
-  } catch {}
+    var theme = localStorage.getItem('ccw-theme') || 'blue';
+    document.documentElement.setAttribute('data-theme', theme);
+  } catch (e) {}
 })()`
     ],
     ['meta', { name: 'theme-color', content: '#3b82f6' }],
@@ -80,8 +75,7 @@ export default withMermaid(defineConfig({
       { text: 'Guide', link: '/guide/ch01-what-is-claude-dms3' },
       { text: 'Commands', link: '/commands/claude/' },
       { text: 'Skills', link: '/skills/' },
-      { text: 'Features', link: '/features/spec' },
-      { text: 'Components', link: '/components/' }
+      { text: 'Features', link: '/features/spec' }
     ],
 
     // Sidebar - 优化导航结构，增加二级标题和归类
@@ -106,6 +100,15 @@ export default withMermaid(defineConfig({
             { text: 'Installation', link: '/guide/installation' },
             { text: 'First Workflow', link: '/guide/first-workflow' },
             { text: 'CLI Tools', link: '/guide/cli-tools' }
+          ]
+        },
+        {
+          text: '📝 CLAUDE.md & MCP',
+          collapsible: true,
+          items: [
+            { text: 'CLAUDE.md Guide', link: '/guide/claude-md' },
+            { text: 'CCW MCP Tools', link: '/guide/ccwmcp' },
+            { text: 'MCP Setup', link: '/guide/mcp-setup' }
           ]
         }
       ],
@@ -132,6 +135,13 @@ export default withMermaid(defineConfig({
             { text: 'Overview', link: '/commands/codex/' },
             { text: 'Prep', link: '/commands/codex/prep' },
             { text: 'Review', link: '/commands/codex/review' }
+          ]
+        },
+        {
+          text: '🔧 CLI Reference',
+          collapsible: true,
+          items: [
+            { text: 'CLI Commands', link: '/cli/commands' }
           ]
         }
       ],
@@ -180,6 +190,34 @@ export default withMermaid(defineConfig({
             { text: 'Core Skills', link: '/skills/core-skills' },
             { text: 'Reference', link: '/skills/reference' }
           ]
+        },
+        {
+          text: '📋 Skill Specifications',
+          collapsible: true,
+          items: [
+            { text: 'Document Standards', link: '/skills/specs/document-standards' },
+            { text: 'Issue Classification', link: '/skills/specs/issue-classification' },
+            { text: 'Quality Gates', link: '/skills/specs/quality-gates' },
+            { text: 'Quality Standards', link: '/skills/specs/quality-standards' },
+            { text: 'Reference Docs Spec', link: '/skills/specs/reference-docs-spec' },
+            { text: 'Review Dimensions', link: '/skills/specs/review-dimensions' }
+          ]
+        },
+        {
+          text: '📄 Skill Templates',
+          collapsible: true,
+          items: [
+            { text: 'Architecture Doc', link: '/skills/templates/architecture-doc' },
+            { text: 'Autonomous Action', link: '/skills/templates/autonomous-action' },
+            { text: 'Autonomous Orchestrator', link: '/skills/templates/autonomous-orchestrator' },
+            { text: 'Epics Template', link: '/skills/templates/epics-template' },
+            { text: 'Issue Template', link: '/skills/templates/issue-template' },
+            { text: 'Product Brief', link: '/skills/templates/product-brief' },
+            { text: 'Requirements PRD', link: '/skills/templates/requirements-prd' },
+            { text: 'Review Report', link: '/skills/templates/review-report' },
+            { text: 'Sequential Phase', link: '/skills/templates/sequential-phase' },
+            { text: 'Skill Markdown', link: '/skills/templates/skill-md' }
+          ]
         }
       ],
       '/features/': [
@@ -199,7 +237,35 @@ export default withMermaid(defineConfig({
           collapsible: true,
           items: [
             { text: 'API Settings', link: '/features/api-settings' },
-            { text: 'System Settings', link: '/features/system-settings' }
+            { text: 'System Settings', link: '/features/system-settings' },
+            { text: 'Settings', link: '/features/settings' }
+          ]
+        },
+        {
+          text: '🔍 Discovery & Explorer',
+          collapsible: true,
+          items: [
+            { text: 'Discovery', link: '/features/discovery' },
+            { text: 'Explorer', link: '/features/explorer' },
+            { text: 'Extensions', link: '/features/extensions' }
+          ]
+        },
+        {
+          text: '📋 Issues & Tasks',
+          collapsible: true,
+          items: [
+            { text: 'Issue Hub', link: '/features/issue-hub' },
+            { text: 'Orchestrator', link: '/features/orchestrator' },
+            { text: 'Queue', link: '/features/queue' },
+            { text: 'Sessions', link: '/features/sessions' },
+            { text: 'Tasks History', link: '/features/tasks-history' }
+          ]
+        },
+        {
+          text: '🖥️ Terminal',
+          collapsible: true,
+          items: [
+            { text: 'Terminal Dashboard', link: '/features/terminal' }
           ]
         }
       ],
@@ -227,6 +293,17 @@ export default withMermaid(defineConfig({
           ]
         }
       ],
+      '/reference/': [
+        {
+          text: '📚 Reference',
+          collapsible: true,
+          items: [
+            { text: 'Commands & Skills', link: '/reference/commands-skills' },
+            { text: 'Claude Code Hooks', link: '/reference/claude-code-hooks-guide' },
+            { text: 'Hook Templates Analysis', link: '/reference/hook-templates-analysis' }
+          ]
+        }
+      ],
       '/agents/': [
         {
           text: '🤖 Agents',
@@ -244,6 +321,7 @@ export default withMermaid(defineConfig({
           collapsible: true,
           items: [
             { text: 'Overview', link: '/workflows/' },
+            { text: 'Comparison Table', link: '/workflows/comparison-table' },
             { text: '4-Level System', link: '/workflows/4-level' },
             { text: 'Examples', link: '/workflows/examples' },
             { text: 'Best Practices', link: '/workflows/best-practices' },
@@ -343,7 +421,8 @@ export default withMermaid(defineConfig({
           { text: '指南', link: '/zh/guide/ch01-what-is-claude-dms3' },
           { text: '命令', link: '/zh/commands/claude/' },
           { text: '技能', link: '/zh/skills/claude-index' },
-          { text: '功能', link: '/zh/features/spec' }
+          { text: '功能', link: '/zh/features/spec' },
+          { text: '参考', link: '/zh/reference/commands-skills' }
         ],
         sidebar: {
           '/zh/guide/': [
@@ -451,6 +530,8 @@ export default withMermaid(defineConfig({
                 { text: 'Memory 记忆系统', link: '/zh/features/memory' },
                 { text: 'CLI 调用', link: '/zh/features/cli' },
                 { text: 'Dashboard 面板', link: '/zh/features/dashboard' },
+                { text: 'Terminal 终端仪表板', link: '/zh/features/terminal' },
+                { text: 'Queue 队列管理', link: '/zh/features/queue' },
                 { text: 'CodexLens', link: '/zh/features/codexlens' }
               ]
             },
@@ -463,48 +544,45 @@ export default withMermaid(defineConfig({
               ]
             }
           ],
+          '/zh/components/': [
+            {
+              text: 'UI 组件',
+              collapsible: true,
+              items: [
+                { text: '概述', link: '/zh/components/index' },
+                { text: 'Button 按钮', link: '/zh/components/ui/button' },
+                { text: 'Card 卡片', link: '/zh/components/ui/card' },
+                { text: 'Input 输入框', link: '/zh/components/ui/input' },
+                { text: 'Select 选择器', link: '/zh/components/ui/select' },
+                { text: 'Checkbox 复选框', link: '/zh/components/ui/checkbox' },
+                { text: 'Badge 徽章', link: '/zh/components/ui/badge' }
+              ]
+            }
+          ],
           '/zh/workflows/': [
             {
               text: '🔄 工作流系统',
               collapsible: true,
               items: [
                 { text: '概述', link: '/zh/workflows/' },
+                { text: '工作流对比', link: '/zh/workflows/comparison-table' },
                 { text: '四级体系', link: '/zh/workflows/4-level' },
                 { text: '最佳实践', link: '/zh/workflows/best-practices' },
                 { text: '团队协作', link: '/zh/workflows/teams' }
+              ]
+            }
+          ],
+          '/zh/reference/': [
+            {
+              text: '📚 参考',
+              collapsible: true,
+              items: [
+                { text: '命令与技能参考', link: '/zh/reference/commands-skills' }
               ]
             }
           ]
         }
       }
     },
-    'zh-CN': {
-      label: '简体中文',
-      lang: 'zh-CN',
-      title: 'Claude Code Workflow 文档',
-      description: 'Claude Code Workspace - 高级 AI 驱动开发环境',
-      themeConfig: {
-        outline: {
-          level: [2, 3],
-          label: '本页目录'
-        },
-        nav: [
-          { text: '功能', link: '/zh-CN/features/dashboard' }
-        ],
-        sidebar: {
-          '/zh-CN/features/': [
-            {
-              text: '⚙️ 核心功能',
-              collapsible: false,
-              items: [
-                { text: 'Dashboard 面板', link: '/zh-CN/features/dashboard' },
-                { text: 'Terminal 终端监控', link: '/zh-CN/features/terminal' },
-                { text: 'Queue 队列管理', link: '/zh-CN/features/queue' }
-              ]
-            }
-          ]
-        }
-      }
-    }
   }
 }))
