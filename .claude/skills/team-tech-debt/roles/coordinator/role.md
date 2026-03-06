@@ -19,7 +19,7 @@
 ### MUST NOT
 - Execute tech debt work directly (delegate to workers)
 - Modify task outputs (workers own their deliverables)
-- Call implementation subagents directly (cli-explore-agent, code-developer, etc.)
+- Call CLI tools for analysis, exploration, or code generation
 - Modify source code or generate artifact files directly
 - Bypass worker roles to complete delegated work
 - Skip dependency validation when creating task chains
@@ -29,18 +29,56 @@
 
 ---
 
+## Command Execution Protocol
+
+When coordinator needs to execute a command (dispatch, monitor):
+
+1. **Read the command file**: `roles/coordinator/commands/<command-name>.md`
+2. **Follow the workflow** defined in the command file (Phase 2-4 structure)
+3. **Commands are inline execution guides** -- NOT separate agents or subprocesses
+4. **Execute synchronously** -- complete the command workflow before proceeding
+
+Example:
+```
+Phase 3 needs task dispatch
+  -> Read roles/coordinator/commands/dispatch.md
+  -> Execute Phase 2 (Context Loading)
+  -> Execute Phase 3 (Task Chain Creation)
+  -> Execute Phase 4 (Validation)
+  -> Continue to Phase 4
+```
+
+---
+
 ## Entry Router
 
-When coordinator is invoked, first detect the invocation type:
+When coordinator is invoked, detect invocation type:
 
 | Detection | Condition | Handler |
 |-----------|-----------|---------|
-| Worker callback | Message contains `[role-name]` tag from a known worker role | -> handleCallback: auto-advance pipeline |
-| Status check | Arguments contain "check" or "status" | -> handleCheck: output execution graph, no advancement |
-| Manual resume | Arguments contain "resume" or "continue" | -> handleResume: check worker states, advance pipeline |
-| New session | None of the above | -> Phase 0 (Session Resume Check) |
+| Worker callback | Message contains role tag [scanner], [assessor], [planner], [executor], [validator] | -> handleCallback |
+| Status check | Arguments contain "check" or "status" | -> handleCheck |
+| Manual resume | Arguments contain "resume" or "continue" | -> handleResume |
+| Pipeline complete | All tasks have status "completed" | -> handleComplete |
+| Interrupted session | Active/paused session exists | -> Phase 0 (Session Resume Check) |
+| New session | None of above | -> Phase 1 |
 
-For callback/check/resume: load `commands/monitor.md` and execute the appropriate handler, then STOP.
+For callback/check/resume/complete: load `commands/monitor.md` and execute matched handler, then STOP.
+
+### Router Implementation
+
+1. **Load session context** (if exists):
+   - Scan `.workflow/.team/TD-*/.msg/meta.json` for active/paused sessions
+   - If found, extract session folder path, status, and pipeline mode
+
+2. **Parse $ARGUMENTS** for detection keywords:
+   - Check for role name tags in message content
+   - Check for "check", "status", "resume", "continue" keywords
+
+3. **Route to handler**:
+   - For monitor handlers: Read `commands/monitor.md`, execute matched handler, STOP
+   - For Phase 0: Execute Session Resume Check below
+   - For Phase 1: Execute Requirement Clarification below
 
 ---
 
@@ -62,7 +100,7 @@ For callback/check/resume: load `commands/monitor.md` and execute the appropriat
 | `Task` | Tool | Phase 4 | Worker spawning |
 | `AskUserQuestion` | Tool | Phase 1 | Requirement clarification |
 
-> Coordinator does not directly use CLI analysis tools or implementation subagents
+> Coordinator does not directly use CLI analysis tools or CLI code generation
 
 ---
 
@@ -86,11 +124,9 @@ Before every SendMessage, log via `mcp__ccw-tools__team_msg`:
 ```
 mcp__ccw-tools__team_msg({
   operation: "log",
-  team: <session-id>,  // MUST be session ID (e.g., TD-xxx-date), NOT team name. Extract from Session: field in task description.
+  session_id: <session-id>,
   from: "coordinator",
-  to: "user",
   type: <message-type>,
-  summary: "[coordinator] <summary>",
   ref: <artifact-path>
 })
 ```
@@ -98,7 +134,7 @@ mcp__ccw-tools__team_msg({
 **CLI fallback** (when MCP unavailable):
 
 ```
-Bash("ccw team log --team <session-id> --from coordinator --to user --type <message-type> --summary \"[coordinator] ...\" --json")
+Bash("ccw team log --session-id <session-id> --from coordinator --type <message-type> --json")
 ```
 
 ---
@@ -188,17 +224,30 @@ Bash("ccw team log --team <session-id> --from coordinator --to user --type <mess
     └── issues.md
 ```
 
-3. Initialize shared-memory.json:
-
-| Field | Initial Value |
-|-------|---------------|
-| `debt_inventory` | [] |
-| `priority_matrix` | {} |
-| `remediation_plan` | {} |
-| `fix_results` | {} |
-| `validation_results` | {} |
-| `debt_score_before` | null |
-| `debt_score_after` | null |
+3. Initialize .msg/meta.json with pipeline metadata:
+```typescript
+// Use team_msg to write pipeline metadata to .msg/meta.json
+mcp__ccw-tools__team_msg({
+  operation: "log",
+  session_id: "<session-id>",
+  from: "coordinator",
+  type: "state_update",
+  summary: "Session initialized",
+  data: {
+    pipeline_mode: "<scan|remediate|targeted>",
+    pipeline_stages: ["scanner", "assessor", "planner", "executor", "validator"],
+    roles: ["coordinator", "scanner", "assessor", "planner", "executor", "validator"],
+    team_name: "tech-debt",
+    debt_inventory: [],
+    priority_matrix: {},
+    remediation_plan: {},
+    fix_results: {},
+    validation_results: {},
+    debt_score_before: null,
+    debt_score_after: null
+  }
+})
+```
 
 4. Call TeamCreate with team name "tech-debt"
 
@@ -263,33 +312,25 @@ Delegate to `commands/dispatch.md` which creates the full task chain.
 **Worker Spawn Template**:
 
 ```
-Task({
-  subagent_type: "general-purpose",
+Agent({
+  subagent_type: "team-worker",
   description: "Spawn <role> worker",
-  prompt: `你是 team "tech-debt" 的 <ROLE>.
+  prompt: `## Role Assignment
+role: <role>
+role_spec: .claude/skills/team-tech-debt/role-specs/<role>.md
+session: <session-folder>
+session_id: <session-id>
+team_name: tech-debt
+requirement: <task-description>
+inner_loop: false
 
-## 首要指令（MUST）
-你的所有工作必须通过调用 Skill 获取角色定义后执行，禁止自行发挥：
-Skill(skill="team-tech-debt", args="--role=<role>")
-此调用会加载你的角色定义（role.md）、可用命令（commands/*.md）和完整执行逻辑。
+## Current Task
+- Task ID: <task-id>
+- Task: <PREFIX>-<NNN>
+- Task Prefix: <PREFIX>
 
-当前需求: <task-description>
-Session: <session-folder>
-
-## 角色准则（强制）
-- 你只能处理 <PREFIX>-* 前缀的任务，不得执行其他角色的工作
-- 所有输出（SendMessage、team_msg）必须带 [<role>] 标识前缀
-- 仅与 coordinator 通信，不得直接联系其他 worker
-- 不得使用 TaskCreate 为其他角色创建任务
-
-## 消息总线（必须）
-每次 SendMessage 前，先调用 mcp__ccw-tools__team_msg 记录。
-
-## 工作流程（严格按顺序）
-1. 调用 Skill(skill="team-tech-debt", args="--role=<role>") 获取角色定义和执行逻辑
-2. 按 role.md 中的 5-Phase 流程执行（TaskList -> 找到 <PREFIX>-* 任务 -> 执行 -> 汇报）
-3. team_msg log + SendMessage 结果给 coordinator（带 [<role>] 标识）
-4. TaskUpdate completed -> 检查下一个任务 -> 回到步骤 1`,
+Read role_spec file to load Phase 2-4 domain instructions.
+Execute built-in Phase 1 -> role-spec Phase 2-4 -> built-in Phase 5.`,
   run_in_background: false  // Stop-Wait: synchronous blocking
 })
 ```
@@ -308,7 +349,7 @@ Session: <session-folder>
 **Worktree Creation** (before TDFIX):
 
 1. Create worktree: `git worktree add <path> -b <branch>`
-2. Update shared-memory.json with worktree info
+2. Update .msg/meta.json with worktree info
 3. Notify user via team_msg
 
 **Fix-Verify Loop** (when TDVAL finds regressions):

@@ -27,7 +27,7 @@ import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { HookCard, HookFormDialog, HookQuickTemplates, HookWizard, type HookCardData, type HookFormData, type HookTriggerType, HOOK_TEMPLATES, type WizardType } from '@/components/hook';
-import { useHooks, useToggleHook } from '@/hooks';
+import { useHooks, useToggleHook, useDeleteHook } from '@/hooks';
 import { cn } from '@/lib/utils';
 
 // ========== Types ==========
@@ -53,7 +53,7 @@ function isHookTriggerType(value: string): value is HookTriggerType {
   return ['SessionStart', 'UserPromptSubmit', 'PreToolUse', 'PostToolUse', 'Stop', 'Notification', 'SubagentStart', 'SubagentStop', 'PreCompact', 'SessionEnd', 'PostToolUseFailure', 'PermissionRequest'].includes(value);
 }
 
-function toHookCardData(hook: { name: string; description?: string; enabled: boolean; trigger: string; matcher?: string; command?: string; script?: string }): HookCardData | null {
+function toHookCardData(hook: { name: string; description?: string; enabled: boolean; trigger: string; matcher?: string; command?: string; script?: string; scope?: 'global' | 'project'; index?: number }): HookCardData | null {
   if (!isHookTriggerType(hook.trigger)) {
     return null;
   }
@@ -64,6 +64,8 @@ function toHookCardData(hook: { name: string; description?: string; enabled: boo
     trigger: hook.trigger,
     matcher: hook.matcher,
     command: hook.command || hook.script,
+    scope: hook.scope,
+    index: hook.index,
   };
 }
 
@@ -154,6 +156,7 @@ export function HookManagerPage() {
 
   const { hooks, enabledCount, totalCount, isLoading, refetch } = useHooks();
   const { toggleHook } = useToggleHook();
+  const { deleteHook } = useDeleteHook();
 
   // Convert hooks to HookCardData and filter by search query and trigger type
   const filteredHooks = useMemo(() => {
@@ -199,8 +202,22 @@ export function HookManagerPage() {
   };
 
   const handleDeleteClick = async (hookName: string) => {
-    // This will be implemented when delete API is added
-    console.log('Delete hook:', hookName);
+    // Find the hook in filteredHooks to get scope and index
+    const hook = filteredHooks.find(h => h.name === hookName);
+    if (!hook) {
+      console.error('Hook not found:', hookName);
+      return;
+    }
+    try {
+      await deleteHook({
+        name: hook.name,
+        scope: hook.scope,
+        trigger: hook.trigger,
+        index: hook.index,
+      });
+    } catch (error) {
+      console.error('Failed to delete hook:', error);
+    }
   };
 
   const handleSave = async (data: HookFormData) => {

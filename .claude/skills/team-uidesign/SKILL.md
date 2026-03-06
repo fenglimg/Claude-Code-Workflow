@@ -1,7 +1,7 @@
 ---
 name: team-uidesign
 description: Unified team skill for UI design team. All roles invoke this skill with --role arg for role-specific execution. CP-9 Dual-Track design+implementation.
-allowed-tools: TeamCreate(*), TeamDelete(*), SendMessage(*), TaskCreate(*), TaskUpdate(*), TaskList(*), TaskGet(*), Task(*), AskUserQuestion(*), TodoWrite(*), Read(*), Write(*), Edit(*), Bash(*), Glob(*), Grep(*), WebFetch(*), WebSearch(*)
+allowed-tools: TeamCreate(*), TeamDelete(*), SendMessage(*), TaskCreate(*), TaskUpdate(*), TaskList(*), TaskGet(*), Agent(*), AskUserQuestion(*), TodoWrite(*), Read(*), Write(*), Edit(*), Bash(*), Glob(*), Grep(*), WebFetch(*), WebSearch(*)
 ---
 
 # Team UI Design
@@ -11,24 +11,33 @@ Unified team skill: design system analysis, token definition, component specific
 ## Architecture
 
 ```
-┌───────────────────────────────────────────────────┐
-│  Skill(skill="team-uidesign")                      │
-│  args="<task>" or args="--role=xxx"                │
-└───────────────────┬───────────────────────────────┘
-                    │ Role Router
-         ┌──── --role present? ────┐
-         │ NO                      │ YES
-         ↓                         ↓
-  Orchestration Mode         Role Dispatch
-  (auto → coordinator)      (route to role.md)
-         │
-    ┌────┴────┬───────────┬───────────┬───────────┐
-    ↓         ↓           ↓           ↓           ↓
-┌──────────┐┌──────────┐┌──────────┐┌──────────┐┌───────────┐
-│coordinator││researcher││ designer ││ reviewer ││implementer│
-│          ││RESEARCH-*││ DESIGN-* ││ AUDIT-*  ││ BUILD-*   │
-└──────────┘└──────────┘└──────────┘└──────────┘└───────────┘
++---------------------------------------------------+
+|  Skill(skill="team-uidesign")                      |
+|  args="<task-description>"                         |
++-------------------+-------------------------------+
+                    |
+         Orchestration Mode (auto -> coordinator)
+                    |
+              Coordinator (inline)
+              Phase 0-5 orchestration
+                    |
+    +-------+-------+-------+-------+
+    v       v       v       v
+ [tw]    [tw]    [tw]    [tw]
+resear- design- review- imple-
+cher    er      er      menter
+
+(tw) = team-worker agent
 ```
+
+## Command Execution Protocol
+
+When coordinator needs to execute a command (dispatch, monitor):
+
+1. **Read the command file**: `roles/coordinator/commands/<command-name>.md`
+2. **Follow the workflow** defined in the command file (Phase 2-4 structure)
+3. **Commands are inline execution guides** -- NOT separate agents or subprocesses
+4. **Execute synchronously** -- complete the command workflow before proceeding
 
 ## Role Router
 
@@ -38,13 +47,13 @@ Parse `$ARGUMENTS` to extract `--role`. If absent → Orchestration Mode (auto r
 
 ### Role Registry
 
-| Role | File | Task Prefix | Type | Compact |
-|------|------|-------------|------|---------|
-| coordinator | [roles/coordinator.md](roles/coordinator.md) | (none) | orchestrator | **⚠️ 压缩后必须重读** |
-| researcher | [roles/researcher.md](roles/researcher.md) | RESEARCH-* | pipeline | 压缩后必须重读 |
-| designer | [roles/designer.md](roles/designer.md) | DESIGN-* | pipeline | 压缩后必须重读 |
-| reviewer | [roles/reviewer.md](roles/reviewer.md) | AUDIT-* | pipeline | 压缩后必须重读 |
-| implementer | [roles/implementer.md](roles/implementer.md) | BUILD-* | pipeline | 压缩后必须重读 |
+| Role | Spec | Task Prefix | Inner Loop |
+|------|------|-------------|------------|
+| coordinator | [roles/coordinator/role.md](roles/coordinator/role.md) | (none) | - |
+| researcher | [role-specs/researcher.md](role-specs/researcher.md) | RESEARCH-* | false |
+| designer | [role-specs/designer.md](role-specs/designer.md) | DESIGN-* | false |
+| reviewer | [role-specs/reviewer.md](role-specs/reviewer.md) | AUDIT-* | false |
+| implementer | [role-specs/implementer.md](role-specs/implementer.md) | BUILD-* | false |
 
 > **⚠️ COMPACT PROTECTION**: 角色文件是执行文档，不是参考资料。当 context compression 发生后，角色指令仅剩摘要时，**必须立即 `Read` 对应 role.md 重新加载后再继续执行**。不得基于摘要执行任何 Phase。
 
@@ -101,9 +110,9 @@ Every worker executes the same task discovery flow on startup:
 Standard reporting flow after task completion:
 
 1. **Message Bus**: Call `mcp__ccw-tools__team_msg` to log message
-   - Parameters: operation="log", team=<session-id>, from=<role>, to="coordinator", type=<message-type>, summary="[<role>] <summary>", ref=<artifact-path>
-   - **Note**: `team` must be session ID (e.g., `UDS-xxx-date`), NOT team name. Extract from `Session:` field in task description.
-   - **CLI fallback**: When MCP unavailable → `ccw team log --team <session-id> --from <role> --to coordinator --type <type> --summary "[<role>] ..." --json`
+   - Parameters: operation="log", session_id=<session-id>, from=<role>, type=<message-type>, data={ref: "<artifact-path>"}
+   - `to` and `summary` auto-defaulted -- do NOT specify explicitly
+   - **CLI fallback**: `ccw team log --session-id <session-id> --from <role> --type <type> --json`
 2. **SendMessage**: Send result to coordinator (content and summary both prefixed with `[<role>]`)
 3. **TaskUpdate**: Mark task completed
 4. **Loop**: Return to Phase 1 to check next task
@@ -130,10 +139,10 @@ Cross-task knowledge accumulation. Coordinator creates `wisdom/` directory at se
 |---------|-----------|
 | Process tasks with own prefix | Process tasks with other role prefixes |
 | SendMessage to coordinator | Communicate directly with other workers |
-| Read/write shared-memory.json (own fields) | Create tasks for other roles |
+| Share state via team_msg(type='state_update') | Create tasks for other roles |
 | Delegate to commands/ files | Modify resources outside own responsibility |
 
-Coordinator additional restrictions: Do not write/modify code directly, do not call implementation subagents, do not execute analysis/audits, do not bypass workers.
+Coordinator additional restrictions: Do not write/modify code directly, do not spawn implementation workers directly, do not execute analysis/audits, do not bypass workers.
 
 ### Output Tagging
 
@@ -143,11 +152,11 @@ All outputs must carry `[role_name]` prefix in both SendMessage content/summary 
 
 Every SendMessage **before**, must call `mcp__ccw-tools__team_msg` to log:
 
-**Parameters**: operation="log", team=<session-id>, from=<role>, to="coordinator", type=<message-type>, summary="[<role>] <summary>", ref=<artifact-path>
+**Parameters**: operation="log", session_id=<session-id>, from=<role>, type=<message-type>, data={ref: "<artifact-path>"}
 
-> **Note**: `team` must be session ID (e.g., `UDS-xxx-date`), NOT team name. Extract from `Session:` field in task description.
+> `to` and `summary` are auto-defaulted by the tool.
 
-**CLI fallback**: When MCP unavailable → `ccw team log --team <session-id> --from <role> --to coordinator --type <type> --summary "[<role>] ..." --json`
+**CLI fallback**: When MCP unavailable → `ccw team log --session-id <session-id> --from <role> --type <type> --json`
 
 **Message types by role**:
 
@@ -159,9 +168,9 @@ Every SendMessage **before**, must call `mcp__ccw-tools__team_msg` to log:
 | reviewer | `audit_result`, `audit_passed`, `fix_required`, `error` |
 | implementer | `build_complete`, `build_progress`, `error` |
 
-### Shared Memory
+### Shared State
 
-All roles read in Phase 2 and write in Phase 5 to `shared-memory.json`:
+All roles share state via `team_msg(type='state_update')` + `meta.json`:
 
 | Role | Field |
 |------|-------|
@@ -200,7 +209,6 @@ design-intelligence.json
 |---------|-------|
 | Team name | uidesign |
 | Session directory | `.workflow/.team/UDS-<slug>-<date>/` |
-| Shared memory | `shared-memory.json` in session dir |
 
 ---
 
@@ -339,38 +347,59 @@ Beat 1         2              3           4                      5         6    
 
 ## Coordinator Spawn Template
 
-When coordinator spawns workers, use background mode (Spawn-and-Stop):
+### v5 Worker Spawn (all roles)
+
+When coordinator spawns workers, use `team-worker` agent with role-spec path:
 
 ```
-Task({
-  subagent_type: "general-purpose",
+Agent({
+  subagent_type: "team-worker",
   description: "Spawn <role> worker",
   team_name: "uidesign",
   name: "<role>",
   run_in_background: true,
-  prompt: `You are team "uidesign" <ROLE>.
+  prompt: `## Role Assignment
+role: <role>
+role_spec: .claude/skills/team-uidesign/role-specs/<role>.md
+session: <session-folder>
+session_id: <session-id>
+team_name: uidesign
+requirement: <task-description>
+inner_loop: false
 
-## Primary Directive
-All your work must be executed through Skill to load role definition:
-Skill(skill="team-uidesign", args="--role=<role>")
-
-Current task: <task-description>
-Session: <session-folder>
-
-## Role Guidelines
-- Only process <PREFIX>-* tasks, do not execute other role work
-- All output prefixed with [<role>] identifier
-- Only communicate with coordinator
-- Do not use TaskCreate for other roles
-- Call mcp__ccw-tools__team_msg before every SendMessage
-
-## Workflow
-1. Call Skill -> load role definition and execution logic
-2. Follow role.md 5-Phase flow
-3. team_msg + SendMessage results to coordinator
-4. TaskUpdate completed -> check next task`
+Read role_spec file to load Phase 2-4 domain instructions.
+Execute built-in Phase 1 (task discovery) -> role-spec Phase 2-4 -> built-in Phase 5 (report).`
 })
 ```
+
+**All roles** (researcher, designer, reviewer, implementer): Set `inner_loop: false`.
+
+---
+
+## Completion Action
+
+When the pipeline completes (all tasks done, coordinator Phase 5):
+
+```
+AskUserQuestion({
+  questions: [{
+    question: "UI Design pipeline complete. What would you like to do?",
+    header: "Completion",
+    multiSelect: false,
+    options: [
+      { label: "Archive & Clean (Recommended)", description: "Archive session, clean up tasks and team resources" },
+      { label: "Keep Active", description: "Keep session active for follow-up work or inspection" },
+      { label: "Export Results", description: "Export deliverables to a specified location, then clean" }
+    ]
+  }]
+})
+```
+
+| Choice | Action |
+|--------|--------|
+| Archive & Clean | Update session status="completed" -> TeamDelete() -> output final summary |
+| Keep Active | Update session status="paused" -> output resume instructions: `Skill(skill="team-uidesign", args="resume")` |
+| Export Results | AskUserQuestion for target path -> copy deliverables -> Archive & Clean |
 
 ---
 
@@ -378,8 +407,8 @@ Session: <session-folder>
 
 ```
 .workflow/.team/UDS-<slug>-<YYYY-MM-DD>/
-├── team-session.json           # Session state
-├── shared-memory.json          # Cross-role accumulated knowledge
+├── .msg/messages.jsonl          # Message bus log
+├── .msg/meta.json               # Session metadata
 ├── wisdom/                     # Cross-task knowledge
 │   ├── learnings.md
 │   ├── decisions.md

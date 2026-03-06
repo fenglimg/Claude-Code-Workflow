@@ -3178,13 +3178,66 @@ export async function fetchReviewSession(sessionId: string): Promise<ReviewSessi
 
 // ========== MCP API ==========
 
-export interface McpServer {
+/**
+ * Base fields shared by all MCP server types
+ */
+interface McpServerBase {
   name: string;
+  enabled: boolean;
+  scope: 'project' | 'global';
+}
+
+/**
+ * STDIO-based MCP server (traditional command-based)
+ * Uses child process communication via stdin/stdout
+ */
+export interface StdioMcpServer extends McpServerBase {
+  transport: 'stdio';
   command: string;
   args?: string[];
   env?: Record<string, string>;
-  enabled: boolean;
-  scope: 'project' | 'global';
+  cwd?: string;
+}
+
+/**
+ * HTTP-based MCP server (remote/streamable)
+ * Uses HTTP/HTTPS transport for remote MCP servers
+ *
+ * Supports two config formats:
+ * - Claude format: { type: 'http', url, headers }
+ * - Codex format: { url, bearer_token_env_var, http_headers, env_http_headers }
+ */
+export interface HttpMcpServer extends McpServerBase {
+  transport: 'http';
+  url: string;
+  /** HTTP headers to include in requests (Claude format) */
+  headers?: Record<string, string>;
+  /** Environment variable name containing bearer token (Codex format) */
+  bearerTokenEnvVar?: string;
+  /** Static HTTP headers (Codex format) */
+  httpHeaders?: Record<string, string>;
+  /** Environment variable names whose values are injected as headers (Codex format) */
+  envHttpHeaders?: string[];
+}
+
+/**
+ * Discriminated union type for MCP server configurations
+ * Use type guards to distinguish between STDIO and HTTP servers
+ */
+export type McpServer = StdioMcpServer | HttpMcpServer;
+
+/**
+ * Type guard to check if a server is STDIO-based
+ */
+export function isStdioMcpServer(server: McpServer): server is StdioMcpServer {
+  return server.transport === 'stdio';
+}
+
+/**
+ * Type guard to check if a server is HTTP-based
+ */
+export function isHttpMcpServer(server: McpServer): server is HttpMcpServer {
+  return server.transport === 'http';
 }
 
 export interface McpServerConflict {
@@ -3257,17 +3310,80 @@ function findProjectConfigKey(projects: Record<string, unknown>, projectPath?: s
   return projectPath in projects ? projectPath : null;
 }
 
-function normalizeServerConfig(config: unknown): { command: string; args?: string[]; env?: Record<string, string> } {
+/**
+ * Normalize raw server config to discriminated union type
+ * Preserves HTTP-specific fields instead of flattening to command field
+ *
+ * Supports dual-format parsing:
+ * - Claude format: { type: 'http', url, headers }
+ * - Codex format: { url, bearer_token_env_var, http_headers, env_http_headers }
+ */
+function normalizeServerConfig(config: unknown): Omit<StdioMcpServer, 'name' | 'enabled' | 'scope'> | Omit<HttpMcpServer, 'name' | 'enabled' | 'scope'> {
   if (!isUnknownRecord(config)) {
-    return { command: '' };
+    // Default to STDIO with empty command
+    return { transport: 'stdio', command: '' };
   }
 
-  const command =
-    typeof config.command === 'string'
-      ? config.command
-      : typeof config.url === 'string'
-        ? config.url
-        : '';
+  // Detect HTTP transport by presence of url field (both Claude and Codex formats)
+  const hasUrl = typeof config.url === 'string' && config.url.trim() !== '';
+  const hasHttpType = config.type === 'http' || config.transport === 'http';
+
+  if (hasUrl || hasHttpType) {
+    // HTTP-based server (Claude or Codex format)
+    const url = typeof config.url === 'string' ? config.url : '';
+
+    // Parse Claude format headers: { headers: { "Authorization": "Bearer xxx" } }
+    const headers = isUnknownRecord(config.headers)
+      ? Object.fromEntries(
+          Object.entries(config.headers).flatMap(([key, value]) =>
+            typeof value === 'string' ? [[key, value]] : []
+          )
+        )
+      : undefined;
+
+    // Parse Codex format fields
+    const bearerTokenEnvVar = typeof config.bearer_token_env_var === 'string'
+      ? config.bearer_token_env_var
+      : undefined;
+
+    // Parse Codex http_headers: { http_headers: { "Authorization": "Bearer xxx" } }
+    const httpHeaders = isUnknownRecord(config.http_headers)
+      ? Object.fromEntries(
+          Object.entries(config.http_headers).flatMap(([key, value]) =>
+            typeof value === 'string' ? [[key, value]] : []
+          )
+        )
+      : undefined;
+
+    // Parse Codex env_http_headers: { env_http_headers: ["API_KEY", "SECRET"] }
+    const envHttpHeaders = Array.isArray(config.env_http_headers)
+      ? config.env_http_headers.filter((item): item is string => typeof item === 'string')
+      : undefined;
+
+    const result: Omit<HttpMcpServer, 'name' | 'enabled' | 'scope'> = {
+      transport: 'http',
+      url,
+    };
+
+    // Only add optional fields if they have values
+    if (headers && Object.keys(headers).length > 0) {
+      result.headers = headers;
+    }
+    if (bearerTokenEnvVar) {
+      result.bearerTokenEnvVar = bearerTokenEnvVar;
+    }
+    if (httpHeaders && Object.keys(httpHeaders).length > 0) {
+      result.httpHeaders = httpHeaders;
+    }
+    if (envHttpHeaders && envHttpHeaders.length > 0) {
+      result.envHttpHeaders = envHttpHeaders;
+    }
+
+    return result;
+  }
+
+  // STDIO-based server (traditional command format)
+  const command = typeof config.command === 'string' ? config.command : '';
 
   const args = Array.isArray(config.args)
     ? config.args.filter((arg): arg is string => typeof arg === 'string')
@@ -3281,11 +3397,24 @@ function normalizeServerConfig(config: unknown): { command: string; args?: strin
       )
     : undefined;
 
-  return {
+  const cwd = typeof config.cwd === 'string' ? config.cwd : undefined;
+
+  const result: Omit<StdioMcpServer, 'name' | 'enabled' | 'scope'> = {
+    transport: 'stdio',
     command,
-    args: args && args.length > 0 ? args : undefined,
-    env: env && Object.keys(env).length > 0 ? env : undefined,
   };
+
+  if (args && args.length > 0) {
+    result.args = args;
+  }
+  if (env && Object.keys(env).length > 0) {
+    result.env = env;
+  }
+  if (cwd) {
+    result.cwd = cwd;
+  }
+
+  return result;
 }
 
 /**
@@ -3371,15 +3500,104 @@ function requireProjectPath(projectPath: string | undefined, ctx: string): strin
   return trimmed;
 }
 
-function toServerConfig(server: { command: string; args?: string[]; env?: Record<string, string> }): UnknownRecord {
-  const config: UnknownRecord = { command: server.command };
-  if (server.args && server.args.length > 0) config.args = server.args;
-  if (server.env && Object.keys(server.env).length > 0) config.env = server.env;
+/**
+ * Convert McpServer to raw config format for persistence
+ * Handles both STDIO and HTTP server types
+ */
+function toServerConfig(server: Partial<McpServer>): UnknownRecord {
+  // Check if this is an HTTP server
+  if (server.transport === 'http') {
+    const url = 'url' in server && typeof server.url === 'string' ? server.url : '';
+    const config: UnknownRecord = { url };
+
+    // Claude format: type field
+    config.type = 'http';
+
+    // Claude format: headers
+    if (server.headers && Object.keys(server.headers).length > 0) {
+      config.headers = server.headers;
+    }
+
+    // Codex format: bearer_token_env_var
+    if (server.bearerTokenEnvVar) {
+      config.bearer_token_env_var = server.bearerTokenEnvVar;
+    }
+
+    // Codex format: http_headers
+    if (server.httpHeaders && Object.keys(server.httpHeaders).length > 0) {
+      config.http_headers = server.httpHeaders;
+    }
+
+    // Codex format: env_http_headers
+    if (server.envHttpHeaders && server.envHttpHeaders.length > 0) {
+      config.env_http_headers = server.envHttpHeaders;
+    }
+
+    return config;
+  }
+
+  // STDIO server (default)
+  const config: UnknownRecord = {};
+
+  if ('command' in server && typeof server.command === 'string') config.command = server.command;
+  if ('args' in server && Array.isArray(server.args) && server.args.length > 0) config.args = server.args;
+  if ('env' in server && server.env && Object.keys(server.env).length > 0) config.env = server.env;
+  if ('cwd' in server && typeof server.cwd === 'string' && server.cwd.trim()) config.cwd = server.cwd;
+
   return config;
+}
+
+function _buildFallbackServer(serverName: string, config: Partial<McpServer>): McpServer {
+  const transport = config.transport ?? 'stdio';
+  const enabled = config.enabled ?? true;
+  const scope = config.scope ?? 'project';
+
+  if (transport === 'http') {
+    const url = 'url' in config && typeof config.url === 'string' ? config.url : '';
+    return {
+      name: serverName,
+      transport: 'http',
+      url,
+      enabled,
+      scope,
+    };
+  }
+
+  const command =
+    'command' in config && typeof config.command === 'string'
+      ? config.command
+      : '';
+
+  const args =
+    'args' in config && Array.isArray(config.args)
+      ? config.args
+      : undefined;
+
+  const env =
+    'env' in config && config.env && typeof config.env === 'object'
+      ? (config.env as Record<string, string>)
+      : undefined;
+
+  const cwd =
+    'cwd' in config && typeof config.cwd === 'string'
+      ? config.cwd
+      : undefined;
+
+  return {
+    name: serverName,
+    transport: 'stdio',
+    command,
+    args,
+    env,
+    cwd,
+    enabled,
+    scope,
+  };
 }
 
 /**
  * Update MCP server configuration
+ * Supports both STDIO and HTTP server types
  */
 export async function updateMcpServer(
   serverName: string,
@@ -3389,15 +3607,22 @@ export async function updateMcpServer(
   if (!config.scope) {
     throw new Error('updateMcpServer: scope is required');
   }
-  if (typeof config.command !== 'string' || !config.command.trim()) {
-    throw new Error('updateMcpServer: command is required');
+
+  // Validate based on transport type
+  if (config.transport === 'http') {
+    const url = 'url' in config ? config.url : undefined;
+    if (typeof url !== 'string' || !url.trim()) {
+      throw new Error('updateMcpServer: url is required for HTTP servers');
+    }
+  } else {
+    // STDIO server (default)
+    const command = 'command' in config ? config.command : undefined;
+    if (typeof command !== 'string' || !command.trim()) {
+      throw new Error('updateMcpServer: command is required for STDIO servers');
+    }
   }
 
-  const serverConfig = toServerConfig({
-    command: config.command,
-    args: config.args,
-    env: config.env,
-  });
+  const serverConfig = toServerConfig(config);
 
   if (config.scope === 'global') {
     const result = await fetchApi<{ success?: boolean; error?: string }>('/api/mcp-add-global-server', {
@@ -3434,28 +3659,18 @@ export async function updateMcpServer(
 
   if (options.projectPath) {
     const servers = await fetchMcpServers(options.projectPath);
-    return [...servers.project, ...servers.global].find((s) => s.name === serverName) ?? {
-      name: serverName,
-      command: config.command,
-      args: config.args,
-      env: config.env,
-      enabled: config.enabled ?? true,
-      scope: config.scope,
-    };
+    return (
+      [...servers.project, ...servers.global].find((s) => s.name === serverName) ??
+      _buildFallbackServer(serverName, config)
+    );
   }
 
-  return {
-    name: serverName,
-    command: config.command,
-    args: config.args,
-    env: config.env,
-    enabled: config.enabled ?? true,
-    scope: config.scope,
-  };
+  return _buildFallbackServer(serverName, config);
 }
 
 /**
  * Create a new MCP server
+ * Supports both STDIO and HTTP server types
  */
 export async function createMcpServer(
   server: McpServer,
@@ -3464,8 +3679,17 @@ export async function createMcpServer(
   if (!server.name?.trim()) {
     throw new Error('createMcpServer: name is required');
   }
-  if (!server.command?.trim()) {
-    throw new Error('createMcpServer: command is required');
+
+  // Validate based on transport type
+  if (server.transport === 'http') {
+    if (!server.url?.trim()) {
+      throw new Error('createMcpServer: url is required for HTTP servers');
+    }
+  } else {
+    // STDIO server (default)
+    if (!server.command?.trim()) {
+      throw new Error('createMcpServer: command is required for STDIO servers');
+    }
   }
 
   const serverName = server.name.trim();
@@ -3559,12 +3783,15 @@ export async function toggleMcpServer(
   }
 
   const servers = await fetchMcpServers(projectPath);
-  return [...servers.project, ...servers.global].find((s) => s.name === serverName) ?? {
-    name: serverName,
-    command: '',
-    enabled,
-    scope: 'project',
-  };
+  return (
+    [...servers.project, ...servers.global].find((s) => s.name === serverName) ?? {
+      name: serverName,
+      transport: 'stdio',
+      command: '',
+      enabled,
+      scope: 'project',
+    }
+  );
 }
 
 // ========== Codex MCP API ==========
@@ -3572,9 +3799,7 @@ export async function toggleMcpServer(
  * Codex MCP Server - Read-only server with config path
  * Extends McpServer with optional configPath field
  */
-export interface CodexMcpServer extends McpServer {
-  configPath?: string;
-}
+export type CodexMcpServer = McpServer & { configPath?: string };
 
 export interface CodexMcpServersResponse {
   servers: CodexMcpServer[];
@@ -3761,13 +3986,16 @@ export async function fetchOtherProjectsServers(
     servers[path] = Object.entries(projectServersRecord)
       // Exclude globally-defined servers; this section is meant for project-local discovery
       .filter(([name]) => !(name in userServers) && !(name in enterpriseServers))
-      .map(([name, raw]) => {
+      .flatMap(([name, raw]) => {
         const normalized = normalizeServerConfig(raw);
-        return {
+        if (normalized.transport !== 'stdio') return [];
+        return [{
           name,
-          ...normalized,
+          command: normalized.command,
+          args: normalized.args,
+          env: normalized.env,
           enabled: !disabledSet.has(name),
-        };
+        }];
       });
   }
 
@@ -4179,9 +4407,15 @@ export async function updateHookConfig(
 /**
  * Delete a hook
  */
-export async function deleteHook(hookName: string): Promise<void> {
-  return fetchApi<void>(`/api/hooks/delete/${encodeURIComponent(hookName)}`, {
+export async function deleteHook(params: {
+  projectPath?: string;
+  scope: 'global' | 'project';
+  event: string;
+  hookIndex: number;
+}): Promise<{ success: boolean }> {
+  return fetchApi<{ success: boolean }>('/api/hooks', {
     method: 'DELETE',
+    body: JSON.stringify(params),
   });
 }
 
@@ -4356,58 +4590,6 @@ export interface CcwMcpConfig {
 }
 
 /**
- * Platform detection for cross-platform MCP config
- */
-const isWindows = typeof navigator !== 'undefined' && navigator.platform?.toLowerCase().includes('win');
-
-/**
- * Build CCW MCP server config
- */
-function buildCcwMcpServerConfig(config: {
-  enabledTools?: string[];
-  projectRoot?: string;
-  allowedDirs?: string;
-  enableSandbox?: boolean;
-}): { command: string; args: string[]; env: Record<string, string> } {
-  const env: Record<string, string> = {};
-
-  // Only use default when enabledTools is undefined (not provided)
-  // When enabledTools is an empty array, set to empty string to disable all tools
-  console.log('[buildCcwMcpServerConfig] config.enabledTools:', config.enabledTools);
-  if (config.enabledTools !== undefined) {
-    env.CCW_ENABLED_TOOLS = config.enabledTools.join(',');
-    console.log('[buildCcwMcpServerConfig] Set CCW_ENABLED_TOOLS to:', env.CCW_ENABLED_TOOLS);
-  } else {
-    env.CCW_ENABLED_TOOLS = 'write_file,edit_file,read_file,core_memory,ask_question,smart_search';
-    console.log('[buildCcwMcpServerConfig] Using default CCW_ENABLED_TOOLS');
-  }
-
-  if (config.projectRoot) {
-    env.CCW_PROJECT_ROOT = config.projectRoot;
-  }
-  if (config.allowedDirs) {
-    env.CCW_ALLOWED_DIRS = config.allowedDirs;
-  }
-  if (config.enableSandbox) {
-    env.CCW_ENABLE_SANDBOX = '1';
-  }
-
-  // Cross-platform config
-  if (isWindows) {
-    return {
-      command: 'cmd',
-      args: ['/c', 'npx', '-y', 'ccw-mcp'],
-      env
-    };
-  }
-  return {
-    command: 'npx',
-    args: ['-y', 'ccw-mcp'],
-    env
-  };
-}
-
-/**
  * Fetch CCW Tools MCP configuration by checking if ccw-tools server exists
  */
 export async function fetchCcwMcpConfig(currentProjectPath?: string): Promise<CcwMcpConfig> {
@@ -4501,13 +4683,14 @@ export async function updateCcwConfig(config: {
   allowedDirs?: string;
   enableSandbox?: boolean;
 }): Promise<CcwMcpConfig> {
-  const serverConfig = buildCcwMcpServerConfig(config);
-
-  // Install/update to global config
-  const result = await addGlobalMcpServer('ccw-tools', serverConfig);
-  if (!result.success) {
-    throw new Error(result.error || 'Failed to update CCW config');
-  }
+  const result = await fetchApi<{ success?: boolean; error?: string }>('/api/mcp-install-ccw', {
+    method: 'POST',
+    body: JSON.stringify({
+      scope: 'global',
+      env: config,
+    }),
+  });
+  if (result?.error) throw new Error(result.error || 'Failed to update CCW config');
 
   return fetchCcwMcpConfig();
 }
@@ -4519,31 +4702,21 @@ export async function installCcwMcp(
   scope: 'global' | 'project' = 'global',
   projectPath?: string
 ): Promise<CcwMcpConfig> {
-  const serverConfig = buildCcwMcpServerConfig({
-    enabledTools: ['write_file', 'edit_file', 'read_file', 'core_memory', 'ask_question', 'smart_search'],
+  const path = scope === 'project' ? requireProjectPath(projectPath, 'installCcwMcp') : undefined;
+
+  const result = await fetchApi<{ success?: boolean; error?: string }>('/api/mcp-install-ccw', {
+    method: 'POST',
+    body: JSON.stringify({
+      scope,
+      projectPath: path,
+      env: {
+        enabledTools: ['write_file', 'edit_file', 'read_file', 'core_memory', 'ask_question', 'smart_search'],
+      },
+    }),
   });
+  if (result?.error) throw new Error(result.error || `Failed to install CCW MCP (${scope})`);
 
-  if (scope === 'project' && projectPath) {
-    const result = await fetchApi<{ success?: boolean; error?: string }>('/api/mcp-copy-server', {
-      method: 'POST',
-      body: JSON.stringify({
-        projectPath,
-        serverName: 'ccw-tools',
-        serverConfig,
-        configType: 'mcp',
-      }),
-    });
-    if (result?.error) {
-      throw new Error(result.error || 'Failed to install CCW MCP to project');
-    }
-  } else {
-    const result = await addGlobalMcpServer('ccw-tools', serverConfig);
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to install CCW MCP');
-    }
-  }
-
-  return fetchCcwMcpConfig();
+  return fetchCcwMcpConfig(path);
 }
 
 /**
@@ -4614,7 +4787,7 @@ export async function fetchCcwMcpConfigForCodex(): Promise<CcwMcpConfig> {
       return { isInstalled: false, enabledTools: [], installedScopes: [] };
     }
 
-    const env = ccwServer.env || {};
+    const env = isStdioMcpServer(ccwServer) ? (ccwServer.env || {}) : {};
     // Note: CCW_ENABLED_TOOLS can be empty string (all tools disabled), 'all' (default set), or comma-separated list
     const enabledToolsStr = env.CCW_ENABLED_TOOLS;
     let enabledTools: string[];
@@ -7142,7 +7315,7 @@ export async function fetchCcwTools(): Promise<CcwToolInfo[]> {
 
 // ========== Team API ==========
 
-export async function fetchTeams(location?: string): Promise<{ teams: Array<{ name: string; messageCount: number; lastActivity: string; status: string; created_at: string; updated_at: string; archived_at?: string; pipeline_mode?: string; memberCount: number; members?: string[] }> }> {
+export async function fetchTeams(location?: string): Promise<{ teams: Array<{ name: string; messageCount: number; lastActivity: string; status: string; created_at: string; updated_at: string; archived_at?: string; pipeline_mode?: string; pipeline_stages?: string[]; role_state?: Record<string, Record<string, unknown>>; roles?: string[]; team_name?: string; memberCount: number; members?: string[] }> }> {
   const params = new URLSearchParams();
   if (location) params.set('location', location);
   const qs = params.toString();

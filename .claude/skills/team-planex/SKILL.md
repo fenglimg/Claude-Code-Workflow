@@ -1,14 +1,14 @@
 ---
 name: team-planex
 description: Unified team skill for plan-and-execute pipeline. Uses team-worker agent architecture with role-spec files for domain logic. Coordinator orchestrates pipeline, workers are team-worker agents. Triggers on "team planex".
-allowed-tools: TeamCreate(*), TeamDelete(*), SendMessage(*), TaskCreate(*), TaskUpdate(*), TaskList(*), TaskGet(*), Task(*), AskUserQuestion(*), Read(*), Write(*), Edit(*), Bash(*), Glob(*), Grep(*)
+allowed-tools: TeamCreate(*), TeamDelete(*), SendMessage(*), TaskCreate(*), TaskUpdate(*), TaskList(*), TaskGet(*), Agent(*), AskUserQuestion(*), Read(*), Write(*), Edit(*), Bash(*), Glob(*), Grep(*)
 ---
 
 # Team PlanEx
 
 Unified team skill: plan-and-execute pipeline for issue-based development. Built on **team-worker agent architecture** — all worker roles share a single agent definition with role-specific Phase 2-4 loaded from markdown specs.
 
-> **Note**: This skill has its own coordinator implementation (`roles/coordinator/role.md`), independent of `team-lifecycle-v5`. It follows the same v5 architectural patterns (team-worker agents, role-specs, Spawn-and-Stop) but with a simplified 2-role pipeline (planner + executor) tailored for plan-and-execute workflows.
+> **Note**: This skill has its own coordinator implementation (`roles/coordinator/role.md`), independent of `team-lifecycle`. It follows the same v5 architectural patterns (team-worker agents, role-specs, Spawn-and-Stop) but with a simplified 2-role pipeline (planner + executor) tailored for plan-and-execute workflows.
 
 ## Architecture
 
@@ -99,11 +99,10 @@ When coordinator needs to execute a command (dispatch, monitor):
 
 ## Execution Method Selection
 
-支持 3 种执行后端：
+支持 2 种执行后端：
 
 | Executor | 后端 | 适用场景 |
 |----------|------|----------|
-| `agent` | code-developer subagent | 简单任务、同步执行 |
 | `codex` | `ccw cli --tool codex --mode write` | 复杂任务、后台执行 |
 | `gemini` | `ccw cli --tool gemini --mode write` | 分析类任务、后台执行 |
 
@@ -111,12 +110,11 @@ When coordinator needs to execute a command (dispatch, monitor):
 
 | Condition | Execution Method |
 |-----------|-----------------|
-| `--exec=agent` specified | Agent |
 | `--exec=codex` specified | Codex |
 | `--exec=gemini` specified | Gemini |
-| `-y` or `--yes` flag present | Auto (default Agent) |
+| `-y` or `--yes` flag present | Auto (default Gemini) |
 | No flags (interactive) | AskUserQuestion -> user choice |
-| Auto + task_count <= 3 | Agent |
+| Auto + task_count <= 3 | Gemini |
 | Auto + task_count > 3 | Codex |
 
 ---
@@ -128,8 +126,8 @@ When coordinator needs to execute a command (dispatch, monitor):
 When coordinator spawns workers, use `team-worker` agent with role-spec path:
 
 ```
-Task({
-  subagent_type: "team-worker",
+Agent({
+  agent_type: "team-worker",
   description: "Spawn <role> worker",
   team_name: <team-name>,
   name: "<role>",
@@ -260,7 +258,7 @@ if (autoYes) {
 
 ```
 .workflow/.team/PEX-{slug}-{date}/
-├── team-session.json           # Session state
+├── .msg/meta.json           # Session state
 ├── artifacts/
 │   └── solutions/              # Planner solution output per issue
 │       ├── {issueId-1}.json
@@ -270,7 +268,8 @@ if (autoYes) {
 │   ├── decisions.md
 │   ├── conventions.md
 │   └── issues.md
-└── shared-memory.json          # Cross-role state
+├── .msg/messages.jsonl          # Team message bus
+└── .msg/meta.json               # Session metadata
 ```
 
 ---
@@ -279,8 +278,9 @@ if (autoYes) {
 
 每次 SendMessage 前，先调用 `mcp__ccw-tools__team_msg` 记录：
 
-- 参数: operation="log", team=`<session-id>`, from=`<role>`, to=`<target-role>`, type=`<type>`, summary="[`<role>`] `<summary>`"
-- **注意**: `team` 必须是 **session ID** (如 `PEX-project-2026-02-27`), 不是 team name.
+- 参数: operation="log", session_id=`<session-id>`, from=`<role>`, type=`<type>`, data={ref: "`<artifact-path>`"}
+- `to` and `summary` auto-defaulted -- do NOT specify explicitly
+- **CLI fallback**: `ccw team log --session-id <session-id> --from <role> --type <type> --json`
 
 **Message types by role**:
 

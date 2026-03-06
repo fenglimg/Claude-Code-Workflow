@@ -23,6 +23,7 @@
     "skills": "Skills",
     "commands": "Commands",
     "memory": "Memory",
+    "deepwiki": "DeepWiki",
     "prompts": "Prompt History",
     "settings": "Settings",
     "mcp": "MCP Servers",
@@ -101,7 +102,8 @@
   "toolbar": {
     "a2ui": {
       "button": "A2UI",
-      "quickAction": "A2UI Quick Action"
+      "quickAction": "A2UI Quick Action",
+      "unavailable": "No A2UI action available"
     }
   }
 }

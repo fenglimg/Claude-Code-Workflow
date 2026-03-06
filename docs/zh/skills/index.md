@@ -56,7 +56,7 @@ Skills 是 CCW 可执行的、可复用的、领域特定的能力。每个技�
 | 技能 | 触发器 | 说明 |
 |------|--------|------|
 | [workflow-plan](./core-skills.md#workflow-plan) | `workflow-plan`, `workflow-plan-verify`, `workflow:replan` | 4 阶段规划带验证 |
-| [workflow-lite-planex](./core-skills.md#workflow-lite-planex) | `workflow-lite-planex` | 轻量级规划 |
+| [workflow-lite-plan](./core-skills.md#workflow-lite-plan) | `workflow-lite-plan` | 轻量级规划 |
 | [workflow-multi-cli-plan](./core-skills.md#workflow-multi-cli-plan) | `workflow-multi-cli-plan`, `workflow:multi-cli-plan` | 多 CLI 协作规划 |
 | [workflow-execute](./core-skills.md#workflow-execute) | `workflow-execute` | 任务执行协调 |
 | [workflow-tdd-plan](./core-skills.md#workflow-tdd-plan) | `workflow-tdd-plan` | TDD 红-绿-重构 |
@@ -79,7 +79,7 @@ Skill(skill="review-cycle")
 
 #### 快速迭代
 ```bash
-Skill(skill="workflow-lite-planex")
+Skill(skill="workflow-lite-plan")
 Skill(skill="workflow-execute")
 ```
 
@@ -92,18 +92,24 @@ Skill(skill="workflow-tdd-plan", args="--mode tdd-verify")
 
 ## 使用技能
 
-### CLI 接口
+### 推荐方式：CCW 编排器
+
+使用 `/ccw` 命令配合自然语言描述 - CCW 自动分析意图并选择合适的 skill：
 
 ```bash
-# 通过 ccw 命令调用
-ccw --help
+# CCW 自动路由到 brainstorm skill
+/ccw "头脑风暴: 用户通知系统设计"
 
-# 或直接使用触发器
-ccw brainstorm
-ccw team lifecycle
+# CCW 自动路由到 team lifecycle 工作流
+/ccw "从零开始: 用户认证系统"
+
+# CCW 自动路由到代码审查
+/ccw "review: 代码质量检查"
 ```
 
-### 编程接口
+### 直接调用 Skill
+
+使用 `Skill()` 工具直接调用：
 
 ```javascript
 // 基本使用
@@ -114,6 +120,17 @@ Skill(skill="team-lifecycle-v4", args="Build user authentication")
 
 // 带模式选择
 Skill(skill="workflow-plan", args="--mode verify")
+```
+
+### CCW Team CLI（仅消息总线）
+
+`ccw team` **仅用于**团队消息总线操作，不能用于调用 team skill：
+
+```bash
+# 消息总线操作
+ccw team log --session-id TLS-xxx --from executor --type state_update
+ccw team list --session-id TLS-xxx --last 5
+ccw team status --session-id TLS-xxx
 ```
 
 ## 自定义技能
@@ -173,24 +190,23 @@ Skill(skill="my-custom-skill", args="input")
 **场景**：实现新的用户仪表板功能
 
 ```bash
-# 步骤 1：头脑风暴功能
-ccw brainstorm
-# 按提示定义：
-# - 仪表板小部件（统计、图表、最近活动）
-# - 布局偏好
-# - 数据刷新间隔
+# 步骤 1：头脑风暴功能（通过 CCW 编排器）
+/ccw "头脑风暴: 用户仪表板功能设计"
+# 或直接调用 Skill:
+# Skill(skill="brainstorm")
 
-# 步骤 2：规划实现
-ccw workflow-plan "Build user dashboard with configurable widgets"
-# 输出：IMPL-001.json 包含任务分解
+# 步骤 2：规划实现（通过 CCW 编排器）
+/ccw "Plan: Build user dashboard with configurable widgets"
+# 或直接调用 Skill:
+# Skill(skill="workflow-plan", args="Build user dashboard")
 
 # 步骤 3：团队执行
-ccw team lifecycle
-# 或使用快速迭代：
-ccw workflow-lite-planex && ccw workflow-execute
+Skill(skill="team-lifecycle-v4", args="Build user dashboard")
+# 或使用快速迭代:
+# Skill(skill="workflow-lite-plan")
 
 # 步骤 4：审查和优化
-ccw review-code
+Skill(skill="review-code")
 # 修复发现的问题
 ```
 
@@ -203,11 +219,11 @@ ccw review-code
 ccw cli -p "Analyze /api/users endpoint for N+1 query issues" --tool gemini --mode analysis
 
 # 步骤 2：深度调查（如需要）
-ccw workflow:debug-with-file
+Skill(skill="workflow:debug-with-file")
 # 创建假设、植入代码、分析日志
 
 # 步骤 3：应用修复
-ccw workflow-execute --task "Fix N+1 query in user endpoint"
+Skill(skill="workflow-execute", args="--task \"Fix N+1 query in user endpoint\"")
 ```
 
 ### 示例 3：代码迁移
@@ -215,12 +231,13 @@ ccw workflow-execute --task "Fix N+1 query in user endpoint"
 **场景**：从 JavaScript 迁移到 TypeScript
 
 ```bash
-# 步骤 1：分析代码库
-ccw workflow:refactor-cycle
-# 识别技术债务并创建迁移计划
+# 步骤 1：分析代码库（通过 CCW 编排器）
+/ccw "refactor: JavaScript to TypeScript 迁移"
+# 或直接调用 Skill:
+# Skill(skill="workflow:refactor-cycle")
 
 # 步骤 2：分阶段执行迁移
-ccw team roadmap-dev --epic "ts-migration"
+Skill(skill="team-roadmap-dev", args="--epic ts-migration")
 # 渐进式迁移模块并测试
 ```
 
@@ -230,10 +247,10 @@ ccw team roadmap-dev --epic "ts-migration"
 
 ```bash
 # 步骤 1：捕获现有模式
-ccw memory:capture "API patterns: REST, versioning, error handling"
+Skill(skill="memory-capture", args="\"API patterns: REST, versioning, error handling\"")
 
 # 步骤 2：生成文档
-ccw software-manual --output ./docs/api/
+Skill(skill="software-manual", args="--output ./docs/api/")
 ```
 
 ### 示例 5：代码审查流水线
@@ -242,15 +259,15 @@ ccw software-manual --output ./docs/api/
 
 ```bash
 # 全面审查
-ccw review-code --focus security,performance
+Skill(skill="review-code", args="--focus security,performance")
 
 # 或使用循环自动修复
-ccw review-cycle --max-iterations 3
+Skill(skill="review-cycle", args="--max-iterations 3")
 ```
 
 ### 最佳效果提示
 
-1. **从小开始**：简单任务使用 `workflow-lite-planex`
+1. **从小开始**：简单任务使用 `workflow-lite-plan`
 2. **使用记忆**：用 `memory:capture` 捕获见解供将来参考
 3. **验证计划**：执行前始终审查生成的计划
 4. **迭代**：使用 `review-cycle` 持续改进

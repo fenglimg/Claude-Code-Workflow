@@ -3,6 +3,7 @@
 // ========================================
 // Individual hook display card with actions
 
+import { useState } from 'react';
 import { useIntl } from 'react-intl';
 import {
   GitFork,
@@ -16,6 +17,16 @@ import {
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/AlertDialog';
 import { cn } from '@/lib/utils';
 
 // ========== Types ==========
@@ -30,6 +41,8 @@ export interface HookCardData {
   matcher?: string;
   command?: string;
   script?: string;
+  scope?: 'global' | 'project';
+  index?: number;
 }
 
 export interface HookCardProps {
@@ -164,6 +177,7 @@ export function HookCard({
   onDelete,
 }: HookCardProps) {
   const { formatMessage } = useIntl();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Get translated hook name
   const displayName = getHookDisplayName(hook.name, formatMessage);
@@ -177,12 +191,20 @@ export function HookCard({
   };
 
   const handleDelete = () => {
-    if (confirm(formatMessage({ id: 'cliHooks.actions.deleteConfirm' }, { hookName: hook.name }))) {
-      onDelete(hook.name);
-    }
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setShowDeleteConfirm(false);
+    onDelete(hook.name);
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
   };
 
   return (
+    <>
     <Card className={cn('overflow-hidden', !hook.enabled && 'opacity-60')}>
       {/* Header */}
       <div className="p-4">
@@ -261,7 +283,7 @@ export function HookCard({
               onClick={handleDelete}
               title={formatMessage({ id: 'common.actions.delete' })}
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-4 h-4 text-destructive" />
             </Button>
             <Button
               variant="ghost"
@@ -315,6 +337,23 @@ export function HookCard({
         </div>
       )}
     </Card>
+
+    {/* Delete Confirmation Dialog */}
+    <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete CLI Hook?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. The hook "{displayName}" will be permanently deleted.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={handleCancelDelete}>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
   );
 }
 

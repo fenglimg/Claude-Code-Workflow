@@ -7,8 +7,8 @@ CCW 提供了基于 **Team 架构 v2** 和 **Skill 工作流系统** 的完整�
 ## v7.0 新增功能
 
 **主要新特性**:
-- **Team 架构 v2**: `team-coordinate-v2` 和 `team-executor-v2` 统一 team-worker 代理
-- **team-lifecycle-v5**: 完整生命周期统一团队技能 (规格 -> 实现 -> 测试 -> 审查)
+- **Team 架构 v2**: `team-coordinate` 和 `team-executor` 统一 team-worker 代理
+- **team-lifecycle**: 完整生命周期统一团队技能 (规格 -> 实现 -> 测试 -> 审查)
 - **队列调度器**: 具有依赖解析的后台任务执行
 - **工作流会话命令**: `start`、`resume`、`complete`、`sync` 完整生命周期管理
 - **节拍/韵律编排模型**: 事件驱动的协调模型
@@ -22,7 +22,7 @@ CCW 使用两种调用方式：
 
 | 类型 | 格式 | 示例 |
 |------|------|------|
-| **Skills** | 触发短语（无斜杠） | `workflow-lite-planex`, `brainstorm`, `workflow-plan` |
+| **Skills** | 触发短语（无斜杠） | `workflow-lite-plan`, `brainstorm`, `workflow-plan` |
 | **Commands** | 斜杠命令 | `/ccw`, `/workflow/session:start`, `/issue/new` |
 
 ---
@@ -33,7 +33,7 @@ CCW 使用两种调用方式：
 
 | Skill 触发词 | 用途 | 阶段 |
 |--------------|------|------|
-| `workflow-lite-planex` | 轻量规划与探索（包含执行） | 5 阶段 |
+| `workflow-lite-plan` | 轻量规划与探索（Skill 交接给 lite-execute） | 5 阶段 |
 
 **5 阶段交互式工作流**：
 ```
@@ -150,9 +150,9 @@ CCW 使用两种调用方式：
 
 | Skill | 用途 |
 |-------|------|
-| `team-coordinate-v2` | 动态角色生成与协调 |
-| `team-executor-v2` | 现有会话的纯执行 |
-| `team-lifecycle-v5` | 完整生命周期（规格 -> 实现 -> 测试） |
+| `team-coordinate` | 动态角色生成与协调 |
+| `team-executor` | 现有会话的纯执行 |
+| `team-lifecycle` | 完整生命周期（规格 -> 实现 -> 测试） |
 | `team-brainstorm` | 头脑风暴团队 |
 | `team-frontend` | 前端开发团队 |
 | `team-testing` | 测试团队 |
@@ -232,7 +232,7 @@ CCW 使用两种调用方式：
 
 | Skill | 触发词 |
 |-------|--------|
-| workflow-lite-planex | `workflow-lite-planex` |
+| workflow-lite-plan | `workflow-lite-plan` |
 | workflow-multi-cli-plan | `workflow-multi-cli-plan` |
 | workflow-plan | `workflow-plan`, `workflow-plan-verify`, `workflow:replan` |
 | workflow-execute | `workflow-execute` |
@@ -293,10 +293,10 @@ CCW 使用两种调用方式：
 开始
   │
   ├─ 是快速修复或配置变更？
-  │    └─> 是：workflow-lite-planex
+  │    └─> 是：workflow-lite-plan
   │
   ├─ 是单模块功能？
-  │    └─> 是：workflow-lite-planex
+  │    └─> 是：workflow-lite-plan
   │
   ├─ 需要多 CLI 分析？
   │    └─> 是：workflow-multi-cli-plan
@@ -348,7 +348,7 @@ CCW 使用两种调用方式：
 
 | Skill | 何时使用 |
 |-------|----------|
-| `workflow-lite-planex` | 快速修复、单功能 |
+| `workflow-lite-plan` | 快速修复、单功能 |
 | `workflow-plan` | 多模块开发 |
 | `brainstorm` | 架构、新功能 |
 | `workflow-execute` | 执行已规划的工作 |

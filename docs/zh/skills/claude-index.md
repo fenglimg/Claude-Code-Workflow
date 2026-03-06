@@ -50,7 +50,7 @@ Claude Code Workflow 支持两种团队架构模型：
    - 所有工作者角色都是运行时动态生成
    - 支持任意任务类型的动态团队
 
-2. **team-lifecycle-v5** (全生命周期团队)
+2. **team-lifecycle** (全生命周期团队)
    - 基于 team-worker agent 架构
    - 所有工作者共享同一代理定义
    - 角色特定的 Phase 2-4 从 markdown 规范加载
@@ -176,7 +176,7 @@ memory/
 
 ```bash
 # 快速任务
-/workflow-lite-planex "Fix login bug"
+/workflow-lite-plan "Fix login bug"
 
 # 完整开发
 /workflow-plan "Add user notifications"
@@ -229,7 +229,7 @@ memory/
    - 测试覆盖 → `team-testing`
 
 2. **工作流选择**:
-   - 超简单 → `workflow-lite-planex`
+   - 超简单 → `workflow-lite-plan`
    - 复杂功能 → `workflow-plan` → `workflow-execute`
    - TDD → `workflow-tdd-plan`
    - 测试修复 → `workflow-test-fix`
@@ -253,7 +253,7 @@ memory/
 
 - [Claude Commands](../commands/claude/)
 - [Codex Skills](./codex-index.md)
-- [功能文档](../features/)
+- [功能文档](../features/spec)
 
 ## 统计数据
 

@@ -114,6 +114,6 @@ Badge 徽章组件用于以紧凑形式显示状态、类别或标签。它通�
 
 ## 相关组件
 
-- [Card 卡片](/zh-CN/components/ui/card)
-- [Button 按钮](/zh-CN/components/ui/button)
-- [Avatar 头像](/zh-CN/components/ui/avatar)
+- [Card 卡片](/zh/components/ui/card)
+- [Button 按钮](/zh/components/ui/button)
+- Avatar 头像

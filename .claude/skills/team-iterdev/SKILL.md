@@ -1,7 +1,7 @@
 ---
 name: team-iterdev
 description: Unified team skill for iterative development team. All roles invoke this skill with --role arg for role-specific execution. Triggers on "team iterdev".
-allowed-tools: TeamCreate(*), TeamDelete(*), SendMessage(*), TaskCreate(*), TaskUpdate(*), TaskList(*), TaskGet(*), Task(*), AskUserQuestion(*), Read(*), Write(*), Edit(*), Bash(*), Glob(*), Grep(*)
+allowed-tools: TeamCreate(*), TeamDelete(*), SendMessage(*), TaskCreate(*), TaskUpdate(*), TaskList(*), TaskGet(*), Agent(*), AskUserQuestion(*), Read(*), Write(*), Edit(*), Bash(*), Glob(*), Grep(*)
 ---
 
 # Team IterDev
@@ -11,20 +11,23 @@ Iterative development team skill. Generator-Critic loops (developer<->reviewer, 
 ## Architecture
 
 ```
-+-------------------------------------------------+
-|  Skill(skill="team-iterdev")                    |
-|  args="task description" or args="--role=xxx"   |
-+-------------------+-----------------------------+
-                    | Role Router
-         +---- --role present? ----+
-         | NO                      | YES
-         v                         v
-  Orchestration Mode         Role Dispatch
-  (auto -> coordinator)      (route to role.md)
-         |
-    +----+----+----------+---------+---------+
-    v         v          v         v         v
- coordinator architect developer tester  reviewer
++---------------------------------------------------+
+|  Skill(skill="team-iterdev")                       |
+|  args="<task-description>"                         |
++-------------------+-------------------------------+
+                    |
+         Orchestration Mode (auto -> coordinator)
+                    |
+              Coordinator (inline)
+              Phase 0-5 orchestration
+                    |
+    +-------+-------+-------+-------+
+    v       v       v       v
+ [tw]    [tw]    [tw]    [tw]
+archi-   devel-  tester  review-
+tect     oper            er
+
+(tw) = team-worker agent
 ```
 
 ## Role Router
@@ -35,13 +38,13 @@ Parse `$ARGUMENTS` to extract `--role`. If absent -> Orchestration Mode (auto ro
 
 ### Role Registry
 
-| Role | File | Task Prefix | Type | Compact |
-|------|------|-------------|------|---------|
-| coordinator | [roles/coordinator.md](roles/coordinator.md) | (none) | orchestrator | **MUST re-read after compression** |
-| architect | [roles/architect.md](roles/architect.md) | DESIGN-* | pipeline | MUST re-read after compression |
-| developer | [roles/developer.md](roles/developer.md) | DEV-* | pipeline | MUST re-read after compression |
-| tester | [roles/tester.md](roles/tester.md) | VERIFY-* | pipeline | MUST re-read after compression |
-| reviewer | [roles/reviewer.md](roles/reviewer.md) | REVIEW-* | pipeline | MUST re-read after compression |
+| Role | Spec | Task Prefix | Inner Loop |
+|------|------|-------------|------------|
+| coordinator | [roles/coordinator/role.md](roles/coordinator/role.md) | (none) | - |
+| architect | [role-specs/architect.md](role-specs/architect.md) | DESIGN-* | false |
+| developer | [role-specs/developer.md](role-specs/developer.md) | DEV-* | true |
+| tester | [role-specs/tester.md](role-specs/tester.md) | VERIFY-* | false |
+| reviewer | [role-specs/reviewer.md](role-specs/reviewer.md) | REVIEW-* | false |
 
 > **COMPACT PROTECTION**: Role files are execution documents, not reference material. When context compression occurs and role instructions are reduced to summaries, you **MUST immediately `Read` the corresponding role.md to reload before continuing execution**. Never execute any Phase based on summaries alone.
 
@@ -98,10 +101,10 @@ Each worker executes the same task discovery flow on startup:
 Standard report flow after task completion:
 
 1. **Message Bus**: Call `mcp__ccw-tools__team_msg` to log message
-   - Parameters: operation="log", team=<session-id>, from=<role>, to="coordinator", type=<message-type>, summary="[<role>] <summary>", ref=<artifact-path>
-   - **NOTE**: `team` must be **session ID** (e.g., `TID-project-2026-02-27`), NOT team name. Extract from `Session:` field in task description.
-   - **CLI fallback**: When MCP unavailable -> `ccw team log --team <session-id> --from <role> --to coordinator --type <type> --summary "[<role>] ..." --json`
-2. **SendMessage**: Send result to coordinator (content and summary both with `[<role>]` prefix)
+   - Parameters: operation="log", session_id=<session-id>, from=<role>, type=<message-type>, data={ref: "<artifact-path>"}
+   - `to` and `summary` auto-defaulted -- do NOT specify explicitly
+   - **CLI fallback**: `ccw team log --session-id <session-id> --from <role> --type <type> --json`
+2. **SendMessage**: Send result to coordinator
 3. **TaskUpdate**: Mark task completed
 4. **Loop**: Return to Phase 1 to check next task
 
@@ -110,18 +113,17 @@ Standard report flow after task completion:
 | Allowed | Prohibited |
 |---------|------------|
 | Process tasks with own prefix | Process other roles' prefix tasks |
-| Read/write shared-memory.json (own fields) | Create tasks for other roles |
+| Share state via team_msg(type='state_update') | Create tasks for other roles |
 | SendMessage to coordinator | Communicate directly with other workers |
 
-**Coordinator additional restrictions**: No direct code writing, no calling implementation-type subagents, no directly executing analysis/testing/review.
+**Coordinator additional restrictions**: No direct code writing, no directly executing analysis/testing/review.
 
 ### Message Bus
 
-Call `mcp__ccw-tools__team_msg` with: operation="log", team=<session-id>, from=<role>, to="coordinator", type=<type>, summary="[<role>] <summary>", ref="<file_path>"
+Call `mcp__ccw-tools__team_msg` with: operation="log", session_id=<session-id>, from=<role>, type=<type>, data={ref: "<file_path>"}
+`to` and `summary` auto-defaulted -- do NOT specify explicitly.
 
-**NOTE**: `team` must be **session ID** (e.g., `TID-project-2026-02-27`), NOT team name. Extract from `Session:` field in task description.
-
-**CLI Fallback**: `ccw team log --team "<session-id>" --from "<role>" --to "coordinator" --type "<type>" --summary "<summary>" --json`
+**CLI Fallback**: `ccw team log --session-id "<session-id>" --from "<role>" --type "<type>" --json`
 
 | Role | Message Types |
 |------|---------------|
@@ -137,7 +139,7 @@ Call `mcp__ccw-tools__team_msg` with: operation="log", team=<session-id>, from=<
 |---------|-------|
 | Team name | iterdev |
 | Session directory | `.workflow/.team/IDS-{slug}-{date}/` |
-| Shared memory file | shared-memory.json |
+| State sharing | team_msg(type='state_update') + .msg/meta.json |
 | Task ledger file | task-ledger.json |
 
 ---
@@ -154,7 +156,7 @@ Concurrency control for shared resources. Prevents multiple workers from modifyi
 
 | Action | Trigger Condition | Coordinator Behavior |
 |--------|-------------------|----------------------|
-| Acquire lock | Worker requests exclusive access to a resource | Check `resource_locks` in shared-memory.json. If unlocked, record lock with task ID, timestamp, and holder role. Log `resource_locked` message. Return success. |
+| Acquire lock | Worker requests exclusive access to a resource | Check `resource_locks` via team_msg(type='state_update'). If unlocked, record lock with task ID, timestamp, and holder role. Log `resource_locked` message. Return success. |
 | Deny lock | Resource already locked by another task | Return failure with current holder's task ID. Log `resource_contention` message. Worker must wait or request alternative resource. |
 | Release lock | Worker completes task or explicitly releases | Remove lock entry from `resource_locks`. Log `resource_unlocked` message to all workers. |
 | Force release | Lock held beyond timeout (5 min) | Force-remove lock entry. Notify original holder and coordinator. Log warning. |
@@ -196,7 +198,7 @@ Saves and restores task execution state for interruption recovery.
 
 | Action | Trigger Condition | Coordinator Behavior |
 |--------|-------------------|----------------------|
-| Save checkpoint | Task reaches significant progress milestone | Store checkpoint in `task_checkpoints` in shared-memory.json with timestamp and state data pointer. Retain last 5 checkpoints per task. Log `context_checkpoint_saved`. |
+| Save checkpoint | Task reaches significant progress milestone | Store checkpoint in `task_checkpoints` via team_msg(type='state_update') with timestamp and state data pointer. Retain last 5 checkpoints per task. Log `context_checkpoint_saved`. |
 | Restore checkpoint | Task resumes after interruption | Load latest checkpoint for task. Read state data from pointer path. Log `context_restored`. Return state data to worker. |
 | Checkpoint not found | Resume requested but no checkpoints exist | Return failure with reason. Worker starts fresh from Phase 1. |
 
@@ -206,7 +208,7 @@ Collects, categorizes, and tracks user feedback throughout the sprint.
 
 | Action | Trigger Condition | Coordinator Behavior |
 |--------|-------------------|----------------------|
-| Receive feedback | User provides feedback (via AskUserQuestion or direct) | Create feedback item with ID (FB-xxx), severity, category, timestamp. Store in `user_feedback_items` in shared-memory.json (max 50 items). Log `user_feedback_received`. |
+| Receive feedback | User provides feedback (via AskUserQuestion or direct) | Create feedback item with ID (FB-xxx), severity, category, timestamp. Store in `user_feedback_items` via team_msg(type='state_update') (max 50 items). Log `user_feedback_received`. |
 | Link to task | Feedback relates to specific task | Update feedback item's `source_task_id` and set status to "reviewed". |
 | Triage feedback | New feedback with high/critical severity | Prioritize in next sprint planning. Create task if actionable. |
 
@@ -216,7 +218,7 @@ Identifies, tracks, and prioritizes technical debt discovered during development
 
 | Action | Trigger Condition | Coordinator Behavior |
 |--------|-------------------|----------------------|
-| Identify debt | Worker reports tech debt during development or review | Create debt item with ID (TD-xxx), category (code/design/test/documentation), severity, estimated effort. Store in `tech_debt_items` in shared-memory.json. Log `tech_debt_identified`. |
+| Identify debt | Worker reports tech debt during development or review | Create debt item with ID (TD-xxx), category (code/design/test/documentation), severity, estimated effort. Store in `tech_debt_items` via team_msg(type='state_update'). Log `tech_debt_identified`. |
 | Generate report | Sprint retrospective or user request | Aggregate debt items by severity and category. Report totals, open items, and in-progress items. |
 | Prioritize debt | Sprint planning phase | Rank debt items by severity and priority. Recommend items for current sprint based on estimated effort and available capacity. |
 | Resolve debt | Developer completes debt resolution task | Update debt item status to "resolved". Record resolution in sprint history. |
@@ -405,38 +407,61 @@ Real-time tracking of all sprint task progress. Coordinator updates at each task
 
 ## Coordinator Spawn Template
 
-When coordinator spawns workers, use background mode (Spawn-and-Stop):
+### v5 Worker Spawn (all roles)
+
+When coordinator spawns workers, use `team-worker` agent with role-spec path:
 
 ```
-Task({
-  subagent_type: "general-purpose",
+Agent({
+  subagent_type: "team-worker",
   description: "Spawn <role> worker",
-  team_name: <team-name>,
+  team_name: "iterdev",
   name: "<role>",
   run_in_background: true,
-  prompt: `You are team "<team-name>" <ROLE>.
+  prompt: `## Role Assignment
+role: <role>
+role_spec: .claude/skills/team-iterdev/role-specs/<role>.md
+session: <session-folder>
+session_id: <session-id>
+team_name: iterdev
+requirement: <task-description>
+inner_loop: <true|false>
 
-## Primary Instruction
-All your work must be executed by calling Skill to load role definition:
-Skill(skill="team-iterdev", args="--role=<role>")
-
-Current requirement: <task-description>
-Session: <session-folder>
-
-## Role Guidelines
-- Only process <PREFIX>-* tasks, do not execute other roles' work
-- All output must have [<role>] identifier prefix
-- Communicate only with coordinator
-- Do not use TaskCreate to create tasks for other roles
-- Before each SendMessage, call mcp__ccw-tools__team_msg to log
-
-## Workflow
-1. Call Skill -> load role definition and execution logic
-2. Follow role.md 5-Phase flow
-3. team_msg + SendMessage result to coordinator
-4. TaskUpdate completed -> check next task`
+Read role_spec file to load Phase 2-4 domain instructions.
+Execute built-in Phase 1 (task discovery) -> role-spec Phase 2-4 -> built-in Phase 5 (report).`
 })
 ```
+
+**Inner Loop roles** (developer): Set `inner_loop: true`. The team-worker agent handles the loop internally.
+
+**Single-task roles** (architect, tester, reviewer): Set `inner_loop: false`.
+
+---
+
+## Completion Action
+
+When the pipeline completes (all tasks done, coordinator Phase 5):
+
+```
+AskUserQuestion({
+  questions: [{
+    question: "IterDev pipeline complete. What would you like to do?",
+    header: "Completion",
+    multiSelect: false,
+    options: [
+      { label: "Archive & Clean (Recommended)", description: "Archive session, clean up tasks and team resources" },
+      { label: "Keep Active", description: "Keep session active for follow-up work or inspection" },
+      { label: "Export Results", description: "Export deliverables to a specified location, then clean" }
+    ]
+  }]
+})
+```
+
+| Choice | Action |
+|--------|--------|
+| Archive & Clean | Update session status="completed" -> TeamDelete() -> output final summary |
+| Keep Active | Update session status="paused" -> output resume instructions: `Skill(skill="team-iterdev", args="resume")` |
+| Export Results | AskUserQuestion for target path -> copy deliverables -> Archive & Clean |
 
 ---
 
@@ -444,8 +469,9 @@ Session: <session-folder>
 
 ```
 .workflow/.team/IDS-{slug}-{YYYY-MM-DD}/
-+-- team-session.json
-+-- shared-memory.json          # Cross-sprint learning
++-- .msg/meta.json
++-- .msg/messages.jsonl          # Team message bus
++-- .msg/meta.json               # Session metadata
 +-- task-ledger.json            # Real-time task progress ledger
 +-- wisdom/                     # Cross-task knowledge accumulation
 |   +-- learnings.md
@@ -467,7 +493,7 @@ Session: <session-folder>
 
 Coordinator supports `--resume` / `--continue` for interrupted sessions:
 
-1. Scan `.workflow/.team/IDS-*/team-session.json` for active/paused sessions
+1. Scan `.workflow/.team/IDS-*/.msg/meta.json` for active/paused sessions
 2. Multiple matches -> AskUserQuestion for selection
 3. Audit TaskList -> reconcile session state with task status
 4. Reset in_progress -> pending (interrupted tasks)

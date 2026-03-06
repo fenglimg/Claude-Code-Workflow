@@ -69,7 +69,7 @@ For callback/check/resume/complete: load `commands/monitor.md` and execute match
 ### Router Implementation
 
 1. **Load session context** (if exists):
-   - Scan `.workflow/.team/PERF-OPT-*/team-session.json` for active/paused sessions
+   - Scan `.workflow/.team/PERF-OPT-*/.msg/meta.json` for active/paused sessions
    - If found, extract session folder path, status, and `parallel_mode`
 
 2. **Parse $ARGUMENTS** for detection keywords:
@@ -186,10 +186,22 @@ Bash("mkdir -p .workflow/<session-id>/artifacts/pipelines/A .workflow/<session-i
    - `independent_targets`: populated for independent mode (e.g., ["optimize rendering", "optimize API"])
    - `fix_cycles`: populated per-branch/pipeline as fix cycles occur
 
-3. Initialize shared-memory.json:
-
-```
-Write("<session>/wisdom/shared-memory.json", { "session_id": "<session-id>", "requirement": "<requirement>", "parallel_mode": "<mode>" })
+3. Initialize meta.json with pipeline metadata:
+```typescript
+// Use team_msg to write pipeline metadata to .msg/meta.json
+mcp__ccw-tools__team_msg({
+  operation: "log",
+  session_id: "<session-id>",
+  from: "coordinator",
+  type: "state_update",
+  summary: "Session initialized",
+  data: {
+    pipeline_mode: "<auto|single|fan-out|independent>",
+    pipeline_stages: ["profiler", "strategist", "optimizer", "benchmarker", "reviewer"],
+    roles: ["coordinator", "profiler", "strategist", "optimizer", "benchmarker", "reviewer"],
+    team_name: "perf-opt"
+  }
+})
 ```
 
 4. Create team:
@@ -217,7 +229,7 @@ Execute `commands/dispatch.md` inline (Command Execution Protocol):
 Find first unblocked task and spawn its worker:
 
 ```
-Task({
+Agent({
   subagent_type: "team-worker",
   description: "Spawn profiler worker",
   team_name: "perf-opt",
@@ -286,6 +298,6 @@ AskUserQuestion({
 
 | Choice | Steps |
 |--------|-------|
-| Archive & Clean | TaskList -> verify all completed -> update session status="completed" -> TeamDelete("perf-opt") -> output final summary with artifact paths |
+| Archive & Clean | TaskList -> verify all completed -> update session status="completed" -> TeamDelete() -> output final summary with artifact paths |
 | Keep Active | Update session status="paused" -> output: "Session paused. Resume with: Skill(skill='team-perf-opt', args='resume')" |
 | Export Results | AskUserQuestion for target directory -> copy all artifacts -> Archive & Clean flow |

@@ -1,7 +1,7 @@
 ---
 name: team-arch-opt
 description: Unified team skill for architecture optimization. Uses team-worker agent architecture with role-spec files for domain logic. Coordinator orchestrates pipeline, workers are team-worker agents. Triggers on "team arch-opt".
-allowed-tools: Task, TaskCreate, TaskList, TaskGet, TaskUpdate, TeamCreate, TeamDelete, SendMessage, AskUserQuestion, Read, Write, Edit, Bash, Glob, Grep, mcp__ace-tool__search_context
+allowed-tools: Agent, TaskCreate, TaskList, TaskGet, TaskUpdate, TeamCreate, TeamDelete, SendMessage, AskUserQuestion, Read, Write, Edit, Bash, Glob, Grep, mcp__ace-tool__search_context
 ---
 
 # Team Architecture Optimization
@@ -27,7 +27,7 @@ Unified team skill: Analyze codebase architecture, identify structural issues (d
 analyzer desig-  refact- valid-  review-
          ner     orer    ator    er
 
-  Subagents (callable by workers, not team members):
+  CLI Tools (callable by workers inline):
     [explore]  [discuss]
 
 (tw) = team-worker agent
@@ -52,12 +52,12 @@ Parse `$ARGUMENTS`. No `--role` needed -- always routes to coordinator.
 | validator | [role-specs/validator.md](role-specs/validator.md) | VALIDATE-* | validation | false |
 | reviewer | [role-specs/reviewer.md](role-specs/reviewer.md) | REVIEW-* / QUALITY-* | read_only_analysis | false |
 
-### Subagent Registry
+### CLI Tool Registry
 
-| Subagent | Spec | Callable By | Purpose |
-|----------|------|-------------|---------|
-| explore | [subagents/explore-subagent.md](subagents/explore-subagent.md) | analyzer, refactorer | Shared codebase exploration for architecture-critical structures and dependency graphs |
-| discuss | [subagents/discuss-subagent.md](subagents/discuss-subagent.md) | designer, reviewer | Multi-perspective discussion for refactoring approaches and review findings |
+| Tool | Spec | Used By | Purpose |
+|------|------|---------|---------|
+| explore | [cli-tools/explore.md](cli-tools/explore.md) | analyzer, refactorer | Shared codebase exploration for architecture-critical structures and dependency graphs |
+| discuss | [cli-tools/discuss.md](cli-tools/discuss.md) | designer, reviewer | Multi-perspective discussion for refactoring approaches and review findings |
 
 ### Dispatch
 
@@ -137,7 +137,7 @@ Phase 3 needs task dispatch
 When coordinator spawns workers, use `team-worker` agent with role-spec path:
 
 ```
-Task({
+Agent({
   subagent_type: "team-worker",
   description: "Spawn <role> worker",
   team_name: <team-name>,
@@ -361,7 +361,7 @@ AskUserQuestion({
 
 | Choice | Action |
 |--------|--------|
-| Archive & Clean | Update session status="completed" -> TeamDelete(arch-opt) -> output final summary |
+| Archive & Clean | Update session status="completed" -> TeamDelete() -> output final summary |
 | Keep Active | Update session status="paused" -> output resume instructions: `Skill(skill="team-arch-opt", args="resume")` |
 | Export Results | AskUserQuestion for target path -> copy deliverables -> Archive & Clean |
 
@@ -384,7 +384,9 @@ AskUserQuestion({
 |   +-- <hash>.md                   # Cached exploration results
 +-- wisdom/
 |   +-- patterns.md                 # Discovered patterns and conventions
-|   +-- shared-memory.json          # Cross-role structured data
++-- .msg/
+|   +-- messages.jsonl              # Message bus log
+|   +-- meta.json                   # Session state + cross-role state
 +-- discussions/
 |   +-- DISCUSS-REFACTOR.md         # Refactoring design discussion record
 |   +-- DISCUSS-REVIEW.md           # Review discussion record
@@ -458,7 +460,7 @@ Coordinator supports `--resume` / `--continue` for interrupted sessions:
 |----------|------------|
 | Role spec file not found | Error with expected path (role-specs/<name>.md) |
 | Command file not found | Fallback to inline execution in coordinator role.md |
-| Subagent spec not found | Error with expected path (subagents/<name>-subagent.md) |
+| CLI tool spec not found | Error with expected path (cli-tools/<name>.md) |
 | Fast-advance orphan detected | Coordinator resets task to pending on next check |
 | consensus_blocked HIGH | Coordinator creates revision task or pauses pipeline |
 | team-worker agent unavailable | Error: requires .claude/agents/team-worker.md |
@@ -468,7 +470,7 @@ Coordinator supports `--resume` / `--continue` for interrupted sessions:
 | Review-fix cycle exceeds 3 iterations | Escalate to user with summary of remaining issues (per-branch/pipeline scope) |
 | One branch REFACTOR fails | Mark that branch failed, other branches continue to completion |
 | Branch scope overlap detected | Designer constrains non-overlapping target files; REFACTOR logs warning on detection |
-| Shared-memory concurrent writes | Each worker writes only its own namespace key (e.g., `refactorer.B01`) |
+| Meta.json concurrent writes | Each worker writes only its own namespace key (e.g., `refactorer.B01`) |
 | Branch fix cycle >= 3 | Escalate only that branch to user, other branches continue independently |
 | max_branches exceeded | Coordinator truncates to top N refactorings by priority at CP-2.5 |
 | Independent pipeline partial failure | Failed pipeline marked, others continue; aggregate reports partial results |

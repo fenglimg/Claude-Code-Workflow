@@ -1,7 +1,7 @@
 ---
 name: team-ultra-analyze
 description: Unified team skill for deep collaborative analysis. All roles invoke this skill with --role arg for role-specific execution. Triggers on "team ultra-analyze", "team analyze".
-allowed-tools: TeamCreate(*), TeamDelete(*), SendMessage(*), TaskCreate(*), TaskUpdate(*), TaskList(*), TaskGet(*), Task(*), AskUserQuestion(*), Read(*), Write(*), Edit(*), Bash(*), Glob(*), Grep(*)
+allowed-tools: TeamCreate(*), TeamDelete(*), SendMessage(*), TaskCreate(*), TaskUpdate(*), TaskList(*), TaskGet(*), Agent(*), AskUserQuestion(*), Read(*), Write(*), Edit(*), Bash(*), Glob(*), Grep(*)
 ---
 
 # Team Ultra Analyze
@@ -11,21 +11,23 @@ Deep collaborative analysis team skill. Splits monolithic analysis into 5-role c
 ## Architecture
 
 ```
-+-------------------------------------------------------------+
-|  Skill(skill="team-ultra-analyze")                          |
-|  args="topic description" or args="--role=xxx"              |
-+----------------------------+--------------------------------+
-                             | Role Router
-          +---- --role present? ----+
-          | NO                      | YES
-          v                         v
-   Orchestration Mode         Role Dispatch
-   (auto -> coordinator)     (route to role.md)
-          |
-    +-----+------+----------+-----------+
-    v            v          v           v           v
- coordinator  explorer   analyst   discussant  synthesizer
-              EXPLORE-*  ANALYZE-*  DISCUSS-*   SYNTH-*
++---------------------------------------------------+
+|  Skill(skill="team-ultra-analyze")                 |
+|  args="<topic-description>"                        |
++-------------------+-------------------------------+
+                    |
+         Orchestration Mode (auto -> coordinator)
+                    |
+              Coordinator (inline)
+              Phase 0-5 orchestration
+                    |
+    +-------+-------+-------+-------+
+    v       v       v       v
+ [tw]    [tw]    [tw]    [tw]
+explor- analy-  discu-  synthe-
+er      st      ssant   sizer
+
+(tw) = team-worker agent
 ```
 
 ## Command Architecture
@@ -65,13 +67,13 @@ Parse `$ARGUMENTS` to extract `--role` and optional `--agent-name`. If `--role` 
 
 ### Role Registry
 
-| Role | File | Task Prefix | Type | Compact |
-|------|------|-------------|------|---------|
-| coordinator | [roles/coordinator/role.md](roles/coordinator/role.md) | (none) | orchestrator | **compress: must re-read** |
-| explorer | [roles/explorer/role.md](roles/explorer/role.md) | EXPLORE-* | parallel worker | compress: must re-read |
-| analyst | [roles/analyst/role.md](roles/analyst/role.md) | ANALYZE-* | parallel worker | compress: must re-read |
-| discussant | [roles/discussant/role.md](roles/discussant/role.md) | DISCUSS-* | pipeline | compress: must re-read |
-| synthesizer | [roles/synthesizer/role.md](roles/synthesizer/role.md) | SYNTH-* | pipeline | compress: must re-read |
+| Role | Spec | Task Prefix | Inner Loop |
+|------|------|-------------|------------|
+| coordinator | [roles/coordinator/role.md](roles/coordinator/role.md) | (none) | - |
+| explorer | [role-specs/explorer.md](role-specs/explorer.md) | EXPLORE-* | false |
+| analyst | [role-specs/analyst.md](role-specs/analyst.md) | ANALYZE-* | false |
+| discussant | [role-specs/discussant.md](role-specs/discussant.md) | DISCUSS-* | false |
+| synthesizer | [role-specs/synthesizer.md](role-specs/synthesizer.md) | SYNTH-* | false |
 
 > **COMPACT PROTECTION**: Role files are execution documents, not reference material. When context compression occurs and role instructions are reduced to summaries, you **must immediately `Read` the corresponding role.md to reload before continuing execution**. Never execute any Phase based on compressed summaries alone.
 
@@ -130,9 +132,9 @@ Each worker executes the same task discovery flow on startup:
 Standard report flow after task completion:
 
 1. **Message Bus**: Call `mcp__ccw-tools__team_msg` to log message
-   - Parameters: operation="log", team=<session-id>, from=<role>, to="coordinator", type=<message-type>, summary="[<role>] <summary>", ref=<artifact-path>
-   - **Note**: `team` must be session ID (e.g., `UAN-xxx-date`), NOT team name. Extract from `Session:` field in task description.
-   - **CLI fallback**: When MCP unavailable -> `ccw team log --team <session-id> --from <role> --to coordinator --type <type> --summary "[<role>] ..." --json`
+   - Parameters: operation="log", session_id=<session-id>, from=<role>, type=<message-type>, data={ref: "<artifact-path>"}
+   - `to` and `summary` auto-defaulted -- do NOT specify explicitly
+   - **CLI fallback**: `ccw team log --session-id <session-id> --from <role> --type <type> --json`
 2. **SendMessage**: Send result to coordinator (both content and summary prefixed with `[<role>]`)
 3. **TaskUpdate**: Mark task completed
 4. **Loop**: Return to Phase 1 to check for next task
@@ -159,16 +161,16 @@ Cross-task knowledge accumulation. Coordinator creates `wisdom/` directory durin
 |---------|-----------|
 | Process tasks matching own prefix | Process tasks with other role prefixes |
 | SendMessage to coordinator | Communicate directly with other workers |
-| Read/write shared-memory.json (own fields) | Create tasks for other roles |
+| Share state via team_msg(type='state_update') | Create tasks for other roles |
 | Delegate to commands/*.md | Modify resources outside own responsibility |
 
 Coordinator additionally prohibited: directly executing code exploration or analysis, directly calling cli-explore-agent or CLI analysis tools, bypassing workers to complete work.
 
-### Shared Memory
+### Cross-Role State
 
-Core shared artifact stored at `<session-folder>/shared-memory.json`. Each role reads the full memory but writes only to its own designated field:
+Cross-role state managed via `team_msg(type='state_update')`, stored in `.msg/meta.json.role_state`. Each role reads all states but writes only to its own designated field:
 
-| Role | Write Field |
+| Role | State Field |
 |------|-------------|
 | explorer | `explorations` |
 | analyst | `analyses` |
@@ -176,13 +178,13 @@ Core shared artifact stored at `<session-folder>/shared-memory.json`. Each role 
 | synthesizer | `synthesis` |
 | coordinator | `decision_trail` + `current_understanding` |
 
-On startup, read the file. After completing work, update own field and write back. If file does not exist, initialize with empty object.
+On startup, read role states via `team_msg(operation="get_state", session_id=<session-id>)`. After completing work, share results via `team_msg(operation="log", session_id=<session-id>, from=<role>, type="state_update", data={...})`.
 
 ### Message Bus (All Roles)
 
-All roles log messages before sending via SendMessage. Call `mcp__ccw-tools__team_msg` with: operation="log", team=<session-id>, from=<role>, to="coordinator", type=<message-type>, summary="[<role>] <summary>", ref=<file-path>.
+All roles log messages before sending via SendMessage. Call `mcp__ccw-tools__team_msg` with: operation="log", session_id=<session-id>, from=<role>, type=<message-type>, data={ref: "<file-path>"}. `to` and `summary` are auto-defaulted.
 
-> **Note**: `team` must be session ID (e.g., `UAN-xxx-date`), NOT team name. Extract from `Session:` field in task description.
+
 
 | Role | Types |
 |------|-------|
@@ -192,9 +194,8 @@ All roles log messages before sending via SendMessage. Call `mcp__ccw-tools__tea
 | discussant | `discussion_processed`, `error` |
 | synthesizer | `synthesis_ready`, `error` |
 
-**CLI fallback**: When MCP unavailable -> `ccw team log --team "<session-id>" --from "<role>" --to "coordinator" --type "<type>" --summary "<summary>" --json`
+**CLI fallback**: When MCP unavailable -> `ccw team log --session-id <session-id> --from <role> --type <type> --json`
 
-> **Note**: `team` must be session ID (e.g., `UAN-xxx-date`), NOT team name.
 
 ---
 
@@ -339,51 +340,43 @@ Beat  1          2          3         3a...       4
 
 ## Coordinator Spawn Template
 
-When coordinator spawns workers, use background mode (Spawn-and-Stop pattern). The coordinator determines the depth (number of parallel agents) based on selected perspectives.
+### v5 Worker Spawn (all roles)
 
-**Phase 1 - Spawn Explorers**: Create depth explorer agents in parallel (EXPLORE-1 through EXPLORE-depth). Each explorer receives its assigned perspective/domain and agent name for task matching. All spawned with run_in_background:true. Coordinator stops after spawning and waits for callbacks.
+When coordinator spawns workers, use `team-worker` agent with role-spec path. The coordinator determines depth (number of parallel agents) based on selected perspectives.
 
-**Phase 2 - Spawn Analysts**: After all explorers complete, create depth analyst agents in parallel (ANALYZE-1 through ANALYZE-depth). Each analyst receives its assigned perspective matching the corresponding explorer. All spawned with run_in_background:true. Coordinator stops.
+**Phase 1 - Spawn Explorers**: Create depth explorer team-worker agents in parallel (EXPLORE-1 through EXPLORE-depth). Each receives its assigned perspective/domain and agent name for task matching.
 
-**Phase 3 - Spawn Discussant**: After all analysts complete, create 1 discussant. It processes all analysis results and presents findings to user. Coordinator stops.
+**Phase 2 - Spawn Analysts**: After all explorers complete, create depth analyst team-worker agents in parallel (ANALYZE-1 through ANALYZE-depth).
 
-**Phase 3a - Discussion Loop** (Deep mode only): Based on user feedback, coordinator may create additional ANALYZE-fix and DISCUSS tasks. Loop continues until user is satisfied or 5 rounds reached.
+**Phase 3 - Spawn Discussant**: After all analysts complete, create 1 discussant. Coordinator stops.
 
-**Phase 4 - Spawn Synthesizer**: After final discussion round, create 1 synthesizer. It integrates all explorations, analyses, and discussions into final conclusions. Coordinator stops.
+**Phase 3a - Discussion Loop** (Deep mode only): Based on user feedback, coordinator may create additional ANALYZE-fix and DISCUSS tasks.
 
-**Quick mode exception**: When depth=1, spawn single explorer, single analyst, single discussant, single synthesizer -- all as simple agents without numbered suffixes.
+**Phase 4 - Spawn Synthesizer**: After final discussion round, create 1 synthesizer.
 
-**Single spawn example** (worker template used for all roles):
+**Quick mode exception**: When depth=1, spawn single explorer, single analyst, single discussant, single synthesizer without numbered suffixes.
+
+**Single spawn template** (worker template used for all roles):
 
 ```
-Task({
-  subagent_type: "general-purpose",
+Agent({
+  subagent_type: "team-worker",
   description: "Spawn <role> worker",
-  team_name: <team-name>,
+  team_name: "ultra-analyze",
   name: "<agent-name>",
   run_in_background: true,
-  prompt: `You are team "<team-name>" <ROLE> (<agent-name>).
-Your agent name is "<agent-name>", use it for task discovery owner matching.
+  prompt: `## Role Assignment
+role: <role>
+role_spec: .claude/skills/team-ultra-analyze/role-specs/<role>.md
+session: <session-folder>
+session_id: <session-id>
+team_name: ultra-analyze
+requirement: <topic-description>
+agent_name: <agent-name>
+inner_loop: false
 
-## Primary Instruction
-All work must be executed by calling Skill for role definition:
-Skill(skill="team-ultra-analyze", args="--role=<role> --agent-name=<agent-name>")
-
-Current topic: <task-description>
-Session: <session-folder>
-
-## Role Rules
-- Only process <PREFIX>-* tasks where owner === "<agent-name>"
-- All output prefixed with [<role>] identifier
-- Communicate only with coordinator
-- Do not use TaskCreate for other roles
-- Call mcp__ccw-tools__team_msg before every SendMessage
-
-## Workflow
-1. Call Skill -> load role definition and execution logic
-2. Execute role.md 5-Phase process
-3. team_msg + SendMessage result to coordinator
-4. TaskUpdate completed -> check next task`
+Read role_spec file to load Phase 2-4 domain instructions.
+Execute built-in Phase 1 (task discovery, owner=<agent-name>) -> role-spec Phase 2-4 -> built-in Phase 5 (report).`
 })
 ```
 
@@ -393,7 +386,7 @@ Session: <session-folder>
 |---------|-------|
 | Team name | ultra-analyze |
 | Session directory | .workflow/.team/UAN-{slug}-{date}/ |
-| Shared memory file | shared-memory.json |
+
 | Analysis dimensions | architecture, implementation, performance, security, concept, comparison, decision |
 | Max discussion rounds | 5 |
 
@@ -401,7 +394,8 @@ Session: <session-folder>
 
 ```
 .workflow/.team/UAN-{slug}-{YYYY-MM-DD}/
-+-- shared-memory.json          # Exploration/analysis/discussion/synthesis shared memory
++-- .msg/messages.jsonl          # Message bus log
++-- .msg/meta.json               # Session metadata
 +-- discussion.md               # Understanding evolution and discussion timeline
 +-- explorations/               # Explorer output
 |   +-- exploration-001.json
@@ -418,6 +412,31 @@ Session: <session-folder>
 |   +-- conventions.md
 |   +-- issues.md
 ```
+
+## Completion Action
+
+When the pipeline completes (all tasks done, coordinator Phase 5):
+
+```
+AskUserQuestion({
+  questions: [{
+    question: "Ultra-Analyze pipeline complete. What would you like to do?",
+    header: "Completion",
+    multiSelect: false,
+    options: [
+      { label: "Archive & Clean (Recommended)", description: "Archive session, clean up tasks and team resources" },
+      { label: "Keep Active", description: "Keep session active for follow-up work or inspection" },
+      { label: "Export Results", description: "Export deliverables to a specified location, then clean" }
+    ]
+  }]
+})
+```
+
+| Choice | Action |
+|--------|--------|
+| Archive & Clean | Update session status="completed" -> TeamDelete() -> output final summary |
+| Keep Active | Update session status="paused" -> output resume instructions: `Skill(skill="team-ultra-analyze", args="resume")` |
+| Export Results | AskUserQuestion for target path -> copy deliverables -> Archive & Clean |
 
 ## Session Resume
 

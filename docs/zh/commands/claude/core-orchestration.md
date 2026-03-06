@@ -23,14 +23,14 @@
 
 | 单元类型 | Skill | 说明 |
 |---------|-------|------|
-| 轻量 Plan+Execute | `workflow-lite-planex` | 内部完成 plan→execute |
+| 轻量 Plan+Execute | `workflow-lite-plan` | 内部完成 plan→execute |
 | 标准 Planning | `workflow-plan` → `workflow-execute` | plan 和 execute 是独立 Skill |
 | TDD Planning | `workflow-tdd-plan` → `workflow-execute` | tdd-plan 和 execute 是独立 Skill |
 | 规格驱动 | `spec-generator` → `workflow-plan` → `workflow-execute` | 规格文档驱动完整开发 |
 | 测试流水线 | `workflow-test-fix` | 内部完成 gen→cycle |
 | 代码审查 | `review-cycle` | 内部完成 review→fix |
-| 分析→规划 | `workflow:analyze-with-file` → `workflow-lite-planex` | 协作分析产物自动传递给 lite-plan |
-| 头脑风暴→规划 | `workflow:brainstorm-with-file` → `workflow-lite-planex` | 头脑风暴产物自动传递给 lite-plan |
+| 分析→规划 | `workflow:analyze-with-file` → `workflow-lite-plan` | 协作分析产物自动传递给 lite-plan |
+| 头脑风暴→规划 | `workflow:brainstorm-with-file` → `workflow-lite-plan` | 头脑风暴产物自动传递给 lite-plan |
 | 协作规划 | `workflow:collaborative-plan-with-file` → `workflow:unified-execute-with-file` | 多 agent 协作规划→通用执行 |
 | 需求路线图 | `workflow:roadmap-with-file` → `team-planex` | 需求拆解→issue 创建→wave pipeline 执行 |
 | 集成测试循环 | `workflow:integration-test-cycle` | 自迭代集成测试闭环 |
@@ -82,7 +82,7 @@ graph TD
 
 | 优先级 | 类型 | 触发关键词 | 工作流 |
 |--------|------|-----------|--------|
-| 1 | Bug 修复 (紧急) | urgent, production, critical + fix, bug | lite-fix (--hotfix) |
+| 1 | Bug 修复 (紧急) | urgent, production, critical + fix, bug | debug-with-file |
 | 2 | 头脑风暴 | brainstorm, ideation, 头脑风暴, 创意, 发散思维 | brainstorm-with-file |
 | 3 | 头脑风暴→Issue | brainstorm.*issue, 头脑风暴.*issue | issue:from-brainstorm |
 | 4 | 调试文档 | debug.*document, hypothesis, 假设验证, 深度调试 | debug-with-file |
@@ -94,7 +94,7 @@ graph TD
 | 10 | 重构 | refactor, 重构, tech.*debt, 技术债务 | refactor-cycle |
 | 11 | 团队工作流 | team.*plan.*exec, 团队规划执行, wave pipeline | team-planex |
 | 12 | 多CLI协作 | multi.*cli, 多CLI, 多模型协作 | multi-cli-plan |
-| 13 | Bug 修复 | fix, bug, error, crash, fail, debug | lite-fix |
+| 13 | Bug 修复 | fix, bug, error, crash, fail, debug | debug-with-file |
 | 14 | Issue 批量 | issues?.*batch, 批量issue | issue:discover → execute |
 | 15 | Issue 转换 | issue workflow, structured workflow | lite-plan → convert-to-plan |
 | 16 | 探索 | uncertain, explore, 研究, what if | brainstorm → plan |
@@ -109,12 +109,12 @@ graph TD
 
 **With-File 自动链式机制**:
 
-当 `analyze-with-file` 或 `brainstorm-with-file` 完成时，其产物（discussion.md / brainstorm.md）**自动传递**给 `workflow-lite-planex` 作为上下文输入。
+当 `analyze-with-file` 或 `brainstorm-with-file` 完成时，其产物（discussion.md / brainstorm.md）**自动传递**给 `workflow-lite-plan` 作为上下文输入。
 
 | 工作流 | 自动链目标 | 产物传递 |
 |--------|-----------|---------|
-| analyze-with-file | → workflow-lite-planex | discussion.md |
-| brainstorm-with-file | → workflow-lite-planex | brainstorm.md |
+| analyze-with-file | → workflow-lite-plan | discussion.md |
+| brainstorm-with-file | → workflow-lite-plan | brainstorm.md |
 
 **Cycle 工作流自迭代模式**:
 
@@ -371,7 +371,7 @@ Task: <description>
 
 | Skill | 包含操作 |
 | --- | --- |
-| `workflow-lite-planex` | lite-plan (Phase 1: 规划 → Phase 2: 执行) |
+| `workflow-lite-plan` | lite-plan (Phase 1: 规划 → Phase 2: 执行) |
 | `workflow-plan` | plan, plan-verify, replan |
 | `workflow-execute` | execute |
 | `workflow-tdd-plan` | tdd-plan, tdd-verify |
@@ -411,4 +411,4 @@ Task: <description>
 
 - [工作流命令](./workflow.md)
 - [会话管理](./session.md)
-- [CLI 调用系统](../features/cli.md)
+- [CLI 调用系统](../../features/cli.md)

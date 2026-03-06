@@ -46,12 +46,13 @@ import { handleTeamRoutes } from './routes/team-routes.js';
 import { handleNotificationRoutes } from './routes/notification-routes.js';
 import { handleAnalysisRoutes } from './routes/analysis-routes.js';
 import { handleSpecRoutes } from './routes/spec-routes.js';
+import { handleDeepWikiRoutes } from './routes/deepwiki-routes.js';
 
 // Import WebSocket handling
 import { handleWebSocketUpgrade, broadcastToClients, extractSessionIdFromPath } from './websocket.js';
 
 import { getTokenManager } from './auth/token-manager.js';
-import { authMiddleware, isLocalhostRequest, setAuthCookie } from './auth/middleware.js';
+import { authMiddleware, isLocalhostRequest, isWildcardHost, setAuthCookie } from './auth/middleware.js';
 import { getCorsOrigin } from './cors.js';
 import { csrfValidation } from './auth/csrf-middleware.js';
 import { getCsrfTokenManager } from './auth/csrf-manager.js';
@@ -117,9 +118,35 @@ async function serveStaticFile(
     const ext = extname(filePath);
     const mimeType = MIME_TYPES[ext] || 'application/octet-stream';
 
+    // Determine cache strategy based on file type
+    const fileName = filePath.split('/').pop() || '';
+    const isIndexHtml = filePath.endsWith('index.html');
+    const isAssetFile = fileName.startsWith('index-') && (ext === '.js' || ext === '.css');
+
+    // For index.html: use no-cache to prevent stale content issues
+    if (isIndexHtml) {
+      res.writeHead(200, {
+        'Content-Type': mimeType,
+        'Cache-Control': 'no-cache',
+      });
+      res.end(content);
+      return true;
+    }
+
+    // For assets (JS/CSS with hash in filenames), use long-term cache
+    if (isAssetFile) {
+      res.writeHead(200, {
+        'Content-Type': mimeType,
+        'Cache-Control': 'public, max-age=31536000, immutable',
+      });
+      res.end(content);
+      return true;
+    }
+
+    // For other files (fallback to index.html for SPA), use no-cache
     res.writeHead(200, {
       'Content-Type': mimeType,
-      'Cache-Control': 'public, max-age=31536000',
+      'Cache-Control': 'no-cache',
     });
     res.end(content);
     return true;
@@ -392,9 +419,11 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
         server
       };
 
-      // Token acquisition endpoint (localhost-only)
+      // Token acquisition endpoint (localhost-only, or any interface when bound to 0.0.0.0)
       if (pathname === '/api/auth/token') {
-        if (!isLocalhostRequest(req)) {
+        // Allow from any interface when server is bound to 0.0.0.0 or ::
+        const allowAllInterfaces = isWildcardHost(host);
+        if (!isLocalhostRequest(req, allowAllInterfaces)) {
           res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({ error: 'Forbidden' }));
           return;
@@ -742,7 +771,7 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
         }
 
         // Otherwise, proxy to Vite dev server
-        const reactUrl = `http://localhost:${reactPort}${pathname}${url.search}`;
+        const reactUrl = `http://127.0.0.1:${reactPort}${pathname}${url.search}`;
 
         try {
           // Convert headers to plain object for fetch
@@ -754,7 +783,7 @@ export async function startServer(options: ServerOptions = {}): Promise<http.Ser
               proxyHeaders[key] = value.join(', ');
             }
           }
-          proxyHeaders['host'] = `localhost:${reactPort}`;
+          proxyHeaders['host'] = `127.0.0.1:${reactPort}`;
 
           const reactResponse = await fetch(reactUrl, {
             method: req.method,

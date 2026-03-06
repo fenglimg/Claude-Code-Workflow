@@ -28,7 +28,7 @@ Quick reference guide for all **33 CCW built-in skills**.
 | Skill | Trigger | Purpose |
 |-------|---------|---------|
 | **workflow-plan** | `workflow-plan`, `workflow-plan-verify`, `workflow:replan` | 4-phase planning workflow with verification and interactive replanning |
-| **workflow-lite-planex** | `workflow-lite-planex` | Lightweight planning and execution skill |
+| **workflow-lite-plan** | `workflow-lite-plan` | Lightweight planning and execution skill |
 | **workflow-multi-cli-plan** | `workflow-multi-cli-plan`, `workflow:multi-cli-plan` | Multi-CLI collaborative planning with ACE context engine |
 | **workflow-execute** | `workflow-execute` | Coordinate agent execution for workflow tasks |
 | **workflow-tdd-plan** | `workflow-tdd-plan`, `workflow-tdd-verify` | TDD workflow with Red-Green-Refactor task chain |
@@ -41,9 +41,9 @@ Quick reference guide for all **33 CCW built-in skills**.
 |-------|---------|-------|---------|
 | **team-lifecycle** | `team lifecycle` | variable | Full spec/impl/test lifecycle team (v5, team-worker architecture) |
 | **team-coordinate** | `team coordinate` | variable | Generic team coordination (legacy) |
-| **team-coordinate-v2** | - | variable | team-worker architecture coordination |
+| **team-coordinate** | - | variable | team-worker architecture coordination |
 | **team-executor** | `team executor` | variable | Lightweight session execution |
-| **team-executor-v2** | - | variable | team-worker architecture execution |
+| **team-executor** | - | variable | team-worker architecture execution |
 | **team-planex** | `team planex` | 3 | Plan-and-execute wave pipeline |
 | **team-iterdev** | `team iterdev` | 5 | Generator-critic loop iterative development |
 | **team-issue** | `team issue` | 6 | Issue resolution pipeline |
@@ -103,7 +103,7 @@ team lifecycle
 | `review code`, `code review`, `审查代码` | review-code |
 | `workflow:review-cycle` | review-cycle |
 | `workflow-plan` | workflow-plan |
-| `workflow-lite-planex` | workflow-lite-planex |
+| `workflow-lite-plan` | workflow-lite-plan |
 | `workflow-multi-cli-plan`, `workflow:multi-cli-plan` | workflow-multi-cli-plan |
 | `workflow-execute` | workflow-execute |
 | `workflow-tdd-plan` | workflow-tdd-plan |
@@ -163,7 +163,7 @@ The latest team-lifecycle (v5) uses the team-worker agent with dynamic role assi
 | Generator-Critic Loop | team-iterdev |
 | Wave Pipeline | team-planex |
 | Red-Green-Refactor | workflow-tdd-plan |
-| Pure Orchestrator | workflow-plan, workflow-lite-planex |
+| Pure Orchestrator | workflow-plan, workflow-lite-plan |
 | Progressive Phase Loading | workflow-plan, workflow-tdd-plan, team-lifecycle |
 
 ::: info See Also

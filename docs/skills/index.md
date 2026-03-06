@@ -56,7 +56,7 @@ Skills are reusable, domain-specific capabilities that CCW can execute. Each ski
 | Skill | Triggers | Description |
 |-------|----------|-------------|
 | [workflow-plan](./core-skills.md#workflow-plan) | `workflow-plan`, `workflow-plan-verify`, `workflow:replan` | 4-phase planning with verification |
-| [workflow-lite-planex](./core-skills.md#workflow-lite-planex) | `workflow-lite-planex` | Lightweight planning |
+| [workflow-lite-plan](./core-skills.md#workflow-lite-plan) | `workflow-lite-plan` | Lightweight planning |
 | [workflow-multi-cli-plan](./core-skills.md#workflow-multi-cli-plan) | `workflow-multi-cli-plan`, `workflow:multi-cli-plan` | Multi-CLI collaborative planning |
 | [workflow-execute](./core-skills.md#workflow-execute) | `workflow-execute` | Task execution coordination |
 | [workflow-tdd-plan](./core-skills.md#workflow-tdd-plan) | `workflow-tdd-plan` | TDD with Red-Green-Refactor |
@@ -79,7 +79,7 @@ Skill(skill="review-cycle")
 
 #### Quick Iteration
 ```bash
-Skill(skill="workflow-lite-planex")
+Skill(skill="workflow-lite-plan")
 Skill(skill="workflow-execute")
 ```
 
@@ -92,18 +92,24 @@ Skill(skill="workflow-tdd-plan", args="--mode tdd-verify")
 
 ## Using Skills
 
-### CLI Interface
+### Recommended: CCW Orchestrator
+
+Use `/ccw` command with natural language - CCW analyzes intent and auto-selects appropriate skill:
 
 ```bash
-# Invoke via ccw command
-ccw --help
+# CCW auto-routes to brainstorm skill
+/ccw "头脑风暴: 用户通知系统设计"
 
-# Or use triggers directly
-ccw brainstorm
-ccw team lifecycle
+# CCW auto-routes to team lifecycle workflow
+/ccw "从零开始: 用户认证系统"
+
+# CCW auto-routes to review cycle
+/ccw "review: 代码质量检查"
 ```
 
-### Programmatic Interface
+### Direct Skill Invocation
+
+Use `Skill()` tool for direct skill calls:
 
 ```javascript
 // Basic usage
@@ -114,6 +120,17 @@ Skill(skill="team-lifecycle-v4", args="Build user authentication")
 
 // With mode selection
 Skill(skill="workflow-plan", args="--mode verify")
+```
+
+### CCW Team CLI (Message Bus Only)
+
+`ccw team` is **only** for team message bus operations, not for invoking team skills:
+
+```bash
+# Message bus operations
+ccw team log --session-id TLS-xxx --from executor --type state_update
+ccw team list --session-id TLS-xxx --last 5
+ccw team status --session-id TLS-xxx
 ```
 
 ## Custom Skills
@@ -173,24 +190,23 @@ Skill(skill="my-custom-skill", args="input")
 **Scenario**: Implement a new user dashboard feature
 
 ```bash
-# Step 1: Brainstorm the feature
-ccw brainstorm
-# Follow prompts to define:
-# - Dashboard widgets (stats, charts, recent activity)
-# - Layout preferences
-# - Data refresh intervals
+# Step 1: Brainstorm the feature (via CCW orchestrator)
+/ccw "头脑风暴: 用户仪表板功能设计"
+# Or use Skill directly:
+# Skill(skill="brainstorm")
 
-# Step 2: Plan implementation
-ccw workflow-plan "Build user dashboard with configurable widgets"
-# Outputs: IMPL-001.json with task breakdown
+# Step 2: Plan implementation (via CCW orchestrator)
+/ccw "Plan: Build user dashboard with configurable widgets"
+# Or use Skill directly:
+# Skill(skill="workflow-plan", args="Build user dashboard")
 
-# Step 3: Execute with team
-ccw team lifecycle
+# Step 3: Execute with team lifecycle
+Skill(skill="team-lifecycle-v4", args="Build user dashboard")
 # Or use quick iteration:
-ccw workflow-lite-planex && ccw workflow-execute
+# Skill(skill="workflow-lite-plan")
 
 # Step 4: Review and refine
-ccw review-code
+Skill(skill="review-code")
 # Fix any issues found
 ```
 
@@ -215,12 +231,13 @@ ccw workflow-execute --task "Fix N+1 query in user endpoint"
 **Scenario**: Migrate from JavaScript to TypeScript
 
 ```bash
-# Step 1: Analyze codebase
-ccw workflow:refactor-cycle
-# Identifies tech debt and creates migration plan
+# Step 1: Analyze codebase (via CCW orchestrator)
+/ccw "refactor: JavaScript to TypeScript migration"
+# Or use Skill directly:
+# Skill(skill="workflow:refactor-cycle")
 
-# Step 2: Execute migration in phases
-ccw team roadmap-dev --epic "ts-migration"
+# Step 2: Execute with team roadmap
+Skill(skill="team-roadmap-dev", args="--epic ts-migration")
 # Progressively migrates modules with tests
 ```
 
@@ -229,8 +246,8 @@ ccw team roadmap-dev --epic "ts-migration"
 **Scenario**: Generate API documentation
 
 ```bash
-# Step 1: Capture existing patterns
-ccw memory:capture "API patterns: REST, versioning, error handling"
+# Step 1: Capture existing patterns via memory skill
+Skill(skill="memory-capture", args="API patterns: REST, versioning, error handling")
 
 # Step 2: Generate docs
 ccw software-manual --output ./docs/api/
@@ -250,7 +267,7 @@ ccw review-cycle --max-iterations 3
 
 ### Tips for Best Results
 
-1. **Start Small**: Begin with `workflow-lite-planex` for simple tasks
+1. **Start Small**: Begin with `workflow-lite-plan` for simple tasks
 2. **Use Memory**: Capture insights with `memory:capture` for future reference
 3. **Verify Plans**: Always review generated plans before execution
 4. **Iterate**: Use `review-cycle` for continuous improvement

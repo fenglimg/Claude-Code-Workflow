@@ -1,7 +1,7 @@
 ---
 name: team-roadmap-dev
 description: Unified team skill for roadmap-driven development workflow. Coordinator discusses roadmap with user, then dispatches phased execution pipeline (plan -> execute -> verify). All roles invoke this skill with --role arg. Triggers on "team roadmap-dev".
-allowed-tools: TeamCreate(*), TeamDelete(*), SendMessage(*), TaskCreate(*), TaskUpdate(*), TaskList(*), TaskGet(*), Task(*), AskUserQuestion(*), Read(*), Write(*), Edit(*), Bash(*), Glob(*), Grep(*)
+allowed-tools: TeamCreate(*), TeamDelete(*), SendMessage(*), TaskCreate(*), TaskUpdate(*), TaskList(*), TaskGet(*), Agent(*), AskUserQuestion(*), Read(*), Write(*), Edit(*), Bash(*), Glob(*), Grep(*)
 ---
 
 # Team Roadmap Dev
@@ -11,24 +11,23 @@ Unified team skill: roadmap-driven development with phased execution pipeline. C
 ## Architecture Overview
 
 ```
-┌───────────────────────────────────────────────┐
-│  Skill(skill="team-roadmap-dev")              │
-│  args="<task-description>" or args="--role=xxx"│
-└───────────────────┬───────────────────────────┘
-                    │ Role Router
-         ┌──── --role present? ────┐
-         │ NO                      │ YES
-         ↓                         ↓
-  Orchestration Mode         Role Dispatch
-  (auto → coordinator)      (route to role.md)
-         │
-    ┌────┴────┬───────────┬───────────┐
-    ↓         ↓           ↓           ↓
-┌──────────┐┌─────────┐┌──────────┐┌──────────┐
-│coordinator││ planner ││ executor ││ verifier │
-│ (human   ││ PLAN-*  ││ EXEC-*   ││ VERIFY-* │
-│  交互)   ││         ││          ││          │
-└──────────┘└─────────┘└──────────┘└──────────┘
++---------------------------------------------------+
+|  Skill(skill="team-roadmap-dev")                   |
+|  args="<task-description>"                         |
++-------------------+-------------------------------+
+                    |
+         Orchestration Mode (auto -> coordinator)
+                    |
+              Coordinator (inline)
+              Phase 0-5 orchestration
+                    |
+    +-------+-------+-------+
+    v       v       v
+ [tw]    [tw]    [tw]
+plann-  execu-  verif-
+er      tor     ier
+
+(tw) = team-worker agent
 ```
 
 ## Command Architecture
@@ -66,12 +65,12 @@ Parse `$ARGUMENTS` to extract `--role`. If absent → Orchestration Mode (auto r
 
 ### Role Registry
 
-| Role | File | Task Prefix | Type | Compact |
-|------|------|-------------|------|---------|
-| coordinator | [roles/coordinator/role.md](roles/coordinator/role.md) | (none) | orchestrator | **⚠️ 压缩后必须重读** |
-| planner | [roles/planner/role.md](roles/planner/role.md) | PLAN-* | pipeline | 压缩后必须重读 |
-| executor | [roles/executor/role.md](roles/executor/role.md) | EXEC-* | pipeline | 压缩后必须重读 |
-| verifier | [roles/verifier/role.md](roles/verifier/role.md) | VERIFY-* | pipeline | 压缩后必须重读 |
+| Role | Spec | Task Prefix | Inner Loop |
+|------|------|-------------|------------|
+| coordinator | [roles/coordinator/role.md](roles/coordinator/role.md) | (none) | - |
+| planner | [role-specs/planner.md](role-specs/planner.md) | PLAN-* | true |
+| executor | [role-specs/executor.md](role-specs/executor.md) | EXEC-* | true |
+| verifier | [role-specs/verifier.md](role-specs/verifier.md) | VERIFY-* | true |
 
 > **⚠️ COMPACT PROTECTION**: 角色文件是执行文档，不是参考资料。当 context compression 发生后，角色指令仅剩摘要时，**必须立即 `Read` 对应 role.md 重新加载后再继续执行**。不得基于摘要执行任何 Phase。
 
@@ -159,9 +158,10 @@ Every worker executes the same task discovery flow on startup:
 Standard reporting flow after task completion:
 
 1. **Message Bus**: Call `mcp__ccw-tools__team_msg` to log message
-   - Parameters: operation="log", team="roadmap-dev", from=<role>, to="coordinator", type=<message-type>, summary="[<role>] <summary>", ref=<artifact-path>
-   - **CLI fallback**: When MCP unavailable → `ccw team log --team roadmap-dev --from <role> --to coordinator --type <type> --summary "[<role>] ..." --json`
-2. **SendMessage**: Send result to coordinator (content and summary both prefixed with `[<role>]`)
+   - Parameters: operation="log", session_id=<session-id>, from=<role>, type=<message-type>, data={ref: "<artifact-path>"}
+   - `to` and `summary` auto-defaulted -- do NOT specify explicitly
+   - **CLI fallback**: `ccw team log --session-id <session-id> --from <role> --type <type> --json`
+2. **SendMessage**: Send result to coordinator
 3. **TaskUpdate**: Mark task completed
 4. **Loop**: Return to Phase 1 to check next task
 
@@ -192,7 +192,7 @@ All outputs must carry `[role_name]` prefix.
 | Allowed | Forbidden |
 |---------|-----------|
 | Discuss roadmap with user (AskUserQuestion) | Direct code writing/modification |
-| Create task chain (TaskCreate) | Calling implementation subagents |
+| Create task chain (TaskCreate) | Calling CLI tools for implementation |
 | Dispatch tasks to workers | Direct analysis/testing/verification |
 | Monitor progress (message bus) | Bypassing workers |
 | Report results to user | Modifying source code |
@@ -308,38 +308,59 @@ Phase N:  PLAN-N01 → EXEC-N01 → VERIFY-N01 → Complete
 
 ## Coordinator Spawn Template
 
-When coordinator spawns workers, use background mode (Spawn-and-Stop):
+### v5 Worker Spawn (all roles)
+
+When coordinator spawns workers, use `team-worker` agent with role-spec path:
 
 ```
-Task({
-  subagent_type: "general-purpose",
+Agent({
+  subagent_type: "team-worker",
   description: "Spawn <role> worker",
   team_name: "roadmap-dev",
   name: "<role>",
   run_in_background: true,
-  prompt: `You are team "roadmap-dev" <ROLE>.
+  prompt: `## Role Assignment
+role: <role>
+role_spec: .claude/skills/team-roadmap-dev/role-specs/<role>.md
+session: <session-folder>
+session_id: <session-id>
+team_name: roadmap-dev
+requirement: <task-description>
+inner_loop: true
 
-## Primary Directive
-All your work must be executed through Skill to load role definition:
-Skill(skill="team-roadmap-dev", args="--role=<role>")
-
-Current requirement: <task-description>
-Session: <session-folder>
-
-## Role Guidelines
-- Only process <PREFIX>-* tasks, do not execute other role work
-- All output prefixed with [<role>] identifier
-- Only communicate with coordinator
-- Do not use TaskCreate for other roles
-- Call mcp__ccw-tools__team_msg before every SendMessage
-
-## Workflow
-1. Call Skill -> load role definition and execution logic
-2. Follow role.md 5-Phase flow
-3. team_msg + SendMessage results to coordinator
-4. TaskUpdate completed -> check next task`
+Read role_spec file to load Phase 2-4 domain instructions.
+Execute built-in Phase 1 (task discovery) -> role-spec Phase 2-4 -> built-in Phase 5 (report).`
 })
 ```
+
+**All roles** (planner, executor, verifier): Set `inner_loop: true`.
+
+---
+
+## Completion Action
+
+When the pipeline completes (all phases done, coordinator Phase 5):
+
+```
+AskUserQuestion({
+  questions: [{
+    question: "Roadmap Dev pipeline complete. What would you like to do?",
+    header: "Completion",
+    multiSelect: false,
+    options: [
+      { label: "Archive & Clean (Recommended)", description: "Archive session, clean up tasks and team resources" },
+      { label: "Keep Active", description: "Keep session active for follow-up work or inspection" },
+      { label: "Export Results", description: "Export deliverables to a specified location, then clean" }
+    ]
+  }]
+})
+```
+
+| Choice | Action |
+|--------|--------|
+| Archive & Clean | Update session status="completed" -> TeamDelete() -> output final summary |
+| Keep Active | Update session status="paused" -> output resume instructions: `Skill(skill="team-roadmap-dev", args="resume")` |
+| Export Results | AskUserQuestion for target path -> copy deliverables -> Archive & Clean |
 
 ## Session Directory
 
@@ -362,7 +383,9 @@ Session: <session-folder>
 │   └── verification.md
 ├── phase-2/
 │   └── ...
-└── shared-memory.json         # Cross-role state
+├── .msg/
+│   ├── messages.jsonl              # Team message bus log
+│   └── meta.json                   # Session metadata + shared state
 ```
 
 ## Session Resume

@@ -1,7 +1,7 @@
 ---
 name: team-perf-opt
 description: Unified team skill for performance optimization. Uses team-worker agent architecture with role-spec files for domain logic. Coordinator orchestrates pipeline, workers are team-worker agents. Triggers on "team perf-opt".
-allowed-tools: Task, TaskCreate, TaskList, TaskGet, TaskUpdate, TeamCreate, TeamDelete, SendMessage, AskUserQuestion, Read, Write, Edit, Bash, Glob, Grep, mcp__ace-tool__search_context
+allowed-tools: Agent, TaskCreate, TaskList, TaskGet, TaskUpdate, TeamCreate, TeamDelete, SendMessage, AskUserQuestion, Read, Write, Edit, Bash, Glob, Grep, mcp__ace-tool__search_context
 ---
 
 # Team Performance Optimization
@@ -27,9 +27,6 @@ Unified team skill: Profile application performance, identify bottlenecks, desig
 profiler strate- optim-  bench-  review-
          gist    izer    marker  er
 
-  Subagents (callable by workers, not team members):
-    [explore]  [discuss]
-
 (tw) = team-worker agent
 ```
 
@@ -51,13 +48,6 @@ Parse `$ARGUMENTS`. No `--role` needed -- always routes to coordinator.
 | optimizer | [role-specs/optimizer.md](role-specs/optimizer.md) | IMPL-* / FIX-* | code_generation | true |
 | benchmarker | [role-specs/benchmarker.md](role-specs/benchmarker.md) | BENCH-* | validation | false |
 | reviewer | [role-specs/reviewer.md](role-specs/reviewer.md) | REVIEW-* / QUALITY-* | read_only_analysis | false |
-
-### Subagent Registry
-
-| Subagent | Spec | Callable By | Purpose |
-|----------|------|-------------|---------|
-| explore | [subagents/explore-subagent.md](subagents/explore-subagent.md) | profiler, optimizer | Shared codebase exploration for performance-critical code paths |
-| discuss | [subagents/discuss-subagent.md](subagents/discuss-subagent.md) | strategist, reviewer | Multi-perspective discussion for optimization approaches and review findings |
 
 ### Dispatch
 
@@ -137,7 +127,7 @@ Phase 3 needs task dispatch
 When coordinator spawns workers, use `team-worker` agent with role-spec path:
 
 ```
-Task({
+Agent({
   subagent_type: "team-worker",
   description: "Spawn <role> worker",
   team_name: <team-name>,
@@ -361,7 +351,7 @@ AskUserQuestion({
 
 | Choice | Action |
 |--------|--------|
-| Archive & Clean | Update session status="completed" -> TeamDelete(perf-opt) -> output final summary |
+| Archive & Clean | Update session status="completed" -> TeamDelete() -> output final summary |
 | Keep Active | Update session status="paused" -> output resume instructions: `Skill(skill="team-perf-opt", args="resume")` |
 | Export Results | AskUserQuestion for target path -> copy deliverables -> Archive & Clean |
 
@@ -384,7 +374,8 @@ AskUserQuestion({
 |   +-- <hash>.md                   # Cached exploration results
 +-- wisdom/
 |   +-- patterns.md                 # Discovered patterns and conventions
-|   +-- shared-memory.json          # Cross-role structured data
+|   +-- .msg/messages.jsonl          # Team message bus
+|   +-- .msg/meta.json               # Session metadata
 +-- discussions/
 |   +-- DISCUSS-OPT.md              # Strategy discussion record
 |   +-- DISCUSS-REVIEW.md           # Review discussion record
@@ -458,7 +449,7 @@ Coordinator supports `--resume` / `--continue` for interrupted sessions:
 |----------|------------|
 | Role spec file not found | Error with expected path (role-specs/<name>.md) |
 | Command file not found | Fallback to inline execution in coordinator role.md |
-| Subagent spec not found | Error with expected path (subagents/<name>-subagent.md) |
+| Role file not found | Error with expected path (role-specs/<name>.md) |
 | Fast-advance orphan detected | Coordinator resets task to pending on next check |
 | consensus_blocked HIGH | Coordinator creates revision task or pauses pipeline |
 | team-worker agent unavailable | Error: requires .claude/agents/team-worker.md |

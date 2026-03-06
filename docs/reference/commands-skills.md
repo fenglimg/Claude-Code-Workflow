@@ -43,14 +43,14 @@
 
 | Category | Skill | Internal Pipeline | Use Case |
 |----------|-------|-------------------|----------|
-| **Workflow** | workflow-lite-planex | explore → plan → confirm → execute | Quick features, bug fixes |
+| **Workflow** | workflow-lite-plan | explore → plan → confirm → execute | Quick features, bug fixes |
 | **Workflow** | workflow-plan | session → context → convention → gen → verify/replan | Complex feature planning |
 | **Workflow** | workflow-execute | session discovery → task processing → commit | Execute pre-generated plans |
 | **Workflow** | workflow-tdd-plan | 6-phase TDD plan → verify | TDD development |
 | **Workflow** | workflow-test-fix | session → context → analysis → gen → cycle | Test generation and fixes |
 | **Workflow** | workflow-multi-cli-plan | ACE context → CLI discussion → plan → execute | Multi-perspective planning |
 | **Workflow** | workflow-skill-designer | - | Create new skills |
-| **Team** | team-lifecycle-v5 | spec pipeline → impl pipeline | Full lifecycle |
+| **Team** | team-lifecycle | spec pipeline → impl pipeline | Full lifecycle |
 | **Team** | team-planex | planner wave → executor wave | Issue batch execution |
 | **Team** | team-arch-opt | architecture analysis → optimization | Architecture optimization |
 | **Utility** | brainstorm | framework → parallel analysis → synthesis | Multi-perspective ideation |
@@ -81,7 +81,7 @@
 
 | Skill | Internal Pipeline |
 |-------|-------------------|
-| workflow-lite-planex | explore → plan → confirm → execute |
+| workflow-lite-plan | explore → plan → confirm → execute |
 | workflow-plan | session → context → convention → gen → verify/replan |
 | workflow-execute | session discovery → task processing → commit |
 | workflow-tdd-plan | 6-phase TDD plan → verify |
@@ -357,16 +357,16 @@
 
 | Task Type | Skill Chain |
 |-----------|-------------|
-| bugfix | workflow-lite-planex → workflow-test-fix |
-| bugfix-hotfix | workflow-lite-planex |
-| feature | workflow-lite-planex → workflow-test-fix |
+| bugfix | workflow-lite-plan → workflow-test-fix |
+| bugfix-hotfix | workflow-lite-plan |
+| feature | workflow-lite-plan → workflow-test-fix |
 | feature-complex | workflow-plan → workflow-execute → workflow-test-fix |
 | refactor | workflow:refactor-cycle |
 | tdd | workflow-tdd-plan → workflow-execute |
 | test | workflow-test-fix |
 | test-fix | workflow-test-fix |
 | review | review-cycle |
-| docs | workflow-lite-planex |
+| docs | workflow-lite-plan |
 
 **6-Phase Execution**:
 1. Load Tasks
@@ -577,10 +577,10 @@
 
 | Skill | Description |
 |-------|-------------|
-| team-lifecycle-v5 | Full team lifecycle with role-spec-driven worker agents |
+| team-lifecycle | Full team lifecycle with role-spec-driven worker agents |
 | team-planex | Planner + executor wave pipeline (for large issue batches or roadmap outputs) |
-| team-coordinate-v2 | Team coordination and orchestration |
-| team-executor-v2 | Task execution with worker agents |
+| team-coordinate | Team coordination and orchestration |
+| team-executor | Task execution with worker agents |
 | team-arch-opt | Architecture optimization skill |
 
 ### Team Domain Skills
@@ -606,7 +606,7 @@
 
 | Skill | Internal Pipeline | Description |
 |-------|-------------------|-------------|
-| workflow-lite-planex | explore → plan → confirm → execute | Lightweight merged-mode planning |
+| workflow-lite-plan | explore → plan → confirm → execute | Lightweight merged-mode planning |
 | workflow-plan | session → context → convention → gen → verify/replan | Full planning with architecture design |
 | workflow-execute | session discovery → task processing → commit | Execute from planning session |
 | workflow-tdd-plan | 6-phase TDD plan → verify | TDD workflow planning |
@@ -716,7 +716,7 @@ Examples:
 ### Skill Invocation (from code)
 
 ```javascript
-Skill({ skill: "workflow-lite-planex", args: '"task description"' })
+Skill({ skill: "workflow-lite-plan", args: '"task description"' })
 Skill({ skill: "brainstorm", args: '"topic or question"' })
 Skill({ skill: "review-cycle", args: '--session="WFS-xxx"' })
 ```

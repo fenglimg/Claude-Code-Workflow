@@ -7,8 +7,8 @@ CCW provides a comprehensive workflow system built on **Team Architecture v2** a
 ## What's New in v7.0
 
 **Major New Features**:
-- **Team Architecture v2**: `team-coordinate-v2` and `team-executor-v2` with unified team-worker agent
-- **team-lifecycle-v5**: Unified team skill for full lifecycle (spec -> impl -> test -> review)
+- **Team Architecture v2**: `team-coordinate` and `team-executor` with unified team-worker agent
+- **team-lifecycle**: Unified team skill for full lifecycle (spec -> impl -> test -> review)
 - **Queue Scheduler**: Background task execution with dependency resolution
 - **Workflow Session Commands**: `start`, `resume`, `complete`, `sync` for full lifecycle management
 - **Beat/Cadence Orchestration**: Event-driven coordination model
@@ -21,7 +21,7 @@ CCW uses two types of invocations:
 
 | Type | Format | Examples |
 |------|--------|----------|
-| **Skills** | Trigger phrase (no slash) | `workflow-lite-planex`, `brainstorm`, `workflow-plan` |
+| **Skills** | Trigger phrase (no slash) | `workflow-lite-plan`, `brainstorm`, `workflow-plan` |
 | **Commands** | Slash command | `/ccw`, `/workflow/session:start`, `/issue/new` |
 
 ---
@@ -32,7 +32,7 @@ CCW uses two types of invocations:
 
 | Skill Trigger | Purpose | Phases |
 |---------------|---------|--------|
-| `workflow-lite-planex` | Lightweight planning with exploration (includes execution) | 5 phases |
+| `workflow-lite-plan` | Lightweight planning with exploration (Skill handoff to lite-execute) | 5 phases |
 
 **5-Phase Interactive Workflow**:
 ```
@@ -149,9 +149,9 @@ Phase 6: Next cycle
 
 | Skill | Purpose |
 |-------|---------|
-| `team-coordinate-v2` | Dynamic role generation and coordination |
-| `team-executor-v2` | Pure execution of existing sessions |
-| `team-lifecycle-v5` | Full lifecycle (spec -> impl -> test) |
+| `team-coordinate` | Dynamic role generation and coordination |
+| `team-executor` | Pure execution of existing sessions |
+| `team-lifecycle` | Full lifecycle (spec -> impl -> test) |
 | `team-brainstorm` | Brainstorming team |
 | `team-frontend` | Frontend development team |
 | `team-testing` | Testing team |
@@ -231,7 +231,7 @@ Phase 6: Next cycle
 
 | Skill | Trigger |
 |-------|---------|
-| workflow-lite-planex | `workflow-lite-planex` |
+| workflow-lite-plan | `workflow-lite-plan` |
 | workflow-multi-cli-plan | `workflow-multi-cli-plan` |
 | workflow-plan | `workflow-plan`, `workflow-plan-verify`, `workflow:replan` |
 | workflow-execute | `workflow-execute` |
@@ -292,10 +292,10 @@ New System         ─┼────────────┼─────�
 Start
   │
   ├─ Is it a quick fix or config change?
-  │    └─> Yes: workflow-lite-planex
+  │    └─> Yes: workflow-lite-plan
   │
   ├─ Is it a single module feature?
-  │    └─> Yes: workflow-lite-planex
+  │    └─> Yes: workflow-lite-plan
   │
   ├─ Does it need multi-CLI analysis?
   │    └─> Yes: workflow-multi-cli-plan
@@ -347,7 +347,7 @@ Start
 
 | Skill | When to Use |
 |-------|-------------|
-| `workflow-lite-planex` | Quick fixes, single features |
+| `workflow-lite-plan` | Quick fixes, single features |
 | `workflow-plan` | Multi-module development |
 | `brainstorm` | Architecture, new features |
 | `workflow-execute` | Execute planned work |

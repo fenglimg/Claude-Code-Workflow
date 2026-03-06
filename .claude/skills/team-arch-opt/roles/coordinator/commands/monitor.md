@@ -65,7 +65,7 @@ Find and spawn the next ready tasks.
 2. For each ready task, spawn team-worker:
 
 ```
-Task({
+Agent({
   subagent_type: "team-worker",
   description: "Spawn <role> worker for <task-id>",
   team_name: "arch-opt",
@@ -104,8 +104,8 @@ Execute built-in Phase 1 -> role-spec Phase 2-4 -> built-in Phase 5.`
 
 When both VALIDATE-001 and REVIEW-001 are completed:
 
-1. Read validation verdict from shared-memory (validator namespace)
-2. Read review verdict from shared-memory (reviewer namespace)
+1. Read validation verdict from .msg/meta.json (validator namespace)
+2. Read review verdict from .msg/meta.json (reviewer namespace)
 
 | Validate Verdict | Review Verdict | Action |
 |-----------------|----------------|--------|
@@ -166,15 +166,14 @@ CONTEXT:
   - Session: <session-folder>
   - Branch: B{NN}
   - Upstream artifacts: branches/B{NN}/review-report.md, branches/B{NN}/validation-results.json
-  - Shared memory: <session>/wisdom/shared-memory.json (namespace: refactorer.B{NN})
+  - Shared memory: <session>/wisdom/.msg/meta.json (namespace: refactorer.B{NN})
 EXPECTED: Fixed source files for B{NN} only
 CONSTRAINTS: Targeted fixes only | Do not touch other branches
 ---
 InnerLoop: false
-BranchId: B{NN}",
-  blockedBy: [],
-  status: "pending"
+BranchId: B{NN}"
 })
+TaskUpdate({ taskId: "FIX-B{NN}-{cycle}", owner: "refactorer" })
 ```
 
 Create new VALIDATE and REVIEW with retry suffix:
@@ -186,9 +185,8 @@ Create new VALIDATE and REVIEW with retry suffix:
 TaskCreate({
   subject: "FIX-{P}01-{cycle}",
   ...same pattern with pipeline prefix...
-  blockedBy: [],
-  status: "pending"
 })
+TaskUpdate({ taskId: "FIX-{P}01-{cycle}", owner: "refactorer" })
 ```
 
 Create `VALIDATE-{P}01-R{cycle}` and `REVIEW-{P}01-R{cycle}`.

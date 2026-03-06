@@ -28,7 +28,7 @@
 | 技能 | 触发器 | 用途 |
 |------|--------|------|
 | **workflow-plan** | `workflow-plan`、`workflow-plan-verify`、`workflow:replan` | 4 阶段规划工作流，带验证和交互式重新规划 |
-| **workflow-lite-planex** | `workflow-lite-planex` | 轻量级规划和执行技能 |
+| **workflow-lite-plan** | `workflow-lite-plan` | 轻量级规划和执行技能 |
 | **workflow-multi-cli-plan** | `workflow-multi-cli-plan`、`workflow:multi-cli-plan` | 多 CLI 协作规划，带 ACE 上下文引擎 |
 | **workflow-execute** | `workflow-execute` | 协调工作流任务的代理执行 |
 | **workflow-tdd-plan** | `workflow-tdd-plan`、`workflow-tdd-verify` | TDD 工作流，带红-绿-重构任务链 |
@@ -41,9 +41,9 @@
 |------|--------|------|------|
 | **team-lifecycle** | `team lifecycle` | 可变 | 完整 spec/impl/test 生命周期团队（v5，team-worker 架构） |
 | **team-coordinate** | `team coordinate` | 可变 | 通用团队协调（legacy） |
-| **team-coordinate-v2** | - | 可变 | team-worker 架构协调 |
+| **team-coordinate** | - | 可变 | team-worker 架构协调 |
 | **team-executor** | `team executor` | 可变 | 轻量级会话执行 |
-| **team-executor-v2** | - | 可变 | team-worker 架构执行 |
+| **team-executor** | - | 可变 | team-worker 架构执行 |
 | **team-planex** | `team planex` | 3 | 规划-执行波浪流水线 |
 | **team-iterdev** | `team iterdev` | 5 | 生成器-评论者循环迭代开发 |
 | **team-issue** | `team issue` | 6 | 问题解决流水线 |
@@ -103,7 +103,7 @@ team lifecycle
 | `review code`、`code review`、`审查代码` | review-code |
 | `workflow:review-cycle` | review-cycle |
 | `workflow-plan` | workflow-plan |
-| `workflow-lite-planex` | workflow-lite-planex |
+| `workflow-lite-plan` | workflow-lite-plan |
 | `workflow-multi-cli-plan`、`workflow:multi-cli-plan` | workflow-multi-cli-plan |
 | `workflow-execute` | workflow-execute |
 | `workflow-tdd-plan` | workflow-tdd-plan |
@@ -163,7 +163,7 @@ team lifecycle
 | Generator-Critic Loop | team-iterdev |
 | Wave Pipeline | team-planex |
 | Red-Green-Refactor | workflow-tdd-plan |
-| Pure Orchestrator | workflow-plan、workflow-lite-planex |
+| Pure Orchestrator | workflow-plan、workflow-lite-plan |
 | Progressive Phase Loading | workflow-plan、workflow-tdd-plan、team-lifecycle |
 
 ::: info 参见
