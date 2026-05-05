@@ -22,6 +22,8 @@ Knowledge is stored in a structured knowledge graph file:
 
 The graph contains nodes (concepts, modules, mechanisms), edges (relationships), mastery tracking, version anchoring, and user annotations.
 
+All @-prefixed paths are resolved relative to the repository root.
+
 ### Auto-Load on First Call
 
 When this skill is invoked for the first time:
@@ -74,8 +76,8 @@ Mastery is tracked per node in the knowledge graph. Five levels:
 |-------|-------------|------------------|
 | L1 | Recognized | User repeats concept name + one-sentence description |
 | L2 | Referenced | User provides file:line reference |
-| L3 | Traced flow | User traces end-to-end call flow |
-| L4 | Implemented | User completed code changes + tests pass |
+| L3 | Traced flow | User answers a direct question about a call flow (e.g., "Describe the flow from module X to Y"). The AI's question and the user's answer together form the evidence. |
+| L4 | Implemented | User confirms completion of a related coding exercise. |
 | L5 | Alternatives | User proposes alternatives with tradeoffs |
 
 ### Evidence Recording
@@ -91,9 +93,8 @@ Mastery level auto-upgrades to the highest level demonstrated. `mastery.next` is
 ### On Session End
 
 When the user says "学完了", "保存", or "结束":
-1. Run `npx tsx .claude/skills/learn-ccw/scripts/mastery-evaluator.ts finalize <session-id>` to consolidate accumulated evidence
-2. Update `knowledge-graph.json` with all session evidence
-3. Display a summary of covered nodes and mastery levels achieved
+1. Ensure all session evidence is saved to `knowledge-graph.json`
+2. Display a summary of covered nodes and mastery levels achieved
 
 ### Knowledge Precipitation (Optional)
 
@@ -118,6 +119,19 @@ When presenting information about a stale node:
 - Note: "This node's source files have changed since last review. Run `npx tsx .claude/skills/learn-ccw/scripts/version-anchor.ts anchor <node-id>` to re-anchor."
 - Regenerate the knowledge graph to capture new content: `npx tsx .claude/skills/learn-ccw/scripts/generate-knowledge-graph.ts`
 </staleness-detection>
+
+<error-handling>
+### version-anchor.ts Failure
+If `version-anchor.ts check` fails (git errors, missing files, npx tsx crash), mark the affected node as stale with an error status (`_version.error = true`). Report the error to the user and continue processing remaining nodes.
+
+### generate-knowledge-graph.ts Failure
+If `generate-knowledge-graph.ts` fails, output the script's stderr to the user and terminate gracefully. The skill continues to function using existing graph data or falls back to direct file navigation (Read, Grep) for answering questions.
+
+Set a session marker `_fallback_mode = true` in the conversation state. When `_fallback_mode` is active, the skill should: (a) skip all knowledge-graph related operations, (b) use Read/Grep directly for answering questions, (c) notify the user that knowledge graph is unavailable, (d) suggest re-running generate-knowledge-graph.ts when convenient
+
+### General Principle
+Script failures should never crash the skill. Always handle errors gracefully and provide clear feedback to the user.
+</error-handling>
 
 <context-tracking>
 Conversation context is tracked per-node through mastery levels, not as a percentage. When the user is silent or asks "what else should I learn":
@@ -175,11 +189,11 @@ The knowledge graph provides the complete map. Uncovered nodes are those with `m
 
 - **L1 (Recognized)**: 用户提到了概念名称和一句话描述
 - **L2 (Referenced)**: 用户提到了 file:line 或具体代码位置
-- **L3 (Traced flow)**: 用户描述了一条完整的调用链
-- **L4 (Implemented)**: 用户完成了代码修改并测试通过
+- **L3 (Traced flow)**: 用户回答了 AI 提出的关于调用链的问题（如"描述从模块 X 到 Y 的流程"），AI 的问题和用户的回答共同构成证据
+- **L4 (Implemented)**: 用户确认完成了相关的编码练习
 - **L5 (Alternatives)**: 用户提出了替代方案并分析了 tradeoffs
 
-每个回答后，通过 mastery-evaluator.ts 更新对应节点的 mastery 和 evidence。
+每个回答后，更新对应节点的 mastery 和 evidence。
 </response-pattern>
 
 <visualization>
@@ -191,13 +205,15 @@ The knowledge graph provides the complete map. Uncovered nodes are those with `m
 
 使用方法：
 1. `npx tsx .claude/skills/learn-ccw/scripts/generate-knowledge-graph.ts`
-2. `node .claude/skills/learn-ccw/scripts/inject-knowledge-graph.cjs`
-3. 在浏览器中打开 `templates/learn-project.html`
+2. 在浏览器中打开 `templates/learn-project.html`
+
+The HTML loads `knowledge-graph.json` via `fetch()` dynamically. If your browser blocks `fetch()` for `file://` URLs, serve the directory with a local HTTP server (e.g., `npx serve .` or `python -m http.server`).
 </visualization>
 
 <recovery>
-When session context is near exhaustion:
-- Auto-save current mastery evidence to knowledge-graph.json
-- Preserve last N Q&A pairs for continuity
-- On next invocation, reload graph and show mastery state
+When session context is near exhaustion (token budget < 20%):
+1. **Flush evidence**: Write all uncommitted mastery evidence entries from this session into `knowledge-graph.json` using `Write` tool
+2. **Compress history**: Summarize the last 5 Q&A turns into a single compressed `<history>` block. Keep: topic covered, code anchors cited, mastery levels achieved per node
+3. **Save session state**: Write a session checkpoint to `.workflow/.scratchpad/learn-ccw-checkpoint.json` with covered_nodes[] and mastery_levels{}
+4. **On next invocation**: Read checkpoint if present, reload knowledge-graph.json, show current mastery state, prompt user to continue or start fresh
 </recovery>

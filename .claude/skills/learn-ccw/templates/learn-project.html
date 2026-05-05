@@ -532,10 +532,28 @@
 </div>
 
 <script>
-// ── INJECTION POINT ──
-// inject-knowledge-graph.cjs replaces this line with actual graph data.
-var GRAPH_DATA = null;
-// ── END INJECTION POINT ──
+// ── Data Loading: fetch knowledge-graph.json dynamically ──
+loadGraphFromFile();
+
+function loadGraphFromFile() {
+  var jsonPath = '../specs/knowledge-graph.json';
+  fetch(jsonPath)
+    .then(function(r) { if (!r.ok) throw new Error('Failed to load'); return r.json(); })
+    .then(function(data) { initGraph(data); })
+    .catch(function() { showEmptyState(); });
+}
+
+function initGraph(data) {
+  GRAPH_DATA = data;
+  renderGraph(data);
+  setupLegendFilters();
+  setupSearch(data.nodes);
+}
+
+function showEmptyState() {
+  document.querySelector('#graph-area').innerHTML =
+    '<div id="empty-state"><div>No knowledge graph data loaded.<br><br>Run:<br><code>npx tsx .claude/skills/learn-ccw/scripts/generate-knowledge-graph.ts</code><br><br>Then refresh this page.</div></div>';
+}
 
 // ── Theme Management ──
 const themeToggle = document.getElementById('theme-toggle');
@@ -653,16 +671,6 @@ function updateGraphVisibility() {
     const edgeMatch = activeFilters.edges.size === 0 || activeFilters.edges.has(d.relation);
     return (nodeMatch && edgeMatch) ? '' : 'none';
   });
-}
-
-// ── Main Initializer ──
-if (!GRAPH_DATA || !GRAPH_DATA.nodes) {
-  document.querySelector('#graph-area').innerHTML =
-    '<div id="empty-state"><div>No knowledge graph data loaded.<br><br>Run:<br><code>npx tsx .claude/skills/learn-ccw/scripts/generate-knowledge-graph.ts</code><br><br>Then:<br><code>node .claude/skills/learn-ccw/scripts/inject-knowledge-graph.cjs</code></div></div>';
-} else {
-  renderGraph(GRAPH_DATA);
-  setupLegendFilters();
-  setupSearch(GRAPH_DATA.nodes);
 }
 
 // ── D3 Graph Rendering ──

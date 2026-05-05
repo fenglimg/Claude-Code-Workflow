@@ -14,12 +14,22 @@
       ],
       "level": "L1",
       "mastery": {
-        "level": "L0",
-        "evidence": []
+        "level": "L1",
+        "evidence": [
+          {
+            "level": "L1",
+            "action": "Described 6-layer architecture (L0-L5), 8 modules, core data flow, and orchestrator metaphor",
+            "session_id": "learn-ccw-2026-05-05",
+            "timestamp": "2026-05-05T16:00:00+08:00",
+            "detail": "User correctly described CCW as JSON-driven multi-agent orchestration framework with CLI entry → Command → Tool Registry → Executor Core → Orchestration → Persistence layers"
+          }
+        ],
+        "next": "Level up to L2: Provide file:line reference for a specific layer (e.g., cli.ts: invokeNamedExport)"
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -36,8 +46,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -54,8 +65,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -72,8 +84,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -90,8 +103,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -108,8 +122,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -126,8 +141,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -144,8 +160,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -162,8 +179,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -180,8 +198,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -198,8 +217,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -216,8 +236,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -234,8 +255,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -252,8 +274,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -270,8 +293,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -284,12 +308,22 @@
       ],
       "level": "L3",
       "mastery": {
-        "level": "L0",
-        "evidence": []
+        "level": "L3",
+        "evidence": [
+          {
+            "level": "L3",
+            "action": "Traced full process chain: Claude Code → ccw cli → spawn → await → resolve",
+            "session_id": "learn-ccw-2026-05-05",
+            "timestamp": "2026-05-05T17:00:00+08:00",
+            "detail": "User understood: Claude Code spawns ccw cli as child process (B), ccw spawns gemini as child process (C), wraps in Promise, awaits 'close' event, collects CliOutputUnit[], resolves. Referenced cli-executor-core.ts:229-327"
+          }
+        ],
+        "next": "Level up to L4: Modify exec flow in cli-executor-core.ts and pass tests"
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -306,8 +340,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -320,12 +355,22 @@
       ],
       "level": "L3",
       "mastery": {
-        "level": "L0",
-        "evidence": []
+        "level": "L2",
+        "evidence": [
+          {
+            "level": "L2",
+            "action": "Compared three routing types with concrete config references",
+            "session_id": "learn-ccw-2026-05-05",
+            "timestamp": "2026-05-05T16:30:00+08:00",
+            "detail": "User correctly identified builtin=direct spawn, cli-wrapper=--settings file, api-endpoint=LiteLLM HTTP. Referenced cli-tools.json for type field config"
+          }
+        ],
+        "next": "Level up to L3: Trace end-to-end exec flow in cli-executor-core.ts"
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -342,8 +387,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -360,8 +406,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -378,8 +425,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -396,8 +444,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -414,8 +463,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -432,8 +482,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -450,8 +501,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -468,8 +520,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -486,8 +539,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -504,8 +558,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -522,8 +577,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -540,8 +596,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -558,8 +615,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -576,8 +634,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -594,8 +653,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -612,8 +672,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -630,8 +691,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -648,8 +710,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -666,8 +729,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -684,8 +748,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -702,8 +767,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -720,8 +786,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -738,8 +805,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -756,8 +824,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -774,8 +843,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -792,8 +862,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -810,8 +881,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -828,8 +900,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -846,8 +919,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -864,8 +938,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -882,8 +957,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -900,8 +976,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -918,8 +995,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -936,8 +1014,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     },
     {
@@ -954,8 +1033,9 @@
         "evidence": []
       },
       "_version": {
-        "last_read_commit": "",
-        "stale": false
+        "last_read_commit": "b426e31ab27e276208358b68b74da16a4372c0f8",
+        "stale": false,
+        "stale_files": []
       }
     }
   ],

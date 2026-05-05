@@ -67,73 +67,6 @@ function saveGraph(graphPath: string, graph: KnowledgeGraph): void {
   fs.writeFileSync(graphPath, JSON.stringify(graph, null, 2), "utf-8");
 }
 
-// ── Mastery Assessment ──
-
-/**
- * Analyze conversation text and determine what mastery levels are demonstrated
- * for each mentioned node.
- */
-export function assessLevelsFromConversation(
-  text: string
-): Array<{ nodeId: string; level: MasteryLevel; detail: string }> {
-  const results: Array<{ nodeId: string; level: MasteryLevel; detail: string }> = [];
-
-  // Match node IDs in the text (e.g., "L1-three-way-routing", "three-way routing")
-  const nodeMentions = text.match(/[a-zA-Z0-9_-]+(?:routing|executor|pipeline|module|chain|flow|loop|queue|skill|agent|memory|session|hook|mcp|cli)/gi);
-
-  if (!nodeMentions) return results;
-
-  const uniqueMatches = [...new Set(nodeMentions.map((m) => m.toLowerCase()))];
-
-  for (const match of uniqueMatches) {
-    const nodeId = match.replace(/[^a-zA-Z0-9_-]/g, "-");
-
-    // Determine level based on conversation patterns
-    let level: MasteryLevel = "L1";
-    let detail = "";
-
-    // L5: Proposes alternatives with tradeoffs
-    if (
-      /\b(alternative|tradeoff|instead of|rather than|pros? and cons?|compare|vs\.?)\b/i.test(text) &&
-      /\b(because|since|reason|advantage|disadvantage|drawback|benefit)\b/i.test(text)
-    ) {
-      level = "L5";
-      detail = "User proposed alternatives with tradeoff analysis";
-    }
-    // L4: Completed code changes + tests
-    else if (
-      /\b(implemented|created|wrote|added|modified|changed|fixed|refactored)\b/i.test(text) &&
-      /\b(test|spec|schema|code|function|class|file)\b/i.test(text)
-    ) {
-      level = "L4";
-      detail = "User described completing code changes";
-    }
-    // L3: Traces end-to-end call flow
-    else if (
-      /(?:call flow|call chain|execution path|end.to.end|traces?|pipeline|sequence|step\s+\d)/i.test(text)
-    ) {
-      level = "L3";
-      detail = "User traced end-to-end call flow";
-    }
-    // L2: Provides file:line reference
-    else if (
-      /(?:file:\s*\w+\.\w+|:\d+|line\s+\d+|located\s+in\s+\S+\.\w+)/i.test(text)
-    ) {
-      level = "L2";
-      detail = "User provided file:line reference";
-    }
-    // L1: Repeats concept name + description
-    else {
-      level = "L1";
-      detail = "User demonstrated concept recognition";
-    }
-
-    results.push({ nodeId: match, level, detail });
-  }
-
-  return results;
-}
-
 // ── Mastery Update ──
 
 /**
@@ -198,27 +131,47 @@ export function suggestNextStep(currentLevel: MasteryLevel): string {
   return `Level up to ${nextLevel}: ${LEVEL_THRESHOLDS[nextLevel]}`;
 }
 
+// ── Evidence Append API ──
+
+/**
+ * Append evidence for a specific node in the knowledge graph.
+ * AI calls this to record mastery evidence entries without regex auto-assessment.
+ * Loads the graph, records evidence via updateMastery, saves, and returns result.
+ */
+export function appendEvidence(
+  graphPath: string,
+  nodeId: string,
+  level: MasteryLevel,
+  action: string,
+  sessionId: string
+): { nodeId: string; level: MasteryLevel; leveledUp: boolean } {
+  const graph = loadGraph(graphPath);
+  const result = updateMastery(graph, nodeId, sessionId, level, action);
+  saveGraph(graphPath, graph);
+  return {
+    nodeId: result.node.id,
+    level: result.node.mastery?.level || level,
+    leveledUp: result.leveledUp,
+  };
+}
+
 // ── Session End Handler ──
 
 /**
- * On session end, update the in-memory graph with accumulated evidence.
+ * On session end, consolidate evidence entries in the graph.
+ * Does not auto-assess; only performs cleanup and validation.
  */
 export function finalizeSession(
   graphPath: string,
-  sessionId: string,
-  conversationSummary: string
+  sessionId: string
 ): KnowledgeGraph {
   const graph = loadGraph(graphPath);
-  const assessments = assessLevelsFromConversation(conversationSummary);
-
-  for (const assessment of assessments) {
-    try {
-      updateMastery(graph, assessment.nodeId, sessionId, assessment.level, assessment.detail);
-    } catch {
-      // Node not found, skip
+  // Consolidate: clean up empty evidence arrays
+  for (const node of graph.nodes) {
+    if (node.mastery?.evidence && node.mastery.evidence.length === 0) {
+      delete node.mastery.evidence;
     }
   }
-
   saveGraph(graphPath, graph);
   return graph;
 }
@@ -228,13 +181,13 @@ export function finalizeSession(
 function printHelp(): void {
   console.error(`
 Usage:
-  mastery-evaluator.ts assess <text>         -- Assess mastery level from conversation text
   mastery-evaluator.ts update <node-id> <level> [detail] [session-id]
                                              -- Update mastery for a node
-  mastery-evaluator.ts finalize <session-id> [summary-file]
-                                             -- Finalize session with accumulated evidence
+  mastery-evaluator.ts append-evidence <node-id> <level> <action> [session-id]
+                                             -- Append evidence entry for a node
+  mastery-evaluator.ts finalize <session-id>
+                                             -- Finalize session (consolidate evidence)
   mastery-evaluator.ts next <level>          -- Show suggested next step for a level
-  mastery-evaluator.ts analyze <file-path>   -- Analyze conversation log file and update graph
 `);
 }
 
@@ -251,17 +204,6 @@ function main(): void {
   }
 
   switch (command) {
-    case "assess": {
-      const text = args.slice(1).join(" ");
-      if (!text) {
-        printHelp();
-        process.exit(1);
-      }
-      const results = assessLevelsFromConversation(text);
-      console.log(JSON.stringify(results, null, 2));
-      break;
-    }
-
     case "update": {
       const [, nodeId, levelArg, detail, sessionId] = args;
       if (!nodeId || !levelArg) {
@@ -297,18 +239,32 @@ function main(): void {
       break;
     }
 
+    case "append-evidence": {
+      const nodeId = args[1];
+      const levelArg = args[2];
+      const action = args[3] || "Manual evidence entry";
+      const sessionId = args[4] || "cli";
+      if (!nodeId || !levelArg) {
+        printHelp();
+        process.exit(1);
+      }
+      const level = levelArg.toUpperCase() as MasteryLevel;
+      if (!LEVEL_ORDER.includes(level)) {
+        console.error(`Invalid level: ${levelArg}. Must be L1-L5.`);
+        process.exit(1);
+      }
+      const result = appendEvidence(graphPath, nodeId, level, action, sessionId);
+      console.log(JSON.stringify(result, null, 2));
+      break;
+    }
+
     case "finalize": {
       const sessionId = args[1];
-      const summaryFile = args[2];
       if (!sessionId) {
         printHelp();
         process.exit(1);
       }
-      let summary = "";
-      if (summaryFile) {
-        summary = readFileSafe(path.resolve(summaryFile)) || "";
-      }
-      const graph = finalizeSession(graphPath, sessionId, summary);
+      const graph = finalizeSession(graphPath, sessionId);
       console.log(
         JSON.stringify(
           {
@@ -330,23 +286,6 @@ function main(): void {
       }
       const level = levelArg.toUpperCase() as MasteryLevel;
       console.log(suggestNextStep(level));
-      break;
-    }
-
-    case "analyze": {
-      const filePath = args[1];
-      if (!filePath) {
-        printHelp();
-        process.exit(1);
-      }
-      const content = readFileSafe(path.resolve(filePath));
-      if (!content) {
-        console.error(`Cannot read file: ${filePath}`);
-        process.exit(1);
-      }
-      const sessionId = `analyze-${path.basename(filePath, path.extname(filePath))}`;
-      finalizeSession(graphPath, sessionId, content);
-      console.log(`[mastery-evaluator] Analyzed ${filePath}, graph updated.`);
       break;
     }
 
