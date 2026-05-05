@@ -1,0 +1,212 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "KnowledgeGraph",
+  "description": "Schema for the CCW learn-ccw knowledge graph data structure. Tracks nodes (concepts/modules/mechanisms), edges (relationships), mastery levels, version anchoring, and user annotations.",
+  "type": "object",
+  "required": ["graph_version", "project_root", "generated_from_commit", "nodes", "edges"],
+  "properties": {
+    "graph_version": {
+      "description": "Semantic version of the knowledge graph schema itself",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "default": "1.0.0"
+    },
+    "project_root": {
+      "description": "Absolute or relative path to the project root this graph describes",
+      "type": "string"
+    },
+    "generated_from_commit": {
+      "description": "Git commit hash from which this graph was generated (git rev-parse HEAD)",
+      "type": "string",
+      "minLength": 40,
+      "maxLength": 40
+    },
+    "generated_at": {
+      "description": "ISO-8601 timestamp when this graph was generated",
+      "type": "string",
+      "format": "date-time"
+    },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Node" },
+      "minItems": 1
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Edge" }
+    }
+  },
+  "definitions": {
+    "Node": {
+      "type": "object",
+      "description": "A single concept, module, or mechanism in the knowledge graph",
+      "required": ["id", "label", "type", "description"],
+      "properties": {
+        "id": {
+          "description": "Unique identifier for the node (e.g., 'L1-three-way-routing')",
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "label": {
+          "description": "Human-readable display name (e.g., '3-Way Routing')",
+          "type": "string"
+        },
+        "type": {
+          "description": "Category of the node",
+          "type": "string",
+          "enum": ["concept", "module", "mechanism"]
+        },
+        "description": {
+          "description": "Brief description of what this node represents",
+          "type": "string"
+        },
+        "files": {
+          "description": "File paths relevant to this node, relative to project_root",
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "depends_on": {
+          "description": "IDs of nodes this node depends on (prerequisite knowledge)",
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "level": {
+          "description": "Knowledge graph tier level (L0-L6)",
+          "type": "string",
+          "enum": ["L0", "L1", "L2", "L3", "L4", "L5", "L6"]
+        },
+        "mastery": {
+          "$ref": "#/definitions/Mastery"
+        },
+        "annotations": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Annotation" }
+        },
+        "_version": {
+          "$ref": "#/definitions/VersionInfo"
+        }
+      }
+    },
+    "Edge": {
+      "type": "object",
+      "description": "A directed relationship between two nodes",
+      "required": ["from", "to", "relation"],
+      "properties": {
+        "from": {
+          "description": "Source node ID",
+          "type": "string"
+        },
+        "to": {
+          "description": "Target node ID",
+          "type": "string"
+        },
+        "relation": {
+          "description": "Type of relationship",
+          "type": "string",
+          "enum": ["depends_on", "part_of", "references", "implements", "extends", "related_to"]
+        }
+      }
+    },
+    "Mastery": {
+      "type": "object",
+      "description": "User mastery tracking for this node",
+      "properties": {
+        "level": {
+          "description": "Current mastery level (L1-L5, or L0 for uncovered)",
+          "type": "string",
+          "enum": ["L0", "L1", "L2", "L3", "L4", "L5"],
+          "default": "L0"
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/EvidenceEntry" }
+        },
+        "next": {
+          "description": "Suggested action to level up",
+          "type": "string"
+        }
+      },
+      "required": ["level"]
+    },
+    "EvidenceEntry": {
+      "type": "object",
+      "description": "A record of user demonstrating mastery at a certain level",
+      "required": ["level", "action", "session_id", "timestamp"],
+      "properties": {
+        "level": {
+          "description": "Mastery level this evidence supports",
+          "type": "string",
+          "enum": ["L1", "L2", "L3", "L4", "L5"]
+        },
+        "action": {
+          "description": "What the user did to demonstrate mastery",
+          "type": "string"
+        },
+        "session_id": {
+          "description": "Session ID where the evidence was observed",
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "When the evidence was recorded",
+          "type": "string",
+          "format": "date-time"
+        },
+        "detail": {
+          "description": "Optional additional context about the evidence",
+          "type": "string"
+        }
+      }
+    },
+    "Annotation": {
+      "type": "object",
+      "description": "User annotation attached to a node",
+      "required": ["author", "timestamp", "text"],
+      "properties": {
+        "author": {
+          "description": "Who created this annotation",
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "When the annotation was created",
+          "type": "string",
+          "format": "date-time"
+        },
+        "text": {
+          "description": "Annotation content",
+          "type": "string"
+        }
+      }
+    },
+    "VersionInfo": {
+      "type": "object",
+      "description": "Git version anchoring and staleness tracking for a node",
+      "required": ["last_read_commit", "stale"],
+      "properties": {
+        "last_read_commit": {
+          "description": "Git commit hash when this node's files were last verified",
+          "type": "string",
+          "minLength": 40,
+          "maxLength": 40
+        },
+        "last_verified_at": {
+          "description": "Timestamp of last verification",
+          "type": "string",
+          "format": "date-time"
+        },
+        "stale": {
+          "description": "Whether tracked files have changed since last_read_commit",
+          "type": "boolean",
+          "default": false
+        },
+        "stale_files": {
+          "description": "List of files that changed since last verification",
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

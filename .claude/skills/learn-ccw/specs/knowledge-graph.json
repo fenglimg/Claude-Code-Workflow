@@ -1,0 +1,1189 @@
+{
+  "graph_version": "1.0.0",
+  "project_root": "C:\\Project\\Claude-Code-Workflow",
+  "generated_from_commit": "227244f19bf0a57696f6f2f940cb6086d01ffd6b",
+  "generated_at": "2026-05-05T12:43:20.714Z",
+  "nodes": [
+    {
+      "id": "doc-01-overview",
+      "label": "CCW 架构全景",
+      "type": "concept",
+      "description": "Documentation: 01-overview.md",
+      "files": [
+        "docs\\architecture\\01-overview.md"
+      ],
+      "level": "L1",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-01-overview-系统定位",
+      "label": "系统定位",
+      "type": "concept",
+      "description": "CCW (Claude Code Workflow) v7.3.13 是一个 **JSON 驱动的多 Agent 开发框架**，通过统一的 CLI 编排层，将 Gemini/Qwen/Codex/Claude/OpenCode 五种 AI 工具整合为可组合的工作流管道。",
+      "files": [
+        "docs\\architecture\\01-overview.md"
+      ],
+      "level": "L1",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-01-overview-6-层架构",
+      "label": "6 层架构",
+      "type": "concept",
+      "description": "6 层架构",
+      "files": [
+        "docs\\architecture\\01-overview.md"
+      ],
+      "level": "L1",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-01-overview-核心数据流",
+      "label": "核心数据流",
+      "type": "concept",
+      "description": "核心数据流",
+      "files": [
+        "docs\\architecture\\01-overview.md"
+      ],
+      "level": "L1",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-01-overview-规模化快照",
+      "label": "规模化快照",
+      "type": "concept",
+      "description": "规模化快照",
+      "files": [
+        "docs\\architecture\\01-overview.md"
+      ],
+      "level": "L1",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-01-overview-8-大模块",
+      "label": "8 大模块",
+      "type": "concept",
+      "description": "8 大模块",
+      "files": [
+        "docs\\architecture\\01-overview.md"
+      ],
+      "level": "L1",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-01-overview-6-个集成点",
+      "label": "6 个集成点",
+      "type": "concept",
+      "description": "6 个集成点",
+      "files": [
+        "docs\\architecture\\01-overview.md"
+      ],
+      "level": "L1",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-01-overview-12-个架构模式",
+      "label": "12 个架构模式",
+      "type": "concept",
+      "description": "1. **Lazy-Import Command** — `invokeNamedExport()` 零成本按需加载",
+      "files": [
+        "docs\\architecture\\01-overview.md"
+      ],
+      "level": "L1",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-01-overview-9-条架构约束",
+      "label": "9 条架构约束",
+      "type": "concept",
+      "description": "1. native addon 需要 rebuild (better-sqlite3, node-pty)",
+      "files": [
+        "docs\\architecture\\01-overview.md"
+      ],
+      "level": "L1",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-02-module-map",
+      "label": "模块关系图",
+      "type": "module",
+      "description": "Documentation: 02-module-map.md",
+      "files": [
+        "docs\\architecture\\02-module-map.md"
+      ],
+      "level": "L2",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-02-module-map-模块依赖拓扑",
+      "label": "模块依赖拓扑",
+      "type": "concept",
+      "description": "模块依赖拓扑",
+      "files": [
+        "docs\\architecture\\02-module-map.md"
+      ],
+      "level": "L2",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-02-module-map-模块职责矩阵",
+      "label": "模块职责矩阵",
+      "type": "concept",
+      "description": "模块职责矩阵",
+      "files": [
+        "docs\\architecture\\02-module-map.md"
+      ],
+      "level": "L2",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-02-module-map-依赖规则",
+      "label": "依赖规则",
+      "type": "concept",
+      "description": "- **无循环依赖** — 所有模块依赖单向流动",
+      "files": [
+        "docs\\architecture\\02-module-map.md"
+      ],
+      "level": "L2",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-02-module-map-6-个集成点详情",
+      "label": "6 个集成点详情",
+      "type": "concept",
+      "description": "### 1. MCP Server (inbound)",
+      "files": [
+        "docs\\architecture\\02-module-map.md"
+      ],
+      "level": "L2",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-02-module-map-配置加载层次",
+      "label": "配置加载层次",
+      "type": "concept",
+      "description": "**配置策略**: GLOBAL ONLY — 无项目级 `.ccw/` 覆盖。所有配置在 `~/.claude/`。",
+      "files": [
+        "docs\\architecture\\02-module-map.md"
+      ],
+      "level": "L2",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-03-core-engine",
+      "label": "核心引擎：CLI → Command → Registry → Executor",
+      "type": "mechanism",
+      "description": "Documentation: 03-core-engine.md",
+      "files": [
+        "docs\\architecture\\03-core-engine.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-03-core-engine-链路总览",
+      "label": "链路总览",
+      "type": "concept",
+      "description": "链路总览",
+      "files": [
+        "docs\\architecture\\03-core-engine.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-03-core-engine-三路路由详解",
+      "label": "三路路由详解",
+      "type": "concept",
+      "description": "### builtin (直接 spawn)",
+      "files": [
+        "docs\\architecture\\03-core-engine.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-03-core-engine-ir-output-pipeline",
+      "label": "IR Output Pipeline",
+      "type": "concept",
+      "description": "IR Output Pipeline",
+      "files": [
+        "docs\\architecture\\03-core-engine.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-03-core-engine-windows-兼容层",
+      "label": "Windows 兼容层",
+      "type": "concept",
+      "description": "Windows 兼容层",
+      "files": [
+        "docs\\architecture\\03-core-engine.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-03-core-engine-关键文件索引",
+      "label": "关键文件索引",
+      "type": "concept",
+      "description": "关键文件索引",
+      "files": [
+        "docs\\architecture\\03-core-engine.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-04-orchestration",
+      "label": "编排系统：Chain / Flow / Loop / Queue",
+      "type": "mechanism",
+      "description": "Documentation: 04-orchestration.md",
+      "files": [
+        "docs\\architecture\\04-orchestration.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-04-orchestration-四种编排机制对比",
+      "label": "四种编排机制对比",
+      "type": "concept",
+      "description": "---",
+      "files": [
+        "docs\\architecture\\04-orchestration.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-04-orchestration-1-chain-loader-渐进式-skill-链",
+      "label": "1. Chain Loader — 渐进式 Skill 链",
+      "type": "concept",
+      "description": "### 类型系统",
+      "files": [
+        "docs\\architecture\\04-orchestration.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-04-orchestration-2-flow-executor-dag-管道执行",
+      "label": "2. Flow Executor — DAG 管道执行",
+      "type": "concept",
+      "description": "### Kahn 拓扑排序",
+      "files": [
+        "docs\\architecture\\04-orchestration.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-04-orchestration-3-loop-manager-迭代序列执行",
+      "label": "3. Loop Manager — 迭代序列执行",
+      "type": "concept",
+      "description": "### 核心循环",
+      "files": [
+        "docs\\architecture\\04-orchestration.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-04-orchestration-4-queue-scheduler-后台任务调度",
+      "label": "4. Queue Scheduler — 后台任务调度",
+      "type": "concept",
+      "description": "### 状态机",
+      "files": [
+        "docs\\architecture\\04-orchestration.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-05-skill-agent-system",
+      "label": "Skill + Agent 工作流体系",
+      "type": "concept",
+      "description": "Documentation: 05-skill-agent-system.md",
+      "files": [
+        "docs\\architecture\\05-skill-agent-system.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-05-skill-agent-system-skill-系统",
+      "label": "Skill 系统",
+      "type": "concept",
+      "description": "### 4 源加载",
+      "files": [
+        "docs\\architecture\\05-skill-agent-system.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-05-skill-agent-system-trigger-conditions",
+      "label": "Trigger Conditions",
+      "type": "concept",
+      "description": "- 关键词: \"lite-plan\", \"快速任务\", ...",
+      "files": [
+        "docs\\architecture\\05-skill-agent-system.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-05-skill-agent-system-operation-modes",
+      "label": "Operation Modes",
+      "type": "concept",
+      "description": "### Mode 1: ...",
+      "files": [
+        "docs\\architecture\\05-skill-agent-system.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-05-skill-agent-system-execution-flow",
+      "label": "Execution Flow",
+      "type": "concept",
+      "description": "...",
+      "files": [
+        "docs\\architecture\\05-skill-agent-system.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-05-skill-agent-system-agent-系统",
+      "label": "Agent 系统",
+      "type": "concept",
+      "description": "### 双格式定义",
+      "files": [
+        "docs\\architecture\\05-skill-agent-system.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-05-skill-agent-system-command-系统",
+      "label": "Command 系统",
+      "type": "concept",
+      "description": "### 自动发现",
+      "files": [
+        "docs\\architecture\\05-skill-agent-system.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-06-memory-infra",
+      "label": "记忆系统 + 服务基础设施",
+      "type": "concept",
+      "description": "Documentation: 06-memory-infra.md",
+      "files": [
+        "docs\\architecture\\06-memory-infra.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-06-memory-infra-记忆系统",
+      "label": "记忆系统",
+      "type": "concept",
+      "description": "### RRF 融合搜索 (unified-memory-service.ts)",
+      "files": [
+        "docs\\architecture\\06-memory-infra.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-06-memory-infra-http-server-基础设施",
+      "label": "HTTP Server 基础设施",
+      "type": "concept",
+      "description": "### 路由架构",
+      "files": [
+        "docs\\architecture\\06-memory-infra.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-06-memory-infra-mcp-server",
+      "label": "MCP Server",
+      "type": "concept",
+      "description": "### 架构",
+      "files": [
+        "docs\\architecture\\06-memory-infra.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-06-memory-infra-hook-生命周期",
+      "label": "Hook 生命周期",
+      "type": "concept",
+      "description": "### 5 个 Hook 模块",
+      "files": [
+        "docs\\architecture\\06-memory-infra.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-06-memory-infra-会话系统",
+      "label": "会话系统",
+      "type": "concept",
+      "description": "### 双会话架构",
+      "files": [
+        "docs\\architecture\\06-memory-infra.md"
+      ],
+      "level": "L3",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-07-execution-flows",
+      "label": "关键执行流程",
+      "type": "concept",
+      "description": "Documentation: 07-execution-flows.md",
+      "files": [
+        "docs\\architecture\\07-execution-flows.md"
+      ],
+      "level": "L2",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-07-execution-flows-流程-1-cli-执行-最核心",
+      "label": "流程 1: CLI 执行 (最核心)",
+      "type": "concept",
+      "description": "流程 1: CLI 执行 (最核心)",
+      "files": [
+        "docs\\architecture\\07-execution-flows.md"
+      ],
+      "level": "L2",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-07-execution-flows-流程-2-flow-dag-执行",
+      "label": "流程 2: Flow DAG 执行",
+      "type": "concept",
+      "description": "流程 2: Flow DAG 执行",
+      "files": [
+        "docs\\architecture\\07-execution-flows.md"
+      ],
+      "level": "L2",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-07-execution-flows-流程-3-chain-渐进式加载",
+      "label": "流程 3: Chain 渐进式加载",
+      "type": "concept",
+      "description": "流程 3: Chain 渐进式加载",
+      "files": [
+        "docs\\architecture\\07-execution-flows.md"
+      ],
+      "level": "L2",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-07-execution-flows-流程-4-mcp-工具调用",
+      "label": "流程 4: MCP 工具调用",
+      "type": "concept",
+      "description": "流程 4: MCP 工具调用",
+      "files": [
+        "docs\\architecture\\07-execution-flows.md"
+      ],
+      "level": "L2",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-07-execution-flows-流程-5-skill-自动发现",
+      "label": "流程 5: Skill 自动发现",
+      "type": "concept",
+      "description": "流程 5: Skill 自动发现",
+      "files": [
+        "docs\\architecture\\07-execution-flows.md"
+      ],
+      "level": "L2",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-07-execution-flows-流程-6-记忆提取-后台",
+      "label": "流程 6: 记忆提取 (后台)",
+      "type": "concept",
+      "description": "---",
+      "files": [
+        "docs\\architecture\\07-execution-flows.md"
+      ],
+      "level": "L2",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-07-execution-flows-调用链汇总",
+      "label": "调用链汇总",
+      "type": "concept",
+      "description": "调用链汇总",
+      "files": [
+        "docs\\architecture\\07-execution-flows.md"
+      ],
+      "level": "L2",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-08-design-decisions",
+      "label": "设计决策与架构约束",
+      "type": "concept",
+      "description": "Documentation: 08-design-decisions.md",
+      "files": [
+        "docs\\architecture\\08-design-decisions.md"
+      ],
+      "level": "L1",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-08-design-decisions-关键设计决策",
+      "label": "关键设计决策",
+      "type": "concept",
+      "description": "### 决策 1: 配置驱动的三路路由",
+      "files": [
+        "docs\\architecture\\08-design-decisions.md"
+      ],
+      "level": "L1",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-08-design-decisions-9-条架构约束",
+      "label": "9 条架构约束",
+      "type": "concept",
+      "description": "---",
+      "files": [
+        "docs\\architecture\\08-design-decisions.md"
+      ],
+      "level": "L1",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-08-design-decisions-已知架构风险",
+      "label": "已知架构风险",
+      "type": "concept",
+      "description": "---",
+      "files": [
+        "docs\\architecture\\08-design-decisions.md"
+      ],
+      "level": "L1",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    },
+    {
+      "id": "doc-08-design-decisions-未解决的架构问题",
+      "label": "未解决的架构问题",
+      "type": "concept",
+      "description": "1. **三种编排引擎是否合并？** — Chains/Flows/Loops 能力重叠，是否统一为单一 DAG + 策略模式？",
+      "files": [
+        "docs\\architecture\\08-design-decisions.md"
+      ],
+      "level": "L1",
+      "mastery": {
+        "level": "L0",
+        "evidence": []
+      },
+      "_version": {
+        "last_read_commit": "",
+        "stale": false
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "doc-01-overview-系统定位",
+      "to": "doc-01-overview",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-01-overview-6-层架构",
+      "to": "doc-01-overview",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-01-overview-核心数据流",
+      "to": "doc-01-overview",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-01-overview-规模化快照",
+      "to": "doc-01-overview",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-01-overview-8-大模块",
+      "to": "doc-01-overview",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-01-overview-6-个集成点",
+      "to": "doc-01-overview",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-01-overview-12-个架构模式",
+      "to": "doc-01-overview",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-01-overview-9-条架构约束",
+      "to": "doc-01-overview",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-02-module-map-模块依赖拓扑",
+      "to": "doc-02-module-map",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-02-module-map-模块职责矩阵",
+      "to": "doc-02-module-map",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-02-module-map-依赖规则",
+      "to": "doc-02-module-map",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-02-module-map-6-个集成点详情",
+      "to": "doc-02-module-map",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-02-module-map-配置加载层次",
+      "to": "doc-02-module-map",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-03-core-engine-链路总览",
+      "to": "doc-03-core-engine",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-03-core-engine-三路路由详解",
+      "to": "doc-03-core-engine",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-03-core-engine-ir-output-pipeline",
+      "to": "doc-03-core-engine",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-03-core-engine-windows-兼容层",
+      "to": "doc-03-core-engine",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-03-core-engine-关键文件索引",
+      "to": "doc-03-core-engine",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-04-orchestration-四种编排机制对比",
+      "to": "doc-04-orchestration",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-04-orchestration-1-chain-loader-渐进式-skill-链",
+      "to": "doc-04-orchestration",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-04-orchestration-2-flow-executor-dag-管道执行",
+      "to": "doc-04-orchestration",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-04-orchestration-3-loop-manager-迭代序列执行",
+      "to": "doc-04-orchestration",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-04-orchestration-4-queue-scheduler-后台任务调度",
+      "to": "doc-04-orchestration",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-05-skill-agent-system-skill-系统",
+      "to": "doc-05-skill-agent-system",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-05-skill-agent-system-trigger-conditions",
+      "to": "doc-05-skill-agent-system",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-05-skill-agent-system-operation-modes",
+      "to": "doc-05-skill-agent-system",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-05-skill-agent-system-execution-flow",
+      "to": "doc-05-skill-agent-system",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-05-skill-agent-system-agent-系统",
+      "to": "doc-05-skill-agent-system",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-05-skill-agent-system-command-系统",
+      "to": "doc-05-skill-agent-system",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-06-memory-infra-记忆系统",
+      "to": "doc-06-memory-infra",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-06-memory-infra-http-server-基础设施",
+      "to": "doc-06-memory-infra",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-06-memory-infra-mcp-server",
+      "to": "doc-06-memory-infra",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-06-memory-infra-hook-生命周期",
+      "to": "doc-06-memory-infra",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-06-memory-infra-会话系统",
+      "to": "doc-06-memory-infra",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-07-execution-flows-流程-1-cli-执行-最核心",
+      "to": "doc-07-execution-flows",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-07-execution-flows-流程-2-flow-dag-执行",
+      "to": "doc-07-execution-flows",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-07-execution-flows-流程-3-chain-渐进式加载",
+      "to": "doc-07-execution-flows",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-07-execution-flows-流程-4-mcp-工具调用",
+      "to": "doc-07-execution-flows",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-07-execution-flows-流程-5-skill-自动发现",
+      "to": "doc-07-execution-flows",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-07-execution-flows-流程-6-记忆提取-后台",
+      "to": "doc-07-execution-flows",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-07-execution-flows-调用链汇总",
+      "to": "doc-07-execution-flows",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-08-design-decisions-关键设计决策",
+      "to": "doc-08-design-decisions",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-08-design-decisions-9-条架构约束",
+      "to": "doc-08-design-decisions",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-08-design-decisions-已知架构风险",
+      "to": "doc-08-design-decisions",
+      "relation": "part_of"
+    },
+    {
+      "from": "doc-08-design-decisions-未解决的架构问题",
+      "to": "doc-08-design-decisions",
+      "relation": "part_of"
+    }
+  ]
+}
